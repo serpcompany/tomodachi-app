@@ -125,6 +125,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 n += 1
                 let url = URL(fileURLWithPath: dir).appendingPathComponent(String(format: "snap-%03d.png", n))
                 try? rep.representation(using: .png, properties: [:])?.write(to: url)
+                // Popovers (e.g. the Explain panel) live in their own windows
+                for (i, w) in NSApp.windows.enumerated()
+                where w.isVisible && String(describing: type(of: w)).contains("Popover") {
+                    guard let pv = w.contentView, let prep = pv.bitmapImageRepForCachingDisplay(in: pv.bounds) else { continue }
+                    pv.cacheDisplay(in: pv.bounds, to: prep)
+                    let purl = URL(fileURLWithPath: dir).appendingPathComponent(String(format: "popover%d-%03d.png", i, n))
+                    try? prep.representation(using: .png, properties: [:])?.write(to: purl)
+                }
                 // TOMO_OPEN_SETTINGS=1 also captures the Settings window
                 if let sv = self?.settingsWindow?.contentView, self?.settingsWindow?.isVisible == true,
                    let srep = sv.bitmapImageRepForCachingDisplay(in: sv.bounds) {

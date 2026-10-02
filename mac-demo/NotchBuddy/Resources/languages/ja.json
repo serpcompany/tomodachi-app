@@ -49,7 +49,8 @@
     "rules": [
       "Hiragana and katakana only. No kanji and no romaji in \"say\".",
       "Only use words a Japanese 3-year-old knows.",
-      "When confused, sound like a child: ん？ わかんない…"
+      "When confused, sound like a child: ん？ わかんない…",
+      "Write like a children's picture book: put a space between words (分かち書き), e.g. \"ねこ すき？\"."
     ]
   },
   "stages": [
@@ -594,5 +595,6 @@
     "もういっかい",
     "もう一回",
     "なんて"
-  ]
+  ],
+  "dictionarySearchURL": "https://zenbujapanese.com/dictionary/search/{q}/"
 }

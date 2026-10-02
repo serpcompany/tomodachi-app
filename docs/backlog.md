@@ -34,6 +34,9 @@ Everything we want, with its status. When something moves, update it here in the
 | Better child-like voice that ages with Tomo | Researched | [voices.md](research/voices.md): **VOICEVOX** (free, offline, can be embedded; credit like "VOICEVOX:<character>" required). Next: a one-day listening test, then pre-render the fixed stage 1–2 lines. Apple's voices are adult-only and can't be used for pre-rendered clips (license). No cloud provider has a Japanese child voice. Later: a custom voice from a hired actor |
 | Plug in the Zenbu offline dictionary system to check answers; AI only for leftovers | Researched | [answer-evaluation.md](research/answer-evaluation.md). Don't polish the current keyword matcher |
 | Pick the AI model with a small test set; control cost | Researched | [ai-models-and-costs.md](research/ai-models-and-costs.md): recommends Claude Haiku 4.5 (about $0.38 per active 3さい learner per month at 70% offline). Cheaper options: Gemini 3.1 Flash-Lite and GPT-6 Luna (reasoning off). Free on-device: Apple Foundation Models (macOS 26+). We run `gpt-5.4-mini` because that's the key we have. Decide with the doc's 32-line test set. Heads-up: Haiku 4.5's retirement window opens 2026-10-15 |
+| Click a word → word card; drag across words → "I don't understand" → explanation; Explain button (meaning, key parts, tip, ask about a part, "say it simpler") | Built (prototype) | The word card shows an AI meaning in context, the Mac's built-in dictionary (Dictionary Services, offline), Open in Dictionary, and Open in Zenbu. Still to come: the Zenbu dictionary with Language Reference IDs, pitch, ✓ Known, and underlined unknown words |
+| Tap any word for a dictionary card (like the Zenbu app's Player): linked words in Tomo's lines, unknown words underlined, card with reading, pitch, meaning in your language, 🔊, grown-up word, ✓ Known, and Open in Zenbu | Next (full version) | [user-journey.md](user-journey.md) §4. Japanese uses the Zenbu dictionary and Language Reference IDs. Known words shared with the Zenbu apps |
+| Learning modes + a mode scheduler | Researched | [learning-modes.md](research/learning-modes.md). MVP: Teach a new word, Picture choice, Do what Tomo says (6–8 verbs), Listen and translate (sound only, tap a meaning), What's this? (say or type it), Fix Tomo's mistake, Conversation. Scheduler: pick words first (due first, ≤1 new per visit, ≤10 per day), then a mode from each word's state (new → teach; met → recognize; known → produce; can say → conversation or fix-the-mistake). Ages unlock modes; never the same mode twice in a row; 30 s per visit |
 | 2さい reply bubbles + "say this word" (between tapping and free talk) | Next | The answer ladder in [user-journey.md](user-journey.md) §3 |
 | Native-speaker review of the language packs (ja, es) | Next | Both are drafts (`reviewedByNativeSpeaker: false`) |
 | Save progress per language pair; one Tomo per target language | Next | Key the learner store by (learner, target) |
@@ -47,7 +50,6 @@ Everything we want, with its status. When something moves, update it here in the
 
 ## Ideas (later)
 
-- **More learning modes** (teach a new word, listen and translate, "what's this?", Simon Says, Tomo makes a mistake…): research in progress in `research/learning-modes.md`.
 
 - **Character options.** Notchi and Buddi (other open notch companions) are GPL-3.0, so they can't go in a closed app. Real options:
   - variants from our own engine (shape, colors, accessories; maybe one per target language)
@@ -73,6 +75,7 @@ Everything we want, with its status. When something moves, update it here in the
 
 ## Open product questions
 
+- Dictionaries for non-Japanese targets: for a Japanese speaker learning English, the Zenbu dictionary works in reverse (JMdict's English meanings → Japanese words), but it's not an English dictionary. Which source for English and Spanish word cards (licenses)?
 - Coucou's character engine: Tomo's look is ours, but its expressions and animations come from Coucou's Mochi engine. Ask the author for permission before a wide beta, or finish issue #1.
 - AI for testers: they bring their own key or get offline replies. Shared AI needs a small server that holds our key (never ship a key inside the app).
 

@@ -69,7 +69,21 @@
     "ai.loading": "Loading models…",
     "ai.count": "{n} models.",
     "ai.asking": "Asking Tomo…",
-    "settings.tryAge": "Try another age (testing)"
+    "settings.tryAge": "Try another age (testing)",
+    "explain": "explain",
+    "explain.loading": "Explaining…",
+    "explain.askPlaceholder": "Which part? e.g. like to do",
+    "explain.ask": "Ask",
+    "explain.simpler": "Tomo, say it simpler",
+    "explain.noAI": "Add an AI provider in Settings → AI for step-by-step explanations.",
+    "dontUnderstand": "I don't understand \"{x}\"",
+    "word.loading": "Looking up…",
+    "word.mac": "MAC DICTIONARY",
+    "word.none": "Not in your Mac's dictionaries.",
+    "word.openMac": "Open in Dictionary",
+    "word.open": "Open in Zenbu",
+    "word.title": "Word",
+    "hint.try": "TRY SAYING"
   },
   "helpPhrases": [
     "what",

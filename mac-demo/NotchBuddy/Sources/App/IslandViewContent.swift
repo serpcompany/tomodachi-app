@@ -9,7 +9,7 @@ struct IslandViewContent: View {
     var body: some View {
         switch view {
         case .overview:  TomoView(state: state)
-        case .empty:     TomoView(state: state)
+        case .empty:     EmptyView()   // Tomo always has a task, so .empty never shows; one TomoView only (popovers)
         case .approval:  ApprovalView(state: state)
         case .question:  QuestionView(state: state)
         case .error:     ErrorView(state: state)

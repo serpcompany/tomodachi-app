@@ -133,7 +133,8 @@ struct IslandContainer: View {
             let tr: CGFloat = 0
             withAnimation(anim) {
                 islandWidth      = w
-                islandHeight     = (newMode == .expanded && state.view == .prompt) ? chatPromptHeight : h
+                islandHeight     = (newMode == .expanded && state.view == .prompt) ? chatPromptHeight
+                                 : h + (newMode == .expanded ? state.helpPanelHeight : 0)
                 cornerRadius     = cr
                 islandTopRadius  = tr
             }
@@ -150,8 +151,14 @@ struct IslandContainer: View {
                                     nw: state.notchWidth, nh: state.notchHeight)
             withAnimation(openSpring) {
                 islandWidth  = w
-                islandHeight = newView == .prompt ? chatPromptHeight : h
+                islandHeight = newView == .prompt ? chatPromptHeight : h + state.helpPanelHeight
             }
+        }
+        .onChange(of: state.helpPanelHeight) { _, extra in
+            guard state.mode == .expanded, state.view != .prompt else { return }
+            let (_, h) = islandSize(mode: .expanded, view: state.view, progress: state.uploadProgress,
+                                    nw: state.notchWidth, nh: state.notchHeight)
+            withAnimation(extra > 0 ? openSpring : closeEase) { islandHeight = h + extra }
         }
         .onChange(of: state.chatHistory.count) { _, _ in
             guard state.mode == .expanded, state.view == .prompt else { return }
@@ -162,7 +169,8 @@ struct IslandContainer: View {
                                     progress: state.uploadProgress,
                                     nw: state.notchWidth, nh: state.notchHeight)
             islandWidth      = w
-            islandHeight     = state.view == .prompt ? chatPromptHeight : h
+            islandHeight     = state.view == .prompt ? chatPromptHeight
+                             : h + (state.mode == .expanded ? state.helpPanelHeight : 0)
             cornerRadius     = state.mode == .expanded ? IslandConst.expandedCorner : IslandConst.roundedCorner
             islandTopRadius  = 0
         }

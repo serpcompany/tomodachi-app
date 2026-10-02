@@ -49,5 +49,6 @@ The app is menu-bar only, so computer-use can't target it. Use the debug flags i
 - **Secrets** live in `.env` (gitignored) or the Keychain. Never commit, print or log a key.
 - **Never commit** `mac-demo/build/`.
 - **Coucou's code is MIT; its assets are not.** The name, the Mochi character and the sounds are reserved (`mac-demo/LICENSE-ASSETS.md`). Don't ship them, and don't make Tomo look more like Mochi.
+- **Tomo's card is a fixed grid** (`TomoGrid` in `TomoView.swift`): Tomo's column plus fixed-height rows that add up to the card. Put new UI into a slot. Never let a row size itself. Text that can grow must be capped (line limits, or a font fitted the way it's drawn). Help content (hints, explanations, word cards) goes in the help panel the notch grows underneath the card, never squeezed into the card. Before handing over a UI change, snapshot the matrix and look at it: picture and talking stages, English and Japanese interface, a short and a long Tomo line, hint shown, Win / Miss / No score.
 - **No language-specific text in Swift.** Tomo's words go in the target pack (`Resources/languages/<id>.json`); interface text goes in `ui.<id>.json`. See `docs/languages.md`.
 - **Don't invest in the offline keyword matcher** (`TomoBrain.offlineReply`, the packs' `offlineReplies`). The Zenbu dictionary system replaces it.

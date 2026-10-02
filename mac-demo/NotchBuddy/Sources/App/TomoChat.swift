@@ -20,6 +20,15 @@ extension TomoLine {
     }
 }
 
+/// A learner-language explanation of one of Tomo's lines (the Explain panel).
+struct TomoExplanation: Sendable, Equatable {
+    struct Part: Sendable, Equatable, Hashable { let phrase: String; let meaning: String }
+    let translation: String
+    let parts: [Part]
+    let tip: String?
+    let usedAI: Bool
+}
+
 struct TomoReply: Sendable {
     let say: String
     let romanization: String?
@@ -110,6 +119,53 @@ enum TomoBrain {
                          translation: obj["translation"] as? String ?? "",
                          understood: obj["understood"] as? Bool ?? true,
                          mood: obj["mood"] as? String ?? "happy")
+    }
+
+    // MARK: Help: explain a line in the learner's language, or say it simpler in the target language
+
+    static func explain(line: TomoLine, focus: String?, ai: TomoAIConfig?, language l: LanguageContext) async -> TomoExplanation {
+        let offline = TomoExplanation(translation: line.translation, parts: [], tip: nil, usedAI: false)
+        guard let ai, ai.isUsable else { return offline }
+        let target = l.target.name("en"), learner = l.learner.name
+        let system = """
+        You help an adult who speaks \(learner) understand a line said by Tomo, a \(l.age)-year-old who speaks \(target). \
+        Write everything in \(learner), briefly and kindly. Quote phrases from the line exactly as Tomo said them.
+        If the learner asks about a specific part, explain only that part (one item in parts). \
+        Otherwise pick the 1–3 parts a beginner is most likely to miss.
+        Answer with JSON only:
+        {"translation": "the whole line in \(learner)", "parts": [{"phrase": "...", "meaning": "..."}], "tip": "one short tip or empty"}
+        """
+        let user = "Tomo said: \(line.say)\nThe learner asks: \(focus.map { $0.isEmpty ? "(nothing specific)" : $0 } ?? "(nothing specific)")"
+        guard let text = try? await TomoAI.complete(system: system, user: user, config: ai),
+              let obj = jsonObject(in: text) else { return offline }
+        let parts = (obj["parts"] as? [[String: Any]] ?? []).compactMap { p -> TomoExplanation.Part? in
+            guard let ph = p["phrase"] as? String, let m = p["meaning"] as? String else { return nil }
+            return TomoExplanation.Part(phrase: ph, meaning: m)
+        }
+        let tip = (obj["tip"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+        return TomoExplanation(translation: obj["translation"] as? String ?? line.translation,
+                               parts: parts, tip: tip, usedAI: true)
+    }
+
+    static func simpler(line: TomoLine, ai: TomoAIConfig?, language l: LanguageContext) async -> TomoLine? {
+        guard let ai, ai.isUsable else { return nil }
+        let target = l.target.name("en"), learner = l.learner.name
+        let romanization = l.target.romanization.map { "the \($0("en")) reading" } ?? "an empty string"
+        let system = """
+        You are Tomo, \(l.target.persona(age: l.age)). The learner didn't understand your last line. \
+        Say it again in simpler \(target): shorter, very common words, same meaning, still in character. Never use \(learner) in "say".
+        Answer with JSON only: {"say": "...", "romanization": "\(romanization)", "translation": "the meaning in \(learner)"}
+        """
+        guard let text = try? await TomoAI.complete(system: system, user: "Your last line: \(line.say)", config: ai),
+              let obj = jsonObject(in: text), let say = obj["say"] as? String else { return nil }
+        let rom = (obj["romanization"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+        return TomoLine(say: say, romanization: rom, translation: obj["translation"] as? String ?? "",
+                        examples: line.examples)
+    }
+
+    private static func jsonObject(in text: String) -> [String: Any]? {
+        guard let start = text.firstIndex(of: "{"), let end = text.lastIndex(of: "}") else { return nil }
+        return try? JSONSerialization.jsonObject(with: Data(text[start...end].utf8)) as? [String: Any]
     }
 
     // MARK: Offline replies (placeholder keyword matching from the pack; the Zenbu dictionary replaces it)

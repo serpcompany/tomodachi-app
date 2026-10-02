@@ -35,6 +35,8 @@ final class AppState: ObservableObject {
     var lastActivity: Date = .now
     var isPresent: Bool = true
     var mouseInIsland: Bool = false   // set by IslandWindowController every frame
+    /// Tomo's help panel below the card (0 = closed). The expanded island grows by this much.
+    @Published var helpPanelHeight: CGFloat = 0
 
     // Pinned (alerts that stay open, never auto-close)
     var isPinned: Bool = false

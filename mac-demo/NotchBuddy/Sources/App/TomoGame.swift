@@ -65,6 +65,13 @@ enum TomoOutcome: Equatable {
     case neutral(String)        // "language" (not in the target language) or "help": no credit, no penalty
 }
 
+/// What the help panel below Tomo's card shows (the island grows to fit it).
+enum TomoHelp: Equatable {
+    case hint                // reading, meaning, example answers
+    case explain             // meaning, key parts, tip, ask about a part, say it simpler
+    case word(String)        // word card for a clicked word
+}
+
 enum TomoPhase: Equatable {
     case asking
     case thinking            // talking stage: waiting for Tomo's reply
@@ -126,6 +133,21 @@ final class TomoGame: ObservableObject {
     @Published private(set) var goodReplies = 0
     @Published private(set) var aiLabel: String?   // nil = offline replies
     @Published var draft = "" { didSet { if draft != oldValue { touch() } } }
+    // Help panel below the card: one at a time; the island grows by TomoGrid.helpHeight
+    @Published var help: TomoHelp? {
+        didSet {
+            AppState.shared.helpPanelHeight = help == nil ? 0 : TomoGrid.helpHeight
+            if help != nil { touch() }
+        }
+    }
+    @Published private(set) var explanation: TomoExplanation?
+    @Published private(set) var explaining = false
+    @Published private(set) var simplifying = false
+    // Word card (click a word in Tomo's line)
+    @Published private(set) var wordCard: TomoWordCard?
+    @Published private(set) var lookingUp = false
+    /// Debug (TOMO_AUTOLOOKUP=<word index>): "click" a word in Tomo's line.
+    @Published var cardRequest: Int?
     let listener = TomoListener()
     private var transcript: [String] = []
     private var starterIndex = 0
@@ -281,7 +303,7 @@ final class TomoGame: ObservableObject {
             return
         }
         if !open { markPending(); endVisit(); return }       // user closed it mid-visit (Esc)
-        if AppState.shared.mouseInIsland || listener.isListening {
+        if AppState.shared.mouseInIsland || listener.isListening || help != nil {
             visitDeadline = now.addingTimeInterval(ignoreAfter)
         } else if now > visitDeadline && phase == .asking {
             leave(ignored: true)
@@ -304,6 +326,7 @@ final class TomoGame: ObservableObject {
         visitRoundsLeft = nil
         nextDropIn = DropIn.nextVisit()
         listener.stop()
+        help = nil
         setBot(.idle)
         if ignored {
             emote(.yawn)
@@ -334,6 +357,7 @@ final class TomoGame: ObservableObject {
 
     private func endVisit() {
         bump()
+        help = nil
         visitRoundsLeft = nil
         nextDropIn = DropIn.nextVisit()
         listener.stop()
@@ -364,6 +388,7 @@ final class TomoGame: ObservableObject {
     func showHint() {
         touch()
         hintShown = true
+        help = .hint
         speak(isChat ? line.say : round.say, slow: true)
     }
 
@@ -372,6 +397,7 @@ final class TomoGame: ObservableObject {
     func pick(_ choice: TomoChoice) {
         guard phase == .asking else { return }
         touch()
+        help = nil
         let tok = bump()
         if choice.emoji == round.answer {
             outcome = .win
@@ -454,12 +480,17 @@ final class TomoGame: ObservableObject {
             guard let self else { return }
             self.round = r
             self.hintShown = false
+            self.help = nil
             self.outcome = nil
             self.phase = .asking
             self.setBot(.question)
             self.speak(r.say, slow: false)
             self.visitDeadline = Date().addingTimeInterval(self.ignoreAfter)
             if Self.autoplay { self.autoAnswer(tok) }
+            if let i = ProcessInfo.processInfo.environment["TOMO_AUTOLOOKUP"].flatMap(Int.init), !Self.autoExplained {
+                Self.autoExplained = true
+                self.after(1.5, tok) { [weak self] in self?.cardRequest = i }
+            }
         }
     }
 
@@ -479,6 +510,8 @@ final class TomoGame: ObservableObject {
             guard let self else { return }
             self.line = l
             self.outcome = nil
+            self.explanation = nil
+            if self.help != .hint { self.help = nil }
             self.aiLabel = TomoAI.config.isUsable ? TomoAI.config.label : nil
             self.hintShown = false
             self.phase = .asking
@@ -486,6 +519,20 @@ final class TomoGame: ObservableObject {
             self.setBot(.question)
             self.speak(l.say, slow: false)
             self.visitDeadline = Date().addingTimeInterval(self.ignoreAfter)
+            if let i = ProcessInfo.processInfo.environment["TOMO_AUTOLOOKUP"].flatMap(Int.init), !Self.autoExplained {
+                Self.autoExplained = true
+                self.after(1.5, tok) { [weak self] in self?.cardRequest = i }
+            }
+            if ProcessInfo.processInfo.environment["TOMO_AUTOHINT"] != nil, !Self.autoExplained {
+                Self.autoExplained = true
+                self.after(1.5, tok) { [weak self] in self?.showHint() }
+            }
+            if let focus = ProcessInfo.processInfo.environment["TOMO_AUTOEXPLAIN"], !Self.autoExplained {
+                Self.autoExplained = true
+                self.after(1.5, tok) { [weak self] in
+                    self?.openExplain(focus: focus == "-" ? nil : focus)
+                }
+            }
             if let next = Self.autochat.first {
                 Self.autochat.removeFirst()
                 self.after(2.5, tok) { [weak self] in self?.answer(next) }
@@ -494,6 +541,80 @@ final class TomoGame: ObservableObject {
     }
 
     func submitDraft() { answer(draft) }
+
+    /// Explain the current line in the learner's language; `focus` is the part they're stuck on.
+    func explain(focus: String? = nil) {
+        guard isChat, !explaining else { return }
+        touch()
+        explaining = true
+        let ai = TomoAI.config, current = line
+        var language = lang.context
+        language.age = stage
+        Task { @MainActor [weak self] in
+            let e = await TomoBrain.explain(line: current, focus: focus, ai: ai, language: language)
+            guard let self else { return }
+            self.explaining = false
+            if self.line == current { self.explanation = e }
+        }
+    }
+
+    /// Click a word in Tomo's line: open its word card in the help panel.
+    func openWord(_ word: String) {
+        guard !word.isEmpty else { return }
+        help = .word(word)
+        lookUp(word)
+    }
+
+    /// Open the explanation, optionally about one part ("I don't understand …").
+    func openExplain(focus: String? = nil) {
+        help = .explain
+        if focus != nil || explanation == nil { explain(focus: focus) }
+    }
+
+    /// Click an example answer in the hint: put it in the answer box.
+    func useExample(_ example: String) {
+        draft = example.components(separatedBy: " (").first ?? example
+    }
+
+    /// Look a word up (AI meaning in context; the Mac Dictionary shows in the card).
+    func lookUp(_ word: String) {
+        guard !word.isEmpty else { return }
+        touch()
+        lookingUp = true
+        wordCard = nil
+        let ai = TomoAI.config, said = isChat ? line.say : round.say, language = lang.context
+        Task { @MainActor [weak self] in
+            let card = await TomoBrain.define(word: word, line: said, ai: ai, language: language)
+            guard let self else { return }
+            self.lookingUp = false
+            self.wordCard = card
+        }
+    }
+
+    /// Tomo says the current line again in easier words (target language).
+    func sayItSimpler() {
+        guard isChat, phase == .asking, !simplifying else { return }
+        touch()
+        simplifying = true
+        let ai = TomoAI.config, current = line
+        var language = lang.context
+        language.age = stage
+        Task { @MainActor [weak self] in
+            let easier = await TomoBrain.simpler(line: current, ai: ai, language: language)
+            guard let self else { return }
+            self.simplifying = false
+            guard self.line == current else { return }
+            if let easier {
+                self.line = easier
+                self.explanation = nil
+                self.transcript.append("Tomo (simpler): \(easier.say)")
+                self.setBot(.question)
+                self.speak(easier.say, slow: true)
+            } else {
+                self.speak(current.say, slow: true)   // offline: just slower
+            }
+        }
+    }
 
     func toggleMic() {
         touch()
@@ -513,6 +634,7 @@ final class TomoGame: ObservableObject {
             return
         }
         touch()
+        help = nil
         let tok = bump()
         lastAnswer = text
         draft = ""
@@ -534,6 +656,7 @@ final class TomoGame: ObservableObject {
     private func heard(_ r: TomoReply, tok: Int) {
         let reply = TomoLine(say: r.say, romanization: r.romanization, translation: r.translation)
         line = reply
+        explanation = nil
         hintShown = false
         phase = .asking
         transcript.append("Tomo: \(r.say)")
@@ -569,6 +692,7 @@ final class TomoGame: ObservableObject {
     private static var autochat: [String] = ProcessInfo.processInfo.environment["TOMO_AUTOCHAT"]?
         .split(separator: "|").map(String.init) ?? []
     private var autoMissed = false
+    private static var autoExplained = false
 
     private func autoAnswer(_ tok: Int) {
         after(2.5, tok) { [weak self] in

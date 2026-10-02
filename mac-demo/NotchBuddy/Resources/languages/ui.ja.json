@@ -69,7 +69,21 @@
     "ai.loading": "モデルを読み込み中…",
     "ai.count": "{n}個のモデル",
     "ai.asking": "Tomoに聞いています…",
-    "settings.tryAge": "ほかの年齢をためす（テスト用）"
+    "settings.tryAge": "ほかの年齢をためす（テスト用）",
+    "explain": "説明",
+    "explain.loading": "説明しています…",
+    "explain.askPlaceholder": "どの部分？ 例：like to do",
+    "explain.ask": "聞く",
+    "explain.simpler": "Tomo、もっとかんたんに言って",
+    "explain.noAI": "設定 → AI でプロバイダを追加すると、くわしい説明が見られます。",
+    "dontUnderstand": "「{x}」がわからない",
+    "word.loading": "調べています…",
+    "word.mac": "Macの辞書",
+    "word.none": "Macの辞書には見つかりませんでした。",
+    "word.openMac": "辞書アプリで開く",
+    "word.open": "Zenbuで開く",
+    "word.title": "ことば",
+    "hint.try": "こう答えてみよう"
   },
   "helpPhrases": [
     "なに",

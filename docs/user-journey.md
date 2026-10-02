@@ -61,3 +61,19 @@ Each age adds a harder way to answer. The easier ways stay available as a fallba
 | 4さい+ | Explaining things (the なんで？ phase); chatting while you watch a show together |
 
 Grade whether Tomo understood you, not your pronunciation. If it didn't catch what you said, it tilts its head and says ん？
+
+## 4. Tap any word for a dictionary card
+
+Anything Tomo says (its line, hints, example answers) is shown as **linked words**, the same way the Zenbu iPhone app's Player shows captions. Words you don't know yet are lightly underlined; known words aren't, but can still be tapped.
+
+Tapping a word opens a small **word card** next to the island:
+- the word, with its reading (furigana for Japanese) and pitch accent
+- the meaning in your language, and a 🔊 button
+- for baby words, the grown-up word (ワンワン → 犬)
+- a **✓ Known** toggle
+- **Open in Zenbu**: the full Word Detail in the Zenbu app or website (permanent word URLs)
+
+Rules:
+- Looking at a card counts as activity, so Tomo doesn't leave while you read.
+- A lookup is recorded as *exposure* (you saw the word), never as a Miss. If you look up a word from Tomo's question before answering, the answer still counts, but the leveling model learns that word needed help.
+- Words you mark ✓ Known here and in the Zenbu apps should be the same list. Sync by Language Reference ID; see the learner-data research.

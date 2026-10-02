@@ -95,6 +95,15 @@ struct TargetPack: Codable, Sendable {
     let offlineReplies: [OfflineReply]
     /// Whole answers that mean "I didn't understand" in the target language (なに？, わかんない).
     let helpPhrases: [String]?
+    /// Web dictionary search for a word, "{q}" = the word (the Zenbu dictionary for Japanese).
+    let dictionarySearchURL: String?
+
+    func dictionaryURL(for word: String) -> URL? {
+        guard let t = dictionarySearchURL, !word.isEmpty else { return nil }
+        let q = (word.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? word)
+            .replacingOccurrences(of: ".", with: "%2E")
+        return URL(string: t.replacingOccurrences(of: "{q}", with: q))
+    }
 
     func persona(age: Int) -> String { ai.persona.replacingOccurrences(of: "{age}", with: "\(age)") }
     func aiRules(age: Int) -> [String] {

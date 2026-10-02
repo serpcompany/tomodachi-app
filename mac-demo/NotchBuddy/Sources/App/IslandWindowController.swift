@@ -51,7 +51,7 @@ final class IslandWindowController: NSWindowController {
         let nH = geometry.height
 
         let panelW: CGFloat = 720
-        let panelH: CGFloat = 320
+        let panelH: CGFloat = 560   // room for Tomo's help panel below the card
         let sf = screen.frame
         let panel = IslandPanel(
             contentRect: NSRect(x: sf.midX - panelW/2, y: sf.maxY - panelH,
@@ -824,7 +824,7 @@ final class IslandPanel: NSPanel {
             let perMsg: CGFloat = 40
             h = min(300, base + CGFloat(s.chatHistory.count) * perMsg)
         } else {
-            h = fixedH
+            h = fixedH + (s.mode == .expanded ? s.helpPanelHeight : 0)
         }
         return CGRect(x: (frame.width - w) / 2, y: frame.height - h, width: w, height: h)
     }
