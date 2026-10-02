@@ -17,6 +17,7 @@ Everything we want, with its status. When something moves, update it here in the
 | 3さい conversation: typed or spoken answers | 5 starter questions |
 | AI provider adapter (Anthropic + any OpenAI-compatible), AI provider window | Default OpenAI `gpt-5.4-mini` via `.env` |
 | Japanese voice out (Apple TTS) and voice in (Apple, on-device only) | The mic isn't tested by hand yet |
+| Language pairs: any learner language × any target language, via data files | Japanese pack + Spanish draft proof pack, English interface. See [languages.md](languages.md) |
 
 ## Next
 
@@ -29,7 +30,9 @@ Everything we want, with its status. When something moves, update it here in the
 | Plug in the Zenbu offline dictionary system to check answers; AI only for leftovers | Researched | [answer-evaluation.md](research/answer-evaluation.md). Don't polish the current keyword matcher |
 | Pick the AI model with a small test set; control cost | Researched | [ai-models-and-costs.md](research/ai-models-and-costs.md): recommends Claude Haiku 4.5 (about $0.38 per active 3さい learner per month at 70% offline). Cheaper options: Gemini 3.1 Flash-Lite and GPT-6 Luna (reasoning off). Free on-device: Apple Foundation Models (macOS 26+). We run `gpt-5.4-mini` because that's the key we have. Decide with the doc's 32-line test set. Heads-up: Haiku 4.5's retirement window opens 2026-10-15 |
 | 2さい reply bubbles + "say this word" (between tapping and free talk) | Next | The answer ladder in [user-journey.md](user-journey.md) §3 |
-| Move content out of code into data files | Next | Needed before real vocabulary lands |
+| Native-speaker review of the language packs (ja, es) | Next | Both are drafts (`reviewedByNativeSpeaker: false`) |
+| Save progress per language pair; one Tomo per target language | Next | Key the learner store by (learner, target) |
+| A second learner language (interface + translations) | Idea | Proves the learner side the way Spanish proved the target side |
 | Debrand: remove Coucou, Mochi and Grok Bot names, assets and leftovers; own character art and sounds | Next | [serpcompany/zenbujapanese-tomo-app#1](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/1). Required before showing publicly (license). Keep the MIT notice and one credit line |
 | Judge answers in layers, never by AI alone: (1) Japanese present (built); (2) on-topic via the Zenbu dictionary + per-question expected answers; (3) AI fills yes/no verdict fields that code double-checks. Three outcomes: **understood** (credit), **helped** (answered in English, Tomo models the Japanese, no credit), **not understood** | Next | Seen live: `gpt-5.4-mini` accepted "car" as understood. Layer 1 now blocks that |
 | Adapter: send a JSON schema and `reasoning_effort` per provider | Next | From ai-models-and-costs.md: guarantees Tomo's JSON shape; avoids paying for unneeded reasoning |

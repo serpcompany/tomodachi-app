@@ -32,6 +32,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(withTitle: "Restart demo", action: #selector(restartDemo), keyEquivalent: "r")
         menu.addItem(withTitle: "Skip to 3さい (talking)", action: #selector(skipToTalking), keyEquivalent: "3")
         menu.addItem(withTitle: "AI provider…", action: #selector(openAISettings), keyEquivalent: ",")
+        menu.addItem(.separator())
+        menu.addItem(languageMenu(title: "Learning", items: TomoLanguages.shared.targets.map {
+            ($0.id, "\($0.name(TomoLanguages.shared.learner.id)) (\($0.nativeName))\($0.reviewedByNativeSpeaker ? "" : " · draft")")
+        }, selected: TomoLanguages.shared.target.id, action: #selector(pickTarget(_:))))
+        menu.addItem(languageMenu(title: "I speak", items: TomoLanguages.shared.learners.map { ($0.id, $0.name) },
+                                  selected: TomoLanguages.shared.learner.id, action: #selector(pickLearner(_:))))
         sfxItem = menu.addItem(withTitle: "Coucou sound effects (private use only)",
                                action: #selector(toggleSfx), keyEquivalent: "")
         menu.addItem(.separator())
@@ -52,6 +58,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private var aiWindow: NSWindow?
+
+    // MARK: - Languages (see docs/languages.md)
+
+    private func languageMenu(title: String, items: [(id: String, title: String)], selected: String, action: Selector) -> NSMenuItem {
+        let parent = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+        let sub = NSMenu(title: title)
+        for item in items {
+            let mi = NSMenuItem(title: item.title, action: action, keyEquivalent: "")
+            mi.representedObject = item.id
+            mi.state = item.id == selected ? .on : .off
+            sub.addItem(mi)
+        }
+        parent.submenu = sub
+        return parent
+    }
+
+    private func check(_ sender: NSMenuItem) {
+        sender.menu?.items.forEach { $0.state = $0 === sender ? .on : .off }
+    }
+
+    @objc private func pickTarget(_ sender: NSMenuItem) {
+        guard let id = sender.representedObject as? String else { return }
+        check(sender)
+        TomoLanguages.shared.select(target: id)
+        TomoGame.shared.restart()   // one Tomo per target language; progress isn't saved yet
+    }
+
+    @objc private func pickLearner(_ sender: NSMenuItem) {
+        guard let id = sender.representedObject as? String else { return }
+        check(sender)
+        TomoLanguages.shared.select(learner: id)
+    }
 
     @objc private func openAISettings() {
         if AppState.shared.mode == .expanded { islandController?.collapse() }

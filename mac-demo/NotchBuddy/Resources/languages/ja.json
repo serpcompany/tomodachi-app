@@ -1,0 +1,585 @@
+{
+  "id": "ja",
+  "name": {
+    "en": "Japanese"
+  },
+  "nativeName": "日本語",
+  "reviewedByNativeSpeaker": false,
+  "script": "Jpan",
+  "speechLocale": "ja-JP",
+  "recognitionLocale": "ja-JP",
+  "romanization": {
+    "en": "romaji"
+  },
+  "age": {
+    "one": "{n}さい",
+    "other": "{n}さい"
+  },
+  "labels": {
+    "words": "ことば",
+    "talk": "かいわ",
+    "again": "もういちど",
+    "answerPrompt": "こたえて…",
+    "listening": "きいてるよ…"
+  },
+  "lines": {
+    "wrong": "ちがう〜",
+    "ouch": "いたい！",
+    "grew": "おおきく なった！",
+    "bye": "バイバイ！",
+    "seeYou": "またね！",
+    "sayItInMyLanguage": {
+      "say": "ん？ にほんご で いって！",
+      "romanization": "n? nihongo de itte!",
+      "translation": {
+        "en": "Hm? Say it in Japanese!"
+      }
+    },
+    "dontUnderstand": {
+      "say": "ん？ わかんない… もういっかい！",
+      "romanization": "n? wakannai… mō ikkai!",
+      "translation": {
+        "en": "Hm? Tomo doesn't get it… say it again!"
+      }
+    }
+  },
+  "ai": {
+    "persona": "a 3-year-old Japanese child",
+    "rules": [
+      "Hiragana and katakana only. No kanji and no romaji in \"say\".",
+      "Only use words a Japanese 3-year-old knows.",
+      "When confused, sound like a child: ん？ わかんない…"
+    ]
+  },
+  "stages": [
+    [
+      {
+        "id": "ja:wanwan",
+        "say": "ワンワン！",
+        "romanization": "wan-wan",
+        "meaning": {
+          "en": "doggy"
+        },
+        "grownUp": "いぬ（犬）",
+        "answer": "🐶",
+        "choices": [
+          "🐱",
+          "🐶",
+          "🚗"
+        ],
+        "praise": "ワンワン！"
+      },
+      {
+        "id": "ja:manma",
+        "say": "まんま！",
+        "romanization": "man-ma",
+        "meaning": {
+          "en": "food! (I'm hungry)"
+        },
+        "grownUp": "ごはん",
+        "need": "eat",
+        "praise": "おいちい！"
+      },
+      {
+        "id": "ja:buubuu",
+        "say": "ブーブー！",
+        "romanization": "bū-bū",
+        "meaning": {
+          "en": "car (vroom vroom)"
+        },
+        "grownUp": "くるま（車）",
+        "answer": "🚗",
+        "choices": [
+          "🚗",
+          "🐮",
+          "🍎"
+        ],
+        "praise": "ブーブー！"
+      },
+      {
+        "id": "ja:nyannyan",
+        "say": "ニャンニャン",
+        "romanization": "nyan-nyan",
+        "meaning": {
+          "en": "kitty"
+        },
+        "grownUp": "ねこ（猫）",
+        "answer": "🐱",
+        "choices": [
+          "🐶",
+          "🐮",
+          "🐱"
+        ],
+        "praise": "ニャンニャン！"
+      },
+      {
+        "id": "ja:nenne",
+        "say": "ねんね…",
+        "romanization": "nen-ne",
+        "meaning": {
+          "en": "sleepy-time"
+        },
+        "grownUp": "ねる（寝る）",
+        "need": "sleep",
+        "praise": "ねんね…"
+      },
+      {
+        "id": "ja:moomoo",
+        "say": "モーモー！",
+        "romanization": "mō-mō",
+        "meaning": {
+          "en": "moo-cow"
+        },
+        "grownUp": "うし（牛）",
+        "answer": "🐮",
+        "choices": [
+          "🐮",
+          "🐤",
+          "🐶"
+        ],
+        "praise": "モーモー！"
+      },
+      {
+        "id": "ja:dakko",
+        "say": "だっこ！",
+        "romanization": "dak-ko",
+        "meaning": {
+          "en": "pick me up!"
+        },
+        "grownUp": "だっこ（抱っこ）",
+        "need": "hug",
+        "praise": "えへへ"
+      },
+      {
+        "id": "ja:kukku",
+        "say": "くっく！",
+        "romanization": "kuk-ku",
+        "meaning": {
+          "en": "shoes"
+        },
+        "grownUp": "くつ（靴）",
+        "answer": "👟",
+        "choices": [
+          "🧸",
+          "👟",
+          "🍎"
+        ],
+        "praise": "くっく！"
+      }
+    ],
+    [
+      {
+        "id": "ja:ita",
+        "say": "ワンワン いた！",
+        "romanization": "wan-wan ita!",
+        "meaning": {
+          "en": "There's a doggy!"
+        },
+        "grownUp": "いぬが いた！",
+        "answer": "🐶",
+        "choices": [
+          "🚗",
+          "🐱",
+          "🐶"
+        ],
+        "praise": "ワンワン かわいい！"
+      },
+      {
+        "id": "ja:taberu",
+        "say": "まんま たべる",
+        "romanization": "man-ma taberu",
+        "meaning": {
+          "en": "Eat food"
+        },
+        "grownUp": "ごはんを たべる",
+        "need": "eat",
+        "praise": "おいちい！"
+      },
+      {
+        "id": "ja:choudai",
+        "say": "りんご ちょうだい",
+        "romanization": "ringo chōdai",
+        "meaning": {
+          "en": "Apple, please"
+        },
+        "grownUp": "りんごを ください",
+        "answer": "🍎",
+        "choices": [
+          "🍌",
+          "🍎",
+          "🍙"
+        ],
+        "praise": "ありがと！"
+      },
+      {
+        "id": "ja:hayai",
+        "say": "ブーブー はやい！",
+        "romanization": "bū-bū hayai!",
+        "meaning": {
+          "en": "The car is fast!"
+        },
+        "grownUp": "くるまが はやい",
+        "answer": "🚗",
+        "choices": [
+          "🐢",
+          "🐮",
+          "🚗"
+        ],
+        "praise": "はやいね！"
+      },
+      {
+        "id": "ja:suru",
+        "say": "ねんね する",
+        "romanization": "nen-ne suru",
+        "meaning": {
+          "en": "Go to sleep"
+        },
+        "grownUp": "ねる",
+        "need": "sleep",
+        "praise": "おやすみ…"
+      },
+      {
+        "id": "ja:nomu",
+        "say": "おみず のむ",
+        "romanization": "o-mizu nomu",
+        "meaning": {
+          "en": "Drink water"
+        },
+        "grownUp": "みずを のむ",
+        "answer": "💧",
+        "choices": [
+          "💧",
+          "🍙",
+          "🍎"
+        ],
+        "praise": "ごくごく！"
+      }
+    ]
+  ],
+  "starters": [
+    {
+      "say": "なに してるの？",
+      "romanization": "nani shiteru no?",
+      "translation": {
+        "en": "What are you doing?"
+      },
+      "examples": [
+        {
+          "say": "しごと してる",
+          "translation": {
+            "en": "working"
+          }
+        },
+        {
+          "say": "テレビ みてる",
+          "translation": {
+            "en": "watching TV"
+          }
+        },
+        {
+          "say": "ごはん たべてる",
+          "translation": {
+            "en": "eating"
+          }
+        }
+      ]
+    },
+    {
+      "say": "おなか すいた？",
+      "romanization": "onaka suita?",
+      "translation": {
+        "en": "Are you hungry?"
+      },
+      "examples": [
+        {
+          "say": "うん、すいた",
+          "translation": {
+            "en": "yeah, hungry"
+          }
+        },
+        {
+          "say": "ううん",
+          "translation": {
+            "en": "nope"
+          }
+        }
+      ]
+    },
+    {
+      "say": "きょう なに たべた？",
+      "romanization": "kyō nani tabeta?",
+      "translation": {
+        "en": "What did you eat today?"
+      },
+      "examples": [
+        {
+          "say": "ラーメン",
+          "translation": {
+            "en": "ramen"
+          }
+        },
+        {
+          "say": "パン たべた",
+          "translation": {
+            "en": "I ate bread"
+          }
+        }
+      ]
+    },
+    {
+      "say": "すきな どうぶつ なあに？",
+      "romanization": "suki na dōbutsu nāni?",
+      "translation": {
+        "en": "What's your favorite animal?"
+      },
+      "examples": [
+        {
+          "say": "いぬ",
+          "translation": {
+            "en": "dogs"
+          }
+        },
+        {
+          "say": "ねこ が すき",
+          "translation": {
+            "en": "I like cats"
+          }
+        }
+      ]
+    },
+    {
+      "say": "どこ いくの？",
+      "romanization": "doko iku no?",
+      "translation": {
+        "en": "Where are you going?"
+      },
+      "examples": [
+        {
+          "say": "かいしゃ",
+          "translation": {
+            "en": "the office"
+          }
+        },
+        {
+          "say": "スーパー",
+          "translation": {
+            "en": "the supermarket"
+          }
+        }
+      ]
+    }
+  ],
+  "offlineReplies": [
+    {
+      "keys": [
+        "ううん",
+        "いいえ",
+        "ちがう",
+        "いや"
+      ],
+      "say": "えー！ そうなの？",
+      "romanization": "ē! sō na no?",
+      "translation": {
+        "en": "Ehh! Really?"
+      },
+      "mood": "surprised"
+    },
+    {
+      "keys": [
+        "しごと",
+        "仕事",
+        "はたら",
+        "働"
+      ],
+      "say": "おしごと！ えらいね！",
+      "romanization": "oshigoto! erai ne!",
+      "translation": {
+        "en": "Working! You're so grown-up!"
+      },
+      "mood": "proud"
+    },
+    {
+      "keys": [
+        "べんきょう",
+        "勉強",
+        "にほんご",
+        "日本語"
+      ],
+      "say": "べんきょう！ トモも する！",
+      "romanization": "benkyō! tomo mo suru!",
+      "translation": {
+        "en": "Studying! Tomo too!"
+      },
+      "mood": "happy"
+    },
+    {
+      "keys": [
+        "パソコン",
+        "コンピュータ",
+        "コード",
+        "プログラ"
+      ],
+      "say": "パソコン！ カタカタ！ すごい！",
+      "romanization": "pasokon! katakata! sugoi!",
+      "translation": {
+        "en": "Computer! Clickety-clack! Cool!"
+      },
+      "mood": "surprised"
+    },
+    {
+      "keys": [
+        "テレビ",
+        "みて",
+        "見て",
+        "アニメ",
+        "えいが",
+        "映画",
+        "ユーチューブ"
+      ],
+      "say": "なに みてるの？ トモも みたい！",
+      "romanization": "nani miteru no? tomo mo mitai!",
+      "translation": {
+        "en": "What are you watching? Tomo wants to watch too!"
+      },
+      "mood": "love"
+    },
+    {
+      "keys": [
+        "ゲーム",
+        "あそ",
+        "遊"
+      ],
+      "say": "あそぶ！ トモも いっしょ！",
+      "romanization": "asobu! tomo mo issho!",
+      "translation": {
+        "en": "Playing! Tomo wants to join!"
+      },
+      "mood": "happy"
+    },
+    {
+      "keys": [
+        "ねむ",
+        "眠",
+        "ねる",
+        "寝"
+      ],
+      "say": "ねむいね… ねんね しよ…",
+      "romanization": "nemui ne… nenne shiyo…",
+      "translation": {
+        "en": "Sleepy… let's go night-night…"
+      },
+      "mood": "love"
+    },
+    {
+      "keys": [
+        "いぬ",
+        "犬",
+        "ワンワン",
+        "ねこ",
+        "猫",
+        "ニャンニャン",
+        "うさぎ",
+        "パンダ",
+        "ぞう",
+        "ライオン",
+        "きりん",
+        "さる",
+        "くま"
+      ],
+      "say": "{w}！ トモも {w} だいすき！",
+      "romanization": "{w}! tomo mo {w} daisuki!",
+      "translation": {
+        "en": "{w}! Tomo loves {w} too!"
+      },
+      "mood": "love"
+    },
+    {
+      "keys": [
+        "ラーメン",
+        "らーめん",
+        "すし",
+        "寿司",
+        "パン",
+        "ぱん",
+        "ごはん",
+        "ご飯",
+        "おにぎり",
+        "カレー",
+        "りんご",
+        "バナナ",
+        "ばなな",
+        "たまご",
+        "ピザ",
+        "うどん",
+        "そば"
+      ],
+      "say": "{w}！ おいしそう！ トモも たべたい！",
+      "romanization": "{w}! oishisō! tomo mo tabetai!",
+      "translation": {
+        "en": "{w}! Looks yummy! Tomo wants some!"
+      },
+      "mood": "love"
+    },
+    {
+      "keys": [
+        "たべ",
+        "食べ"
+      ],
+      "say": "なに たべてるの？ おいしい？",
+      "romanization": "nani tabeteru no? oishii?",
+      "translation": {
+        "en": "What are you eating? Is it yummy?"
+      },
+      "mood": "happy"
+    },
+    {
+      "keys": [
+        "がっこう",
+        "学校",
+        "かいしゃ",
+        "会社",
+        "こうえん",
+        "公園",
+        "スーパー",
+        "おみせ",
+        "うち",
+        "いえ",
+        "家"
+      ],
+      "say": "{w}！ いってらっしゃい！",
+      "romanization": "{w}! itterasshai!",
+      "translation": {
+        "en": "{w}! Have a good time!"
+      },
+      "mood": "happy"
+    },
+    {
+      "keys": [
+        "すいた",
+        "ぺこぺこ",
+        "うん",
+        "はい",
+        "そう"
+      ],
+      "say": "そっか！ えへへ",
+      "romanization": "sokka! ehehe",
+      "translation": {
+        "en": "I see! Hehe"
+      },
+      "mood": "happy"
+    },
+    {
+      "keys": [
+        "なにも",
+        "べつに",
+        "ひま"
+      ],
+      "say": "ひまなら トモと あそぼ！",
+      "romanization": "hima nara tomo to asobo!",
+      "translation": {
+        "en": "If you're bored, play with Tomo!"
+      },
+      "mood": "happy"
+    }
+  ]
+}

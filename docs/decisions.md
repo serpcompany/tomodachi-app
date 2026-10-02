@@ -2,6 +2,9 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
+### 2026-10-03: Language pairs from day one
+Tomo supports any learner language × any target language. Target languages are data packs (`Resources/languages/<id>.json`: words, lines, voice and recognition locales, script check, AI persona). Learner languages are interface-string files plus translations inside the packs. No Swift code contains text in a specific language. One Tomo per target language. **Why:** anybody should be able to learn anything. A Spanish draft pack proves the swap works end to end (pictures, voice, language check, AI). See [languages.md](languages.md).
+
 ### 2026-10-03: The AI never decides credit alone
 Code checks the answer first (it must contain Japanese, and later it must fit the question via the Zenbu dictionary). The AI's verdict is only an input that code double-checks. **Why:** `gpt-5.4-mini` accepted the English answer "car" as understood despite the prompt rules.
 

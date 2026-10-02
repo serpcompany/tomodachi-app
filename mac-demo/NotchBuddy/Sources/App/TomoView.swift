@@ -5,6 +5,7 @@ import SwiftUI
 struct TomoView: View {
     @ObservedObject var state: AppState
     @ObservedObject var game = TomoGame.shared
+    @ObservedObject var lang = TomoLanguages.shared
 
     private var wash: CardBackground<EmptyView>.Wash {
         switch game.phase {
@@ -25,10 +26,9 @@ struct TomoView: View {
                 Color.clear.frame(width: 112)   // Tomo sits here (drawn by BotPlacement)
 
                 if game.phase == .grew {
-                    banner(title: "おおきく なった！",
-                           subtitle: game.stage == 1
-                               ? "Tomo grew up → 2さい. Now it speaks in two-word phrases."
-                               : "Tomo grew up → 3さい. Now it can talk with you. Answer in your own words!")
+                    banner(title: lang.target.lines.grew,
+                           subtitle: lang.learner(game.stage == 1 ? "grewPhrases" : "grewTalking",
+                                                  ["age": lang.target.ageLabel(game.stage + 1)]))
                 } else if game.isChat {
                     TomoChatCard(game: game, listener: game.listener)
                 } else {
@@ -53,10 +53,10 @@ struct TomoView: View {
 
             Group {
                 if game.hintShown || game.phase == .right {
-                    Text("\(game.round.romaji) · \(game.round.meaning)")
+                    Text([game.round.romanization, game.round.meaning].compactMap { $0 }.joined(separator: " · "))
                         .foregroundColor(Color(hex: "#C9CDD4"))
                 } else {
-                    Text(game.round.need == nil ? "Which one is Tomo talking about?" : "What does Tomo want?")
+                    Text(lang.learner(game.round.need == nil ? "pickPicture" : "pickNeed"))
                         .foregroundColor(Color(hex: "#8E939C"))
                 }
             }
@@ -65,14 +65,14 @@ struct TomoView: View {
 
             HStack(spacing: 6) {
                 if game.phase == .right, let adult = game.round.adult {
-                    Text("grown-ups say: \(adult)")
+                    Text(lang.learner("grownUpsSay", ["x": adult]))
                         .font(.system(size: 11, weight: .medium))
                         .padding(.horizontal, 8).padding(.vertical, 4)
                         .background(Color.white.opacity(0.1))
                         .clipShape(Capsule())
                 } else {
-                    SmallPill(icon: "speaker.wave.2.fill", title: "もういちど") { game.replay() }
-                    SmallPill(icon: "questionmark", title: "hint") { game.showHint() }
+                    SmallPill(icon: "speaker.wave.2.fill", title: lang.target.labels.again) { game.replay() }
+                    SmallPill(icon: "questionmark", title: lang.learner("hint")) { game.showHint() }
                 }
             }
         }
@@ -187,10 +187,11 @@ struct TomoHeaderLeft: View {
 struct TomoHeaderRight: View {
     @ObservedObject var state: AppState
     @ObservedObject var game = TomoGame.shared
+    @ObservedObject var lang = TomoLanguages.shared
 
     var body: some View {
         HStack(spacing: 14) {
-            Text("\(game.isChat ? "かいわ" : "ことば") \(game.progress)/\(game.goal)")
+            Text("\(game.isChat ? lang.target.labels.talk : lang.target.labels.words) \(game.progress)/\(game.goal)")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(Color(hex: "#8E939C"))
             Button(action: { game.restart() }) {
@@ -213,7 +214,7 @@ struct TomoHeaderRight: View {
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
-            .help("Not now: Tomo waits beside the notch")
+            .help(lang.learner("notNow"))
         }
     }
 }
@@ -235,11 +236,12 @@ private struct GrowthBar: View {
     }
 }
 
-// MARK: - 3さい conversation card
+// MARK: - Talking-stage card
 
 private struct TomoChatCard: View {
     @ObservedObject var game: TomoGame
     @ObservedObject var listener: TomoListener
+    @ObservedObject var lang = TomoLanguages.shared
     @FocusState private var focused: Bool
 
     var body: some View {
@@ -253,7 +255,7 @@ private struct TomoChatCard: View {
                     .transition(.scale(scale: 0.85).combined(with: .opacity))
                 Spacer(minLength: 0)
                 SmallPill(icon: "speaker.wave.2.fill", title: "") { game.replay() }
-                SmallPill(icon: "questionmark", title: "hint") { game.showHint() }
+                SmallPill(icon: "questionmark", title: lang.learner("hint")) { game.showHint() }
             }
 
             subtitle
@@ -262,7 +264,10 @@ private struct TomoChatCard: View {
                 .truncationMode(.tail)
 
             HStack(spacing: 8) {
-                TextField(listener.isListening ? "きいてるよ…" : "こたえて… (type in Japanese)", text: $game.draft)
+                TextField(listener.isListening
+                          ? lang.target.labels.listening
+                          : "\(lang.target.labels.answerPrompt) \(lang.learner("typeIn", ["language": lang.targetName]))",
+                          text: $game.draft)
                     .textFieldStyle(.plain)
                     .font(.system(size: 14))
                     .focused($focused)
@@ -308,12 +313,14 @@ private struct TomoChatCard: View {
         if let problem = listener.problem {
             Text(problem).foregroundColor(Color(hex: "#FF8D97"))
         } else if game.hintShown {
-            let examples = game.line.examples.isEmpty ? "" : "  ·  e.g. " + game.line.examples.joined(separator: " · ")
-            Text("\(game.line.romaji) — \(game.line.english)\(examples)").foregroundColor(Color(hex: "#C9CDD4"))
+            let examples = game.line.examples.isEmpty ? ""
+                : "  ·  \(lang.learner("eg")) " + game.line.examples.joined(separator: " · ")
+            let meaning = [game.line.romanization, game.line.translation].compactMap { $0 }.joined(separator: " — ")
+            Text(meaning + examples).foregroundColor(Color(hex: "#C9CDD4"))
         } else if let you = game.lastAnswer {
-            Text("you: \(you)").foregroundColor(Color(hex: "#8E939C"))
+            Text(lang.learner("you", ["x": you])).foregroundColor(Color(hex: "#8E939C"))
         } else {
-            Text("Answer in your own words: type or tap the mic · \(game.aiLabel ?? "offline replies")")
+            Text(lang.learner("answerOwnWords", ["ai": game.aiLabel ?? lang.learner("offlineReplies")]))
                 .foregroundColor(Color(hex: "#8E939C"))
         }
     }

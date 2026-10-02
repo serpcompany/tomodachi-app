@@ -1,12 +1,13 @@
 import AVFoundation
 import SwiftUI
 
-// MARK: - Tomo demo: a baby Japanese speaker living in the notch
+// MARK: - Tomo: a small child who lives in the notch and speaks the language you're learning
 //
-// Stage 1 (1さい) speaks single baby words; stage 2 (2さい) speaks two-word phrases.
+// Stage 1 (age 1) speaks single baby words; stage 2 (age 2) speaks two-word phrases.
 // Each round Tomo says something; the learner shows they understood by picking the
 // right picture or doing what Tomo asks (feed / put to bed / hug).
-// Stage 3 (3さい) talks: Tomo asks a question and you answer in your own words (TomoChat.swift).
+// Stage 3 (age 3) talks: Tomo asks a question and you answer in your own words (TomoChat.swift).
+// All words and lines come from the language pack (TomoLanguage.swift, Resources/languages/).
 
 extension Notification.Name {
     static let botTalk = Notification.Name("tomo.botTalk")
@@ -20,73 +21,50 @@ struct TomoChoice: Identifiable, Hashable {
     let label: String?      // shown only for need actions
 }
 
-enum TomoNeed: String { case eat, sleep, hug }
+enum TomoNeed: String, CaseIterable {
+    case eat, sleep, hug
+    var emoji: String {
+        switch self {
+        case .eat:   "🍙"
+        case .sleep: "😴"
+        case .hug:   "🤗"
+        }
+    }
+}
 
 struct TomoRound {
-    let say: String          // what Tomo says
-    let romaji: String
-    let meaning: String      // English
-    let adult: String?       // standard Japanese, for baby-talk words
-    let word: String         // vocabulary key counted toward growth
+    let say: String          // what Tomo says (target language)
+    let romanization: String?
+    let meaning: String      // in the learner's language
+    let adult: String?       // what grown-ups say instead (target language)
+    let word: String         // item id counted toward growth ("ja:wanwan")
     let answer: String       // emoji of the right choice
     let choices: [TomoChoice]
     let need: TomoNeed?      // non-nil when the round is a need (feed / sleep / hug)
     let praise: String       // what Tomo says when you get it
+
+    static let empty = TomoRound(say: "", romanization: nil, meaning: "", adult: nil, word: "",
+                                 answer: "", choices: [], need: nil, praise: "")
+}
+
+extension TomoRound {
+    init(_ r: TargetPack.Round, learner: LearnerPack) {
+        let need = r.need.flatMap(TomoNeed.init(rawValue:))
+        let choices = need != nil
+            ? TomoNeed.allCases.map { TomoChoice(emoji: $0.emoji, label: learner("need.\($0.rawValue)")) }
+            : (r.choices ?? []).map { TomoChoice(emoji: $0, label: nil) }
+        self.init(say: r.say, romanization: r.romanization, meaning: r.meaning(learner.id), adult: r.grownUp,
+                  word: r.id, answer: need?.emoji ?? r.answer ?? "", choices: choices, need: need, praise: r.praise)
+    }
 }
 
 enum TomoPhase: Equatable {
     case asking
-    case thinking            // 3さい: waiting for Tomo's reply
+    case thinking            // talking stage: waiting for Tomo's reply
     case right
     case wrong(String)       // emoji picked
     case grew
 }
-
-// MARK: - Content
-
-private let needChoices = [
-    TomoChoice(emoji: "🍙", label: "feed"),
-    TomoChoice(emoji: "😴", label: "bed"),
-    TomoChoice(emoji: "🤗", label: "hug"),
-]
-
-private func pics(_ emojis: String...) -> [TomoChoice] {
-    emojis.map { TomoChoice(emoji: $0, label: nil) }
-}
-
-private let stage1: [TomoRound] = [
-    TomoRound(say: "ワンワン！", romaji: "wan-wan", meaning: "doggy", adult: "いぬ（犬）",
-              word: "ワンワン", answer: "🐶", choices: pics("🐱", "🐶", "🚗"), need: nil, praise: "ワンワン！"),
-    TomoRound(say: "まんま！", romaji: "man-ma", meaning: "food! (I'm hungry)", adult: "ごはん",
-              word: "まんま", answer: "🍙", choices: needChoices, need: .eat, praise: "おいちい！"),
-    TomoRound(say: "ブーブー！", romaji: "bū-bū", meaning: "car (vroom vroom)", adult: "くるま（車）",
-              word: "ブーブー", answer: "🚗", choices: pics("🚗", "🐮", "🍎"), need: nil, praise: "ブーブー！"),
-    TomoRound(say: "ニャンニャン", romaji: "nyan-nyan", meaning: "kitty", adult: "ねこ（猫）",
-              word: "ニャンニャン", answer: "🐱", choices: pics("🐶", "🐮", "🐱"), need: nil, praise: "ニャンニャン！"),
-    TomoRound(say: "ねんね…", romaji: "nen-ne", meaning: "sleepy-time", adult: "ねる（寝る）",
-              word: "ねんね", answer: "😴", choices: needChoices, need: .sleep, praise: "ねんね…"),
-    TomoRound(say: "モーモー！", romaji: "mō-mō", meaning: "moo-cow", adult: "うし（牛）",
-              word: "モーモー", answer: "🐮", choices: pics("🐮", "🐤", "🐶"), need: nil, praise: "モーモー！"),
-    TomoRound(say: "だっこ！", romaji: "dak-ko", meaning: "pick me up!", adult: "だっこ（抱っこ）",
-              word: "だっこ", answer: "🤗", choices: needChoices, need: .hug, praise: "えへへ"),
-    TomoRound(say: "くっく！", romaji: "kuk-ku", meaning: "shoes", adult: "くつ（靴）",
-              word: "くっく", answer: "👟", choices: pics("🧸", "👟", "🍎"), need: nil, praise: "くっく！"),
-]
-
-private let stage2: [TomoRound] = [
-    TomoRound(say: "ワンワン いた！", romaji: "wan-wan ita!", meaning: "There's a doggy!", adult: "いぬが いた！",
-              word: "いた", answer: "🐶", choices: pics("🚗", "🐱", "🐶"), need: nil, praise: "ワンワン かわいい！"),
-    TomoRound(say: "まんま たべる", romaji: "man-ma taberu", meaning: "Eat food", adult: "ごはんを たべる",
-              word: "たべる", answer: "🍙", choices: needChoices, need: .eat, praise: "おいちい！"),
-    TomoRound(say: "りんご ちょうだい", romaji: "ringo chōdai", meaning: "Apple, please", adult: "りんごを ください",
-              word: "ちょうだい", answer: "🍎", choices: pics("🍌", "🍎", "🍙"), need: nil, praise: "ありがと！"),
-    TomoRound(say: "ブーブー はやい！", romaji: "bū-bū hayai!", meaning: "The car is fast!", adult: "くるまが はやい",
-              word: "はやい", answer: "🚗", choices: pics("🐢", "🐮", "🚗"), need: nil, praise: "はやいね！"),
-    TomoRound(say: "ねんね する", romaji: "nen-ne suru", meaning: "Go to sleep", adult: "ねる",
-              word: "する", answer: "😴", choices: needChoices, need: .sleep, praise: "おやすみ…"),
-    TomoRound(say: "おみず のむ", romaji: "o-mizu nomu", meaning: "Drink water", adult: "みずを のむ",
-              word: "のむ", answer: "💧", choices: pics("💧", "🍙", "🍎"), need: nil, praise: "ごくごく！"),
-]
 
 // MARK: - Drop-ins: Tomo visits now and then instead of asking for study sessions
 
@@ -112,11 +90,11 @@ enum DropIn {
 final class TomoGame: ObservableObject {
     static let shared = TomoGame()
 
-    static let stageGoal = [1: 5, 2: 5, 3: 10]   // understood answers needed to grow (3 → 4さい: later)
+    static let stageGoal = [1: 5, 2: 5, 3: 10]   // understood answers needed to grow (age 3 → 4: later)
     static let chatStage = 3
 
     @Published private(set) var stage = 1
-    @Published private(set) var round: TomoRound = stage1[0]
+    @Published private(set) var round: TomoRound = .empty
     @Published private(set) var phase: TomoPhase = .asking
     @Published private(set) var known: Set<String> = []
     @Published var hintShown = false
@@ -124,8 +102,8 @@ final class TomoGame: ObservableObject {
     @Published private(set) var pending = false
     private var nextNudge = Date.distantFuture
 
-    // 3さい conversation
-    @Published private(set) var line: TomoLine = tomoStarters[0]
+    // Talking stage (age 3+)
+    @Published private(set) var line: TomoLine = .empty
     @Published private(set) var lastAnswer: String?
     @Published private(set) var goodReplies = 0
     @Published private(set) var aiLabel: String?   // nil = offline replies
@@ -151,23 +129,35 @@ final class TomoGame: ObservableObject {
     private var ticker: Timer?
 
     private let speech = AVSpeechSynthesizer()
-    private let voice: AVSpeechSynthesisVoice? = {
-        let ja = AVSpeechSynthesisVoice.speechVoices().filter { $0.language == "ja-JP" }
-        return ja.max { $0.quality.rawValue < $1.quality.rawValue } ?? AVSpeechSynthesisVoice(language: "ja-JP")
-    }()
+    private var voices: [String: AVSpeechSynthesisVoice] = [:]
 
+    /// Best installed voice for the target language.
+    private var voice: AVSpeechSynthesisVoice? {
+        let locale = lang.target.speechLocale
+        if let v = voices[locale] { return v }
+        let v = AVSpeechSynthesisVoice.speechVoices().filter { $0.language == locale }
+            .max { $0.quality.rawValue < $1.quality.rawValue } ?? AVSpeechSynthesisVoice(language: locale)
+        voices[locale] = v
+        return v
+    }
+
+    private var lang: TomoLanguages { .shared }
     var isChat: Bool { stage >= Self.chatStage }
-    var age: String { "\(stage)さい" }
+    var age: String { lang.target.ageLabel(stage) }
     var goal: Int { Self.stageGoal[stage] ?? 5 }
     var progress: Int { isChat ? goodReplies : knownThisStage }
     var knownThisStage: Int { known.filter { stageWords.contains($0) }.count }
-    private var rounds: [TomoRound] { stage == 1 ? stage1 : stage2 }
+    private var rounds: [TomoRound] {
+        let stages = lang.target.stages
+        guard !stages.isEmpty else { return [] }
+        return stages[min(stage, stages.count) - 1].map { TomoRound($0, learner: lang.learner) }
+    }
     private var stageWords: Set<String> { Set(rounds.map(\.word)) }
     private var ignoreAfter: TimeInterval { isChat ? DropIn.ignoreAfterChat : DropIn.ignoreAfter }
 
     private init() {
         NotificationCenter.default.addObserver(forName: .triggerSlap, object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.speak("いたい！", slow: false) }
+            MainActor.assumeIsolated { self?.speak(TomoLanguages.shared.target.lines.ouch, slow: false) }
         }
     }
 
@@ -179,7 +169,7 @@ final class TomoGame: ObservableObject {
         stage = 1
         index = 0
         known = []
-        round = stage1[0]
+        round = rounds.first ?? .empty
         phase = .asking
         goodReplies = 0
         transcript = []
@@ -206,7 +196,7 @@ final class TomoGame: ObservableObject {
     func jumpToChat(open: Bool = true) {
         bump()
         stage = Self.chatStage
-        known = Set((stage1 + stage2).map(\.word))
+        known = Set(lang.target.stages.flatMap { $0.map(\.id) })
         transcript = []
         lastAnswer = nil
         NotificationCenter.default.post(name: .botGrow, object: CGFloat(2))
@@ -278,7 +268,7 @@ final class TomoGame: ObservableObject {
         }
     }
 
-    /// Ends the visit. Ignored: a quiet yawn. Finished: wave and バイバイ.
+    /// Ends the visit. Ignored: a quiet yawn. Finished: wave and say bye.
     private func leave(ignored: Bool) {
         let tok = bump()
         visitRoundsLeft = nil
@@ -290,7 +280,7 @@ final class TomoGame: ObservableObject {
             markPending()
         } else {
             NotificationCenter.default.post(name: .botGreet, object: nil)
-            speak(isChat ? "またね！" : "バイバイ！", slow: false)
+            speak(isChat ? lang.target.lines.seeYou : lang.target.lines.bye, slow: false)
         }
         after(1.8, tok) { [weak self] in
             self?.closeIsland?()
@@ -347,7 +337,7 @@ final class TomoGame: ObservableObject {
         speak(isChat ? line.say : round.say, slow: true)
     }
 
-    // MARK: 1–2さい: pick the picture / do what Tomo asks
+    // MARK: Ages 1–2: pick the picture / do what Tomo asks
 
     func pick(_ choice: TomoChoice) {
         guard phase == .asking else { return }
@@ -361,7 +351,7 @@ final class TomoGame: ObservableObject {
         } else {
             phase = .wrong(choice.emoji)
             setBot(.error)
-            speak("ちがう〜", slow: false)
+            speak(lang.target.lines.wrong, slow: false)
             after(1.2, tok) { [weak self] in
                 guard let self else { return }
                 self.setBot(.question)
@@ -414,15 +404,15 @@ final class TomoGame: ObservableObject {
         setBot(.finished)
         emote(.proud)
         NotificationCenter.default.post(name: .botGrow, object: CGFloat(next - 1))
-        speak("おおきく なった！", slow: false)
+        speak(lang.target.lines.grew, slow: false)
         after(4.2, tok) { [weak self] in
             guard let self else { return }
             self.stage = next
             self.index = 0
             self.phase = .asking
-            if next == 2 { self.round = stage2[0] }
+            if !self.isChat { self.round = self.rounds.first ?? .empty }
             if self.visitRoundsLeft != nil { self.leave(ignored: false); return }
-            if self.isChat { self.presentStarter(delay: 0) } else { self.present(stage2[0], delay: 0) }
+            if self.isChat { self.presentStarter(delay: 0) } else { self.present(self.round, delay: 0) }
         }
     }
 
@@ -440,10 +430,12 @@ final class TomoGame: ObservableObject {
         }
     }
 
-    // MARK: 3さい: Tomo asks, you answer in your own words
+    // MARK: Age 3+: Tomo asks, you answer in your own words
 
     private func presentStarter(delay: Double) {
-        let starter = tomoStarters[starterIndex % tomoStarters.count]
+        let starters = lang.target.starters
+        guard !starters.isEmpty else { return }
+        let starter = TomoLine(starters[starterIndex % starters.count], learner: lang.learner)
         starterIndex += 1
         say(starter, delay: delay)
     }
@@ -488,15 +480,16 @@ final class TomoGame: ObservableObject {
         let ai = TomoAI.config
         aiLabel = ai.isUsable ? ai.label : nil
         let history = transcript
+        let language = lang.context
         Task { @MainActor [weak self] in
-            let r = await TomoBrain.reply(to: history, ai: ai)
+            let r = await TomoBrain.reply(to: history, ai: ai, language: language)
             guard let self, self.token == tok else { return }
             self.heard(r, tok: tok)
         }
     }
 
     private func heard(_ r: TomoReply, tok: Int) {
-        let reply = TomoLine(say: r.say, romaji: r.romaji, english: r.english)
+        let reply = TomoLine(say: r.say, romanization: r.romanization, translation: r.translation)
         line = reply
         hintShown = false
         phase = .asking

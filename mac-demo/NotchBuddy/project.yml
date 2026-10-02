@@ -37,6 +37,9 @@ targets:
       - path: Resources/sounds
         buildPhase: resources
         type: folder
+      - path: Resources/languages
+        buildPhase: resources
+        type: folder
     info:
       path: Resources/Info.plist
       properties:

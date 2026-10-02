@@ -8,6 +8,15 @@
 
 **Built in the demo (simple version):** visits come every 10 minutes and the first one is at launch. Tomo opens on its own. If you don't click, type, or hover for 10 seconds (20 seconds at the talking stage), it yawns and tucks back in. A visit is 3 answers, then バイバイ. Visits wait while you're typing and skip when nobody's at the Mac. There are no settings yet: the constants are in `DropIn` in `mac-demo/NotchBuddy/Sources/App/TomoGame.swift`.
 
+**Visit timing**
+- *Now (demo):* every 10 minutes plus one at launch. Waits while you're typing (retries in 20 s). Skips when you've been away 5+ minutes. The next visit is 10 minutes after the last one ended.
+- *Proposed, not built:*
+  - The base interval comes from a setting: chatty 20 min, normal 45 min, quiet 2 h, with ±20% randomness.
+  - Each ignored or closed visit doubles the wait (up to 4 h); an answered visit resets it.
+  - At most about 12 visits a day, and none at night.
+  - Visits come only at natural breaks: stopped typing, switched apps, unlocked the Mac.
+  - Visits come sooner when words are due for review.
+
 **How a drop-in works**
 
 1. Tomo peeks out of the notch and waves or calls out (まんま！, ワンワン！). It doesn't take over the screen.

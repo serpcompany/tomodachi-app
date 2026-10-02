@@ -1,0 +1,26 @@
+{
+  "id": "en",
+  "name": "English",
+  "strings": {
+    "pickPicture": "Which one is Tomo talking about?",
+    "pickNeed": "What does Tomo want?",
+    "grownUpsSay": "grown-ups say: {x}",
+    "hint": "hint",
+    "need.eat": "feed",
+    "need.sleep": "bed",
+    "need.hug": "hug",
+    "grewPhrases": "Tomo grew up → {age}. Now it speaks in two-word phrases.",
+    "grewTalking": "Tomo grew up → {age}. Now it can talk with you. Answer in your own words!",
+    "typeIn": "(type in {language})",
+    "answerOwnWords": "Answer in your own words: type or tap the mic · {ai}",
+    "offlineReplies": "offline replies",
+    "you": "you: {x}",
+    "eg": "e.g.",
+    "notNow": "Not now: Tomo waits beside the notch",
+    "mic.permission": "Allow Microphone and Speech Recognition for Tomodachi in System Settings → Privacy & Security.",
+    "mic.unavailable": "{language} speech recognition isn't available on this Mac.",
+    "mic.notInstalled": "On-device {language} recognition isn't installed. Add {language} in System Settings → Keyboard → Dictation, or type your answer.",
+    "mic.none": "No microphone found.",
+    "mic.failed": "Couldn't start the microphone."
+  }
+}

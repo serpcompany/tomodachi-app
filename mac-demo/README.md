@@ -19,6 +19,7 @@ The menu bar icon has:
 - **Drop in now** (⌘D)
 - **Restart demo** (⌘R)
 - **Skip to 3さい (talking)** (⌘3): Tomo asks questions and you answer by typing Japanese or with the mic
+- **Learning** / **I speak**: the language pair (Japanese, plus a Spanish draft; English interface). See `docs/languages.md`
 - **AI provider…** (⌘,): pick any provider (Anthropic, OpenAI, Gemini, OpenRouter, Groq, Ollama, or custom OpenAI-compatible), paste a key (stored in the Keychain), fetch models, and test
 
 ## Rebuild
@@ -34,6 +35,7 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 | `Sources/App/TomoGame.swift` | New. Word lists for stages 1–2, rounds, growth, and the Japanese voice (`AVSpeechSynthesizer`, ja-JP, raised pitch) |
 | `Sources/App/TomoView.swift` | New. Island card, picture/action tiles, header status |
 | `Sources/App/TomoChat.swift` | New. 3さい questions, replies (AI if configured, offline otherwise), on-device Japanese speech recognition |
+| `Sources/App/TomoLanguage.swift`, `Resources/languages/` | New. Language packs (`ja.json`, `es.json`), interface strings (`ui.en.json`), and the pair selection |
 | `Sources/App/TomoAI.swift` | New. Provider adapter (Anthropic API + any OpenAI-compatible endpoint) and the AI provider window |
 | `BotEngine.swift` | Peach egg-shaped body, a sprout when grown, a hop when talking, softer state tint |
 | `AppDelegate.swift`, `AppState.swift` | No hooks or pollers. A single "tomo" task. Launches straight into the game |
@@ -42,7 +44,8 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 Debug only:
 - `TOMO_AUTOPLAY=1` plays stages 1–2 by itself.
 - `TOMO_STAGE=3 TOMO_AUTOCHAT="しごと してる|うん"` starts at the talking stage and types those answers.
-- `TOMO_DROPIN_EVERY=8` sets the seconds between visits.
+- `TOMO_DROPIN_EVERY=8` sets the seconds between visits; `TOMO_NUDGE_EVERY=5` sets the seconds between nudge bounces.
+- `TOMO_TARGET=es` and `TOMO_LEARNER=en` pick the language pair.
 - `TOMO_SNAPSHOT_DIR=/path` saves a PNG of the island every second.
 
 ## License note

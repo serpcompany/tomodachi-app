@@ -254,8 +254,8 @@ struct TomoAISettingsView: View {
         busy = true; status = "Asking Tomo…"
         let c = config
         Task {
-            switch await TomoBrain.test(config: c) {
-            case .success(let r): status = "Tomo: \(r.say)  (\(r.english))  understood: \(r.understood)"
+            switch await TomoBrain.test(config: c, language: TomoLanguages.shared.context) {
+            case .success(let r): status = "Tomo: \(r.say)  (\(r.translation))  understood: \(r.understood)"
             case .failure(let e): status = e.localizedDescription
             }
             busy = false
