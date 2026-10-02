@@ -258,9 +258,10 @@ private struct TomoChatCard: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(game.phase == .thinking ? "…" : game.line.say)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.5)
+                    .font(.system(size: game.line.say.count > 36 ? 18 : 24, weight: .bold, design: .rounded))
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.7)
+                    .fixedSize(horizontal: false, vertical: true)
                     .id(game.line.say)
                     .transition(.scale(scale: 0.85).combined(with: .opacity))
                 Spacer(minLength: 0)

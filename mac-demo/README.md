@@ -17,10 +17,37 @@ Tomo opens on its own every 10 minutes for a 3-answer visit. If you ignore it fo
 The menu bar icon has:
 - **Open Tomo**
 - **Drop in now** (⌘D)
-- **Restart demo** (⌘R)
-- **Skip to 3さい (talking)** (⌘3): Tomo asks questions and you answer by typing Japanese or with the mic
-- **Learning** / **I speak**: the language pair (Japanese, plus a Spanish draft; English interface). See `docs/languages.md`
-- **AI provider…** (⌘,): pick any provider (Anthropic, OpenAI, Gemini, OpenRouter, Groq, Ollama, or custom OpenAI-compatible), paste a key (stored in the Keychain), fetch models, and test
+- **Skip to talking (3さい)** (⌘3)
+- **Restart Tomo** (⌘R)
+- **Settings…** (⌘,):
+  - *General:* the language pair (I speak / I'm learning), how often Tomo visits (10 min to 2 h, or only when you click), Tomo's voice, restart
+  - *AI:* any provider (Anthropic, OpenAI, Gemini, OpenRouter, Groq, Ollama, or a custom OpenAI-compatible endpoint), key stored in the Keychain
+  - *About*
+
+## Beta builds for testers
+
+```bash
+mac-demo/scripts/release-beta.sh                 # build, sign (Developer ID), notarize, staple, zip
+mac-demo/scripts/release-beta.sh --no-notarize   # build and sign only
+```
+
+- **One-time setup:** store notarization credentials. You type an app-specific password from appleid.apple.com, and it goes to your Keychain:
+  ```bash
+  xcrun notarytool store-credentials tomodachi-notary --apple-id "you@example.com" --team-id <team>
+  ```
+- **Team:** `DEVELOPMENT_TEAM` in `NotchBuddy/project.yml` (currently 847HR8U8D9), or `TOMO_TEAM=…` for one build. You need a Developer ID Application certificate for that team, and the notary profile must use the same team.
+- **Output:** `mac-demo/build/release/Tomodachi-<version>-beta.zip`. The build is universal (Apple Silicon and Intel), macOS 15+. The version is `CFBundleShortVersionString` in `NotchBuddy/project.yml`.
+- **What the script checks:** your Developer ID team, hardened runtime, the microphone permission, and that no Coucou sounds are bundled.
+- **What to send testers:** the zip, plus [docs/beta-testing.md](../docs/beta-testing.md).
+
+## App icon
+
+The icon is drawn by the real character code:
+
+```bash
+TOMO_RENDER_ICON=/tmp/tomo-icon build/Build/Products/Debug/Tomodachi.app/Contents/MacOS/Tomodachi
+python3 scripts/make-icons.py /tmp/tomo-icon     # writes AppIcon + MenuBarIcon (needs Pillow)
+```
 
 ## Rebuild
 
@@ -36,6 +63,9 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 | `Sources/App/TomoView.swift` | New. Island card, picture/action tiles, header status |
 | `Sources/App/TomoChat.swift` | New. 3さい questions, replies (AI if configured, offline otherwise), on-device Japanese speech recognition |
 | `Sources/App/TomoLanguage.swift`, `Resources/languages/` | New. Language packs (`ja.json`, `es.json`), interface strings (`ui.en.json`), and the pair selection |
+| `Sources/App/TomoSettingsView.swift` | New. Settings window (General, AI, About) |
+| `Sources/App/TomoIconRenderer.swift`, `scripts/make-icons.py` | New. App and menu bar icons drawn from the character code |
+| `scripts/release-beta.sh`, `Resources/Tomodachi.entitlements` | New. Signed, notarized beta builds |
 | `Sources/App/TomoAI.swift` | New. Provider adapter (Anthropic API + any OpenAI-compatible endpoint) and the AI provider window |
 | `BotEngine.swift` | Peach egg-shaped body, a sprout when grown, a hop when talking, softer state tint |
 | `AppDelegate.swift`, `AppState.swift` | No hooks or pollers. A single "tomo" task. Launches straight into the game |
@@ -46,8 +76,12 @@ Debug only:
 - `TOMO_STAGE=3 TOMO_AUTOCHAT="しごと してる|うん"` starts at the talking stage and types those answers.
 - `TOMO_DROPIN_EVERY=8` sets the seconds between visits; `TOMO_NUDGE_EVERY=5` sets the seconds between nudge bounces.
 - `TOMO_TARGET=es` and `TOMO_LEARNER=en` pick the language pair.
-- `TOMO_SNAPSHOT_DIR=/path` saves a PNG of the island every second.
+- `TOMO_SNAPSHOT_DIR=/path` saves a PNG of the island every second; with `TOMO_OPEN_SETTINGS=1` it also captures the Settings window.
+- `TOMO_RENDER_ICON=/path` renders the icon images and quits.
 
 ## License note
 
-Coucou's **code** is MIT (see `LICENSE`). Its name, its Mochi character and its **sounds** are not (see `LICENSE-ASSETS.md`). For that reason, Coucou's sound effects are off by default. The menu toggle that turns them on is for private use only. Before showing this publicly, replace those sounds and finish making the character your own.
+Coucou's **code** is MIT (see `LICENSE`). Its name, its Mochi character and its **sounds** are not (see `LICENSE-ASSETS.md`).
+
+- **Removed from builds:** Coucou's sounds (still in the repo until issue #1), and its icons (replaced by Tomo's).
+- **Still open:** Tomo's look is our own, but its expressions and animations still come from Coucou's character engine. Before distributing widely, get the author's permission or finish issue #1.

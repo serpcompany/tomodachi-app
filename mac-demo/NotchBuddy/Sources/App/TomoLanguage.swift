@@ -45,9 +45,12 @@ struct TargetPack: Codable, Sendable {
         let dontUnderstand: SpokenLine
     }
     struct AIProfile: Codable, Sendable {
-        let persona: String     // "a 3-year-old Japanese child"
+        let persona: String     // "a {age}-year-old Japanese child"
         let rules: [String]     // language-specific speaking rules (script, register, typical words)
+        let rulesByAge: [AgeRules]?   // replaces `rules` from an age on (older kids talk differently)
     }
+    struct AgeRules: Codable, Sendable { let fromAge: Int; let rules: [String] }
+    struct AgeStarters: Codable, Sendable { let fromAge: Int; let starters: [Starter] }
     struct Round: Codable, Sendable {
         let id: String          // "ja:wanwan" (later: Language Reference IDs)
         let say: String
@@ -88,9 +91,18 @@ struct TargetPack: Codable, Sendable {
     let ai: AIProfile
     let stages: [[Round]]           // stages[0] = 1-year-old rounds, stages[1] = 2-year-old rounds
     let starters: [Starter]         // conversation openers from the talking stage on
+    let startersByAge: [AgeStarters]?   // replaces `starters` from an age on
     let offlineReplies: [OfflineReply]
     /// Whole answers that mean "I didn't understand" in the target language (なに？, わかんない).
     let helpPhrases: [String]?
+
+    func persona(age: Int) -> String { ai.persona.replacingOccurrences(of: "{age}", with: "\(age)") }
+    func aiRules(age: Int) -> [String] {
+        (ai.rulesByAge ?? []).filter { $0.fromAge <= age }.max { $0.fromAge < $1.fromAge }?.rules ?? ai.rules
+    }
+    func starters(age: Int) -> [Starter] {
+        (startersByAge ?? []).filter { $0.fromAge <= age }.max { $0.fromAge < $1.fromAge }?.starters ?? starters
+    }
 
     func ageLabel(_ n: Int) -> String {
         (n == 1 ? age.one : age.other).replacingOccurrences(of: "{n}", with: "\(n)")
@@ -139,6 +151,7 @@ struct LearnerPack: Codable, Sendable {
 struct LanguageContext: Sendable {
     let target: TargetPack
     let learner: LearnerPack
+    var age = 3                     // Tomo's age: shapes how it talks
     var targetName: String { target.name(learner.id) }
 }
 

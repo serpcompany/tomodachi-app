@@ -13,12 +13,16 @@ Everything we want, with its status. When something moves, update it here in the
 | Baby word + "grown-ups say" reveal (ワンワン → いぬ) | |
 | Growing up: sprout at 2さい, bigger at 3さい | Placeholder thresholds |
 | Drop-in visits: every 10 min, 3 answers, leave after 10 s ignored | No settings yet |
+| Talking stage works at any age (3, 5, 7, 10, 12…): reply length and style grow with age; packs can set rules and opening questions per age band (`rulesByAge`, `startersByAge`). English has a 7+ band. Settings → "Try another age (testing)" | Ages beyond 3 can't be earned yet; growth thresholds are a leveling-research item |
+| Settings window: languages, visit frequency (10 min to 2 h, or click-only), voice, AI provider, About | `TomoSettingsView` |
+| Own app and menu bar icon, drawn from the character code | `TomoIconRenderer`, `scripts/make-icons.py` |
+| Signed + notarized beta builds for testers (0.0.1) | `scripts/release-beta.sh`; tester guide in [beta-testing.md](beta-testing.md) |
 | Win / Miss / No score badge after every answer; help requests ("what?", なに？) repeat the question and open the hint | `TomoOutcome`, `OutcomeBadge`; phrases in the packs (`helpPhrases`) |
 | Dismiss with × or Esc; after an unfinished visit, a red dot and a bounce every 60 s until you check in | `DropIn.nudgeEvery` |
 | 3さい conversation: typed or spoken answers | 5 starter questions |
 | AI provider adapter (Anthropic + any OpenAI-compatible), AI provider window | Default OpenAI `gpt-5.4-mini` via `.env` |
 | Japanese voice out (Apple TTS) and voice in (Apple, on-device only) | The mic isn't tested by hand yet |
-| Language pairs: any learner language × any target language, via data files | Japanese pack + Spanish draft proof pack, English interface. See [languages.md](languages.md) |
+| Language pairs: any learner language × any target language, via data files | Learn Japanese, English or Spanish (drafts); interface in English or Japanese. Japanese speakers can learn English. See [languages.md](languages.md) |
 
 ## Next
 
@@ -33,7 +37,6 @@ Everything we want, with its status. When something moves, update it here in the
 | 2さい reply bubbles + "say this word" (between tapping and free talk) | Next | The answer ladder in [user-journey.md](user-journey.md) §3 |
 | Native-speaker review of the language packs (ja, es) | Next | Both are drafts (`reviewedByNativeSpeaker: false`) |
 | Save progress per language pair; one Tomo per target language | Next | Key the learner store by (learner, target) |
-| A second learner language (interface + translations) | Idea | Proves the learner side the way Spanish proved the target side |
 | Debrand: remove Coucou, Mochi and Grok Bot names, assets and leftovers; own character art and sounds | Next | [serpcompany/zenbujapanese-tomo-app#1](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/1). Required before showing publicly (license). Keep the MIT notice and one credit line |
 | Judge answers in layers, never by AI alone: (1) right language (built); (2) on-topic via the Zenbu dictionary + per-question expected answers; (3) AI fills yes/no verdict fields that code double-checks. Outcomes Win / Miss / No score are built and shown as badges | Next (layers 2–3) | Seen live: `gpt-5.4-mini` accepted "car" as understood. Layer 1 now blocks that |
 | Adapter: send a JSON schema and `reasoning_effort` per provider | Next | From ai-models-and-costs.md: guarantees Tomo's JSON shape; avoids paying for unneeded reasoning |
@@ -43,6 +46,15 @@ Everything we want, with its status. When something moves, update it here in the
 | Busy detection: calls, full-screen video, Focus mode | Idea | Open question in user-journey.md |
 
 ## Ideas (later)
+
+- **More learning modes** (teach a new word, listen and translate, "what's this?", Simon Says, Tomo makes a mistake…): research in progress in `research/learning-modes.md`.
+
+- **Character options.** Notchi and Buddi (other open notch companions) are GPL-3.0, so they can't go in a closed app. Real options:
+  - variants from our own engine (shape, colors, accessories; maybe one per target language)
+  - a commissioned original character (code-drawn or Rive)
+  - CC0 art (Kenney)
+
+  All of these tie into issue #1, since Tomo's expressions still come from Coucou's engine.
 
 - **Named word stages in the word book** (WaniKani-style, in Tomo's voice): "Tomo just heard it" → "Tomo knows it" → "Tomo's favorite word". Progress you can see, with no points.
 
@@ -60,6 +72,9 @@ Everything we want, with its status. When something moves, update it here in the
   - Option: host Tomo inside the existing Zenbu iPhone app instead of a separate app.
 
 ## Open product questions
+
+- Coucou's character engine: Tomo's look is ours, but its expressions and animations come from Coucou's Mochi engine. Ask the author for permission before a wide beta, or finish issue #1.
+- AI for testers: they bring their own key or get offline replies. Shared AI needs a small server that holds our key (never ship a key inside the app).
 
 - From leveling-points.md: switch to half-year ages (1さい半, 2さい半)? Move reply bubbles from 2さい to 1さい半?
 - Licensing for age data: CHILDES (non-commercial, no LLM use) is out. Mochizuki & Ota's age ratings are CC BY-NC (needed for 4–6, so ask them or run our own small study). Ask the J-CDI developers whether a word list derived from Wordbank needs their permission.

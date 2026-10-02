@@ -185,6 +185,7 @@ enum TomoAI {
 // MARK: - "AI provider" window
 
 struct TomoAISettingsView: View {
+    @ObservedObject var lang = TomoLanguages.shared
     @State private var config = TomoAI.config
     @State private var models: [String] = []
     @State private var status = ""
@@ -192,7 +193,7 @@ struct TomoAISettingsView: View {
 
     var body: some View {
         Form {
-            Picker("Provider", selection: $config.provider) {
+            Picker(lang.learner("ai.provider"), selection: $config.provider) {
                 ForEach(TomoAIProvider.allCases) { Text($0.title).tag($0) }
             }
             .onChange(of: config.provider) { _, p in
@@ -202,11 +203,11 @@ struct TomoAISettingsView: View {
                 status = ""
             }
 
-            TextField("Base URL", text: $config.baseURL)
-            SecureField(config.provider.needsKey ? "API key" : "API key (not needed)", text: $config.apiKey)
+            TextField(lang.learner("ai.baseURL"), text: $config.baseURL)
+            SecureField(lang.learner(config.provider.needsKey ? "ai.key" : "ai.keyNotNeeded"), text: $config.apiKey)
 
             HStack {
-                TextField("Model", text: $config.model)
+                TextField(lang.learner("ai.model"), text: $config.model)
                 if !models.isEmpty {
                     Picker("", selection: $config.model) {
                         ForEach(models, id: \.self) { Text($0).tag($0) }
@@ -214,20 +215,20 @@ struct TomoAISettingsView: View {
                     .labelsHidden()
                     .frame(maxWidth: 200)
                 }
-                Button("Fetch models") { fetchModels() }.disabled(busy)
+                Button(lang.learner("ai.fetch")) { fetchModels() }.disabled(busy)
             }
 
             HStack {
-                Button("Save") { TomoAI.save(config); status = "Saved. Tomo now uses \(config.label)." }
+                Button(lang.learner("ai.save")) { TomoAI.save(config); status = lang.learner("ai.saved", ["label": config.label]) }
                     .keyboardShortcut(.defaultAction)
-                Button("Test") { test() }.disabled(busy || !config.isUsable)
+                Button(lang.learner("ai.test")) { test() }.disabled(busy || !config.isUsable)
                 if busy { ProgressView().controlSize(.small) }
             }
 
             if !status.isEmpty {
                 Text(status).font(.callout).foregroundStyle(.secondary).textSelection(.enabled)
             }
-            Text("Without a provider, Tomo uses built-in offline replies. The key is stored in your Keychain.")
+            Text(lang.learner("ai.footer"))
                 .font(.caption).foregroundStyle(.secondary)
         }
         .formStyle(.grouped)
@@ -235,7 +236,7 @@ struct TomoAISettingsView: View {
     }
 
     private func fetchModels() {
-        busy = true; status = "Loading models…"
+        busy = true; status = lang.learner("ai.loading")
         let c = config
         Task {
             do {
@@ -244,14 +245,14 @@ struct TomoAISettingsView: View {
                 if config.model.isEmpty || !ids.contains(config.model) {
                     config.model = ids.first { ["haiku", "mini", "flash", "small", "8b"].contains(where: $0.contains) } ?? ids.first ?? ""
                 }
-                status = "\(ids.count) models."
+                status = lang.learner("ai.count", ["n": "\(ids.count)"])
             } catch { status = error.localizedDescription }
             busy = false
         }
     }
 
     private func test() {
-        busy = true; status = "Asking Tomo…"
+        busy = true; status = lang.learner("ai.asking")
         let c = config
         Task {
             switch await TomoBrain.test(config: c, language: TomoLanguages.shared.context) {

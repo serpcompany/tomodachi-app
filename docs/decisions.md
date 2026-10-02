@@ -2,6 +2,9 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
+### 2026-10-03: Beta 0.0.1 ships as a signed, notarized zip
+Built by `mac-demo/scripts/release-beta.sh` with the team's Developer ID (847HR8U8D9): universal, hardened runtime, microphone permission only. Coucou's sounds and icons aren't bundled. The default visit frequency is 20 minutes, changeable in Settings. No AI key ships in the app: testers add their own or use offline replies. **Why:** testers can open it without macOS warnings, and nothing we can't legally or safely distribute is inside.
+
 ### 2026-10-03: Every answer is a Win, a Miss, or No score
 **Win** (understood / right picture) counts toward growth. **Miss** (tried in the target language, Tomo didn't get it / wrong picture) gives no credit; later, the leveling model weakens the word. **No score** (wrong language, or asking for help) gives no credit and no penalty. **Why:** the learner should always know what an answer earned, and asking for help must never feel like failing.
 

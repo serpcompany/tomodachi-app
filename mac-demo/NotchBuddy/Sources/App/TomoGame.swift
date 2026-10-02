@@ -76,9 +76,19 @@ enum TomoPhase: Equatable {
 // MARK: - Drop-ins: Tomo visits now and then instead of asking for study sessions
 
 enum DropIn {
-    /// Time between visits. TOMO_DROPIN_EVERY (seconds) overrides it for testing.
-    static let every: TimeInterval = ProcessInfo.processInfo.environment["TOMO_DROPIN_EVERY"]
-        .flatMap(TimeInterval.init) ?? 10 * 60
+    /// Time between visits (Settings → General). 0 = only when you click Tomo.
+    /// TOMO_DROPIN_EVERY (seconds) overrides it for testing.
+    static var every: TimeInterval {
+        if let e = ProcessInfo.processInfo.environment["TOMO_DROPIN_EVERY"].flatMap(TimeInterval.init) { return e }
+        return UserDefaults.standard.object(forKey: "tomoVisitEvery") as? Double ?? 20 * 60
+    }
+    static func setEvery(_ seconds: TimeInterval) { UserDefaults.standard.set(seconds, forKey: "tomoVisitEvery") }
+    static let choices: [(seconds: TimeInterval, key: String)] = [
+        (10 * 60, "settings.visits.10m"), (20 * 60, "settings.visits.20m"), (45 * 60, "settings.visits.45m"),
+        (2 * 3600, "settings.visits.2h"), (0, "settings.visits.off"),
+    ]
+    /// When the next visit is due, counting from now.
+    static func nextVisit() -> Date { every > 0 ? Date().addingTimeInterval(every) : .distantFuture }
     /// Tomo leaves when you haven't touched or hovered the island for this long.
     static let ignoreAfter: TimeInterval = 10
     /// Answering in your own words takes longer than tapping a picture.
@@ -152,7 +162,7 @@ final class TomoGame: ObservableObject {
     private var lang: TomoLanguages { .shared }
     var isChat: Bool { stage >= Self.chatStage }
     var age: String { lang.target.ageLabel(stage) }
-    var goal: Int { Self.stageGoal[stage] ?? 5 }
+    var goal: Int { Self.stageGoal[stage] ?? (isChat ? 10 : 5) }
     var progress: Int { isChat ? goodReplies : knownThisStage }
     var knownThisStage: Int { known.filter { stageWords.contains($0) }.count }
     private var rounds: [TomoRound] {
@@ -185,14 +195,14 @@ final class TomoGame: ObservableObject {
         outcome = nil
         visitRoundsLeft = nil
         NotificationCenter.default.post(name: .botGrow, object: CGFloat(0))
-        nextDropIn = Date().addingTimeInterval(DropIn.every)
+        nextDropIn = DropIn.nextVisit()
         if ticker == nil {
             ticker = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
                 MainActor.assumeIsolated { self?.tick() }
             }
         }
-        if let s = ProcessInfo.processInfo.environment["TOMO_STAGE"].flatMap(Int.init), s >= Self.chatStage {
-            jumpToChat(open: false)
+        if let s = ProcessInfo.processInfo.environment["TOMO_STAGE"].flatMap(Int.init), s > 1 {
+            jump(toAge: s, open: false)
         }
     }
 
@@ -201,14 +211,25 @@ final class TomoGame: ObservableObject {
         dropIn(force: true)
     }
 
+    /// The visit frequency changed in Settings.
+    func rescheduleVisits() { nextDropIn = DropIn.nextVisit() }
+
     /// Demo shortcut: skip ahead to the talking stage.
-    func jumpToChat(open: Bool = true) {
+    func jumpToChat(open: Bool = true) { jump(toAge: Self.chatStage, open: open) }
+
+    /// Testing: make Tomo any age (1–2 picture rounds, 3+ talking).
+    func jump(toAge age: Int, open: Bool = true) {
         bump()
-        stage = Self.chatStage
-        known = Set(lang.target.stages.flatMap { $0.map(\.id) })
+        stage = max(1, age)
+        index = 0
+        let stages = lang.target.stages
+        known = Set(stages.prefix(min(stage - 1, stages.count)).flatMap { $0.map(\.id) })
+        round = rounds.first ?? .empty
+        phase = .asking
         transcript = []
         lastAnswer = nil
-        NotificationCenter.default.post(name: .botGrow, object: CGFloat(2))
+        outcome = nil
+        NotificationCenter.default.post(name: .botGrow, object: CGFloat(min(stage - 1, 2)))
         if open { visitRoundsLeft = nil; dropIn(force: true) }
     }
 
@@ -216,7 +237,7 @@ final class TomoGame: ObservableObject {
     func dropIn(force: Bool) {
         if !force {
             if isIslandOpen?() == true || visitRoundsLeft != nil {   // already together
-                nextDropIn = Date().addingTimeInterval(DropIn.every); return
+                nextDropIn = DropIn.nextVisit(); return
             }
             if Self.secondsSinceInput(typing: true) < 3 {            // mid-typing: try again soon
                 nextDropIn = Date().addingTimeInterval(20); return
@@ -281,7 +302,7 @@ final class TomoGame: ObservableObject {
     private func leave(ignored: Bool) {
         let tok = bump()
         visitRoundsLeft = nil
-        nextDropIn = Date().addingTimeInterval(DropIn.every)
+        nextDropIn = DropIn.nextVisit()
         listener.stop()
         setBot(.idle)
         if ignored {
@@ -314,7 +335,7 @@ final class TomoGame: ObservableObject {
     private func endVisit() {
         bump()
         visitRoundsLeft = nil
-        nextDropIn = Date().addingTimeInterval(DropIn.every)
+        nextDropIn = DropIn.nextVisit()
         listener.stop()
         speech.stopSpeaking(at: .immediate)
         if phase == .thinking { phase = .asking }
@@ -414,7 +435,7 @@ final class TomoGame: ObservableObject {
         phase = .grew
         setBot(.finished)
         emote(.proud)
-        NotificationCenter.default.post(name: .botGrow, object: CGFloat(next - 1))
+        NotificationCenter.default.post(name: .botGrow, object: CGFloat(min(next - 1, 2)))
         speak(lang.target.lines.grew, slow: false)
         after(4.2, tok) { [weak self] in
             guard let self else { return }
@@ -445,7 +466,7 @@ final class TomoGame: ObservableObject {
     // MARK: Age 3+: Tomo asks, you answer in your own words
 
     private func presentStarter(delay: Double) {
-        let starters = lang.target.starters
+        let starters = lang.target.starters(age: stage)
         guard !starters.isEmpty else { return }
         let starter = TomoLine(starters[starterIndex % starters.count], learner: lang.learner)
         starterIndex += 1
@@ -501,7 +522,8 @@ final class TomoGame: ObservableObject {
         let ai = TomoAI.config
         aiLabel = ai.isUsable ? ai.label : nil
         let history = transcript
-        let language = lang.context
+        var language = lang.context
+        language.age = stage
         Task { @MainActor [weak self] in
             let r = await TomoBrain.reply(to: history, ai: ai, language: language)
             guard let self, self.token == tok else { return }

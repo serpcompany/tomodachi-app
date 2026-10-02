@@ -1,7 +1,8 @@
 {
   "id": "es",
   "name": {
-    "en": "Spanish"
+    "en": "Spanish",
+    "ja": "スペイン語"
   },
   "nativeName": "Español",
   "reviewedByNativeSpeaker": false,
@@ -42,7 +43,7 @@
     }
   },
   "ai": {
-    "persona": "a 3-year-old child from Spain",
+    "persona": "a {age}-year-old child from Spain",
     "rules": [
       "Spain Spanish (coche, vale), simple words a 3-year-old knows.",
       "Short sentences, sometimes baby words like guau guau or ñam ñam.",

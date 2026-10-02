@@ -1,7 +1,8 @@
 {
   "id": "ja",
   "name": {
-    "en": "Japanese"
+    "en": "Japanese",
+    "ja": "日本語"
   },
   "nativeName": "日本語",
   "reviewedByNativeSpeaker": false,
@@ -44,7 +45,7 @@
     }
   },
   "ai": {
-    "persona": "a 3-year-old Japanese child",
+    "persona": "a {age}-year-old Japanese child",
     "rules": [
       "Hiragana and katakana only. No kanji and no romaji in \"say\".",
       "Only use words a Japanese 3-year-old knows.",

@@ -12,7 +12,7 @@ Japanese-for-English-speakers is just the first pair. No Swift code contains tex
 |---|---|---|
 | Decides | The interface text, hints, translations, and the "need" labels (feed / bed / hug) | Tomo's words and lines, voice, speech recognition, the "is this the right language?" check, the AI's character rules, age labels (1さい / 1 año), and later the age vocabulary data |
 | File | `Resources/languages/ui.<id>.json` | `Resources/languages/<id>.json` (a **language pack**) |
-| Today | `en` | `ja`, plus `es` (a draft proof pack) |
+| Today | `en`, `ja` | `ja`, `en`, `es` (all drafts until a native speaker reviews them) |
 
 Translations live inside each pack, keyed by learner language: `"meaning": {"en": "doggy", "es": "perrito"}`. If a translation is missing, English is used.
 
@@ -21,7 +21,7 @@ Code: `mac-demo/NotchBuddy/Sources/App/TomoLanguage.swift` holds:
 - `LanguageContext` (the pair, passed to background work)
 - `TomoLanguages` (the current selection)
 
-Menu: **Learning** and **I speak**. For testing: `TOMO_TARGET=es`, `TOMO_LEARNER=en`.
+Change them in **Settings → General** (I speak / I'm learning). The menu and Settings switch to the new interface language right away. For testing: `TOMO_TARGET=en`, `TOMO_LEARNER=ja`.
 
 ## What a language pack contains
 
@@ -33,9 +33,9 @@ Menu: **Learning** and **I speak**. For testing: `TOMO_TARGET=es`, `TOMO_LEARNER
 | `romanization` | The name of the romanization (romaji), or `null` for Latin-script languages |
 | `age` | Age label format: `{n}さい`, `{n} año` / `{n} años` |
 | `labels`, `lines` | Tomo's own words: "again", "listening…", wrong, ouch, grew up, bye, "say it in my language", "I don't understand" |
-| `ai` | Persona ("a 3-year-old child from Spain") and language-specific rules (script, register), placed into a shared prompt template |
+| `ai` | Persona (`"a {age}-year-old child from Spain"`) and language-specific rules (script, register), placed into a shared prompt template. `ai.rulesByAge` replaces the rules from an age on. Reply length and style follow Tomo's age |
 | `stages` | Rounds per age. Picture rounds (`answer` + `choices`) or need rounds (`need`: eat / sleep / hug). Each round has an `id` like `ja:wanwan` |
-| `starters` | Conversation openers for the talking stage, with example answers |
+| `starters`, `startersByAge` | Conversation openers for the talking stage, with example answers. `startersByAge` replaces them from an age on (`fromAge`) |
 | `offlineReplies` | Placeholder keyword replies. The dictionary system replaces them |
 | `helpPhrases` | Whole answers that mean "I didn't understand" in this language (なに, わかんない). The learner file has its own ("what", "huh") |
 

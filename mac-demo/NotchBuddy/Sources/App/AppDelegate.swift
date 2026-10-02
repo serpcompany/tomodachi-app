@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 @MainActor
@@ -12,6 +13,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Warm up Keychain cache on main thread BEFORE any poller or view touches it
         _ = KeychainStore.shared
         NSApp.setActivationPolicy(.accessory)
+        TomoIconRenderer.renderIfRequested()
         setupMenuBarItem()
         setupIsland()
     }
@@ -25,23 +27,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         button.image?.size = NSSize(width: 24, height: 18)
         button.image?.accessibilityDescription = "Tomodachi"
         button.image?.isTemplate = true
+        rebuildMenu()
+        // Menu text follows the interface language, and "Skip to talking" shows the target's age label.
+        languageWatch = TomoLanguages.shared.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.rebuildMenu()
+                self?.settingsWindow?.title = TomoLanguages.shared.learner("menu.settingsTitle")
+            }
+    }
 
+    private var languageWatch: AnyCancellable?
+
+    private func rebuildMenu() {
+        let ui = TomoLanguages.shared.learner
         let menu = NSMenu()
-        menu.addItem(withTitle: "Open Tomo", action: #selector(openIsland), keyEquivalent: "")
-        menu.addItem(withTitle: "Drop in now", action: #selector(dropInNow), keyEquivalent: "d")
-        menu.addItem(withTitle: "Restart demo", action: #selector(restartDemo), keyEquivalent: "r")
-        menu.addItem(withTitle: "Skip to 3さい (talking)", action: #selector(skipToTalking), keyEquivalent: "3")
-        menu.addItem(withTitle: "AI provider…", action: #selector(openAISettings), keyEquivalent: ",")
+        menu.addItem(withTitle: ui("menu.open"), action: #selector(openIsland), keyEquivalent: "")
+        menu.addItem(withTitle: ui("menu.dropIn"), action: #selector(dropInNow), keyEquivalent: "d")
+        menu.addItem(withTitle: ui("menu.talk", ["age": TomoLanguages.shared.target.ageLabel(TomoGame.chatStage)]),
+                     action: #selector(skipToTalking), keyEquivalent: "3")
+        menu.addItem(withTitle: ui("menu.restart"), action: #selector(restartDemo), keyEquivalent: "r")
         menu.addItem(.separator())
-        menu.addItem(languageMenu(title: "Learning", items: TomoLanguages.shared.targets.map {
-            ($0.id, "\($0.name(TomoLanguages.shared.learner.id)) (\($0.nativeName))\($0.reviewedByNativeSpeaker ? "" : " · draft")")
-        }, selected: TomoLanguages.shared.target.id, action: #selector(pickTarget(_:))))
-        menu.addItem(languageMenu(title: "I speak", items: TomoLanguages.shared.learners.map { ($0.id, $0.name) },
-                                  selected: TomoLanguages.shared.learner.id, action: #selector(pickLearner(_:))))
-        sfxItem = menu.addItem(withTitle: "Coucou sound effects (private use only)",
-                               action: #selector(toggleSfx), keyEquivalent: "")
+        menu.addItem(withTitle: ui("menu.settings"), action: #selector(openSettings), keyEquivalent: ",")
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(withTitle: ui("menu.quit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
 
         statusItem?.menu = menu
     }
@@ -57,55 +66,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         TomoGame.shared.restart()
     }
 
-    private var aiWindow: NSWindow?
-
-    // MARK: - Languages (see docs/languages.md)
-
-    private func languageMenu(title: String, items: [(id: String, title: String)], selected: String, action: Selector) -> NSMenuItem {
-        let parent = NSMenuItem(title: title, action: nil, keyEquivalent: "")
-        let sub = NSMenu(title: title)
-        for item in items {
-            let mi = NSMenuItem(title: item.title, action: action, keyEquivalent: "")
-            mi.representedObject = item.id
-            mi.state = item.id == selected ? .on : .off
-            sub.addItem(mi)
-        }
-        parent.submenu = sub
-        return parent
-    }
-
-    private func check(_ sender: NSMenuItem) {
-        sender.menu?.items.forEach { $0.state = $0 === sender ? .on : .off }
-    }
-
-    @objc private func pickTarget(_ sender: NSMenuItem) {
-        guard let id = sender.representedObject as? String else { return }
-        check(sender)
-        TomoLanguages.shared.select(target: id)
-        TomoGame.shared.restart()   // one Tomo per target language; progress isn't saved yet
-    }
-
-    @objc private func pickLearner(_ sender: NSMenuItem) {
-        guard let id = sender.representedObject as? String else { return }
-        check(sender)
-        TomoLanguages.shared.select(learner: id)
-    }
-
-    @objc private func openAISettings() {
-        if AppState.shared.mode == .expanded { islandController?.collapse() }
-        if aiWindow == nil {
-            let win = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 480, height: 320),
-                               styleMask: [.titled, .closable], backing: .buffered, defer: false)
-            win.title = "Tomo — AI provider"
-            win.contentView = NSHostingView(rootView: TomoAISettingsView())
-            win.isReleasedWhenClosed = false
-            aiWindow = win
-        }
-        aiWindow.map(placeBelowIsland)
-        aiWindow?.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
-    }
-
     @objc private func skipToTalking() {
         TomoGame.shared.jumpToChat()
     }
@@ -114,36 +74,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         TomoGame.shared.dropIn(force: true)
     }
 
-    // Coucou's sounds are not covered by its MIT license (see LICENSE-ASSETS.md): off by default.
-    private var sfxItem: NSMenuItem?
-
-    @objc private func toggleSfx() {
-        SoundEngine.shared.enabled.toggle()
-        sfxItem?.state = SoundEngine.shared.enabled ? .on : .off
-    }
-
     private var settingsWindow: NSWindow?
 
+    /// Settings: General (languages, visits, voice), AI provider, About.
     @objc private func openSettings() {
         // The island floats above every window; fold it away so it can't cover Settings.
         if AppState.shared.mode == .expanded { islandController?.collapse() }
-
-        if let w = settingsWindow, w.isVisible {
-            placeBelowIsland(w)
-            w.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true); return
+        if settingsWindow == nil {
+            let win = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 520, height: 460),
+                               styleMask: [.titled, .closable], backing: .buffered, defer: false)
+            win.title = TomoLanguages.shared.learner("menu.settingsTitle")
+            let host = NSHostingView(rootView: TomoSettingsView())
+            host.sizingOptions = [.preferredContentSize]
+            win.contentView = host
+            win.isReleasedWhenClosed = false
+            settingsWindow = win
         }
-        let win = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 480, height: 720),
-                           styleMask: [.titled, .closable, .miniaturizable, .resizable],
-                           backing: .buffered, defer: false)
-        win.title = "Settings — Coucou"
-        let host = NSHostingView(rootView: SettingsView())
-        host.sizingOptions = [.minSize]
-        win.contentView = host
-        win.contentMinSize = NSSize(width: 420, height: 320)
-        win.isReleasedWhenClosed = false
-        placeBelowIsland(win)
-        settingsWindow = win
-        win.makeKeyAndOrderFront(nil)
+        settingsWindow.map(placeBelowIsland)
+        settingsWindow?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
 
@@ -177,6 +125,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 n += 1
                 let url = URL(fileURLWithPath: dir).appendingPathComponent(String(format: "snap-%03d.png", n))
                 try? rep.representation(using: .png, properties: [:])?.write(to: url)
+                // TOMO_OPEN_SETTINGS=1 also captures the Settings window
+                if let sv = self?.settingsWindow?.contentView, self?.settingsWindow?.isVisible == true,
+                   let srep = sv.bitmapImageRepForCachingDisplay(in: sv.bounds) {
+                    sv.cacheDisplay(in: sv.bounds, to: srep)
+                    let surl = URL(fileURLWithPath: dir).appendingPathComponent(String(format: "settings-%03d.png", n))
+                    try? srep.representation(using: .png, properties: [:])?.write(to: surl)
+                }
             }
         }
     }
@@ -186,7 +141,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupIsland() {
         islandController = IslandWindowController()
         islandController?.showWindow(nil)
-        SoundEngine.shared.enabled = false
+        SoundEngine.shared.enabled = false   // Coucou's sounds aren't ours to ship; none are bundled
         // Tomo visits on its own (see DropIn); the first visit is right at launch.
         islandController?.fsm.homeToPetitDelay = 45
         // Between visits Tomo hangs out small beside the notch (click to play anytime): never auto-hide.
@@ -203,6 +158,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         game.start()
         game.dropIn(force: true)
         startDebugSnapshots()
+        if ProcessInfo.processInfo.environment["TOMO_OPEN_SETTINGS"] != nil {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in self?.openSettings() }
+        }
         NotificationCenter.default.addObserver(self, selector: #selector(openSettings),
                                                name: .openFullSettings, object: nil)
     }
