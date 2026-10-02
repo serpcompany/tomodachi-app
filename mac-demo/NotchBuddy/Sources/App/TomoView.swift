@@ -8,6 +8,13 @@ struct TomoView: View {
     @ObservedObject var lang = TomoLanguages.shared
 
     private var wash: CardBackground<EmptyView>.Wash {
+        if game.isChat, let o = game.outcome, game.phase != .thinking {
+            switch o {
+            case .win:     return .green
+            case .loss:    return .red
+            case .neutral: return .soft
+            }
+        }
         switch game.phase {
         case .asking:   return .cyan
         case .thinking: return .indigo
@@ -51,7 +58,9 @@ struct TomoView: View {
                 .id(game.round.say)
                 .transition(.scale(scale: 0.8).combined(with: .opacity))
 
-            Group {
+            HStack(spacing: 6) {
+                if let o = game.outcome { OutcomeBadge(outcome: o) }
+                Group {
                 if game.hintShown || game.phase == .right {
                     Text([game.round.romanization, game.round.meaning].compactMap { $0 }.joined(separator: " · "))
                         .foregroundColor(Color(hex: "#C9CDD4"))
@@ -59,9 +68,10 @@ struct TomoView: View {
                     Text(lang.learner(game.round.need == nil ? "pickPicture" : "pickNeed"))
                         .foregroundColor(Color(hex: "#8E939C"))
                 }
+                }
+                .font(.system(size: 12))
+                .lineLimit(1)
             }
-            .font(.system(size: 12))
-            .lineLimit(1)
 
             HStack(spacing: 6) {
                 if game.phase == .right, let adult = game.round.adult {
@@ -154,7 +164,7 @@ private struct SmallPill: View {
         Button(action: action) {
             HStack(spacing: 4) {
                 Image(systemName: icon).font(.system(size: 9, weight: .bold))
-                Text(title).font(.system(size: 11, weight: .medium))
+                Text(title).font(.system(size: 11, weight: .medium)).lineLimit(1).fixedSize()
             }
             .padding(.horizontal, 9).padding(.vertical, 4)
             .background(Color.white.opacity(0.09))
@@ -310,6 +320,13 @@ private struct TomoChatCard: View {
     }
 
     @ViewBuilder private var subtitle: some View {
+        HStack(spacing: 6) {
+            if let o = game.outcome, game.phase != .thinking { OutcomeBadge(outcome: o) }
+            subtitleText
+        }
+    }
+
+    @ViewBuilder private var subtitleText: some View {
         if let problem = listener.problem {
             Text(problem).foregroundColor(Color(hex: "#FF8D97"))
         } else if game.hintShown {
@@ -318,7 +335,8 @@ private struct TomoChatCard: View {
             let meaning = [game.line.romanization, game.line.translation].compactMap { $0 }.joined(separator: " — ")
             Text(meaning + examples).foregroundColor(Color(hex: "#C9CDD4"))
         } else if let you = game.lastAnswer {
-            Text(lang.learner("you", ["x": you])).foregroundColor(Color(hex: "#8E939C"))
+            let why = game.outcome.map { OutcomeBadge.why($0, lang) }.map { $0 + " · " } ?? ""
+            Text(why + lang.learner("you", ["x": you])).foregroundColor(Color(hex: "#8E939C"))
         } else {
             Text(lang.learner("answerOwnWords", ["ai": game.aiLabel ?? lang.learner("offlineReplies")]))
                 .foregroundColor(Color(hex: "#8E939C"))
@@ -339,5 +357,42 @@ struct TomoPendingDot: View {
             .scaleEffect(game.pending ? 1 : 0.2)
             .opacity(game.pending ? 1 : 0)
             .animation(.spring(response: 0.35, dampingFraction: 0.6), value: game.pending)
+    }
+}
+
+// MARK: - Win / Miss / No score badge
+
+struct OutcomeBadge: View {
+    let outcome: TomoOutcome
+    @ObservedObject var lang = TomoLanguages.shared
+
+    private var style: (icon: String, key: String, color: Color) {
+        switch outcome {
+        case .win:     ("checkmark.circle.fill", "outcome.win", Color(hex: "#34D399"))
+        case .loss:    ("xmark.circle.fill", "outcome.loss", Color(hex: "#F4505E"))
+        case .neutral: ("minus.circle.fill", "outcome.neutral", Color(hex: "#B0B5BE"))
+        }
+    }
+
+    static func why(_ o: TomoOutcome, _ lang: TomoLanguages) -> String {
+        switch o {
+        case .win:             lang.learner("outcome.why.win")
+        case .loss:            lang.learner("outcome.why.loss")
+        case .neutral(let r):  lang.learner("outcome.why.\(r)", ["language": lang.targetName])
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: style.icon).font(.system(size: 10, weight: .bold))
+            Text(lang.learner(style.key)).font(.system(size: 10.5, weight: .bold))
+        }
+        .foregroundColor(style.color)
+        .padding(.horizontal, 7).padding(.vertical, 3)
+        .background(style.color.opacity(0.16))
+        .clipShape(Capsule())
+        .fixedSize()
+        .help(Self.why(outcome, lang))
+        .transition(.scale(scale: 0.6).combined(with: .opacity))
     }
 }

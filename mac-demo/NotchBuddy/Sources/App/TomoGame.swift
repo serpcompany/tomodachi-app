@@ -58,6 +58,13 @@ extension TomoRound {
     }
 }
 
+/// What an answer earned. Shown as a badge so it's always obvious (docs/concepts.md).
+enum TomoOutcome: Equatable {
+    case win                    // understood / right picture: counts toward growth
+    case loss                   // tried, Tomo didn't get it / wrong picture: no credit
+    case neutral(String)        // "language" (not in the target language) or "help": no credit, no penalty
+}
+
 enum TomoPhase: Equatable {
     case asking
     case thinking            // talking stage: waiting for Tomo's reply
@@ -98,6 +105,7 @@ final class TomoGame: ObservableObject {
     @Published private(set) var phase: TomoPhase = .asking
     @Published private(set) var known: Set<String> = []
     @Published var hintShown = false
+    @Published private(set) var outcome: TomoOutcome?
     /// A visit ended unfinished: red dot on small Tomo + a bounce now and then, until you open it.
     @Published private(set) var pending = false
     private var nextNudge = Date.distantFuture
@@ -174,6 +182,7 @@ final class TomoGame: ObservableObject {
         goodReplies = 0
         transcript = []
         lastAnswer = nil
+        outcome = nil
         visitRoundsLeft = nil
         NotificationCenter.default.post(name: .botGrow, object: CGFloat(0))
         nextDropIn = Date().addingTimeInterval(DropIn.every)
@@ -344,11 +353,13 @@ final class TomoGame: ObservableObject {
         touch()
         let tok = bump()
         if choice.emoji == round.answer {
+            outcome = .win
             phase = .right
             known.insert(round.word)
             react(to: round)
             after(2.2, tok) { [weak self] in self?.advance() }
         } else {
+            outcome = .loss
             phase = .wrong(choice.emoji)
             setBot(.error)
             speak(lang.target.lines.wrong, slow: false)
@@ -422,6 +433,7 @@ final class TomoGame: ObservableObject {
             guard let self else { return }
             self.round = r
             self.hintShown = false
+            self.outcome = nil
             self.phase = .asking
             self.setBot(.question)
             self.speak(r.say, slow: false)
@@ -445,6 +457,7 @@ final class TomoGame: ObservableObject {
         after(delay, tok) { [weak self] in
             guard let self else { return }
             self.line = l
+            self.outcome = nil
             self.aiLabel = TomoAI.config.isUsable ? TomoAI.config.label : nil
             self.hintShown = false
             self.phase = .asking
@@ -470,6 +483,14 @@ final class TomoGame: ObservableObject {
     func answer(_ text: String) {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard isChat, phase == .asking, !text.isEmpty else { return }
+        if lang.isHelpRequest(text) {
+            outcome = .neutral("help")
+            lastAnswer = text
+            draft = ""
+            setBot(.question)
+            showHint()          // repeats slowly and shows meaning + example answers
+            return
+        }
         touch()
         let tok = bump()
         lastAnswer = text
@@ -498,9 +519,11 @@ final class TomoGame: ObservableObject {
         visitDeadline = Date().addingTimeInterval(ignoreAfter)
 
         guard r.understood else {
+            outcome = r.wrongLanguage ? .neutral("language") : .loss
             setBot(.question)          // head tilt + "?" : say it again
             return
         }
+        outcome = .win
         goodReplies += 1
         setBot(.idle)
         switch r.mood {

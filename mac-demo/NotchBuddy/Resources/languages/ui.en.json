@@ -21,6 +21,31 @@
     "mic.unavailable": "{language} speech recognition isn't available on this Mac.",
     "mic.notInstalled": "On-device {language} recognition isn't installed. Add {language} in System Settings → Keyboard → Dictation, or type your answer.",
     "mic.none": "No microphone found.",
-    "mic.failed": "Couldn't start the microphone."
-  }
+    "mic.failed": "Couldn't start the microphone.",
+    "outcome.win": "Win +1",
+    "outcome.loss": "Miss",
+    "outcome.neutral": "No score",
+    "outcome.why.win": "Tomo understood you",
+    "outcome.why.loss": "Tomo didn't get it. Try again!",
+    "outcome.why.language": "Not in {language}: no score, no penalty",
+    "outcome.why.help": "You asked for help: no score, no penalty"
+  },
+  "helpPhrases": [
+    "what",
+    "huh",
+    "eh",
+    "sorry",
+    "pardon",
+    "again",
+    "repeat",
+    "idk",
+    "i dont know",
+    "i don't know",
+    "dont understand",
+    "don't understand",
+    "i dont understand",
+    "i don't understand",
+    "no idea",
+    "help"
+  ]
 }

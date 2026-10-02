@@ -26,15 +26,17 @@ struct TomoReply: Sendable {
     let translation: String
     let understood: Bool
     let mood: String              // happy | love | surprised | proud | confused
+    var wrongLanguage = false     // stopped by the language check: neutral, not a miss
 
-    init(say: String, romanization: String?, translation: String, understood: Bool, mood: String) {
+    init(say: String, romanization: String?, translation: String, understood: Bool, mood: String,
+         wrongLanguage: Bool = false) {
         self.say = say; self.romanization = romanization; self.translation = translation
-        self.understood = understood; self.mood = mood
+        self.understood = understood; self.mood = mood; self.wrongLanguage = wrongLanguage
     }
 
-    init(_ l: TargetPack.SpokenLine, learner: String, understood: Bool, mood: String) {
+    init(_ l: TargetPack.SpokenLine, learner: String, understood: Bool, mood: String, wrongLanguage: Bool = false) {
         self.init(say: l.say, romanization: l.romanization, translation: l.translation(learner),
-                  understood: understood, mood: mood)
+                  understood: understood, mood: mood, wrongLanguage: wrongLanguage)
     }
 }
 
@@ -54,7 +56,7 @@ enum TomoBrain {
     static func languageGate(_ answer: String, language: LanguageContext) -> TomoReply? {
         guard !language.target.looksLikeTarget(answer, learner: language.learner.id) else { return nil }
         return TomoReply(language.target.lines.sayItInMyLanguage, learner: language.learner.id,
-                         understood: false, mood: "confused")
+                         understood: false, mood: "confused", wrongLanguage: true)
     }
 
     /// For the AI window's Test button: the pack's first question and first example answer.

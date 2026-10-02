@@ -371,5 +371,14 @@
       },
       "mood": "surprised"
     }
+  ],
+  "helpPhrases": [
+    "qué",
+    "que",
+    "cómo",
+    "no entiendo",
+    "otra vez",
+    "repite",
+    "eh"
   ]
 }

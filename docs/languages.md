@@ -37,6 +37,7 @@ Menu: **Learning** and **I speak**. For testing: `TOMO_TARGET=es`, `TOMO_LEARNER
 | `stages` | Rounds per age. Picture rounds (`answer` + `choices`) or need rounds (`need`: eat / sleep / hug). Each round has an `id` like `ja:wanwan` |
 | `starters` | Conversation openers for the talking stage, with example answers |
 | `offlineReplies` | Placeholder keyword replies. The dictionary system replaces them |
+| `helpPhrases` | Whole answers that mean "I didn't understand" in this language (なに, わかんない). The learner file has its own ("what", "huh") |
 
 ## How each system uses the pair
 

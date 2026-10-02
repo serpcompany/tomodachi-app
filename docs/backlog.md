@@ -13,6 +13,7 @@ Everything we want, with its status. When something moves, update it here in the
 | Baby word + "grown-ups say" reveal (ワンワン → いぬ) | |
 | Growing up: sprout at 2さい, bigger at 3さい | Placeholder thresholds |
 | Drop-in visits: every 10 min, 3 answers, leave after 10 s ignored | No settings yet |
+| Win / Miss / No score badge after every answer; help requests ("what?", なに？) repeat the question and open the hint | `TomoOutcome`, `OutcomeBadge`; phrases in the packs (`helpPhrases`) |
 | Dismiss with × or Esc; after an unfinished visit, a red dot and a bounce every 60 s until you check in | `DropIn.nudgeEvery` |
 | 3さい conversation: typed or spoken answers | 5 starter questions |
 | AI provider adapter (Anthropic + any OpenAI-compatible), AI provider window | Default OpenAI `gpt-5.4-mini` via `.env` |
@@ -34,7 +35,7 @@ Everything we want, with its status. When something moves, update it here in the
 | Save progress per language pair; one Tomo per target language | Next | Key the learner store by (learner, target) |
 | A second learner language (interface + translations) | Idea | Proves the learner side the way Spanish proved the target side |
 | Debrand: remove Coucou, Mochi and Grok Bot names, assets and leftovers; own character art and sounds | Next | [serpcompany/zenbujapanese-tomo-app#1](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/1). Required before showing publicly (license). Keep the MIT notice and one credit line |
-| Judge answers in layers, never by AI alone: (1) Japanese present (built); (2) on-topic via the Zenbu dictionary + per-question expected answers; (3) AI fills yes/no verdict fields that code double-checks. Three outcomes: **understood** (credit), **helped** (answered in English, Tomo models the Japanese, no credit), **not understood** | Next | Seen live: `gpt-5.4-mini` accepted "car" as understood. Layer 1 now blocks that |
+| Judge answers in layers, never by AI alone: (1) right language (built); (2) on-topic via the Zenbu dictionary + per-question expected answers; (3) AI fills yes/no verdict fields that code double-checks. Outcomes Win / Miss / No score are built and shown as badges | Next (layers 2–3) | Seen live: `gpt-5.4-mini` accepted "car" as understood. Layer 1 now blocks that |
 | Adapter: send a JSON schema and `reasoning_effort` per provider | Next | From ai-models-and-costs.md: guarantees Tomo's JSON shape; avoids paying for unneeded reasoning |
 | Speech recognition hints: pass the question's expected words as `contextualStrings` | Next | From voices.md / answer-evaluation.md |
 | Try Apple's on-device model as a free AI tier | Idea | Japanese supported per Apple; needs macOS 26+ |
@@ -42,6 +43,8 @@ Everything we want, with its status. When something moves, update it here in the
 | Busy detection: calls, full-screen video, Focus mode | Idea | Open question in user-journey.md |
 
 ## Ideas (later)
+
+- **Named word stages in the word book** (WaniKani-style, in Tomo's voice): "Tomo just heard it" → "Tomo knows it" → "Tomo's favorite word". Progress you can see, with no points.
 
 - **Watch a show together:** at 3さい+, Tomo chats while you watch kids' shows in Japanese (from the README).
 - **Tomo names what's on your screen:** drag Tomo onto a window and it names things it sees in baby Japanese. Coucou's `WindowContextCapture` is a starting point.

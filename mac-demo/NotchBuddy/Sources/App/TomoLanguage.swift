@@ -89,6 +89,8 @@ struct TargetPack: Codable, Sendable {
     let stages: [[Round]]           // stages[0] = 1-year-old rounds, stages[1] = 2-year-old rounds
     let starters: [Starter]         // conversation openers from the talking stage on
     let offlineReplies: [OfflineReply]
+    /// Whole answers that mean "I didn't understand" in the target language (なに？, わかんない).
+    let helpPhrases: [String]?
 
     func ageLabel(_ n: Int) -> String {
         (n == 1 ? age.one : age.other).replacingOccurrences(of: "{n}", with: "\(n)")
@@ -122,6 +124,8 @@ struct LearnerPack: Codable, Sendable {
     let id: String              // "en"
     let name: String            // "English"
     let strings: [String: String]
+    /// Whole answers that mean "I didn't understand" in the learner's language ("what", "huh").
+    let helpPhrases: [String]?
 
     /// `ui("grownUpsSay", ["x": "いぬ"])` → "grown-ups say: いぬ"
     func callAsFunction(_ key: String, _ args: [String: String] = [:]) -> String {
@@ -175,6 +179,17 @@ final class TomoLanguages: ObservableObject {
         let lid = env["TOMO_LEARNER"] ?? ud.string(forKey: "tomoLearner") ?? "en"
         target = targets.first { $0.id == tid } ?? targets[0]
         learner = learners.first { $0.id == lid } ?? learners[0]
+    }
+
+    /// "what?", "huh", "?", "なに？", "わかんない": the learner is asking for help, not answering.
+    /// Only the whole answer counts, so "なにも" (nothing) is still a real answer.
+    func isHelpRequest(_ text: String) -> Bool {
+        let cut = CharacterSet.punctuationCharacters.union(.symbols).union(.whitespacesAndNewlines)
+        let norm = text.lowercased().components(separatedBy: cut).joined(separator: " ")
+            .split(separator: " ").joined(separator: " ")
+        if norm.isEmpty { return text.contains("?") || text.contains("？") }
+        let phrases = (learner.helpPhrases ?? []) + (target.helpPhrases ?? [])
+        return phrases.contains { $0.lowercased() == norm }
     }
 
     func select(target id: String) {
