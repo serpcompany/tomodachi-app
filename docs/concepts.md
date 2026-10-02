@@ -1,10 +1,15 @@
 # Tomodachi: working concepts
 
-Where the idea stands, what the demo already proves, and what is still open. User-facing feature ideas are in [user-journey.md](user-journey.md). Research on the open questions goes in [research/](research/).
+Where the idea stands, what the demo already proves, and what is still open. Related docs:
+- feature ideas: [user-journey.md](user-journey.md)
+- systems and extension points: [architecture.md](architecture.md)
+- status of everything we want: [backlog.md](backlog.md)
+- decisions: [decisions.md](decisions.md)
+- deep dives: [research/](research/)
 
 ## The pitch
 
-Tomo is a small Japanese child who lives in your MacBook notch. It only speaks at its age level, so how well you can talk with it measures your Japanese: "your Japanese is like a 3-year-old's." You don't study. Tomo drops in for a few seconds at a time, and it grows up as you understand it.
+See the root level README.md
 
 ## Concepts that work (tried in the demo)
 
@@ -19,8 +24,8 @@ Tomo is a small Japanese child who lives in your MacBook notch. It only speaks a
 | **Always there** | Between visits, click small Tomo any time for free play with no time limit. | Built |
 | **Child-like feedback** | Right: happy roll, sparkles, praise. Wrong: shake and ちがう〜. Not understood: head tilt and ん？ わかんない… Poked: いたい！ | Built |
 | **Voice in and out** | Tomo speaks with macOS's Japanese voice at a raised pitch. You answer through Apple's on-device Japanese speech recognition. Both are free and offline. | Built (the mic is untested by hand) |
-| **AI is optional** | Stages 1–2 are fully scripted. 3さい uses built-in keyword replies offline, or any AI provider if one is configured. | Built |
-| **Any AI provider** | One adapter: Anthropic's own API, plus anything that speaks the OpenAI chat format (OpenAI, Gemini, OpenRouter, Groq, Ollama, custom). Pick it under menu → **AI provider…**; the key goes in the Keychain. | Built; tested with a local Ollama model |
+| **AI is optional** | Stages 1–2 are fully scripted. 3さい uses AI if configured. Otherwise it uses a placeholder keyword matcher, which will be replaced by the Zenbu offline dictionary system. | Built |
+| **Any AI provider** | One adapter: Anthropic's own API, plus anything that speaks the OpenAI chat format (OpenAI, Gemini, OpenRouter, Groq, Ollama, custom). Pick it under menu → **AI provider…** (key in the Keychain), or put `OPENAI_API_KEY` in `.env` and launch with `mac-demo/run.sh`. | Built; tested with OpenAI `gpt-5.4-mini` (about 2 s per reply) and local Ollama |
 
 ## Rules we've settled on
 
@@ -38,7 +43,7 @@ Tomo is a small Japanese child who lives in your MacBook notch. It only speaks a
 
 These numbers are for the demo only. See the open questions below.
 
-## Open questions (being researched)
+## Open questions (research done; decisions tracked in [backlog.md](backlog.md))
 
 | Question | Research file |
 |---|---|

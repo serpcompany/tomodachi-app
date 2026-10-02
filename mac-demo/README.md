@@ -7,8 +7,10 @@ Forked from [Coucou](https://github.com/Louis-CFM/coucou) (MIT code). Coucou's c
 ## Run
 
 ```bash
-open build/Build/Products/Debug/Tomodachi.app   # from mac-demo/
+./run.sh   # from mac-demo/
 ```
+
+`run.sh` loads `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` from the repo's `.env` (gitignored) and passes it to the app, so Tomo replies with AI at 3さい (OpenAI default: `gpt-5.4-mini`). A provider saved under menu → **AI provider…** takes precedence. Without either, Tomo uses offline replies. You can also run `open build/Build/Products/Debug/Tomodachi.app`, which skips the AI keys.
 
 Tomo opens on its own every 10 minutes for a 3-answer visit. If you ignore it for 10 seconds, it tucks back in. In between, it sits small beside the notch: click it to play any time, and press Esc to close.
 
@@ -17,7 +19,7 @@ The menu bar icon has:
 - **Drop in now** (⌘D)
 - **Restart demo** (⌘R)
 - **Skip to 3さい (talking)** (⌘3): Tomo asks questions and you answer by typing Japanese or with the mic
-- **Settings**: add an Anthropic API key here for real AI replies. Without one, Tomo uses built-in offline replies.
+- **AI provider…** (⌘,): pick any provider (Anthropic, OpenAI, Gemini, OpenRouter, Groq, Ollama, or custom OpenAI-compatible), paste a key (stored in the Keychain), fetch models, and test
 
 ## Rebuild
 
@@ -31,7 +33,8 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 |---|---|
 | `Sources/App/TomoGame.swift` | New. Word lists for stages 1–2, rounds, growth, and the Japanese voice (`AVSpeechSynthesizer`, ja-JP, raised pitch) |
 | `Sources/App/TomoView.swift` | New. Island card, picture/action tiles, header status |
-| `Sources/App/TomoChat.swift` | New. 3さい questions, replies (Claude if a key is set, offline otherwise), on-device Japanese speech recognition |
+| `Sources/App/TomoChat.swift` | New. 3さい questions, replies (AI if configured, offline otherwise), on-device Japanese speech recognition |
+| `Sources/App/TomoAI.swift` | New. Provider adapter (Anthropic API + any OpenAI-compatible endpoint) and the AI provider window |
 | `BotEngine.swift` | Peach egg-shaped body, a sprout when grown, a hop when talking, softer state tint |
 | `AppDelegate.swift`, `AppState.swift` | No hooks or pollers. A single "tomo" task. Launches straight into the game |
 | `IslandRootView.swift`, `IslandViewContent.swift`, `IslandTypes.swift` | The header and overview show Tomo. The island is taller |

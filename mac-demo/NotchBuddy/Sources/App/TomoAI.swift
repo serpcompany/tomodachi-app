@@ -38,7 +38,14 @@ enum TomoAIProvider: String, CaseIterable, Codable, Identifiable, Sendable {
     }
 
     /// Prefilled model; for the others, use "Fetch models" in the AI window.
-    var defaultModel: String { self == .anthropic ? "claude-haiku-4-5-20251001" : "" }
+    /// gpt-5.4-mini: checked against /v1/models and a test turn on 2026-10-03 (good toddler Japanese, ~2 s).
+    var defaultModel: String {
+        switch self {
+        case .anthropic: "claude-haiku-4-5-20251001"
+        case .openai:    "gpt-5.4-mini"
+        default:         ""
+        }
+    }
 
     var needsKey: Bool { self != .ollama }
 }
@@ -66,7 +73,8 @@ enum TomoAI {
     private static let keychainKey = "tomo-ai-api-key"
     private static var cachedKey: String?
 
-    /// The saved configuration, with its key. TOMO_AI_PROVIDER / _MODEL / _BASE_URL / _KEY override it (testing).
+    /// The saved configuration, with its key. With nothing saved, OPENAI_API_KEY or ANTHROPIC_API_KEY from the
+    /// environment is used (mac-demo/run.sh loads ../.env). TOMO_AI_PROVIDER / _MODEL / _BASE_URL / _KEY override all (testing).
     static var config: TomoAIConfig {
         var c = TomoAIConfig()
         if let data = UserDefaults.standard.data(forKey: defaultsKey),
@@ -74,6 +82,14 @@ enum TomoAI {
         if cachedKey == nil { cachedKey = Keychain.load(key: keychainKey) ?? "" }
         c.apiKey = cachedKey ?? ""
         let env = ProcessInfo.processInfo.environment
+        if !c.isUsable {
+            for (name, p) in [("OPENAI_API_KEY", TomoAIProvider.openai), ("ANTHROPIC_API_KEY", .anthropic)] {
+                if let k = env[name], !k.isEmpty {
+                    c = TomoAIConfig(provider: p, baseURL: p.defaultBaseURL, model: p.defaultModel, apiKey: k)
+                    break
+                }
+            }
+        }
         if let p = env["TOMO_AI_PROVIDER"].flatMap(TomoAIProvider.init(rawValue:)) {
             c = TomoAIConfig(provider: p, baseURL: p.defaultBaseURL, model: p.defaultModel, apiKey: "")
         }

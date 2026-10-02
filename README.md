@@ -1,5 +1,3 @@
-Here's a cleaned-up version of your text:
-
 **ZENBU APP IDEA - "TOMODACH"**
 
 **Premise:** You get a "newly hatched" tomodachi pet/friend. It talks to you only using words appropriate for its age (so when it's a baby, it only knows simple words like "herfo"). 

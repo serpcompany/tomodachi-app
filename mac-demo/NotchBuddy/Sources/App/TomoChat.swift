@@ -88,6 +88,10 @@ enum TomoBrain {
     }
 
     private static let rules: [Rule] = [
+        // Order matters while matching is substring-based (see docs/research/answer-evaluation.md):
+        // negatives first (いいえ ⊃ いえ, ううん ⊃ うん), animals before foods (パンダ ⊃ パン).
+        Rule(keys: ["ううん", "いいえ", "ちがう", "いや"], say: "えー！ そうなの？",
+             romaji: "ē! sō na no?", english: "Ehh! Really?", mood: "surprised"),
         Rule(keys: ["しごと", "仕事", "はたら", "働"], say: "おしごと！ えらいね！",
              romaji: "oshigoto! erai ne!", english: "Working! You're so grown-up!", mood: "proud"),
         Rule(keys: ["べんきょう", "勉強", "にほんご", "日本語"], say: "べんきょう！ トモも する！",
@@ -101,23 +105,21 @@ enum TomoBrain {
              romaji: "asobu! tomo mo issho!", english: "Playing! Tomo wants to join!", mood: "happy"),
         Rule(keys: ["ねむ", "眠", "ねる", "寝"], say: "ねむいね… ねんね しよ…",
              romaji: "nemui ne… nenne shiyo…", english: "Sleepy… let's go night-night…", mood: "love"),
+        Rule(keys: ["いぬ", "犬", "ワンワン", "ねこ", "猫", "ニャンニャン", "うさぎ", "パンダ", "ぞう", "ライオン",
+                    "きりん", "さる", "くま"],
+             say: "{w}！ トモも {w} だいすき！",
+             romaji: "{w}! tomo mo {w} daisuki!", english: "{w}! Tomo loves {w} too!", mood: "love"),
         Rule(keys: ["ラーメン", "らーめん", "すし", "寿司", "パン", "ぱん", "ごはん", "ご飯", "おにぎり", "カレー",
                     "りんご", "バナナ", "ばなな", "たまご", "ピザ", "うどん", "そば"],
              say: "{w}！ おいしそう！ トモも たべたい！",
              romaji: "{w}! oishisō! tomo mo tabetai!", english: "{w}! Looks yummy! Tomo wants some!", mood: "love"),
         Rule(keys: ["たべ", "食べ"], say: "なに たべてるの？ おいしい？",
              romaji: "nani tabeteru no? oishii?", english: "What are you eating? Is it yummy?", mood: "happy"),
-        Rule(keys: ["いぬ", "犬", "ワンワン", "ねこ", "猫", "ニャンニャン", "うさぎ", "パンダ", "ぞう", "ライオン",
-                    "きりん", "さる", "くま"],
-             say: "{w}！ トモも {w} だいすき！",
-             romaji: "{w}! tomo mo {w} daisuki!", english: "{w}! Tomo loves {w} too!", mood: "love"),
         Rule(keys: ["がっこう", "学校", "かいしゃ", "会社", "こうえん", "公園", "スーパー", "おみせ", "うち", "いえ", "家"],
              say: "{w}！ いってらっしゃい！",
              romaji: "{w}! itterasshai!", english: "{w}! Have a good time!", mood: "happy"),
         Rule(keys: ["すいた", "ぺこぺこ", "うん", "はい", "そう"], say: "そっか！ えへへ",
              romaji: "sokka! ehehe", english: "I see! Hehe", mood: "happy"),
-        Rule(keys: ["ううん", "いいえ", "ちがう", "いや"], say: "えー！ そうなの？",
-             romaji: "ē! sō na no?", english: "Ehh! Really?", mood: "surprised"),
         Rule(keys: ["なにも", "べつに", "ひま"], say: "ひまなら トモと あそぼ！",
              romaji: "hima nara tomo to asobo!", english: "If you're bored, play with Tomo!", mood: "happy"),
     ]
@@ -175,13 +177,18 @@ final class TomoListener: ObservableObject {
             problem = "Japanese speech recognition isn't available on this Mac."
             return
         }
+        // Audio never leaves the Mac: no server fallback.
+        guard recognizer.supportsOnDeviceRecognition else {
+            problem = "On-device Japanese recognition isn't installed. Add Japanese in System Settings → Keyboard → Dictation, or type your answer."
+            return
+        }
         let input = engine.inputNode
         let format = input.outputFormat(forBus: 0)
         guard format.channelCount > 0 else { problem = "No microphone found."; return }
 
         let req = SFSpeechAudioBufferRecognitionRequest()
         req.shouldReportPartialResults = true
-        if recognizer.supportsOnDeviceRecognition { req.requiresOnDeviceRecognition = true }
+        req.requiresOnDeviceRecognition = true
         request = req
         input.installTap(onBus: 0, bufferSize: 1024, format: format, block: Self.tapBlock(req))
         engine.prepare()
