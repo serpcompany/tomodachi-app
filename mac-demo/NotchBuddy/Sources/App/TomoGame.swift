@@ -1,0 +1,558 @@
+import AVFoundation
+import SwiftUI
+
+// MARK: - Tomo demo: a baby Japanese speaker living in the notch
+//
+// Stage 1 (1さい) speaks single baby words; stage 2 (2さい) speaks two-word phrases.
+// Each round Tomo says something; the learner shows they understood by picking the
+// right picture or doing what Tomo asks (feed / put to bed / hug).
+// Stage 3 (3さい) talks: Tomo asks a question and you answer in your own words (TomoChat.swift).
+
+extension Notification.Name {
+    static let botTalk = Notification.Name("tomo.botTalk")
+    static let botGrow = Notification.Name("tomo.botGrow")
+}
+
+struct TomoChoice: Identifiable, Hashable {
+    var id: String { emoji }
+    let emoji: String
+    let label: String?      // shown only for need actions
+}
+
+enum TomoNeed: String { case eat, sleep, hug }
+
+struct TomoRound {
+    let say: String          // what Tomo says
+    let romaji: String
+    let meaning: String      // English
+    let adult: String?       // standard Japanese, for baby-talk words
+    let word: String         // vocabulary key counted toward growth
+    let answer: String       // emoji of the right choice
+    let choices: [TomoChoice]
+    let need: TomoNeed?      // non-nil when the round is a need (feed / sleep / hug)
+    let praise: String       // what Tomo says when you get it
+}
+
+enum TomoPhase: Equatable {
+    case asking
+    case thinking            // 3さい: waiting for Tomo's reply
+    case right
+    case wrong(String)       // emoji picked
+    case grew
+}
+
+// MARK: - Content
+
+private let needChoices = [
+    TomoChoice(emoji: "🍙", label: "feed"),
+    TomoChoice(emoji: "😴", label: "bed"),
+    TomoChoice(emoji: "🤗", label: "hug"),
+]
+
+private func pics(_ emojis: String...) -> [TomoChoice] {
+    emojis.map { TomoChoice(emoji: $0, label: nil) }
+}
+
+private let stage1: [TomoRound] = [
+    TomoRound(say: "ワンワン！", romaji: "wan-wan", meaning: "doggy", adult: "いぬ（犬）",
+              word: "ワンワン", answer: "🐶", choices: pics("🐱", "🐶", "🚗"), need: nil, praise: "ワンワン！"),
+    TomoRound(say: "まんま！", romaji: "man-ma", meaning: "food! (I'm hungry)", adult: "ごはん",
+              word: "まんま", answer: "🍙", choices: needChoices, need: .eat, praise: "おいちい！"),
+    TomoRound(say: "ブーブー！", romaji: "bū-bū", meaning: "car (vroom vroom)", adult: "くるま（車）",
+              word: "ブーブー", answer: "🚗", choices: pics("🚗", "🐮", "🍎"), need: nil, praise: "ブーブー！"),
+    TomoRound(say: "ニャンニャン", romaji: "nyan-nyan", meaning: "kitty", adult: "ねこ（猫）",
+              word: "ニャンニャン", answer: "🐱", choices: pics("🐶", "🐮", "🐱"), need: nil, praise: "ニャンニャン！"),
+    TomoRound(say: "ねんね…", romaji: "nen-ne", meaning: "sleepy-time", adult: "ねる（寝る）",
+              word: "ねんね", answer: "😴", choices: needChoices, need: .sleep, praise: "ねんね…"),
+    TomoRound(say: "モーモー！", romaji: "mō-mō", meaning: "moo-cow", adult: "うし（牛）",
+              word: "モーモー", answer: "🐮", choices: pics("🐮", "🐤", "🐶"), need: nil, praise: "モーモー！"),
+    TomoRound(say: "だっこ！", romaji: "dak-ko", meaning: "pick me up!", adult: "だっこ（抱っこ）",
+              word: "だっこ", answer: "🤗", choices: needChoices, need: .hug, praise: "えへへ"),
+    TomoRound(say: "くっく！", romaji: "kuk-ku", meaning: "shoes", adult: "くつ（靴）",
+              word: "くっく", answer: "👟", choices: pics("🧸", "👟", "🍎"), need: nil, praise: "くっく！"),
+]
+
+private let stage2: [TomoRound] = [
+    TomoRound(say: "ワンワン いた！", romaji: "wan-wan ita!", meaning: "There's a doggy!", adult: "いぬが いた！",
+              word: "いた", answer: "🐶", choices: pics("🚗", "🐱", "🐶"), need: nil, praise: "ワンワン かわいい！"),
+    TomoRound(say: "まんま たべる", romaji: "man-ma taberu", meaning: "Eat food", adult: "ごはんを たべる",
+              word: "たべる", answer: "🍙", choices: needChoices, need: .eat, praise: "おいちい！"),
+    TomoRound(say: "りんご ちょうだい", romaji: "ringo chōdai", meaning: "Apple, please", adult: "りんごを ください",
+              word: "ちょうだい", answer: "🍎", choices: pics("🍌", "🍎", "🍙"), need: nil, praise: "ありがと！"),
+    TomoRound(say: "ブーブー はやい！", romaji: "bū-bū hayai!", meaning: "The car is fast!", adult: "くるまが はやい",
+              word: "はやい", answer: "🚗", choices: pics("🐢", "🐮", "🚗"), need: nil, praise: "はやいね！"),
+    TomoRound(say: "ねんね する", romaji: "nen-ne suru", meaning: "Go to sleep", adult: "ねる",
+              word: "する", answer: "😴", choices: needChoices, need: .sleep, praise: "おやすみ…"),
+    TomoRound(say: "おみず のむ", romaji: "o-mizu nomu", meaning: "Drink water", adult: "みずを のむ",
+              word: "のむ", answer: "💧", choices: pics("💧", "🍙", "🍎"), need: nil, praise: "ごくごく！"),
+]
+
+// MARK: - Drop-ins: Tomo visits now and then instead of asking for study sessions
+
+enum DropIn {
+    /// Time between visits. TOMO_DROPIN_EVERY (seconds) overrides it for testing.
+    static let every: TimeInterval = ProcessInfo.processInfo.environment["TOMO_DROPIN_EVERY"]
+        .flatMap(TimeInterval.init) ?? 10 * 60
+    /// Tomo leaves when you haven't touched or hovered the island for this long.
+    static let ignoreAfter: TimeInterval = 10
+    /// Answering in your own words takes longer than tapping a picture.
+    static let ignoreAfterChat: TimeInterval = 20
+    /// Answers per visit before Tomo says bye.
+    static let roundsPerVisit = 3
+}
+
+// MARK: - Game
+
+@MainActor
+final class TomoGame: ObservableObject {
+    static let shared = TomoGame()
+
+    static let stageGoal = [1: 5, 2: 5, 3: 10]   // understood answers needed to grow (3 → 4さい: later)
+    static let chatStage = 3
+
+    @Published private(set) var stage = 1
+    @Published private(set) var round: TomoRound = stage1[0]
+    @Published private(set) var phase: TomoPhase = .asking
+    @Published private(set) var known: Set<String> = []
+    @Published var hintShown = false
+
+    // 3さい conversation
+    @Published private(set) var line: TomoLine = tomoStarters[0]
+    @Published private(set) var lastAnswer: String?
+    @Published private(set) var goodReplies = 0
+    @Published private(set) var aiLabel: String?   // nil = offline replies
+    @Published var draft = "" { didSet { if draft != oldValue { touch() } } }
+    let listener = TomoListener()
+    private var transcript: [String] = []
+    private var starterIndex = 0
+
+    private var index = 0
+    private var token = 0
+
+    // Island hooks, set by AppDelegate
+    var openIsland: (@MainActor () -> Void)?
+    var closeIsland: (@MainActor () -> Void)?
+    var isIslandOpen: (@MainActor () -> Bool)?
+    var focusInput: (@MainActor () -> Void)?
+
+    // Visit state: nil = no visit (island closed, or opened by the user for free play)
+    private var visitRoundsLeft: Int?
+    private var visitDeadline = Date.distantFuture
+    private var nextDropIn = Date.distantFuture
+    private var wasOpen = false
+    private var ticker: Timer?
+
+    private let speech = AVSpeechSynthesizer()
+    private let voice: AVSpeechSynthesisVoice? = {
+        let ja = AVSpeechSynthesisVoice.speechVoices().filter { $0.language == "ja-JP" }
+        return ja.max { $0.quality.rawValue < $1.quality.rawValue } ?? AVSpeechSynthesisVoice(language: "ja-JP")
+    }()
+
+    var isChat: Bool { stage >= Self.chatStage }
+    var age: String { "\(stage)さい" }
+    var goal: Int { Self.stageGoal[stage] ?? 5 }
+    var progress: Int { isChat ? goodReplies : knownThisStage }
+    var knownThisStage: Int { known.filter { stageWords.contains($0) }.count }
+    private var rounds: [TomoRound] { stage == 1 ? stage1 : stage2 }
+    private var stageWords: Set<String> { Set(rounds.map(\.word)) }
+    private var ignoreAfter: TimeInterval { isChat ? DropIn.ignoreAfterChat : DropIn.ignoreAfter }
+
+    private init() {
+        NotificationCenter.default.addObserver(forName: .triggerSlap, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.speak("いたい！", slow: false) }
+        }
+    }
+
+    // MARK: Flow
+
+    /// Resets progress and starts the visit clock. Call `dropIn(force: true)` to open right away.
+    func start() {
+        bump()
+        stage = 1
+        index = 0
+        known = []
+        round = stage1[0]
+        phase = .asking
+        goodReplies = 0
+        transcript = []
+        lastAnswer = nil
+        visitRoundsLeft = nil
+        NotificationCenter.default.post(name: .botGrow, object: CGFloat(0))
+        nextDropIn = Date().addingTimeInterval(DropIn.every)
+        if ticker == nil {
+            ticker = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+                MainActor.assumeIsolated { self?.tick() }
+            }
+        }
+        if let s = ProcessInfo.processInfo.environment["TOMO_STAGE"].flatMap(Int.init), s >= Self.chatStage {
+            jumpToChat(open: false)
+        }
+    }
+
+    func restart() {
+        start()
+        dropIn(force: true)
+    }
+
+    /// Demo shortcut: skip ahead to the talking stage.
+    func jumpToChat(open: Bool = true) {
+        bump()
+        stage = Self.chatStage
+        known = Set((stage1 + stage2).map(\.word))
+        transcript = []
+        lastAnswer = nil
+        NotificationCenter.default.post(name: .botGrow, object: CGFloat(2))
+        if open { visitRoundsLeft = nil; dropIn(force: true) }
+    }
+
+    /// Tomo pops open for a short visit. Without `force`, it waits for a natural break.
+    func dropIn(force: Bool) {
+        if !force {
+            if isIslandOpen?() == true || visitRoundsLeft != nil {   // already together
+                nextDropIn = Date().addingTimeInterval(DropIn.every); return
+            }
+            if Self.secondsSinceInput(typing: true) < 3 {            // mid-typing: try again soon
+                nextDropIn = Date().addingTimeInterval(20); return
+            }
+            if Self.secondsSinceInput(typing: false) > 5 * 60 {      // nobody at the Mac
+                nextDropIn = Date().addingTimeInterval(60); return
+            }
+        }
+        visitRoundsLeft = DropIn.roundsPerVisit
+        visitDeadline = Date().addingTimeInterval(ignoreAfter + 1.5)
+        openIsland?()
+        wasOpen = true
+        NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.happy)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            NotificationCenter.default.post(name: .botGreet, object: nil)
+        }
+        if isChat {
+            transcript = []
+            lastAnswer = nil
+            presentStarter(delay: 1.2)
+        } else {
+            if !rounds.indices.contains(index) { index = 0 }
+            present(rounds[index], delay: 1.2)
+        }
+    }
+
+    private func tick() {
+        let now = Date()
+        let open = isIslandOpen?() ?? false
+        defer { wasOpen = open }
+
+        guard visitRoundsLeft != nil else {
+            // User opened Tomo themselves: free play, no time limit.
+            if open && !wasOpen { resumeFreePlay() }
+            if !open && now >= nextDropIn { dropIn(force: false) }
+            return
+        }
+        if !open { endVisit(); return }                       // user closed it (Esc, click away)
+        if AppState.shared.mouseInIsland || listener.isListening {
+            visitDeadline = now.addingTimeInterval(ignoreAfter)
+        } else if now > visitDeadline && phase == .asking {
+            leave(ignored: true)
+        }
+    }
+
+    private func resumeFreePlay() {
+        guard phase == .asking else { return }
+        if isChat {
+            if transcript.isEmpty { presentStarter(delay: 0.3) } else { speak(line.say, slow: false) }
+        } else {
+            setBot(.question)
+            speak(round.say, slow: false)
+        }
+    }
+
+    /// Ends the visit. Ignored: a quiet yawn. Finished: wave and バイバイ.
+    private func leave(ignored: Bool) {
+        let tok = bump()
+        visitRoundsLeft = nil
+        nextDropIn = Date().addingTimeInterval(DropIn.every)
+        listener.stop()
+        setBot(.idle)
+        if ignored {
+            emote(.yawn)
+        } else {
+            NotificationCenter.default.post(name: .botGreet, object: nil)
+            speak(isChat ? "またね！" : "バイバイ！", slow: false)
+        }
+        after(1.8, tok) { [weak self] in
+            self?.closeIsland?()
+            self?.wasOpen = false
+        }
+    }
+
+    private func endVisit() {
+        bump()
+        visitRoundsLeft = nil
+        nextDropIn = Date().addingTimeInterval(DropIn.every)
+        listener.stop()
+        speech.stopSpeaking(at: .immediate)
+        if phase == .thinking { phase = .asking }
+        setBot(.idle)
+    }
+
+    /// Counts one answer toward the visit. Returns true when the visit is over.
+    private func spendVisitRound() -> Bool {
+        guard let left = visitRoundsLeft else { return false }
+        visitRoundsLeft = left - 1
+        return left - 1 <= 0
+    }
+
+    private static func secondsSinceInput(typing: Bool) -> TimeInterval {
+        let src = CGEventSourceStateID.combinedSessionState
+        if typing { return CGEventSource.secondsSinceLastEventType(src, eventType: .keyDown) }
+        let types: [CGEventType] = [.keyDown, .mouseMoved, .leftMouseDown, .scrollWheel]
+        return types.map { CGEventSource.secondsSinceLastEventType(src, eventType: $0) }.min() ?? 0
+    }
+
+    func replay() {
+        touch()
+        speak(isChat ? line.say : round.say, slow: hintShown)
+    }
+
+    func showHint() {
+        touch()
+        hintShown = true
+        speak(isChat ? line.say : round.say, slow: true)
+    }
+
+    // MARK: 1–2さい: pick the picture / do what Tomo asks
+
+    func pick(_ choice: TomoChoice) {
+        guard phase == .asking else { return }
+        touch()
+        let tok = bump()
+        if choice.emoji == round.answer {
+            phase = .right
+            known.insert(round.word)
+            react(to: round)
+            after(2.2, tok) { [weak self] in self?.advance() }
+        } else {
+            phase = .wrong(choice.emoji)
+            setBot(.error)
+            speak("ちがう〜", slow: false)
+            after(1.2, tok) { [weak self] in
+                guard let self else { return }
+                self.setBot(.question)
+                self.phase = .asking
+                self.speak(self.round.say, slow: true)
+            }
+        }
+    }
+
+    private func react(to r: TomoRound) {
+        switch r.need {
+        case .eat:
+            setBot(.finished)
+            NotificationCenter.default.post(name: .botGulp, object: nil)
+            emote(.happy)
+            speak(r.praise, slow: false)
+        case .sleep:
+            setBot(.sleeping)
+            speak(r.praise, slow: true)
+        case .hug:
+            setBot(.idle)
+            emote(.love)
+            speak(r.praise, slow: false)
+        case nil:
+            setBot(.finished)
+            speak(r.praise, slow: false)
+        }
+    }
+
+    private func advance() {
+        if knownThisStage >= goal {
+            growUp()
+            return
+        }
+        index = (index + 1) % rounds.count
+        // Skip words already understood while unknown ones remain.
+        var tries = 0
+        while known.contains(rounds[index].word) && tries < rounds.count {
+            index = (index + 1) % rounds.count
+            tries += 1
+        }
+        if spendVisitRound() { leave(ignored: false); return }
+        present(rounds[index], delay: 0.3)
+    }
+
+    private func growUp() {
+        let tok = bump()
+        let next = stage + 1
+        phase = .grew
+        setBot(.finished)
+        emote(.proud)
+        NotificationCenter.default.post(name: .botGrow, object: CGFloat(next - 1))
+        speak("おおきく なった！", slow: false)
+        after(4.2, tok) { [weak self] in
+            guard let self else { return }
+            self.stage = next
+            self.index = 0
+            self.phase = .asking
+            if next == 2 { self.round = stage2[0] }
+            if self.visitRoundsLeft != nil { self.leave(ignored: false); return }
+            if self.isChat { self.presentStarter(delay: 0) } else { self.present(stage2[0], delay: 0) }
+        }
+    }
+
+    private func present(_ r: TomoRound, delay: Double) {
+        let tok = bump()
+        after(delay, tok) { [weak self] in
+            guard let self else { return }
+            self.round = r
+            self.hintShown = false
+            self.phase = .asking
+            self.setBot(.question)
+            self.speak(r.say, slow: false)
+            self.visitDeadline = Date().addingTimeInterval(self.ignoreAfter)
+            if Self.autoplay { self.autoAnswer(tok) }
+        }
+    }
+
+    // MARK: 3さい: Tomo asks, you answer in your own words
+
+    private func presentStarter(delay: Double) {
+        let starter = tomoStarters[starterIndex % tomoStarters.count]
+        starterIndex += 1
+        say(starter, delay: delay)
+    }
+
+    private func say(_ l: TomoLine, delay: Double) {
+        let tok = bump()
+        after(delay, tok) { [weak self] in
+            guard let self else { return }
+            self.line = l
+            self.aiLabel = TomoAI.config.isUsable ? TomoAI.config.label : nil
+            self.hintShown = false
+            self.phase = .asking
+            self.transcript.append("Tomo: \(l.say)")
+            self.setBot(.question)
+            self.speak(l.say, slow: false)
+            self.visitDeadline = Date().addingTimeInterval(self.ignoreAfter)
+            if let next = Self.autochat.first {
+                Self.autochat.removeFirst()
+                self.after(2.5, tok) { [weak self] in self?.answer(next) }
+            }
+        }
+    }
+
+    func submitDraft() { answer(draft) }
+
+    func toggleMic() {
+        touch()
+        listener.toggle(onPartial: { [weak self] in self?.draft = $0 },
+                        onDone: { [weak self] in self?.answer($0) })
+    }
+
+    func answer(_ text: String) {
+        let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard isChat, phase == .asking, !text.isEmpty else { return }
+        touch()
+        let tok = bump()
+        lastAnswer = text
+        draft = ""
+        phase = .thinking
+        setBot(.thinking)
+        transcript.append("Learner: \(text)")
+        let ai = TomoAI.config
+        aiLabel = ai.isUsable ? ai.label : nil
+        let history = transcript
+        Task { @MainActor [weak self] in
+            let r = await TomoBrain.reply(to: history, ai: ai)
+            guard let self, self.token == tok else { return }
+            self.heard(r, tok: tok)
+        }
+    }
+
+    private func heard(_ r: TomoReply, tok: Int) {
+        let reply = TomoLine(say: r.say, romaji: r.romaji, english: r.english)
+        line = reply
+        hintShown = false
+        phase = .asking
+        transcript.append("Tomo: \(r.say)")
+        speak(r.say, slow: false)
+        visitDeadline = Date().addingTimeInterval(ignoreAfter)
+
+        guard r.understood else {
+            setBot(.question)          // head tilt + "?" : say it again
+            return
+        }
+        goodReplies += 1
+        setBot(.idle)
+        switch r.mood {
+        case "love":      emote(.love)
+        case "surprised": emote(.surprised)
+        case "proud":     emote(.proud)
+        default:          emote(.happy)
+        }
+        if spendVisitRound() {
+            after(2.6, tok) { [weak self] in self?.leave(ignored: false) }
+        } else if !(r.say.contains("？") || r.say.contains("?")) {
+            presentStarter(delay: 2.8)  // Tomo reacted without asking anything: ask the next question
+        } else {
+            setBot(.question)
+        }
+    }
+
+    // MARK: Debug autoplay (TOMO_AUTOPLAY=1, TOMO_AUTOCHAT="answer|answer|…")
+
+    private static let autoplay = ProcessInfo.processInfo.environment["TOMO_AUTOPLAY"] != nil
+    private static var autochat: [String] = ProcessInfo.processInfo.environment["TOMO_AUTOCHAT"]?
+        .split(separator: "|").map(String.init) ?? []
+    private var autoMissed = false
+
+    private func autoAnswer(_ tok: Int) {
+        after(2.5, tok) { [weak self] in
+            guard let self else { return }
+            let r = self.round
+            if !self.autoMissed, let wrong = r.choices.first(where: { $0.emoji != r.answer }) {
+                self.autoMissed = true
+                self.pick(wrong)
+                self.after(2.0, self.token) { [weak self] in self?.autoAnswer(self?.token ?? 0) }
+            } else if let right = r.choices.first(where: { $0.emoji == r.answer }) {
+                self.pick(right)
+            }
+        }
+    }
+
+    // MARK: Helpers
+
+    func speak(_ text: String, slow: Bool) {
+        guard AppState.shared.soundEnabled else { return }
+        speech.stopSpeaking(at: .immediate)
+        let u = AVSpeechUtterance(string: text)
+        u.voice = voice
+        u.pitchMultiplier = 1.6
+        u.rate = AVSpeechUtteranceDefaultSpeechRate * (slow ? 0.6 : 0.85)
+        speech.speak(u)
+        NotificationCenter.default.post(name: .botTalk, object: nil)
+    }
+
+    private func setBot(_ s: BotState) {
+        AppState.shared.updateTask(id: "tomo", state: s)
+    }
+
+    private func emote(_ e: BotEmote) {
+        NotificationCenter.default.post(name: .triggerEmote, object: e)
+    }
+
+    private func touch() {
+        AppState.shared.lastActivity = .now
+        visitDeadline = Date().addingTimeInterval(ignoreAfter)
+    }
+
+    @discardableResult
+    private func bump() -> Int { token += 1; return token }
+
+    private func after(_ delay: Double, _ tok: Int, _ f: @escaping @MainActor () -> Void) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self, self.token == tok else { return }
+                f()
+            }
+        }
+    }
+}

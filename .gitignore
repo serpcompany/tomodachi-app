@@ -1,0 +1,22 @@
+# Xcode build output (rebuild with the command in mac-demo/README.md)
+mac-demo/build/
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+*.icloud
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Local secrets and tooling
+.env
+.env.*
+.claude/settings.local.json
