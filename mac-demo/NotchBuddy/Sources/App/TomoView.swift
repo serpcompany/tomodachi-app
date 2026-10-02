@@ -204,6 +204,16 @@ struct TomoHeaderRight: View {
                     .foregroundColor(Color(hex: "#8E939C"))
             }
             .buttonStyle(.plain)
+            Button(action: { game.dismiss() }) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(Color(hex: "#C9CDD4"))
+                    .frame(width: 22, height: 22)
+                    .background(Color.white.opacity(0.1))
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .help("Not now: Tomo waits beside the notch")
         }
     }
 }
@@ -306,5 +316,21 @@ private struct TomoChatCard: View {
             Text("Answer in your own words: type or tap the mic · \(game.aiLabel ?? "offline replies")")
                 .foregroundColor(Color(hex: "#8E939C"))
         }
+    }
+}
+
+// MARK: - Red dot on small Tomo while a visit is waiting
+
+struct TomoPendingDot: View {
+    @ObservedObject var game = TomoGame.shared
+
+    var body: some View {
+        Circle()
+            .fill(Color(hex: "#FF3B30"))
+            .frame(width: 7, height: 7)
+            .overlay(Circle().stroke(Color.black, lineWidth: 1.5))
+            .scaleEffect(game.pending ? 1 : 0.2)
+            .opacity(game.pending ? 1 : 0)
+            .animation(.spring(response: 0.35, dampingFraction: 0.6), value: game.pending)
     }
 }

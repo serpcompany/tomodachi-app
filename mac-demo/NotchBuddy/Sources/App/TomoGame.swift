@@ -11,6 +11,7 @@ import SwiftUI
 extension Notification.Name {
     static let botTalk = Notification.Name("tomo.botTalk")
     static let botGrow = Notification.Name("tomo.botGrow")
+    static let botNudge = Notification.Name("tomo.botNudge")
 }
 
 struct TomoChoice: Identifiable, Hashable {
@@ -99,6 +100,10 @@ enum DropIn {
     static let ignoreAfterChat: TimeInterval = 20
     /// Answers per visit before Tomo says bye.
     static let roundsPerVisit = 3
+    /// After an unfinished visit (closed or ignored), small Tomo bounces this often until you check in.
+    /// TOMO_NUDGE_EVERY (seconds) overrides it for testing.
+    static let nudgeEvery: TimeInterval = ProcessInfo.processInfo.environment["TOMO_NUDGE_EVERY"]
+        .flatMap(TimeInterval.init) ?? 60
 }
 
 // MARK: - Game
@@ -115,6 +120,9 @@ final class TomoGame: ObservableObject {
     @Published private(set) var phase: TomoPhase = .asking
     @Published private(set) var known: Set<String> = []
     @Published var hintShown = false
+    /// A visit ended unfinished: red dot on small Tomo + a bounce now and then, until you open it.
+    @Published private(set) var pending = false
+    private var nextNudge = Date.distantFuture
 
     // 3さい conversation
     @Published private(set) var line: TomoLine = tomoStarters[0]
@@ -220,6 +228,7 @@ final class TomoGame: ObservableObject {
         }
         visitRoundsLeft = DropIn.roundsPerVisit
         visitDeadline = Date().addingTimeInterval(ignoreAfter + 1.5)
+        pending = false
         openIsland?()
         wasOpen = true
         NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.happy)
@@ -243,11 +252,15 @@ final class TomoGame: ObservableObject {
 
         guard visitRoundsLeft != nil else {
             // User opened Tomo themselves: free play, no time limit.
-            if open && !wasOpen { resumeFreePlay() }
+            if open && !wasOpen { pending = false; resumeFreePlay() }
+            if !open && pending && now >= nextNudge {
+                NotificationCenter.default.post(name: .botNudge, object: nil)
+                nextNudge = now.addingTimeInterval(DropIn.nudgeEvery)
+            }
             if !open && now >= nextDropIn { dropIn(force: false) }
             return
         }
-        if !open { endVisit(); return }                       // user closed it (Esc, click away)
+        if !open { markPending(); endVisit(); return }       // user closed it mid-visit (Esc)
         if AppState.shared.mouseInIsland || listener.isListening {
             visitDeadline = now.addingTimeInterval(ignoreAfter)
         } else if now > visitDeadline && phase == .asking {
@@ -274,6 +287,7 @@ final class TomoGame: ObservableObject {
         setBot(.idle)
         if ignored {
             emote(.yawn)
+            markPending()
         } else {
             NotificationCenter.default.post(name: .botGreet, object: nil)
             speak(isChat ? "またね！" : "バイバイ！", slow: false)
@@ -282,6 +296,20 @@ final class TomoGame: ObservableObject {
             self?.closeIsland?()
             self?.wasOpen = false
         }
+    }
+
+    /// × button: put Tomo away. Mid-visit, it waits beside the notch with a red dot.
+    func dismiss() {
+        guard isIslandOpen?() == true else { return }
+        if visitRoundsLeft != nil { markPending() }
+        endVisit()
+        closeIsland?()
+        wasOpen = false
+    }
+
+    private func markPending() {
+        pending = true
+        nextNudge = Date().addingTimeInterval(8)   // first bounce soon after tucking in
     }
 
     private func endVisit() {

@@ -13,6 +13,7 @@ Everything we want, with its status. When something moves, update it here in the
 | Baby word + "grown-ups say" reveal (ワンワン → いぬ) | |
 | Growing up: sprout at 2さい, bigger at 3さい | Placeholder thresholds |
 | Drop-in visits: every 10 min, 3 answers, leave after 10 s ignored | No settings yet |
+| Dismiss with × or Esc; after an unfinished visit, a red dot and a bounce every 60 s until you check in | `DropIn.nudgeEvery` |
 | 3さい conversation: typed or spoken answers | 5 starter questions |
 | AI provider adapter (Anthropic + any OpenAI-compatible), AI provider window | Default OpenAI `gpt-5.4-mini` via `.env` |
 | Japanese voice out (Apple TTS) and voice in (Apple, on-device only) | The mic isn't tested by hand yet |
@@ -29,7 +30,8 @@ Everything we want, with its status. When something moves, update it here in the
 | Pick the AI model with a small test set; control cost | Researched | [ai-models-and-costs.md](research/ai-models-and-costs.md): recommends Claude Haiku 4.5 (about $0.38 per active 3さい learner per month at 70% offline). Cheaper options: Gemini 3.1 Flash-Lite and GPT-6 Luna (reasoning off). Free on-device: Apple Foundation Models (macOS 26+). We run `gpt-5.4-mini` because that's the key we have. Decide with the doc's 32-line test set. Heads-up: Haiku 4.5's retirement window opens 2026-10-15 |
 | 2さい reply bubbles + "say this word" (between tapping and free talk) | Next | The answer ladder in [user-journey.md](user-journey.md) §3 |
 | Move content out of code into data files | Next | Needed before real vocabulary lands |
-| Own character art and sounds; remove Coucou leftovers | Next | Required before showing publicly (license) |
+| Debrand: remove Coucou, Mochi and Grok Bot names, assets and leftovers; own character art and sounds | Next | [serpcompany/zenbujapanese-tomo-app#1](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/1). Required before showing publicly (license). Keep the MIT notice and one credit line |
+| Judge answers in layers, never by AI alone: (1) Japanese present (built); (2) on-topic via the Zenbu dictionary + per-question expected answers; (3) AI fills yes/no verdict fields that code double-checks. Three outcomes: **understood** (credit), **helped** (answered in English, Tomo models the Japanese, no credit), **not understood** | Next | Seen live: `gpt-5.4-mini` accepted "car" as understood. Layer 1 now blocks that |
 | Adapter: send a JSON schema and `reasoning_effort` per provider | Next | From ai-models-and-costs.md: guarantees Tomo's JSON shape; avoids paying for unneeded reasoning |
 | Speech recognition hints: pass the question's expected words as `contextualStrings` | Next | From voices.md / answer-evaluation.md |
 | Try Apple's on-device model as a free AI tier | Idea | Japanese supported per Apple; needs macOS 26+ |
@@ -45,7 +47,11 @@ Everything we want, with its status. When something moves, update it here in the
 - **Voice that matures** from 1さい to 5さい.
 - **Share card:** "My Japanese is like a 3-year-old's."
 - **Sync with the Zenbu iOS/web apps:** shared known words via Language Reference IDs.
-- **iPhone, Watch, widgets:** the Grok Bot reference showed this across devices.
+- **iPhone surfaces (after the foundation; needs the `TomoCore` split first):** based on the cross-device concept in [docs/reference/grokbot1.PNG](reference/grokbot1.PNG) (a design mockup, not an app).
+  - **Lock screen visits:** an interactive Live Activity where Tomo asks まんま！ and you tap 🍙 / 😴 / 🤗 without opening the app.
+  - **Home screen widget:** small Tomo showing its age and mood, with tap-to-play buttons.
+  - **Watch:** tiny Tomo with one-tap answers.
+  - Option: host Tomo inside the existing Zenbu iPhone app instead of a separate app.
 
 ## Open product questions
 

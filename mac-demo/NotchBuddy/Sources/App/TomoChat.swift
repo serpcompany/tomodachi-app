@@ -38,8 +38,22 @@ let tomoStarters: [TomoLine] = [
 enum TomoBrain {
     /// `transcript` alternates "Tomo: …" / "Learner: …" lines, newest last.
     static func reply(to transcript: [String], ai: TomoAIConfig?) async -> TomoReply {
+        let answer = (transcript.last ?? "").replacingOccurrences(of: "Learner: ", with: "")
+        if let gated = languageGate(answer) { return gated }
         if let ai, ai.isUsable, let r = try? await ask(ai, transcript: transcript) { return r }
-        return offlineReply(to: transcript.last ?? "")
+        return offlineReply(to: answer)
+    }
+
+    /// Layer 1 of answer checking (docs/architecture.md): no Japanese, no credit, and no AI call.
+    /// The AI can be talked into accepting English ("car" once counted), so this rule lives in code.
+    static func languageGate(_ answer: String) -> TomoReply? {
+        guard !containsJapanese(answer) else { return nil }
+        return TomoReply(say: "ん？ にほんご で いって！", romaji: "n? nihongo de itte!",
+                         english: "Hm? Say it in Japanese!", understood: false, mood: "confused")
+    }
+
+    static func containsJapanese(_ text: String) -> Bool {
+        text.unicodeScalars.contains { (0x3040...0x30FF).contains($0.value) || (0x4E00...0x9FFF).contains($0.value) }
     }
 
     /// For the AI window's Test button.
@@ -133,8 +147,7 @@ enum TomoBrain {
                                  understood: true, mood: rule.mood)
             }
         }
-        let hasJapanese = text.unicodeScalars.contains { (0x3040...0x30FF).contains($0.value) || (0x4E00...0x9FFF).contains($0.value) }
-        return hasJapanese
+        return containsJapanese(text)
             ? TomoReply(say: "ん？ わかんない… もういっかい！", romaji: "n? wakannai… mō ikkai!",
                         english: "Hm? Tomo doesn't get it… say it again!", understood: false, mood: "confused")
             : TomoReply(say: "ん？ にほんご で いって！", romaji: "n? nihongo de itte!",

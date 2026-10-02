@@ -13,7 +13,8 @@
 1. Tomo peeks out of the notch and waves or calls out (まんま！, ワンワン！). It doesn't take over the screen.
 2. If you hover or click, it opens for a **10–30 second moment**: 1–3 quick exchanges.
 3. Then Tomo says バイバイ and goes back into the notch.
-4. If you ignore it, after about 10 seconds it shrugs or yawns and goes back on its own. There's **no penalty**: no lost streak, no guilt message, no nagging follow-up.
+4. If you ignore it, after about 10 seconds it yawns and goes back on its own. If it's in your way, close it with **×** (or Esc). Either way there's **no penalty**: no lost streak and no guilt message.
+5. **Gentle nudge back:** after an unfinished visit, small Tomo waits beside the notch with a **red dot** and does a little **bounce** now and then (every 60 s in the demo) until you click it or the next visit starts.
 
 **Rules for the moments**
 

@@ -20,7 +20,7 @@ See the root level README.md
 | **Ages are the levels** | 1さい: single baby words (ワンワン, まんま). 2さい: two-word phrases (ワンワン いた！). 3さい: real short conversations. | Built for ages 1–3 |
 | **Understanding before speaking** | 1–2さい: tap the right picture, or do what Tomo asks (feed / bed / hug). 3さい: answer in your own words by typing Japanese or speaking. | Built |
 | **Baby talk + grown-up word** | Tomo says ワンワン, and after you get it the card shows "grown-ups say: いぬ（犬）". | Built |
-| **Drop-in visits** | Tomo opens on its own every so often (10 min in the demo) for a 3-answer visit. Ignore it for 10 s (20 s at 3さい) and it yawns and tucks back in, with no penalty. Visits wait while you're typing and skip if you're away. | Built (simple, no settings) |
+| **Drop-in visits** | Tomo opens on its own every so often (10 min in the demo) for a 3-answer visit. Ignore it for 10 s (20 s at 3さい), or close it with ×/Esc, and it tucks back in with a red dot and an occasional bounce until you check in. Visits wait while you're typing and skip if you're away. | Built (simple, no settings) |
 | **Always there** | Between visits, click small Tomo any time for free play with no time limit. | Built |
 | **Child-like feedback** | Right: happy roll, sparkles, praise. Wrong: shake and ちがう〜. Not understood: head tilt and ん？ わかんない… Poked: いたい！ | Built |
 | **Voice in and out** | Tomo speaks with macOS's Japanese voice at a raised pitch. You answer through Apple's on-device Japanese speech recognition. Both are free and offline. | Built (the mic is untested by hand) |

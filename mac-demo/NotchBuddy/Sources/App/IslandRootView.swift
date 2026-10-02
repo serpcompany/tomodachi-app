@@ -106,6 +106,12 @@ struct IslandContainer: View {
 
             CountdownBar(state: state, islandW: islandWidth)
 
+            if state.mode == .compact {
+                let rest = IslandRestingLayout(width: islandWidth, height: islandHeight)
+                TomoPendingDot()
+                    .position(x: 40 + rest.botDiameter * 0.45, y: rest.botCenterY - rest.botDiameter * 0.4)
+            }
+
             Group {
                 if state.mode == .compact {
                     CompactMiniGrid(state: state)

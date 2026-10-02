@@ -126,6 +126,7 @@ private struct TomoEngineEvents: ViewModifier {
     func body(content: Content) -> some View {
         content
             .onReceive(NotificationCenter.default.publisher(for: .botTalk)) { _ in talk() }
+            .onReceive(NotificationCenter.default.publisher(for: .botNudge)) { _ in engine.nudge() }
             .onReceive(NotificationCenter.default.publisher(for: .botGrow)) { n in grow(n) }
             .onAppear { syncGrowth() }
     }

@@ -2,6 +2,12 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
+### 2026-10-03: The AI never decides credit alone
+Code checks the answer first (it must contain Japanese, and later it must fit the question via the Zenbu dictionary). The AI's verdict is only an input that code double-checks. **Why:** `gpt-5.4-mini` accepted the English answer "car" as understood despite the prompt rules.
+
+### 2026-10-03: Tomo can be dismissed but nudges you back
+A × button (and Esc) closes an open visit at any time, because Tomo must never block what you're doing. An unfinished visit (closed or ignored) leaves a red dot on small Tomo and a bounce every 60 s until you check in. **Why:** people get lazy about learning, and a quiet nudge brings them back without guilt.
+
 ### 2026-10-03: Prove each part first; plug real systems in later
 The current goal is proof that each part works, plus clean extension points ([architecture.md](architecture.md)). The offline keyword matcher is a placeholder: Zenbu's offline dictionary system will check answers. **Why:** that system already exists in the other Zenbu apps.
 

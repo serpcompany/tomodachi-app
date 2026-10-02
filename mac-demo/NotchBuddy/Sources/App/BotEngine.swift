@@ -348,6 +348,23 @@ final class BotEngine: ObservableObject {
         ])
     }
 
+    /// "Hey, over here!" double hop, used while a visit is waiting for you.
+    func nudge() {
+        anim("oy", keys: [
+            TweenKey(target: -0.45, duration: 140, ease: Ease.out),
+            TweenKey(target: 0.05,  duration: 160, ease: Ease.inOut),
+            TweenKey(target: -0.25, duration: 120, ease: Ease.out),
+            TweenKey(target: 0,     duration: 240, ease: Ease.back),
+        ])
+        anim("sy", keys: [
+            TweenKey(target: 0.85, duration: 80,  ease: Ease.out),
+            TweenKey(target: 1.12, duration: 140, ease: Ease.out),
+            TweenKey(target: 0.95, duration: 140, ease: Ease.inOut),
+            TweenKey(target: 1,    duration: 220, ease: Ease.back),
+        ])
+        blink()
+    }
+
     /// Two-leaf sprout on top of the head, sized by `grow`.
     private func drawSprout(ctx: GraphicsContext, R: CGFloat, ry: CGFloat) {
         let base = CGPoint(x: 0, y: -ry * 0.9)
