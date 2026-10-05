@@ -138,12 +138,14 @@ enum TomoIconRenderer {
         .frame(width: 1024, height: 1024)
     }
 
-    /// The same look as the Mac icon, edge to edge: iOS masks it and rejects transparency.
+    /// The iPhone icon: Tomo on a sky-blue gradient, edge to edge (iOS masks it and rejects transparency).
+    /// TOMO_ICON_BG="#top,#bottom" tries other backgrounds.
     private static var iosIcon: some View {
-        ZStack {
-            LinearGradient(colors: [Color(hex: "#2B303B"), Color(hex: "#0E1014")], startPoint: .top, endPoint: .bottom)
-            RadialGradient(colors: [Color(hex: "#FFC53A").opacity(0.35), .clear],
-                           center: UnitPoint(x: 0.5, y: 0.58), startRadius: 0, endRadius: 440)
+        let bg = (ProcessInfo.processInfo.environment["TOMO_ICON_BG"] ?? "#8FD3FF,#3E9BEA").split(separator: ",").map(String.init)
+        return ZStack {
+            LinearGradient(colors: bg.map { Color(hex: $0) }, startPoint: .top, endPoint: .bottom)
+            RadialGradient(colors: [Color.white.opacity(0.35), .clear],
+                           center: UnitPoint(x: 0.5, y: 0.5), startRadius: 0, endRadius: 520)
             tomo(size: 900, grow: 1).offset(y: 48)
         }
         .frame(width: 1024, height: 1024)
