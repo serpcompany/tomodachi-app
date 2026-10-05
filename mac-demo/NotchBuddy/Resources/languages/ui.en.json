@@ -55,7 +55,7 @@
     "about.version": "Version {v} (beta)",
     "about.tagline": "A little friend in your notch who only speaks the language you're learning, at its own age.",
     "about.feedback": "Beta: things will break. Tell us what felt fun, confusing, or annoying.",
-    "about.credits": "Tomodachi by Zenbu Japanese. Notch shell based on Coucou by Louis Raillé (MIT License). Word ages from Wordbank (CC BY 4.0; Frank et al. 2017). Japanese data: Tsuji, Hagihara and Minagawa (Japanese CDI, Ogura & Watamaki). English data: MacArthur-Bates CDI norming samples (Fenson, Marchman et al.).",
+    "about.credits": "Tomodachi by Zenbu Japanese. Notch shell based on Coucou by Louis Raillé (MIT License). Word ages from Wordbank (CC BY 4.0; Frank et al. 2017). Japanese data: Tsuji, Hagihara and Minagawa (Japanese CDI, Ogura & Watamaki). English data: MacArthur-Bates CDI norming samples (Fenson, Marchman et al.). Ages 3–6 in Japanese: NINJAL 幼児語彙 and 絵本語彙 (CC BY 4.0). Some English meanings: JMdict (EDRDG, CC BY-SA 4.0).",
     "ai.provider": "Provider",
     "ai.baseURL": "Base URL",
     "ai.key": "API key",
@@ -136,7 +136,11 @@
     "growth.ofMax": "{n} of {max}",
     "growth.answersToday": "Answers",
     "growth.strongerToday": "Words that got stronger",
-    "pickMeaning": "What does Tomo mean?"
+    "pickMeaning": "What does Tomo mean?",
+    "growth.age.4": "Preschool words from everyday talk and picture books.",
+    "growth.age.5": "More preschool words: feelings, places, how things happen.",
+    "growth.age.6": "Words children know before starting school.",
+    "grewOlder": "Tomo grew up → {age}. New words to learn!"
   },
   "helpPhrases": [
     "what",

@@ -54,6 +54,8 @@ Change them in **Settings → General** (I speak / I'm learning). The menu and S
 
 `mac-demo/scripts/build-levels.py ja|en` rebuilds a pack's levels from Wordbank's CDI data (Japanese; American English norming samples). Sources are pinned (commit and SHA-256 per file) in `mac-demo/scripts/sources/wordbank-<language>.source.json`; downloads are cached in `mac-demo/build/data-cache/`. Hand fixes live in `mac-demo/scripts/data/<id>-curation.json`: a picture (emoji) or an action per word, meaning and reading fixes, grown-up words for baby talk, and words to leave out. The talking level and `startersByAge` are kept as they are. `--review` writes a table of every word for checking.
 
+Japanese goes on to 6さい with NINJAL's 幼児語彙 (words four preschoolers used in everyday speech) and 絵本語彙 (picture-book words), both CC BY 4.0 (`ninjal-bev.source.json`). Readings and English meanings come from JMdict, the same snapshot the Zenbu apps use (`jmdict.source.json`, read from `../zenbujapanese-monorepo`; CC BY-SA 4.0). Age: used by all 4 children or in 20+ books → 3さい; 3 children or 10+ books → 4さい; 2 or 5+ → 5さい; 1 or 3+ → 6さい, common words only. Wrong dictionary senses are fixed in `ja-curation.json` under `ninjal`.
+
 English is for learners who speak Japanese, so every English word needs a Japanese meaning. Words that match a Japanese CDI word for the same concept (Wordbank's `uni_lemma`, after the Japanese curation) get it automatically; the rest are written in `en-curation.json` (`ja`). English-only grammar words (helping verbs, a/an/the, of, to, at, by, for, about) are left out. Spanish can follow the same way.
 
 ## Adding a language

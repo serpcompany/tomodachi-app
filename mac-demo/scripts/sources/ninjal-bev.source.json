@@ -1,0 +1,12 @@
+{
+  "name": "NINJAL 幼児語彙 (preschoolers' everyday words) and 絵本語彙 (picture-book words)",
+  "use": "Japanese words for ages 3–6, after the CDI (scripts/build-levels.py ja)",
+  "license": "CC BY 4.0 (https://mmsrv.ninjal.ac.jp/bev/)",
+  "attribution": "国立国語研究所 (NINJAL). 大久保愛・川又瑠璃子 (1982)「就学前幼児の語彙―4児による日常生活語の実態―」https://doi.org/10.15084/00001315 ; 中曾根仁・川又瑠璃子 (1994)『絵本の語彙』https://doi.org/10.15084/00002616",
+  "retrieved": "2026-10-06",
+  "base_url": "https://mmsrv.ninjal.ac.jp/bev/",
+  "files": {
+    "yojigoi.zip": "d0ffb3ef30e6c19e4b9d93769fae83b55634dd43626c1a4b6e93a66f71fe1d1d",
+    "ehongoi.zip": "f1e44bbe0decd0c94e9fc428f3a440be60a2e77b19ee4b37db61e42eeac9f754"
+  }
+}
