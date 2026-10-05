@@ -8,7 +8,7 @@ Tomo's code is in `Tomo*.swift` files, in two places. **`TomoCore/`** is a Swift
 iOS with everything that isn't tied to one device: the game, growth, store, languages and their packs,
 AI, voice, sounds, and the chick's drawing. Each app is a shell around it: the Mac app in
 `mac-demo/NotchBuddy/Sources/App/`, where Coucou's files (`Island*`, `AppDelegate`, `AppState`…) are
-the notch ([coucou-fork.md](coucou-fork.md)), and the iPhone app in `ios-demo/`. Mac-only parts stay in
+the notch ([coucou-fork.md](coucou-fork.md)), and the iPhone app in `ios-demo/` with its widget extension. Widgets can't run the game: the app writes a `TomoGlance` (age, level, bar, what's waiting, in the learner's language) to the App Group `group.com.zenbujapanese.tomodachi`, and the widget draws it with `TomoChickStill`. Mac-only parts stay in
 the Mac app: the card (`TomoView`), Settings, clickable words with the Mac's dictionary
 (`TomoLineView`) and Tomo in the island (`TomoIslandCharacter`). Invariant: TomoCore never imports AppKit
 or UIKit, or reaches into a shell.

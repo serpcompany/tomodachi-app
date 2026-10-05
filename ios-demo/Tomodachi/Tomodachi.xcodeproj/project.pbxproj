@@ -8,15 +8,50 @@
 
 /* Begin PBXBuildFile section */
 		1206AFF78F3F05233AF98D62 /* TomodachiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040E64E13B16E7A347446C38 /* TomodachiApp.swift */; };
+		17268293140381667D3693BB /* TomoCore in Frameworks */ = {isa = PBXBuildFile; productRef = D7DDDC272F7133197F0D59BB /* TomoCore */; };
+		1F7D3B14990380320D4BB1C3 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C3C4C2027DB8873CC0A1EC01 /* SwiftUI.framework */; };
+		55B668E3CF5DF92A2428F6DE /* TomoWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = E56A0CD36F22076E120230DE /* TomoWidgets.swift */; };
+		C94D68053CCE33DE6C8AC963 /* TomoWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AFE384C3477C520E3B46DF8E /* TomoWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E8D30060692C362463F39193 /* TomoCore in Frameworks */ = {isa = PBXBuildFile; productRef = 035D015A00A57BA89123F406 /* TomoCore */; };
+		EA15E88D0B48D561F9BF57A5 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D7EBDB597D2052726D407A36 /* WidgetKit.framework */; };
 		EDC97339274AD5D9DE559C33 /* TomoPhoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 946EAB4DCF25D24015CABDF5 /* TomoPhoneView.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		7BD8EA74E5223557C7B05CDB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FD689C2390E03FE7766183E0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5CAF3C2F15CD2B9C51E2615B;
+			remoteInfo = TomoWidgets;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		1FF9299FC3FB176009DEA529 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				C94D68053CCE33DE6C8AC963 /* TomoWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		040E64E13B16E7A347446C38 /* TomodachiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomodachiApp.swift; sourceTree = "<group>"; };
 		37822A1675BCDE011D4AE744 /* TomoCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TomoCore; path = ../../TomoCore; sourceTree = SOURCE_ROOT; };
 		946EAB4DCF25D24015CABDF5 /* TomoPhoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoPhoneView.swift; sourceTree = "<group>"; };
 		A66B8DBC69D1341D64426020 /* Tomodachi.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Tomodachi.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AD651B7836EDDD8F2EC6F351 /* Widgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Widgets.entitlements; sourceTree = "<group>"; };
+		AFE384C3477C520E3B46DF8E /* TomoWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = TomoWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B44A800E230C1B199FCC12C2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		C3C4C2027DB8873CC0A1EC01 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		D7EBDB597D2052726D407A36 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		E56A0CD36F22076E120230DE /* TomoWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoWidgets.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -25,6 +60,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				E8D30060692C362463F39193 /* TomoCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A0A125EA67E0BE8EA68E119C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				17268293140381667D3693BB /* TomoCore in Frameworks */,
+				EA15E88D0B48D561F9BF57A5 /* WidgetKit.framework in Frameworks */,
+				1F7D3B14990380320D4BB1C3 /* SwiftUI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -40,19 +85,41 @@
 			path = Sources;
 			sourceTree = "<group>";
 		};
+		0CE906E2324FE0954D6741C4 /* Widgets */ = {
+			isa = PBXGroup;
+			children = (
+				B44A800E230C1B199FCC12C2 /* Info.plist */,
+				E56A0CD36F22076E120230DE /* TomoWidgets.swift */,
+				AD651B7836EDDD8F2EC6F351 /* Widgets.entitlements */,
+			);
+			path = Widgets;
+			sourceTree = "<group>";
+		};
 		19E98207CFE8FA7C4D2A0A52 = {
 			isa = PBXGroup;
 			children = (
 				59FED26147B10FD57F703C45 /* Packages */,
 				0AF69C01C7BAC11AC25EB74A /* Sources */,
+				0CE906E2324FE0954D6741C4 /* Widgets */,
+				43FCE60A8B660CEEAD582595 /* Frameworks */,
 				4CF2F1D264207785F5CCAFAD /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		43FCE60A8B660CEEAD582595 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C3C4C2027DB8873CC0A1EC01 /* SwiftUI.framework */,
+				D7EBDB597D2052726D407A36 /* WidgetKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		4CF2F1D264207785F5CCAFAD /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				A66B8DBC69D1341D64426020 /* Tomodachi.app */,
+				AFE384C3477C520E3B46DF8E /* TomoWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -68,16 +135,37 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		5CAF3C2F15CD2B9C51E2615B /* TomoWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 69B229FF9A64FFC696BA31A6 /* Build configuration list for PBXNativeTarget "TomoWidgets" */;
+			buildPhases = (
+				BBEEB6B1FED8160D6E27E71D /* Sources */,
+				A0A125EA67E0BE8EA68E119C /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TomoWidgets;
+			packageProductDependencies = (
+				D7DDDC272F7133197F0D59BB /* TomoCore */,
+			);
+			productName = TomoWidgets;
+			productReference = AFE384C3477C520E3B46DF8E /* TomoWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		E6F7A89F9C9FF369E1EA5B01 /* Tomodachi */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C6E615538BA408A03F3B761D /* Build configuration list for PBXNativeTarget "Tomodachi" */;
 			buildPhases = (
 				5C3A995BA36B8B5A3307D588 /* Sources */,
 				26DBFF058C9038DB2655EEA5 /* Frameworks */,
+				1FF9299FC3FB176009DEA529 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				73CBD2B34CC4CC07BEA62D19 /* PBXTargetDependency */,
 			);
 			name = Tomodachi;
 			packageProductDependencies = (
@@ -113,6 +201,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				5CAF3C2F15CD2B9C51E2615B /* TomoWidgets */,
 				E6F7A89F9C9FF369E1EA5B01 /* Tomodachi */,
 			);
 		};
@@ -128,7 +217,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BBEEB6B1FED8160D6E27E71D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				55B668E3CF5DF92A2428F6DE /* TomoWidgets.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		73CBD2B34CC4CC07BEA62D19 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5CAF3C2F15CD2B9C51E2615B /* TomoWidgets */;
+			targetProxy = 7BD8EA74E5223557C7B05CDB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		4B49C592E990336ED0063588 /* Debug */ = {
@@ -164,8 +269,8 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGNING_ALLOWED = NO;
-				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -197,10 +302,29 @@
 			};
 			name = Debug;
 		};
+		4DF43B907E28A3A76798FE8D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Widgets/Widgets.entitlements;
+				INFOPLIST_FILE = Widgets/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomodachi.widgets;
+				PRODUCT_NAME = TomoWidgets;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 		7972318C0DC304AC3F6F5D8C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Resources/Tomodachi.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -210,6 +334,24 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomodachi;
 				PRODUCT_NAME = Tomodachi;
 				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		B537BECE148CF19A44AD708E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Widgets/Widgets.entitlements;
+				INFOPLIST_FILE = Widgets/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomodachi.widgets;
+				PRODUCT_NAME = TomoWidgets;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
@@ -275,6 +417,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Resources/Tomodachi.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -300,6 +443,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
+		69B229FF9A64FFC696BA31A6 /* Build configuration list for PBXNativeTarget "TomoWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B537BECE148CF19A44AD708E /* Debug */,
+				4DF43B907E28A3A76798FE8D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		C6E615538BA408A03F3B761D /* Build configuration list for PBXNativeTarget "Tomodachi" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -320,6 +472,10 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		035D015A00A57BA89123F406 /* TomoCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TomoCore;
+		};
+		D7DDDC272F7133197F0D59BB /* TomoCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = TomoCore;
 		};

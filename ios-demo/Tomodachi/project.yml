@@ -16,8 +16,9 @@ settings:
     OTHER_SWIFT_FLAGS: "-strict-concurrency=complete"
   configs:
     Debug:
-      CODE_SIGNING_REQUIRED: NO
-      CODE_SIGNING_ALLOWED: NO
+      # Simulator: signed to run locally, so the App Group (app ↔ widgets) works without a team
+      CODE_SIGN_STYLE: Manual
+      CODE_SIGN_IDENTITY: "-"
 
 schemes:
   Tomodachi:
@@ -36,6 +37,7 @@ targets:
         type: group
     dependencies:
       - package: TomoCore
+      - target: TomoWidgets
     info:
       path: Resources/Info.plist
       properties:
@@ -55,3 +57,32 @@ targets:
         PRODUCT_NAME: Tomodachi
         INFOPLIST_FILE: Resources/Info.plist
         TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_ENTITLEMENTS: Resources/Tomodachi.entitlements
+
+  # Home Screen widgets (issue #52). Reads TomoGlance from the App Group; draws Tomo with TomoChickStill.
+  TomoWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Widgets
+        type: group
+    dependencies:
+      - package: TomoCore
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
+    info:
+      path: Widgets/Info.plist
+      properties:
+        CFBundleDisplayName: Tomodachi
+        CFBundleShortVersionString: "0.0.1"
+        CFBundleVersion: "1"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.zenbujapanese.tomodachi.widgets
+        PRODUCT_NAME: TomoWidgets
+        INFOPLIST_FILE: Widgets/Info.plist
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_ENTITLEMENTS: Widgets/Widgets.entitlements
+        SKIP_INSTALL: YES
