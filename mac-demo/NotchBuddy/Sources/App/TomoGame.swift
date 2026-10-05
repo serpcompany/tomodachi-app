@@ -146,6 +146,7 @@ final class TomoGame: ObservableObject {
     @Published private(set) var level = 1
     @Published private(set) var levelKnown = 0
     @Published private(set) var levelNeeded = 1
+    @Published private(set) var levelProgress = 0.0     // the experience bar (TomoProgress.levelProgress)
     @Published private(set) var levelIsTalk = false
     /// Testing ages run on an in-memory Tomo (Settings → Try another age).
     @Published private(set) var isScratch = false
@@ -300,6 +301,7 @@ final class TomoGame: ObservableObject {
         level = progress.level
         levelKnown = progress.levelKnown
         levelNeeded = progress.levelNeeded
+        levelProgress = progress.levelProgress
         levelIsTalk = progress.isTalkLevel
         isScratch = progress.isScratch
         progressVersion += 1
@@ -529,6 +531,7 @@ final class TomoGame: ObservableObject {
             } ?? false
             outcome = .win(counted: counted)
             phase = .right
+            if counted { syncProgress() }          // the experience bar moves right away
             react(to: round)
             after(2.2, tok) { [weak self] in self?.advance() }
         } else {

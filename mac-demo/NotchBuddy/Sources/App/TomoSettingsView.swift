@@ -205,7 +205,7 @@ private struct TomoGrowthPane: View {
                             Spacer()
                             Text(lang.learner("words.days", ["n": "\(daysTogether)"])).font(.callout).foregroundStyle(.secondary)
                         }
-                        ProgressView(value: Double(game.levelKnown), total: Double(max(game.levelNeeded, 1))).tint(.teal)
+                        ProgressView(value: game.levelProgress).tint(.teal)
                         Text(progress.isLastLevel
                              ? lang.learner("words.lastLevel", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)"])
                              : lang.learner("words.toNext", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)",

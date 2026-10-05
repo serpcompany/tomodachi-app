@@ -69,7 +69,7 @@ struct TomoView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Progress to the next level, the whole width of the card (an RPG-style experience bar)
-            GrowthBar(progress: Double(game.levelKnown) / Double(max(game.levelNeeded, 1)))
+            GrowthBar(progress: game.levelProgress)
                 .frame(width: TomoGrid.content.width - 28, height: TomoGrid.levelBar)
                 .padding(.bottom, TomoGrid.levelBarGap)
                 .help(lang.learner("words.toNext", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)",
@@ -332,7 +332,7 @@ private struct SmallPill: View {
     }
 }
 
-// MARK: - Header status (left: name, age, level · right: words known this level, voice, close). Start over lives in
+// MARK: - Header status (left: name, age, level · right: voice, close). Start over lives in
 // Settings and the menu only, never one click away here. The level bar sits under the header (TomoView).
 
 struct TomoHeaderLeft: View {
@@ -369,9 +369,6 @@ struct TomoHeaderRight: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            Text("\(game.levelIsTalk ? lang.target.labels.talk : lang.target.labels.words) \(game.levelKnown)/\(game.levelNeeded)")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(Color(hex: "#8E939C"))
             Button(action: { state.soundEnabled.toggle() }) {
                 Image(systemName: state.soundEnabled ? "speaker.wave.2" : "speaker.slash")
                     .font(.system(size: 14))

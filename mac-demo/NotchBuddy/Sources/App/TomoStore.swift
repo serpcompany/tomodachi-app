@@ -20,6 +20,7 @@ final class TomoStore {
         var answered: Date
         var right: Int
         var wrong: Int
+        var peak = 0                // the highest stage it ever reached: the experience bar never goes back
     }
 
     nonisolated(unsafe) private var db: OpaquePointer?
@@ -62,6 +63,8 @@ final class TomoStore {
               at REAL NOT NULL, learner TEXT NOT NULL, target TEXT NOT NULL,
               kind TEXT NOT NULL, value INTEGER NOT NULL);
             """)
+        // Added after the first saved Tomos: fails harmlessly once the column exists.
+        sqlite3_exec(db, "ALTER TABLE item ADD COLUMN peak INTEGER NOT NULL DEFAULT 0", nil, nil, nil)
     }
 
     deinit { sqlite3_close(db) }
@@ -84,7 +87,7 @@ final class TomoStore {
 
     func loadItems() -> [String: ItemRow] {
         let rows = query("""
-            SELECT item_id, stage, due_at, introduced_at, answered_at, right_count, wrong_count
+            SELECT item_id, stage, due_at, introduced_at, answered_at, right_count, wrong_count, peak
             FROM item WHERE learner = ? AND target = ?
             """, [learner, target]) { s in
             ItemRow(id: String(cString: sqlite3_column_text(s, 0)),
@@ -93,7 +96,8 @@ final class TomoStore {
                         ? nil : Date(timeIntervalSince1970: sqlite3_column_double(s, 2)),
                     introduced: Date(timeIntervalSince1970: sqlite3_column_double(s, 3)),
                     answered: Date(timeIntervalSince1970: sqlite3_column_double(s, 4)),
-                    right: Int(sqlite3_column_int64(s, 5)), wrong: Int(sqlite3_column_int64(s, 6)))
+                    right: Int(sqlite3_column_int64(s, 5)), wrong: Int(sqlite3_column_int64(s, 6)),
+                    peak: max(Int(sqlite3_column_int64(s, 7)), Int(sqlite3_column_int64(s, 1))))
         }
         return Dictionary(rows.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
     }
@@ -101,10 +105,10 @@ final class TomoStore {
     func saveItem(_ i: ItemRow) {
         run("""
             INSERT OR REPLACE INTO item
-              (learner, target, item_id, stage, due_at, introduced_at, answered_at, right_count, wrong_count)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+              (learner, target, item_id, stage, due_at, introduced_at, answered_at, right_count, wrong_count, peak)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, [learner, target, i.id, i.stage, i.due?.timeIntervalSince1970, i.introduced.timeIntervalSince1970,
-                  i.answered.timeIntervalSince1970, i.right, i.wrong])
+                  i.answered.timeIntervalSince1970, i.right, i.wrong, i.peak])
     }
 
     // MARK: Logs
