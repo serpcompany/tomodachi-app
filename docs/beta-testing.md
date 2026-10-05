@@ -10,12 +10,12 @@ Tomo is a baby chick who lives next to your MacBook's notch and only speaks the 
 
 ## What to try
 
-- **Answer Tomo's visits.** Tomo opens on its own (every 20 minutes by default). Tap the right picture, or do what it asks: 🍙 feed, 😴 bed, 🤗 hug.
+- **Answer Tomo's visits.** Tomo opens on its own (every 20 minutes by default). Tap the right picture or meaning, or do what it asks: 🍙 feed, 😴 bed, 🤗 hug.
 - **Close it when it's in your way** with **×** or Esc. Small Tomo waits beside the notch with a red dot until you click it.
 - **Play any time:** click small Tomo next to the notch.
-- **Talk with Tomo:** menu bar icon → **Skip to talking (3さい)**. That's a test Tomo; yours comes back from Settings → **Back to my Tomo**, or when you relaunch. Answer in Japanese, typed or with the 🎤 (allow Microphone and Speech Recognition when asked). Every answer shows **Win**, **Miss**, or **No score**. "what?" asks Tomo for help.
+- **Talk with Tomo:** menu bar icon → **Skip to talking (3さい)**. That's a test Tomo; yours comes back from Settings → **Back to my Tomo**, or when you relaunch. Answer in Japanese, typed or with the 🎤 (allow Microphone and Speech Recognition when asked). Every answer shows **Win**, **Miss**, **No score**, or (when nothing counts) **Practice**. "what?" asks Tomo for help.
 - **See Tomo grow:** click Tomo's age at the top of the card (or menu bar icon → Settings… → **Tomo**) for its level, what each age brings, and today. Menu bar icon → **Tomo's words…** lists every level, locked ones too, with each word's stage.
-- **Settings** (menu bar icon → Settings…), laid out like the Mac's System Settings: the language you speak (English or Japanese), the language you learn (Japanese, English, or a Spanish draft), how often Tomo visits, Tomo's voice and sounds.
+- **Settings** (menu bar icon → Settings…), laid out like the Mac's System Settings: the language you speak (English or Japanese), the language you learn (Japanese, English, or a Spanish draft), how often Tomo visits, how many new words a day, Tomo's voice and sounds.
 
 ## Good to know
 
