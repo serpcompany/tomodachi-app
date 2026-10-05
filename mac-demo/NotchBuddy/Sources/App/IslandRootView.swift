@@ -335,7 +335,7 @@ func botPosition(mode: IslandMode, view: IslandView, islandW: CGFloat, islandH: 
     case .expanded:
         let layout = IslandConst.viewLayouts[view]!
         let diameter = layout.botDiameter
-        // Uploading: Mochi dot rides the leading edge of the progress fill.
+        // Uploading: Tomo rides the leading edge of the progress fill.
         // Bar in island coords: left=36, width=526. cx = 36 + progress*526 (dot center at fill right edge).
         // cy comes from ViewLayout.botY (bar center in island coords).
         if view == .uploading {
@@ -495,7 +495,7 @@ struct TabButton: View {
     }
 }
 
-// MARK: - Compact mini mochi grid (2×2 to the right of the notch)
+// MARK: - Compact mini grid (2×2 to the right of the notch; Coucou's agent pills, switched off)
 
 struct CompactMiniGrid: View {
     @ObservedObject var state: AppState

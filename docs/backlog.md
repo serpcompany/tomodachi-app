@@ -51,6 +51,7 @@ Everything we want, with its status. When something moves, update it here in the
 
 - **What Tomo asks and does (content logic).** Which words, questions and activities Tomo picks. Deferred: it will tie into the other Zenbu Japanese apps (dictionary, Language Reference IDs, what the learner knows there), not only child-age word lists. Pack content is a placeholder until then. The child-vocabulary research ([age-vocabulary-data.md](research/age-vocabulary-data.md)) is background only; no license requests needed. See [decisions.md](decisions.md).
 
+- **Character polish (ideas from Coucou's old engine, rebuilt our own way):** a fuller head turn (eyes and beak sliding around the body like a ball), a soft glow or tint per mood, wing "hands" that wave, point or cover the eyes.
 - **Character options.** Notchi and Buddi (other open notch companions) are GPL-3.0, so they can't go in a closed app. Real options:
   - variants from our own engine (shape, colors, accessories; maybe one per target language)
   - a commissioned original character (code-drawn or Rive)

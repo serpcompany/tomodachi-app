@@ -69,11 +69,12 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 | `Sources/App/TomoWords.swift` | New. Clickable words (`TomoLineView`), the font fit, word-card lookup (AI meaning + the Mac dictionary) |
 | `Sources/App/TomoCharacter.swift` | New. Tomo the chick (`TomoChick`): drawing, faces, moves, growth, particles; `TomoCharacterView` puts it in the island |
 | `Sources/App/TomoAI.swift` | New. Provider adapter (Anthropic API + any OpenAI-compatible endpoint) and the AI provider window |
-| `BotEngine.swift`, `BotCanvasView.swift`, `GreetingCanvasView.swift`, `UploadCanvasView.swift` | Deleted: Coucou's character and the canvases that drew it |
+| `BotEngine.swift`, `BotCanvasView.swift`, `GreetingCanvasView.swift`, `UploadCanvasView.swift` | Deleted: Coucou's character and the canvases that drew it. The last versions are in git history (`git show 43a5ada:mac-demo/NotchBuddy/Sources/App/BotEngine.swift`) and in the upstream Coucou repo. Read them for technique only; Mochi's look, expressions and animations are reserved |
 | `AppDelegate.swift`, `AppState.swift` | No hooks or pollers. A single "tomo" task. Launches straight into the game |
 | `IslandRootView.swift`, `IslandViewContent.swift`, `IslandTypes.swift` | The header and overview show Tomo. The island is taller. Draws `TomoCharacterView`; no greeting or upload canvas |
 | `IslandWindowController.swift` | Taller window (560 pt) so the help panel fits; the island's frame includes the help panel. The drag ghost draws `TomoCharacterView` |
 | `NotchBuddyApp.swift` | The Settings scene shows `TomoSettingsView` |
+| `project.yml`, `Resources/Info.plist` | App name Tomodachi, bundle ID `com.zenbujapanese.tomodachi`, microphone and speech permission text (Coucou's French strings removed), Release signing for beta builds |
 | `ClaudeService.swift` | Keychain service renamed to `co.zenbu.tomodachi` (kept, so saved keys still load) |
 
 Debug only:
