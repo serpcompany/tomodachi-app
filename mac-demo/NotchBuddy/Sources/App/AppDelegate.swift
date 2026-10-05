@@ -63,7 +63,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func restartDemo() {
-        TomoGame.shared.restart()
+        TomoStartOver.confirm()
     }
 
     @objc private func skipToTalking() {
