@@ -85,7 +85,7 @@
     "about.by": "by Zenbu Japanese",
     "level": "Lv {n}",
     "levelUp": "レベル{level}！ 新しいことばが増えたよ。",
-    "outcome.practice": "成功",
+    "outcome.practice": "練習",
     "outcome.why.practice": "練習：前回からまだ時間がたっていないので、カウントされません。少しあとならカウントされます。",
     "startOver.title": "Tomoを最初からやり直しますか？",
     "startOver.body": "{language}のTomoがレベル1にもどり、あなたが教えたことばも消えます。元にはもどせません。",
@@ -139,8 +139,12 @@
     "growth.age.6": "小学校に入る前の子が知っていることば。",
     "grewOlder": "Tomoが{age}になった！ 新しいことばが増えたよ。",
     "settings.newPerDay": "1日の新しいことば",
-    "practice.now": "練習中：いまはカウントされません。",
-    "practice.until": "練習中・{when}からまたカウント"
+    "practice.start": "練習する",
+    "practice.later": "あとで",
+    "practice.offer": "{time}まではカウントされません。練習はできますが、バーは進みません。",
+    "practice.offer.now": "いまはカウントされません。練習はできますが、バーは進みません。",
+    "practice.chip": "{time}まで練習",
+    "practice.chip.now": "練習中"
   },
   "helpPhrases": [
     "なに",

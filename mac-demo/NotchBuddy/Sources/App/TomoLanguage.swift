@@ -42,6 +42,7 @@ struct TargetPack: Codable, Sendable {
     struct Lines: Codable, Sendable {
         let wrong: String, ouch: String, grew: String, bye: String, seeYou: String
         let levelUp: String     // Tomo reached a new level (not a new age)
+        let practice: String    // nothing counts right now: Tomo asks to play anyway ("Play more?")
         let sayItInMyLanguage: SpokenLine
         let dontUnderstand: SpokenLine
     }
