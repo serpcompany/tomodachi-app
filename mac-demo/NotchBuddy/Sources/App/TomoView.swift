@@ -23,7 +23,8 @@ enum TomoGrid {
     static let levelBar: CGFloat = 5
     static let levelBarGap: CGFloat = 7
 
-    // Picture card, two rows: the word with its replay and hint icons (44) · the prompt or result (40) + 8 = 92
+    // Picture card, two rows: the word with its replay icon (44) · the result (40) + 8 = 92. No hint here:
+    // a wrong pick just means picking again, which is its own hint.
     static let tile = CGSize(width: 76, height: 84)
     static let tileGap: CGFloat = 8
     static var tilesWidth: CGFloat { tile.width * 3 + tileGap * 2 }       // 244
@@ -34,7 +35,7 @@ enum TomoGrid {
     static let promptRow: CGFloat = 40
     static let iconButton: CGFloat = 26
     static let iconGap: CGFloat = 6
-    static var wordWidth: CGFloat { pictureColumn - (iconButton + iconGap) * 2 }   // 158
+    static var wordWidth: CGFloat { pictureColumn - iconButton - iconGap }   // 190
 
     // Help panel under the card (the island grows by helpHeight while it's open)
     static let helpGap: CGFloat = 10
@@ -120,7 +121,7 @@ struct TomoView: View {
         .frame(width: TomoGrid.content.width, height: TomoGrid.content.height)
     }
 
-    // Picture stage, two fixed rows: the word with replay and hint icons · the result (empty while asking)
+    // Picture stage, two fixed rows: the word with its replay icon · the result (empty while asking)
     private var speech: some View {
         VStack(alignment: .leading, spacing: TomoGrid.rowGap) {
             HStack(spacing: TomoGrid.iconGap) {
@@ -130,9 +131,6 @@ struct TomoView: View {
                              text: game.round.say, maxSize: 30, selectable: false, spacesOnly: true)
                     .frame(width: TomoGrid.wordWidth, height: TomoGrid.wordRow, alignment: .leading)
                 IconButton(icon: "speaker.wave.2.fill", help: lang.target.labels.again) { game.replay() }
-                IconButton(icon: "lightbulb", help: lang.learner("hint"), on: game.help == .hint) {
-                    game.help == .hint ? (game.help = nil) : game.showHint()
-                }
             }
             .frame(height: TomoGrid.wordRow)
 
@@ -286,7 +284,7 @@ private struct MeaningPill: View {
     }
 }
 
-/// A round icon button (replay, hint) next to the word; its label is the tooltip.
+/// A round icon button (replay) next to the word; its label is the tooltip.
 private struct IconButton: View {
     let icon: String
     let help: String
