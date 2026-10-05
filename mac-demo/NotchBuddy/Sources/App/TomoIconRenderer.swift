@@ -7,6 +7,7 @@ import TomoCore
 // TOMO_RENDER_ICON=<dir> renders Tomo with the real character code (TomoChick) and quits:
 //   <dir>/icon-1024.png  the app icon (Tomo on a dark rounded square, Apple's 824-pt icon grid)
 //   <dir>/tomo-1024.png  Tomo alone on transparent, for the menu bar template
+//   <dir>/icon-ios-1024.png  the iPhone app icon: full-bleed and opaque (iOS draws the rounded mask)
 // mac-demo/scripts/make-icons.py turns them into the asset catalog sizes.
 
 @MainActor
@@ -33,6 +34,7 @@ enum TomoIconRenderer {
         try? FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
         write(icon, to: out.appendingPathComponent("icon-1024.png"))
         write(tomo(size: 1024, grow: 1), to: out.appendingPathComponent("tomo-1024.png"))
+        write(iosIcon, to: out.appendingPathComponent("icon-ios-1024.png"), opaque: true)
         NSApp.terminate(nil)
     }
 
@@ -136,9 +138,21 @@ enum TomoIconRenderer {
         .frame(width: 1024, height: 1024)
     }
 
-    private static func write(_ view: some View, to url: URL) {
+    /// The same look as the Mac icon, edge to edge: iOS masks it and rejects transparency.
+    private static var iosIcon: some View {
+        ZStack {
+            LinearGradient(colors: [Color(hex: "#2B303B"), Color(hex: "#0E1014")], startPoint: .top, endPoint: .bottom)
+            RadialGradient(colors: [Color(hex: "#FFC53A").opacity(0.35), .clear],
+                           center: UnitPoint(x: 0.5, y: 0.58), startRadius: 0, endRadius: 440)
+            tomo(size: 900, grow: 1).offset(y: 48)
+        }
+        .frame(width: 1024, height: 1024)
+    }
+
+    private static func write(_ view: some View, to url: URL, opaque: Bool = false) {
         let renderer = ImageRenderer(content: view)
         renderer.scale = 1
+        renderer.isOpaque = opaque
         guard let cg = renderer.cgImage,
               let png = NSBitmapImageRep(cgImage: cg).representation(using: .png, properties: [:]) else {
             NSLog("Tomo: couldn't render \(url.lastPathComponent)")
