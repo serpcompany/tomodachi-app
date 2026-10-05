@@ -181,6 +181,12 @@ final class TomoProgress {
     var newToday: Int { items.values.filter { $0.introduced >= TomoClock.dayStart }.count }
     var canTeachNew: Bool { newToday < Self.newPerDay && !newItems.isEmpty }
 
+    /// Today (since 4 am): new words, answers, and answers that moved a word up. A testing Tomo has no log.
+    func today() -> (newWords: Int, answers: Int, stronger: Int) {
+        let counts = store?.answerCounts(since: TomoClock.dayStart) ?? (answers: 0, stronger: 0)
+        return (newToday, counts.answers, counts.stronger)
+    }
+
     /// A visit: due items first (the longest-waiting first), then at most one new one. Empty = nothing to do.
     func visitItems(limit: Int) -> [String] {
         var q = Array(dueItems.prefix(limit))

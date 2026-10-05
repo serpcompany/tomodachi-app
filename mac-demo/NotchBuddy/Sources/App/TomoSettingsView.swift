@@ -1,6 +1,9 @@
 import SwiftUI
 
-// MARK: - Settings window (menu → Settings…): General · AI · About
+// MARK: - Settings window (menu → Settings…), laid out like the Mac's System Settings
+//
+// A sidebar of pages on the left, the selected page on the right:
+//   Tomo (growth: age, level, growing up, today) · Words (every level and word) · General · AI · Testing · About
 // All text comes from the learner's interface strings (Resources/languages/ui.<id>.json).
 
 /// Starting over clears this language pair's saved Tomo, so it always asks first.
@@ -18,27 +21,258 @@ enum TomoStartOver {
     }
 }
 
+enum TomoSettingsPane: String, CaseIterable, Identifiable {
+    case tomo, words, general, ai, testing, about
+    var id: String { rawValue }
+
+    var titleKey: String { "settings.pane.\(rawValue)" }
+    var icon: String {
+        switch self {
+        case .tomo:    "bird.fill"
+        case .words:   "character.book.closed.fill"
+        case .general: "gearshape.fill"
+        case .ai:      "sparkles"
+        case .testing: "flask.fill"
+        case .about:   "info.circle.fill"
+        }
+    }
+    var color: Color {
+        switch self {
+        case .tomo:    .orange
+        case .words:   .teal
+        case .general: .gray
+        case .ai:      .purple
+        case .testing: .pink
+        case .about:   .blue
+        }
+    }
+}
+
+/// Which page Settings shows. TOMO_OPEN_SETTINGS=<page> (tomo, words, general, ai, testing, about) picks one.
+@MainActor
+final class TomoSettingsNav: ObservableObject {
+    static let shared = TomoSettingsNav()
+    @Published var pane: TomoSettingsPane =
+        ProcessInfo.processInfo.environment["TOMO_OPEN_SETTINGS"].flatMap(TomoSettingsPane.init(rawValue:)) ?? .tomo
+
+    /// Opens Settings at a page (the menu bar, Tomo's age in the island header).
+    static func open(_ pane: TomoSettingsPane) {
+        shared.pane = pane
+        NotificationCenter.default.post(name: .openFullSettings, object: nil)
+    }
+}
+
 struct TomoSettingsView: View {
+    @ObservedObject var lang = TomoLanguages.shared
+    @ObservedObject var nav = TomoSettingsNav.shared
+
+    var body: some View {
+        HStack(spacing: 0) {
+            sidebar
+                .frame(width: 220)
+                .background(SidebarMaterial())
+            Divider()
+            VStack(alignment: .leading, spacing: 0) {
+                Text(lang.learner(nav.pane.titleKey))
+                    .font(.system(size: 20, weight: .bold))
+                    .padding(.horizontal, 24).padding(.top, 18).padding(.bottom, 4)
+                page
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            }
+            .background(Color(nsColor: .windowBackgroundColor))
+        }
+        .frame(minWidth: 720, minHeight: 500)
+        .ignoresSafeArea(.container, edges: .top)
+    }
+
+    private var sidebar: some View {
+        List(selection: Binding<TomoSettingsPane?>(get: { nav.pane }, set: { if let p = $0 { nav.pane = p } })) {
+            Section { TomoProfileRow().tag(TomoSettingsPane.tomo) }
+            Section { row(.words) }
+            Section { row(.general); row(.ai) }
+            Section { row(.testing); row(.about) }
+        }
+        .listStyle(.sidebar)
+        .scrollContentBackground(.hidden)
+        .padding(.top, 34)                   // clear of the window's close / minimize / zoom buttons
+    }
+
+    private func row(_ pane: TomoSettingsPane) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: pane.icon)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 22, height: 22)
+                .background(pane.color.gradient)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+            Text(lang.learner(pane.titleKey))
+        }
+        .padding(.vertical, 2)
+        .tag(pane)
+    }
+
+    @ViewBuilder private var page: some View {
+        switch nav.pane {
+        case .tomo:    TomoGrowthPane()
+        case .words:   TomoWordsPane()
+        case .general: TomoGeneralSettings()
+        case .ai:      TomoAISettingsView()
+        case .testing: TomoTestingSettings()
+        case .about:   TomoAboutView()
+        }
+    }
+}
+
+/// The sidebar's top row, like the account row in System Settings: live Tomo, its age and level.
+private struct TomoProfileRow: View {
+    @ObservedObject var game = TomoGame.shared
     @ObservedObject var lang = TomoLanguages.shared
 
     var body: some View {
-        TabView {
-            TomoGeneralSettings()
-                .tabItem { Label(lang.learner("settings.general"), systemImage: "gearshape") }
-            TomoAISettingsView()
-                .tabItem { Label(lang.learner("settings.ai"), systemImage: "sparkles") }
-            TomoAboutView()
-                .tabItem { Label(lang.learner("settings.about"), systemImage: "info.circle") }
+        HStack(spacing: 10) {
+            TomoLiveAvatar(size: 40)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(lang.learner("settings.pane.tomo")).font(.system(size: 14, weight: .semibold))
+                Text("\(game.age) · \(lang.learner("level", ["n": "\(game.level)"]))")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
         }
-        .frame(width: 520)
-        .padding(.top, 8)
+        .padding(.vertical, 4)
     }
 }
+
+/// A small live Tomo for Settings. Tomo is never a still image: it breathes, blinks and fidgets here too.
+struct TomoLiveAvatar: View {
+    let size: CGFloat
+    @ObservedObject var game = TomoGame.shared
+    @State private var chick = TomoChick()
+
+    private var step: CGFloat { CGFloat(min(max(game.stage - 1, 0), 2)) }
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1 / 30)) { timeline in
+            Canvas { ctx, sz in
+                chick.frameDate = timeline.date
+                chick.step()
+                chick.draw(ctx, size: sz)
+            }
+        }
+        .frame(width: size, height: size)
+        .onAppear { chick.setGrowth(step) }
+        .onChange(of: game.stage) { _, _ in chick.grow(to: step) }
+    }
+}
+
+/// The translucent sidebar background of System Settings.
+private struct SidebarMaterial: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let v = NSVisualEffectView()
+        v.material = .sidebar
+        v.blendingMode = .behindWindow
+        v.state = .followsWindowActiveState
+        return v
+    }
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
+}
+
+// MARK: - Tomo: how Tomo is growing
+
+private struct TomoGrowthPane: View {
+    @ObservedObject var game = TomoGame.shared
+    @ObservedObject var lang = TomoLanguages.shared
+
+    private var progress: TomoProgress { game.progress }
+    /// Each age in the pack, with its first and last level.
+    private var ages: [(age: Int, from: Int, to: Int)] {
+        var out: [(age: Int, from: Int, to: Int)] = []
+        for (i, l) in progress.pack.levels.enumerated() {
+            if let last = out.last, last.age == l.age { out[out.count - 1].to = i + 1 }
+            else { out.append((l.age, i + 1, i + 1)) }
+        }
+        return out
+    }
+
+    var body: some View {
+        Form {
+            Section {
+                HStack(spacing: 16) {
+                    TomoLiveAvatar(size: 76)
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 8) {
+                            Text(game.age).font(.system(size: 22, weight: .bold))
+                            Text(lang.learner("level", ["n": "\(game.level)"])).font(.system(size: 17, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Text(lang.learner("words.days", ["n": "\(daysTogether)"])).font(.callout).foregroundStyle(.secondary)
+                        }
+                        ProgressView(value: Double(game.levelKnown), total: Double(max(game.levelNeeded, 1))).tint(.teal)
+                        Text(progress.isLastLevel
+                             ? lang.learner("words.lastLevel", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)"])
+                             : lang.learner("words.toNext", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)",
+                                                             "next": "\(game.level + 1)"]))
+                            .font(.callout).foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.vertical, 4)
+                if game.isScratch {
+                    Label(lang.learner("words.testing"), systemImage: "flask").foregroundStyle(.orange)
+                }
+            }
+
+            Section(lang.learner("growth.growingUp")) {
+                ForEach(ages, id: \.age) { a in ageRow(a) }
+            }
+
+            Section(lang.learner("growth.today")) {
+                let t = progress.today()
+                LabeledContent(lang.learner("growth.newToday"),
+                               value: lang.learner("growth.ofMax", ["n": "\(t.newWords)", "max": "\(TomoProgress.newPerDay)"]))
+                LabeledContent(lang.learner("growth.answersToday"), value: "\(t.answers)")
+                LabeledContent(lang.learner("growth.strongerToday"), value: "\(t.stronger)")
+            }
+            .id(game.progressVersion)
+
+            Section {
+                Button(lang.learner("settings.restart"), role: .destructive) { TomoStartOver.confirm() }
+            } footer: {
+                Text(lang.learner("settings.restartNote")).font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
+    }
+
+    private var daysTogether: Int {
+        max(1, (Calendar.current.dateComponents([.day], from: progress.metAt, to: TomoClock.now).day ?? 0) + 1)
+    }
+
+    private func ageRow(_ a: (age: Int, from: Int, to: Int)) -> some View {
+        let state = a.age < game.stage ? "grown" : a.age == game.stage ? "now" : "later"
+        let levels = a.from == a.to ? lang.learner("level", ["n": "\(a.from)"])
+            : lang.learner("growth.levels", ["from": "\(a.from)", "to": "\(a.to)"])
+        return HStack(alignment: .top, spacing: 10) {
+            Image(systemName: state == "grown" ? "checkmark.circle.fill" : state == "now" ? "location.circle.fill" : "lock.circle")
+                .font(.system(size: 16))
+                .foregroundStyle(state == "grown" ? Color.teal : state == "now" ? Color.orange : Color.secondary)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(lang.target.ageLabel(a.age)).font(.headline)
+                    Text(levels).font(.caption).foregroundStyle(.secondary)
+                }
+                Text(lang.learner("growth.age.\(min(a.age, 3))")).font(.callout).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Text(lang.learner("growth.state.\(state)")).font(.caption).foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 2)
+        .opacity(state == "later" ? 0.65 : 1)
+    }
+}
+
+// MARK: - General
 
 private struct TomoGeneralSettings: View {
     @ObservedObject var lang = TomoLanguages.shared
     @ObservedObject var state = AppState.shared
-    @ObservedObject var game = TomoGame.shared
     @State private var visitEvery = DropIn.every
 
     var body: some View {
@@ -68,13 +302,19 @@ private struct TomoGeneralSettings: View {
                 .onChange(of: visitEvery) { _, v in DropIn.setEvery(v); TomoGame.shared.rescheduleVisits() }
                 Toggle(lang.learner("settings.voice"), isOn: $state.soundEnabled)
             }
+        }
+        .formStyle(.grouped)
+    }
+}
 
-            Section {
-                Button(lang.learner("settings.restart")) { TomoStartOver.confirm() }
-            } footer: {
-                Text(lang.learner("settings.restartNote")).font(.caption).foregroundStyle(.secondary)
-            }
+// MARK: - Testing
 
+private struct TomoTestingSettings: View {
+    @ObservedObject var lang = TomoLanguages.shared
+    @ObservedObject var game = TomoGame.shared
+
+    var body: some View {
+        Form {
             Section {
                 Picker(lang.learner("settings.tryAge"), selection: Binding(
                     get: { game.stage },
@@ -84,14 +324,23 @@ private struct TomoGeneralSettings: View {
                 if game.isScratch {
                     Button(lang.learner("settings.backToTomo")) { game.reload() }
                 }
+            }
+            Section {
                 Button(lang.learner("settings.skipAhead")) { game.skipAhead(days: 1) }
+                if TomoClock.offset > 0 {
+                    Text(lang.learner("settings.clockAhead", ["n": String(format: "%.1f", TomoClock.offset / 86400)]))
+                        .font(.callout).foregroundStyle(.secondary)
+                }
             } footer: {
                 Text(lang.learner("settings.testingNote")).font(.caption).foregroundStyle(.secondary)
             }
+            .id(game.progressVersion)
         }
         .formStyle(.grouped)
     }
 }
+
+// MARK: - About
 
 private struct TomoAboutView: View {
     @ObservedObject var lang = TomoLanguages.shared
@@ -113,6 +362,7 @@ private struct TomoAboutView: View {
                 .multilineTextAlignment(.center)
         }
         .padding(24)
+        .frame(maxWidth: 480)
         .frame(maxWidth: .infinity)
     }
 }

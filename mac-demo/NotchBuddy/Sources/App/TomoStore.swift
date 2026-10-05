@@ -120,6 +120,17 @@ final class TomoStore {
                   hint ? 1 : 0, counted ? 1 : 0, before, after])
     }
 
+    /// Answers since a time (right and wrong tries), and how many of them moved a word up a stage.
+    func answerCounts(since: Date) -> (answers: Int, stronger: Int) {
+        query("""
+            SELECT COUNT(*),
+                   COALESCE(SUM(CASE WHEN counted = 1 AND stage_after > COALESCE(stage_before, 0) THEN 1 ELSE 0 END), 0)
+            FROM answer WHERE learner = ? AND target = ? AND at >= ? AND result IN ('right', 'wrong')
+            """, [learner, target, since.timeIntervalSince1970]) {
+            (Int(sqlite3_column_int64($0, 0)), Int(sqlite3_column_int64($0, 1)))
+        }.first ?? (0, 0)
+    }
+
     /// `kind`: level | age | reset.
     func logGrowth(at: Date, kind: String, value: Int) {
         run("INSERT INTO growth (at, learner, target, kind, value) VALUES (?, ?, ?, ?, ?)",
