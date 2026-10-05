@@ -40,6 +40,27 @@ Island shell (Coucou)       notch window, open/close state machine, click-throug
 | **Dictionary / word cards** | Prototype: `TomoWords.swift` (clickable words via `TomoLineView`, `TomoBrain.define` AI meaning, the Mac dictionary via `DCSCopyTextDefinition`); `TomoBrain.explain` / `simpler`; all drawn by `TomoHelpPanel` in `TomoView.swift` | A per-target-language provider: `segment(text) → tokens` (surface, dictionary id, range) and `lookup(id, learner) → word card` | **Japanese:** the Zenbu dictionary (JMdict + Sudachi + the versioned language-data release, the same data as the Zenbu app and website), keyed by Language Reference ID. **Other targets:** a dictionary per language (open question) | [user-journey.md](user-journey.md) §4 |
 | **Learner store** | None. Progress is in memory and resets on relaunch | — | Local SQLite event log keyed by Language Reference ID; sync with Zenbu apps later | [learner-data-schema.md](research/learner-data-schema.md) |
 
+## Sound effects
+
+All in `TomoSounds.swift`, synthesized from pitch sweeps (no audio files). Peeps drop in pitch at 2さい (×0.9) and 3さい (×0.82). Listen with `TOMO_RENDER_SOUNDS=<dir>` (`all-sounds.wav` plays them in this order).
+
+| Effect | When | Sounds like | Triggered by |
+|---|---|---|---|
+| `greet` | A visit starts | two "piyo" peeps | `.botGreet` |
+| `win` | Win | three rising chirps | `TomoGame.outcome` = `.win` |
+| `miss` | Miss | soft falling "boo-oop" | `TomoGame.outcome` = `.loss` |
+| `hm` | No score | questioning upward glide | `TomoGame.outcome` = `.neutral` |
+| `hatch` | Tomo hatches or grows up | pop, then a rising arpeggio | `.botGrow` to a higher step |
+| `boing` | Tomo is clicked | wobbly falling boing | `.triggerSlap` |
+| `nudge` | Waiting for you (red dot) | two quick high peeps | `.botNudge` |
+| `munch` | Feeding | two crunchy low blips | `.botGulp` |
+| `trill` | Love | quick alternating trill | `.triggerEmote` `.love` |
+| `yawn` | Yawn | long falling breathy glide | `.triggerEmote` `.yawn` |
+| `open` / `close` | The island opens / closes | soft rising / falling blip | `SoundEngine.play("open"/"close")` (shim) |
+| `tick` | Tomo peeks out of the notch | tiny click | `SoundEngine.play("peek")` (shim) |
+
+Status: fine for now (2026-10-05); tune volume and timbre later if testers ask. Tomo's spoken lines don't get an effect (the voice is the sound).
+
 ## Coucou code that's still there but switched off
 
 `HookServer`, the `*Poller` integrations, `PillCatalog`, the upload/mail/file-drop flow, `SettingsView` and `WindowContextCapture`. (Coucou's character, greeting and upload canvases are deleted.) It compiles but isn't started. Remove it when the shell stabilizes. Two exceptions:
