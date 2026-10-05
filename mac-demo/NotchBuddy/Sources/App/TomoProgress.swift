@@ -223,9 +223,12 @@ final class TomoProgress {
     func otherMeanings(for id: String, learner: String) -> [String] {
         guard let r = roundIndex[id] else { return [] }
         let meaning = r.meaning(learner).lowercased()
-        let candidates = roundIndex.values.filter {
+        let near = levelOfItem[id] ?? level                     // words from around the same level, not the 6さい list
+        let all = roundIndex.values.filter {
             $0.id != id && $0.say != r.say && $0.meaning(learner).lowercased() != meaning
         }
+        let close = all.filter { abs((levelOfItem[$0.id] ?? 0) - near) <= 10 }
+        let candidates = close.count >= 2 ? close : all
         let other = candidates.filter { $0.category != r.category }
         var picked: [String] = []
         for c in (other.count >= 2 ? other : candidates).shuffled() {
