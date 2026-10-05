@@ -11,7 +11,7 @@ Everything we want, with its status. When something moves, update it here in the
 | Tomo in the notch, small between visits, click for free play | Coucou island shell |
 | 1さい single words, 2さい two-word phrases: tap a picture or do the action | Content in the language packs (`Resources/languages/<id>.json`) |
 | Baby word + "grown-ups say" reveal (ワンワン → いぬ) | |
-| Growing up: sprout at 2さい, bigger at 3さい | Placeholder thresholds |
+| Growing up: hatches from its eggshell at 2さい, bigger with a third feather at 3さい | Placeholder thresholds |
 | Drop-in visits: every 20 min by default, 3 answers, leave after 10 s ignored | Frequency in Settings → General (10 min to 2 h, or only when clicked) |
 | Talking stage works at any age (3, 5, 7, 10, 12…): reply length and style grow with age; packs can set rules and opening questions per age band (`rulesByAge`, `startersByAge`). English has a 7+ band. Settings → "Try another age (testing)" | Ages beyond 3 can't be earned yet; growth thresholds are a leveling-research item |
 | Settings window: languages, visit frequency (10 min to 2 h, or click-only), voice, AI provider, About | `TomoSettingsView` |
@@ -39,7 +39,7 @@ Everything we want, with its status. When something moves, update it here in the
 | 2さい reply bubbles + "say this word" (between tapping and free talk) | Next | The answer ladder in [user-journey.md](user-journey.md) §3 |
 | Native-speaker review of the language packs (ja, es) | Next | Both are drafts (`reviewedByNativeSpeaker: false`) |
 | Save progress per language pair; one Tomo per target language | Next | Key the learner store by (learner, target) |
-| Debrand: remove Coucou, Mochi and Grok Bot names, assets and leftovers; our own character (drawing, expressions and animations, replacing `BotEngine`) and sounds, so no permission is needed | Next | [serpcompany/zenbujapanese-tomo-app#1](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/1). Required before showing publicly (license). Keep the MIT notice and one credit line |
+| Debrand: remove Coucou, Mochi and Grok Bot names, assets and leftovers | Next (character done: Tomo is our own chick; names, sounds and leftover features remain) | [serpcompany/zenbujapanese-tomo-app#1](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/1). Required before showing publicly (license). Keep the MIT notice and one credit line |
 | Judge answers in layers, never by AI alone: (1) right language (built); (2) on-topic via the Zenbu dictionary + per-question expected answers; (3) AI fills yes/no verdict fields that code double-checks. Outcomes Win / Miss / No score are built and shown as badges | Next (layers 2–3) | Seen live: `gpt-5.4-mini` accepted "car" as understood. Layer 1 now blocks that |
 | Adapter: send a JSON schema and `reasoning_effort` per provider | Next | From ai-models-and-costs.md: guarantees Tomo's JSON shape; avoids paying for unneeded reasoning |
 | Speech recognition hints: pass the question's expected words as `contextualStrings` | Next | From voices.md / answer-evaluation.md |

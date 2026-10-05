@@ -13,6 +13,7 @@
 		091EC3B2F1060D7EE1317E4E /* IslandWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D710BD7834228045869D0184 /* IslandWindowController.swift */; };
 		0A267EE2955C7AD8E02A296C /* N8nPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = B89DA1A0C21AE3535A1760BB /* N8nPoller.swift */; };
 		0ED34FA8DAF6525F967A6B32 /* TomoChat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768763BB5ABA73EBB6A3BC6A /* TomoChat.swift */; };
+		107EC9A83723B98654F7D2E6 /* TomoCharacter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBDA41E9D0AFFC20F806A883 /* TomoCharacter.swift */; };
 		118FC4AE0AC74D84B4A134D8 /* VercelPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71718D1B87A39A4879DD2A9D /* VercelPoller.swift */; };
 		1558BB00C530B721172F6E65 /* StripePoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF78999D68D56ADE4CEFBE2 /* StripePoller.swift */; };
 		186AB8904029767DAA5277CF /* IslandScreenGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78BC1357785CA1B099A33969 /* IslandScreenGeometry.swift */; };
@@ -28,20 +29,16 @@
 		56BE8C733F10A030A638FB60 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1A7D5CBE2AC084A10C5FF3 /* SettingsView.swift */; };
 		5B9A00AFB0837731FA678E4E /* IslandStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8212018F09EA1E96FBD63CD /* IslandStateMachine.swift */; };
 		60E361FFE84C387E5E3ED1AA /* SoundEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE21C2B315D37AA70ED45E9 /* SoundEngine.swift */; };
-		62C4EE3F74DAA59764729E62 /* UploadCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B241B043223AFBBFB7418A5E /* UploadCanvasView.swift */; };
 		65448D830C14FDAADE44BE4C /* TomoGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B87597740FE771AD9299B0C /* TomoGame.swift */; };
 		6FC65C190ED614C664C9BC17 /* SafeWebURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2FDED98F7F6C755A72C97A3 /* SafeWebURL.swift */; };
 		81A767370621AEE54113C92E /* TomoSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C30A8885E67C6B32B824D468 /* TomoSettingsView.swift */; };
-		8C32A0C3EAF536D3836F61D5 /* GreetingCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C581F7B1A9F14B281B60063E /* GreetingCanvasView.swift */; };
 		967B525F7D3837F31D740D18 /* ResendPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B5FDDE03F5F711146937E2 /* ResendPoller.swift */; };
 		A1CC113B96317840941D4C43 /* TomoWords.swift in Sources */ = {isa = PBXBuildFile; fileRef = 395B40D67C6D2560409F6AC2 /* TomoWords.swift */; };
 		A41CFE8F6CB52DD66B42AA23 /* TomoLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21AEA961CC80F2DC1D89C9D1 /* TomoLanguage.swift */; };
-		C24D863967D8D32D828ED4B1 /* BotEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4540F630F8BA04AFFFA3979 /* BotEngine.swift */; };
 		C5B8918338FB47448C98FF23 /* TomoAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 886D6B60DE52F5FB8265AEBD /* TomoAI.swift */; };
 		C808B654C84D9F71DBF8493A /* GithubPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CB8B6E5E9DA6164F979E88F /* GithubPoller.swift */; };
 		C940B651C6CA952D99388E04 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 192844E7299DEED5C2372067 /* AppDelegate.swift */; };
 		CA3321C14A11FED94E48B3E3 /* IslandRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15A1A8206F73376F4CAF2057 /* IslandRootView.swift */; };
-		CD8DECA66B9E09C97E469DB9 /* BotCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A29F4C0B02BE91654D02AA0C /* BotCanvasView.swift */; };
 		D58B1E93AF65DE404C40E21E /* PillCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6A38B5686C4A1F15AB5D29 /* PillCatalog.swift */; };
 		DC71BBD15F2044AE17D7B17D /* TomoIconRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6DA49ECE3D13AC1934BC2AF /* TomoIconRenderer.swift */; };
 		DCAC390FF9EC65B945A15B24 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 506824380E9C80B9BC6DCE72 /* Assets.xcassets */; };
@@ -74,21 +71,18 @@
 		8D3CE3617E9D336DDBA10F7A /* IslandTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandTypes.swift; sourceTree = "<group>"; };
 		9F6D7015D6A77AA59323C0E7 /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
 		A14A61070D293AB4BBA303F7 /* NotchBuddy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NotchBuddy.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A29F4C0B02BE91654D02AA0C /* BotCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BotCanvasView.swift; sourceTree = "<group>"; };
 		A83D5410BD030B243ADDCFF4 /* ClaudeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeService.swift; sourceTree = "<group>"; };
-		B241B043223AFBBFB7418A5E /* UploadCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadCanvasView.swift; sourceTree = "<group>"; };
 		B2FDED98F7F6C755A72C97A3 /* SafeWebURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeWebURL.swift; sourceTree = "<group>"; };
 		B89DA1A0C21AE3535A1760BB /* N8nPoller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = N8nPoller.swift; sourceTree = "<group>"; };
 		BE03E03D1804B0B92C5C2DAD /* NotionPoller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotionPoller.swift; sourceTree = "<group>"; };
 		C2E4F18AA940EFF7E047B9F7 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		C30A8885E67C6B32B824D468 /* TomoSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoSettingsView.swift; sourceTree = "<group>"; };
-		C581F7B1A9F14B281B60063E /* GreetingCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GreetingCanvasView.swift; sourceTree = "<group>"; };
 		C6DA49ECE3D13AC1934BC2AF /* TomoIconRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoIconRenderer.swift; sourceTree = "<group>"; };
-		D4540F630F8BA04AFFFA3979 /* BotEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BotEngine.swift; sourceTree = "<group>"; };
 		D5E85B55FC461AB60E36E44A /* languages */ = {isa = PBXFileReference; lastKnownFileType = folder; name = languages; path = Resources/languages; sourceTree = SOURCE_ROOT; };
 		D710BD7834228045869D0184 /* IslandWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandWindowController.swift; sourceTree = "<group>"; };
 		D8212018F09EA1E96FBD63CD /* IslandStateMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandStateMachine.swift; sourceTree = "<group>"; };
 		E91B733ADC638E14E9BB6EFA /* WindowContextCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowContextCapture.swift; sourceTree = "<group>"; };
+		EBDA41E9D0AFFC20F806A883 /* TomoCharacter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoCharacter.swift; sourceTree = "<group>"; };
 		F1BD8F3CAA60CF37640759E1 /* NotchBuddyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchBuddyApp.swift; sourceTree = "<group>"; };
 		FA02B08886939FF6FE0475DD /* IslandViewContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandViewContent.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -100,13 +94,10 @@
 				192844E7299DEED5C2372067 /* AppDelegate.swift */,
 				9F6D7015D6A77AA59323C0E7 /* AppLog.swift */,
 				C2E4F18AA940EFF7E047B9F7 /* AppState.swift */,
-				A29F4C0B02BE91654D02AA0C /* BotCanvasView.swift */,
-				D4540F630F8BA04AFFFA3979 /* BotEngine.swift */,
 				3104222B3F17BA5E8DEA5277 /* CalcomPoller.swift */,
 				A83D5410BD030B243ADDCFF4 /* ClaudeService.swift */,
 				3232F258523DD8D09B670363 /* FileDropView.swift */,
 				8CB8B6E5E9DA6164F979E88F /* GithubPoller.swift */,
-				C581F7B1A9F14B281B60063E /* GreetingCanvasView.swift */,
 				79D8DD79C3DD9BBC584B3CB2 /* HookServer.swift */,
 				15A1A8206F73376F4CAF2057 /* IslandRootView.swift */,
 				78BC1357785CA1B099A33969 /* IslandScreenGeometry.swift */,
@@ -124,6 +115,7 @@
 				1BE21C2B315D37AA70ED45E9 /* SoundEngine.swift */,
 				2EF78999D68D56ADE4CEFBE2 /* StripePoller.swift */,
 				886D6B60DE52F5FB8265AEBD /* TomoAI.swift */,
+				EBDA41E9D0AFFC20F806A883 /* TomoCharacter.swift */,
 				768763BB5ABA73EBB6A3BC6A /* TomoChat.swift */,
 				7B87597740FE771AD9299B0C /* TomoGame.swift */,
 				C6DA49ECE3D13AC1934BC2AF /* TomoIconRenderer.swift */,
@@ -131,7 +123,6 @@
 				C30A8885E67C6B32B824D468 /* TomoSettingsView.swift */,
 				121E58044C07D5383C400BB8 /* TomoView.swift */,
 				395B40D67C6D2560409F6AC2 /* TomoWords.swift */,
-				B241B043223AFBBFB7418A5E /* UploadCanvasView.swift */,
 				6FD65943C32E150F1CD65C31 /* UploadSequenceEngine.swift */,
 				71718D1B87A39A4879DD2A9D /* VercelPoller.swift */,
 				E91B733ADC638E14E9BB6EFA /* WindowContextCapture.swift */,
@@ -247,13 +238,10 @@
 				C940B651C6CA952D99388E04 /* AppDelegate.swift in Sources */,
 				4B6AC00F22EC75E90E0157D5 /* AppLog.swift in Sources */,
 				1F11EC4E6F604C612A1ADAD1 /* AppState.swift in Sources */,
-				CD8DECA66B9E09C97E469DB9 /* BotCanvasView.swift in Sources */,
-				C24D863967D8D32D828ED4B1 /* BotEngine.swift in Sources */,
 				4F1E0B3C838DA3CD6F864BC0 /* CalcomPoller.swift in Sources */,
 				2DEB459FBD0BA3CEAAA5FDE9 /* ClaudeService.swift in Sources */,
 				E776C7D1DE5C62EA8D4BA3E3 /* FileDropView.swift in Sources */,
 				C808B654C84D9F71DBF8493A /* GithubPoller.swift in Sources */,
-				8C32A0C3EAF536D3836F61D5 /* GreetingCanvasView.swift in Sources */,
 				2C798C3837A63B9BB561A1A0 /* HookServer.swift in Sources */,
 				CA3321C14A11FED94E48B3E3 /* IslandRootView.swift in Sources */,
 				186AB8904029767DAA5277CF /* IslandScreenGeometry.swift in Sources */,
@@ -271,6 +259,7 @@
 				60E361FFE84C387E5E3ED1AA /* SoundEngine.swift in Sources */,
 				1558BB00C530B721172F6E65 /* StripePoller.swift in Sources */,
 				C5B8918338FB47448C98FF23 /* TomoAI.swift in Sources */,
+				107EC9A83723B98654F7D2E6 /* TomoCharacter.swift in Sources */,
 				0ED34FA8DAF6525F967A6B32 /* TomoChat.swift in Sources */,
 				65448D830C14FDAADE44BE4C /* TomoGame.swift in Sources */,
 				DC71BBD15F2044AE17D7B17D /* TomoIconRenderer.swift in Sources */,
@@ -278,7 +267,6 @@
 				81A767370621AEE54113C92E /* TomoSettingsView.swift in Sources */,
 				065E4D62682B27B2292C605D /* TomoView.swift in Sources */,
 				A1CC113B96317840941D4C43 /* TomoWords.swift in Sources */,
-				62C4EE3F74DAA59764729E62 /* UploadCanvasView.swift in Sources */,
 				FAD78D74C6906D4EC8AA4101 /* UploadSequenceEngine.swift in Sources */,
 				118FC4AE0AC74D84B4A134D8 /* VercelPoller.swift in Sources */,
 				2875610F701376BD65573386 /* WindowContextCapture.swift in Sources */,

@@ -24,7 +24,7 @@ struct IslandViewContent: View {
         case .result:    ResultView(state: state)
         case .note:      NoteView(state: state)
         case .settings:  SettingsIslandView(state: state)
-        case .greeting:  EmptyView()  // GreetingCanvasView overlaid in IslandRootView
+        case .greeting:  EmptyView()  // unused in Tomodachi
         }
     }
 }

@@ -391,7 +391,7 @@ final class IslandWindowController: NSWindowController {
             self?.collapse()
         }
 
-        // .botDizzy — posted by BotEngine.slap() on 3rd hit; show confused view + recover after 3.3s
+        // .botDizzy — posted by TomoChick.poke() on the 3rd poke; show confused view + recover after 3.3s
         NotificationCenter.default.addObserver(forName: .botDizzy, object: nil, queue: .main) { [weak self] _ in
             self?.handleDizzy()
         }
@@ -724,7 +724,7 @@ final class IslandWindowController: NSWindowController {
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.2, execute: item)
     }
 
-    // MARK: - Dizzy recovery (triggered by BotEngine.slap via .botDizzy)
+    // MARK: - Dizzy recovery (triggered by TomoChick.poke via .botDizzy)
 
     private func handleDizzy() {
         let prevView = state.view
@@ -837,7 +837,7 @@ struct GhostBotView: View {
     @State private var scale: CGFloat = 0.35
 
     var body: some View {
-        BotCanvasView(state: AppState.shared)
+        TomoCharacterView(state: AppState.shared)
             .frame(width: canvasSize, height: canvasSize)
             .scaleEffect(scale)
             .onAppear {

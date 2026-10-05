@@ -43,15 +43,7 @@ struct IslandContainer: View {
     private var earOffset: CGFloat { max(0, -islandTopRadius) }
 
     var body: some View {
-        // Canvas active during drag-over (.upload), post-drop animation (.uploading),
-        // AND choose overlay (.choose) — canvas handles the full sequence through user action.
-        // Engine deactivates when user clicks a canvas choose button or navigates away.
-        let uploadActive = state.mode == .expanded
-            && UploadSequenceEngine.shared.isActive
-            && (state.view == .upload || state.view == .uploading || state.view == .choose)
-
-        let greetingActive = state.mode == .expanded && state.view == .greeting
-
+        // Tomo's character draws itself (TomoCharacterView); Coucou's greeting and upload canvases are gone.
         return ZStack(alignment: .topLeading) {
             // Black island shape
             IslandShape(width: islandWidth, height: islandHeight,
@@ -60,49 +52,23 @@ struct IslandContainer: View {
 
             // Content
             if state.mode == .expanded {
-                if greetingActive {
-                    // Greeting canvas: fixed 640-wide, centered by offset so x=320 aligns with island center
-                    GreetingCanvasView(state: state)
-                        .frame(width: IslandConst.expandedWidth, height: 150)
-                        .offset(x: (islandWidth - IslandConst.expandedWidth) / 2)
-                        .clipShape(IslandShape(width: islandWidth, height: islandHeight,
-                                              cornerRadius: cornerRadius, topRadius: islandTopRadius))
-                        .transition(.opacity)
-                } else if uploadActive {
-                    ZStack(alignment: .topLeading) {
-                        UploadCanvasView(state: state)
-                            .frame(width: islandWidth, height: islandHeight)
-                            .clipShape(IslandShape(width: islandWidth, height: islandHeight,
-                                                  cornerRadius: cornerRadius, topRadius: islandTopRadius))
-                        // Header overlaid: canvas CARD_Y=42 aligns exactly with header bottom,
-                        // matching normal view proportions (8pt top + 34pt header + card + 10pt bottom).
-                        IslandHeader(state: state)
-                            .frame(width: islandWidth, height: 34)
-                            .offset(y: 8)
-                    }
+                IslandContentView(state: state)
+                    .frame(width: islandWidth, height: islandHeight - earOffset)
+                    .offset(y: earOffset)
+                    .clipShape(IslandShape(width: islandWidth, height: islandHeight,
+                                          cornerRadius: cornerRadius, topRadius: islandTopRadius))
                     .transition(.opacity)
-                } else {
-                    IslandContentView(state: state)
-                        .frame(width: islandWidth, height: islandHeight - earOffset)
-                        .offset(y: earOffset)
-                        .clipShape(IslandShape(width: islandWidth, height: islandHeight,
-                                              cornerRadius: cornerRadius, topRadius: islandTopRadius))
-                        .transition(.opacity)
-                }
             }
 
             // Single BotPlacement — always alive in the view tree so spring animations
-            // fire from the current position (e.g. choose at 60,101) when canvas deactivates.
-            // Hidden during upload canvas or greeting (both draw their own Mochi).
+            // fire from the current position.
             BotPlacement(state: state, islandW: islandWidth, islandH: islandHeight)
                 // Keep idle animations inside the resting strip. Expanded views
-                // retain the panel's full height for particles and hands.
+                // retain the panel's full height for particles.
                 .mask(alignment: .topLeading) {
                     Rectangle().frame(width: islandWidth,
                                       height: state.mode == .expanded ? 320 : islandHeight)
                 }
-                .opacity(uploadActive || greetingActive ? 0 : 1)
-                .animation(.easeInOut(duration: 0.25), value: uploadActive || greetingActive)
 
             CountdownBar(state: state, islandW: islandWidth)
 
@@ -298,11 +264,11 @@ struct BotPlacement: View {
             }
 
             // Uploading: no particle overhang (no hearts during upload), positioned directly at cy.
-            // BotEngine cy = H/2 + 0 + oy*R + R*0.06 ≈ H/2 (body centered in canvas).
+            // TomoChick cy = H/2 + 0 + dy*R + R*0.06 ≈ H/2 (body centered in canvas).
             // With .position(x:y:) placing the frame center at (uploadCx, cy), bot is at cy ✓.
             //
             // Normal: extra 40pt canvas at top for heart particles; position offset up by 20pt;
-            // BotEngine compensates with cy = H/2 + particleOverhang/2 + oy*R + R*0.06.
+            // TomoChick compensates with cy = H/2 + particleOverhang/2 + dy*R + R*0.06.
             if isUploading {
                 TimelineView(.animation) { tl in
                     let elapsed: Double = {
@@ -312,14 +278,14 @@ struct BotPlacement: View {
                     let t = min(1.0, max(0, elapsed / state.uploadDuration))
                     // cx = 36 + 526*t: bot center at fill right edge (bar left=36, width=526)
                     let uploadCx = 36 + CGFloat(t * (2 - t)) * 526
-                    BotCanvasView(state: state, particleOverhang: 0)
+                    TomoCharacterView(state: state, particleOverhang: 0)
                         .frame(width: canvasSize, height: canvasSize)
                         .opacity(state.isDraggingBot ? 0 : opacity)
                         .position(x: uploadCx, y: cy)
                 }
                 .transition(.scale(scale: 0.01, anchor: .center).combined(with: .opacity))
             } else {
-                BotCanvasView(state: state, particleOverhang: overhang)
+                TomoCharacterView(state: state, particleOverhang: overhang)
                     .frame(width: canvasSize, height: canvasSize + overhang)
                     .opacity(state.isDraggingBot ? 0 : opacity)
                     .position(x: cx, y: cy - overhang / 2)

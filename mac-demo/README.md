@@ -1,6 +1,6 @@
 # Tomodachi notch demo (macOS)
 
-A click-through demo of the Tomodachi idea: Tomo lives in the MacBook notch and talks like a 1-year-old Japanese child. You show you understood by picking the right picture or by doing what it asks (feed, bed, hug). After 5 words, Tomo grows up to 2さい, sprouts a leaf, and starts using two-word phrases.
+A click-through demo of the Tomodachi idea: Tomo lives in the MacBook notch and talks like a 1-year-old Japanese child. You show you understood by picking the right picture or by doing what it asks (feed, bed, hug). Tomo is a baby chick: it starts in its eggshell, and after 5 words it hatches into 2さい and starts using two-word phrases.
 
 Forked from [Coucou](https://github.com/Louis-CFM/coucou) (MIT code). Coucou's coding-agent hooks and integrations are switched off, not deleted.
 
@@ -67,12 +67,12 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 | `Sources/App/TomoIconRenderer.swift`, `scripts/make-icons.py` | New. App and menu bar icons drawn from the character code |
 | `scripts/release-beta.sh`, `Resources/Tomodachi.entitlements` | New. Signed, notarized beta builds |
 | `Sources/App/TomoWords.swift` | New. Clickable words (`TomoLineView`), the font fit, word-card lookup (AI meaning + the Mac dictionary) |
+| `Sources/App/TomoCharacter.swift` | New. Tomo the chick (`TomoChick`): drawing, faces, moves, growth, particles; `TomoCharacterView` puts it in the island |
 | `Sources/App/TomoAI.swift` | New. Provider adapter (Anthropic API + any OpenAI-compatible endpoint) and the AI provider window |
-| `BotEngine.swift` | Peach egg-shaped body, a sprout when grown, a hop when talking, softer state tint |
+| `BotEngine.swift`, `BotCanvasView.swift`, `GreetingCanvasView.swift`, `UploadCanvasView.swift` | Deleted: Coucou's character and the canvases that drew it |
 | `AppDelegate.swift`, `AppState.swift` | No hooks or pollers. A single "tomo" task. Launches straight into the game |
-| `IslandRootView.swift`, `IslandViewContent.swift`, `IslandTypes.swift` | The header and overview show Tomo. The island is taller |
-| `IslandWindowController.swift` | Taller window (560 pt) so the help panel fits; the island's frame includes the help panel |
-| `BotCanvasView.swift` | Listens for the nudge bounce |
+| `IslandRootView.swift`, `IslandViewContent.swift`, `IslandTypes.swift` | The header and overview show Tomo. The island is taller. Draws `TomoCharacterView`; no greeting or upload canvas |
+| `IslandWindowController.swift` | Taller window (560 pt) so the help panel fits; the island's frame includes the help panel. The drag ghost draws `TomoCharacterView` |
 | `NotchBuddyApp.swift` | The Settings scene shows `TomoSettingsView` |
 | `ClaudeService.swift` | Keychain service renamed to `co.zenbu.tomodachi` (kept, so saved keys still load) |
 
@@ -83,10 +83,13 @@ Debug only:
 - `TOMO_TARGET=es` and `TOMO_LEARNER=en` pick the language pair.
 - `TOMO_SNAPSHOT_DIR=/path` saves a PNG of the island every second; with `TOMO_OPEN_SETTINGS=1` it also captures the Settings window.
 - `TOMO_RENDER_ICON=/path` renders the icon images and quits.
+- `TOMO_RENDER_SHEET=/path` renders `tomo-sheet.png` (every age and face of the character) and quits.
+- `TOMO_RENDER_ANIM=/path` renders a scripted 16-second scene as `frame-0000.png`… (20 fps) and quits. Join the frames into a GIF to check motion.
 
 ## License note
 
 Coucou's **code** is MIT (see `LICENSE`). Its name, its Mochi character and its **sounds** are not (see `LICENSE-ASSETS.md`).
 
 - **Removed from builds:** Coucou's sounds (still in the repo until issue #1), and its icons (replaced by Tomo's).
-- **Still open:** Tomo's look is our own, but its expressions and animations still come from Coucou's character engine. Before distributing widely, get the author's permission or finish issue #1.
+- **Replaced:** the character. Tomo is our own chick (`TomoCharacter.swift`); Coucou's character code is deleted, so no permission is needed.
+- **Still open (issue #1):** Coucou names in code and comments, the sound files, and leftover features.

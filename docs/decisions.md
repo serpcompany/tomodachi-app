@@ -5,6 +5,12 @@ Newest first. Add an entry when a direction is chosen. Keep the reason, so later
 ### 2026-10-05: What Tomo asks and does comes later, from the Zenbu learning system
 The logic that picks Tomo's words, questions and activities is deferred. It won't be built only on "what children know at each age": it will tie into the other Zenbu Japanese apps (the dictionary, Language Reference IDs, what the learner already knows there). Until then, the hand-written pack content is a placeholder. The child-vocabulary research ([age-vocabulary-data.md](research/age-vocabulary-data.md)) is background only. We don't use that data, so no license requests are needed. **Why:** a richer, shared learner model beats a fixed age list, and it keeps Tomo in step with the other apps.
 
+### 2026-10-05: Tomo is drawn and animated live, and always feels alive
+Like Coucou's character, Tomo is vector shapes drawn in code every frame, with our own animation system (moves, springs, particles). No static images or sprite sheets. Tomo never sits frozen: it breathes, blinks, follows the cursor, fidgets between events and dozes when ignored. **Why:** the character is the product; a pet that holds still feels dead.
+
+### 2026-10-05: Tomo is a hiyoko (baby chick)
+Picked from three sketches (onigiri, seedling, chick). Growth tells a hatching story: 1さい in the bottom half of its eggshell, 2さい hatched, 3さい bigger with a fan of head feathers. Built in `TomoCharacter.swift` from scratch; Coucou's character code is deleted. **Why:** cute, clearly ours, and hatching is a built-in "I grew up" moment.
+
 ### 2026-10-05: Replace Coucou's character instead of asking for permission
 Coucou's asset license reserves the Mochi character's design, look, expressions and animations, not just its look. Rather than ask the author, Tomo gets its own character: our own drawing, expressions and animations, in our own code, replacing `BotEngine`. The notch shell (MIT code) stays. **Why:** no dependency on someone else's permission, and a character we fully own.
 
