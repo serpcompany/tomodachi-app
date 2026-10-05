@@ -135,18 +135,22 @@ struct TomoView: View {
             .frame(height: TomoGrid.wordRow)
 
             VStack(alignment: .leading, spacing: 4) {
-                HStack(alignment: .center, spacing: 6) {
-                    if let o = game.outcome { OutcomeBadge(outcome: o) }
-                    // While Tomo asks, this row stays free (the choices say what to do); after a win, the answer.
-                    if game.phase == .right {
-                        Text([game.round.romanization, game.round.meaning].compactMap { $0 }.joined(separator: " · "))
-                            .foregroundColor(Color(hex: "#D5D8DE"))
-                            .font(.system(size: 12))
-                            .lineLimit(game.round.adult != nil ? 1 : 2)
-                            .minimumScaleFactor(0.85)
-                            .fixedSize(horizontal: false, vertical: true)
+                // While Tomo asks, this row stays free (the choices say what to do); after a win, the answer.
+                // A practice round says so on its own line, under the badge.
+                if game.outcome != nil || game.phase == .right {
+                    HStack(alignment: .center, spacing: 6) {
+                        if let o = game.outcome { OutcomeBadge(outcome: o) }
+                        if game.phase == .right {
+                            Text([game.round.romanization, game.round.meaning].compactMap { $0 }.joined(separator: " · "))
+                                .foregroundColor(Color(hex: "#D5D8DE"))
+                                .font(.system(size: 12))
+                                .lineLimit(game.round.adult != nil ? 1 : 2)
+                                .minimumScaleFactor(0.85)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                 }
+                if game.phase != .right && game.isPracticeRound { PracticeNote(until: game.practiceUntil) }
                 if game.phase == .right, let adult = game.round.adult {
                     Button { game.openWord(TomoWords.bare(adult)) } label: {
                         Text(lang.learner("grownUpsSay", ["x": adult]))
@@ -281,6 +285,30 @@ private struct MeaningPill: View {
                 withAnimation(.spring(response: 0.25, dampingFraction: 0.4)) { shake = 0 }
             }
         }
+    }
+}
+
+/// Practice rounds say so, and when answers count again, so a "Win" without +1 isn't a mystery.
+private struct PracticeNote: View {
+    let until: Date?
+    @ObservedObject var lang = TomoLanguages.shared
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 30)) { _ in
+            Text(text)
+                .font(.system(size: 12))
+                .foregroundColor(Color(hex: "#9EA3AC"))
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .help(lang.learner("outcome.why.practice"))
+        }
+    }
+
+    private var text: String {
+        guard let until else { return lang.learner("practice.now") }
+        let f = RelativeDateTimeFormatter()
+        f.locale = Locale(identifier: lang.learner.id)
+        return lang.learner("practice.until", ["when": f.localizedString(for: until, relativeTo: TomoClock.now)])
     }
 }
 
