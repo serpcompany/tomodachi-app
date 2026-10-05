@@ -4,8 +4,14 @@ A bird's-eye view of the demo app: its systems, what each one owns, the seam to 
 invariants to keep. Names are types and files you can search for; the code and its comments hold the
 detail. Planned work links to its issue.
 
-The code is in `mac-demo/NotchBuddy/Sources/App/`. Coucou's files (`Island*`, `AppDelegate`,
-`AppState`…) are the shell ([coucou-fork.md](coucou-fork.md)); Tomo's code is in `Tomo*.swift`.
+Tomo's code is in `Tomo*.swift` files, in two places. **`TomoCore/`** is a Swift package for macOS and
+iOS with everything that isn't tied to one device: the game, growth, store, languages and their packs,
+AI, voice, sounds, and the chick's drawing. Each app is a shell around it: the Mac app in
+`mac-demo/NotchBuddy/Sources/App/`, where Coucou's files (`Island*`, `AppDelegate`, `AppState`…) are
+the notch ([coucou-fork.md](coucou-fork.md)), and the iPhone app in `ios-demo/`. Mac-only parts stay in
+the Mac app: the card (`TomoView`), Settings, clickable words with the Mac's dictionary
+(`TomoLineView`) and Tomo in the island (`TomoIslandCharacter`). Invariant: TomoCore never imports AppKit
+or UIKit, or reaches into a shell.
 
 ## Layers
 
@@ -26,14 +32,17 @@ Island shell (Coucou)       notch window, open/close state machine, click-throug
 
 **Island shell.** Coucou's notch window and state machine (`IslandWindowController`,
 `IslandStateMachine`, `IslandRootView`). Tomo reaches it only through four closures on `TomoGame`
-(`openIsland`, `closeIsland`, `isIslandOpen`, `focusInput`), set in `AppDelegate`. Another shell, such as
-the iPhone app, widgets or a Live Activity, sets the same closures
+(`openIsland`, `closeIsland`, `isIslandOpen`, `focusInput`, plus `isPointerInside`, `onBotState`,
+`onHelpChange`, `onActivity` and `secondsSinceInput`), set in `AppDelegate`. Another shell sets the same
+closures: the iPhone app's `TomoPhoneShell` treats the app being on screen as open, so Tomo never times
+out while you look at it; widgets and a Live Activity are next
 ([#52](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/52)).
 
 **Character.** `TomoChick` in `TomoCharacter.swift`: our chick, drawn every frame in code, with three
 looks (in its shell, hatched, bigger). It's driven by notifications (`.botGrow`, `.botLevelUp`,
-`.triggerEmote` and others) and the island's task state, never called directly, so
-any screen can host it. Its time comes from a clock, so it can be rendered offline. Invariant: idle life
+`.triggerEmote` and others, in `TomoSignals.swift`) and Tomo's state (`TomoGame.onBotState`), never
+called directly, so any screen can host it: `TomoChickView` on the iPhone, `TomoCharacterView` in the
+island. Its time comes from a clock, so it can be rendered offline. Invariant: idle life
 never stops. Planned: faces and looks past 3さい
 ([#22](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/22)), variants
 ([#23](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/23)).
@@ -45,7 +54,7 @@ learner pack (interface text) for the current pair, `TomoLanguages.shared`; back
 Planned: [#34](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/34).
 
 **Content source.** What Tomo brings. Today there's one source, the age track: the pack's `levels`,
-turned into `TomoRound` (a picture, need or meaning round) and `TomoLine` (talking). Planned: a
+turned into `TomoRound` (a picture, need or meaning round; a talking question as a meaning or reply round) and `TomoLine` (typed conversation, switched off by `TomoGame.talkAsChoices`). Planned: a
 `TomoContentSource` seam ([#10](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/10)), Anki
 and other sources ([#11](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/11),
 [#12](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/12)), and age-track content from the
@@ -61,7 +70,7 @@ decides. Invariants:
 `TomoClock` moves time for testing, and `TOMO_SELFTEST=1` checks the rules. Planned:
 [#38](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/38).
 
-**Learner store.** `TomoStore.swift`: one SQLite file on the Mac, keyed by (learner, target), so each
+**Learner store.** `TomoStore.swift`: one SQLite file on the device, keyed by (learner, target), so each
 language pair has its own Tomo. `tomo` and `item` hold the current state; `answer` and `growth` are
 append-only logs. Start over clears the state, never the logs. `TOMO_DATA_DIR` moves the file. Planned:
 Language Reference IDs as item ids and sync with the Zenbu apps
@@ -92,7 +101,7 @@ provider comes from Settings → AI (key in the Keychain), else from `.env` thro
 [#8](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/8),
 [#32](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/32).
 
-**Voice and sound.** Every spoken line goes through `TomoGame.speak` (the Mac's voice for the pack's
+**Voice and sound.** Every spoken line goes through `TomoGame.speak` (the system voice for the pack's
 locale, pitched up); answers come in through `TomoListener` (on-device recognition). Sound effects are
 synthesized in `TomoSounds.swift`, with no audio files, and all triggered in one place (`listen()` and
 `outcome(_:)`). Planned: a voice that ages with Tomo

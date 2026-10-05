@@ -1,4 +1,5 @@
 import Foundation
+import TomoCore
 
 /// Coucou's sound player, now a thin shim. Coucou's sound files are deleted; the island's open and
 /// close blips come from Tomo's own synthesized sounds (TomoSounds). Other names Coucou played

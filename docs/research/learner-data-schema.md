@@ -512,7 +512,7 @@ Sync transports: **CloudKit/SwiftData** is Apple-only and can't reach the websit
 **This prototype**
 
 - [docs/concepts.md](../concepts.md)
-- [TomoGame.swift](../../mac-demo/NotchBuddy/Sources/App/TomoGame.swift) (`known`, `stageGoal`, `start()`), [TomoChat.swift](../../mac-demo/NotchBuddy/Sources/App/TomoChat.swift) (`TomoReply.understood`, `requiresOnDeviceRecognition`)
+- [TomoGame.swift](../../TomoCore/Sources/TomoCore/TomoGame.swift) (`known`, `stageGoal`, `start()`), [TomoChat.swift](../../TomoCore/Sources/TomoCore/TomoChat.swift) (`TomoReply.understood`, `requiresOnDeviceRecognition`)
 
 **Zenbu monorepo** (read-only, commit `738a7231`, 2026-09-30)
 

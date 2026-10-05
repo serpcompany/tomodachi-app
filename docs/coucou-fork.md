@@ -23,13 +23,13 @@ These are the Coucou files we had to touch; add a file here when a change has to
 
 | File | Change |
 |---|---|
-| `AppDelegate.swift`, `AppState.swift` | No hooks or pollers. A single "tomo" task. Launches straight into the game. The menu: Tomo's words…, Start Tomo over… (asks first). The Settings window is resizable with a full-size content view |
-| `IslandRootView.swift`, `IslandViewContent.swift`, `IslandTypes.swift` | The header and overview show Tomo, with room for the level bar. Draws `TomoCharacterView`. The dizzy card's text comes from the language files |
-| `IslandWindowController.swift` | A taller window (560 pt) so the help panel fits; the drag ghost draws Tomo |
+| `AppDelegate.swift`, `AppState.swift` | No hooks or pollers. A single "tomo" task. Launches straight into the game. `AppDelegate` sets `TomoGame`'s shell closures; `AppState.soundEnabled` forwards to `TomoGame.soundEnabled`. The menu: Tomo's words…, Start Tomo over… (asks first). The Settings window is resizable with a full-size content view |
+| `IslandRootView.swift`, `IslandViewContent.swift`, `IslandTypes.swift` | The header and overview show Tomo, with room for the level bar. Draws `TomoCharacterView`. The dizzy card's text comes from the language files. `BotState` and `BotEmote` moved to TomoCore (`TomoSignals.swift`) |
+| `IslandWindowController.swift` | A taller window (560 pt) so the help panel fits; the drag ghost draws Tomo. Tomo's notification names moved to TomoCore (`TomoSignals.swift`) |
 | `NotchBuddyApp.swift` | The Settings scene shows `TomoSettingsView` |
-| `project.yml`, `Resources/Info.plist` | App name, bundle ID `com.zenbujapanese.tomodachi`, microphone and speech permission text, Release signing for beta builds |
+| `project.yml`, `Resources/Info.plist` | App name, bundle ID `com.zenbujapanese.tomodachi`, microphone and speech permission text, Release signing for beta builds. Depends on the local `TomoCore` package; the language packs come from its bundle |
 | `SoundEngine.swift` | A shim that sends the island's open, close and peek to `TomoSounds`. Coucou's 28 sound files are deleted |
-| `ClaudeService.swift` | The Keychain service is `co.zenbu.tomodachi`. Keep its `Keychain` helper: `TomoAI` uses it |
+| `ClaudeService.swift` | The Keychain service is `co.zenbu.tomodachi`. Its `Keychain` helper moved to TomoCore (`TomoKeychain.swift`), where `TomoAI` uses it |
 | `BotEngine.swift`, `BotCanvasView.swift`, `GreetingCanvasView.swift`, `UploadCanvasView.swift` | Deleted: Coucou's character and the canvases that drew it |
 
 ## Switched off, still compiled

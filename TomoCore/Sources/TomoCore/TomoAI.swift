@@ -8,12 +8,12 @@ import SwiftUI
 // chat format (OpenAI, Gemini, OpenRouter, Groq, Ollama, LM Studio, or any custom endpoint).
 // Settings live in UserDefaults; the API key lives in the Keychain.
 
-enum TomoAIProvider: String, CaseIterable, Codable, Identifiable, Sendable {
+public enum TomoAIProvider: String, CaseIterable, Codable, Identifiable, Sendable {
     case anthropic, openai, gemini, openrouter, groq, ollama, custom
 
-    var id: String { rawValue }
+    public var id: String { rawValue }
 
-    var title: String {
+    public var title: String {
         switch self {
         case .anthropic:  "Anthropic (Claude)"
         case .openai:     "OpenAI"
@@ -25,7 +25,7 @@ enum TomoAIProvider: String, CaseIterable, Codable, Identifiable, Sendable {
         }
     }
 
-    var defaultBaseURL: String {
+    public var defaultBaseURL: String {
         switch self {
         case .anthropic:  "https://api.anthropic.com/v1"
         case .openai:     "https://api.openai.com/v1"
@@ -39,7 +39,7 @@ enum TomoAIProvider: String, CaseIterable, Codable, Identifiable, Sendable {
 
     /// Prefilled model; for the others, use "Fetch models" in the AI window.
     /// gpt-5.4-mini: checked against /v1/models and a test turn on 2026-10-03 (good toddler Japanese, ~2 s).
-    var defaultModel: String {
+    public var defaultModel: String {
         switch self {
         case .anthropic: "claude-haiku-4-5-20251001"
         case .openai:    "gpt-5.4-mini"
@@ -47,35 +47,35 @@ enum TomoAIProvider: String, CaseIterable, Codable, Identifiable, Sendable {
         }
     }
 
-    var needsKey: Bool { self != .ollama }
+    public var needsKey: Bool { self != .ollama }
 }
 
-struct TomoAIConfig: Codable, Equatable, Sendable {
-    var provider: TomoAIProvider = .anthropic
-    var baseURL: String = TomoAIProvider.anthropic.defaultBaseURL
-    var model: String = TomoAIProvider.anthropic.defaultModel
-    var apiKey: String = ""          // never persisted with the rest (Keychain only)
+public struct TomoAIConfig: Codable, Equatable, Sendable {
+    public var provider: TomoAIProvider = .anthropic
+    public var baseURL: String = TomoAIProvider.anthropic.defaultBaseURL
+    public var model: String = TomoAIProvider.anthropic.defaultModel
+    public var apiKey: String = ""          // never persisted with the rest (Keychain only)
 
-    var isUsable: Bool {
+    public var isUsable: Bool {
         !model.isEmpty && !baseURL.isEmpty && (!provider.needsKey || !apiKey.isEmpty)
     }
-    var label: String { "\(provider.title.components(separatedBy: " (").first ?? provider.title) · \(model)" }
+    public var label: String { "\(provider.title.components(separatedBy: " (").first ?? provider.title) · \(model)" }
 }
 
-struct TomoAIError: LocalizedError, Sendable {
-    let message: String
-    var errorDescription: String? { message }
+public struct TomoAIError: LocalizedError, Sendable {
+    public let message: String
+    public var errorDescription: String? { message }
 }
 
 @MainActor
-enum TomoAI {
+public enum TomoAI {
     private static let defaultsKey = "tomoAIConfig"
     private static let keychainKey = "tomo-ai-api-key"
     private static var cachedKey: String?
 
     /// The saved configuration, with its key. With nothing saved, OPENAI_API_KEY or ANTHROPIC_API_KEY from the
     /// environment is used (mac-demo/run.sh loads ../.env). TOMO_AI_PROVIDER / _MODEL / _BASE_URL / _KEY override all (testing).
-    static var config: TomoAIConfig {
+    public static var config: TomoAIConfig {
         var c = TomoAIConfig()
         if let data = UserDefaults.standard.data(forKey: defaultsKey),
            let saved = try? JSONDecoder().decode(TomoAIConfig.self, from: data) { c = saved }
@@ -99,7 +99,7 @@ enum TomoAI {
         return c
     }
 
-    static func save(_ c: TomoAIConfig) {
+    public static func save(_ c: TomoAIConfig) {
         var stored = c
         stored.apiKey = ""
         if let data = try? JSONEncoder().encode(stored) { UserDefaults.standard.set(data, forKey: defaultsKey) }
@@ -110,7 +110,7 @@ enum TomoAI {
     // MARK: Calls (nonisolated: run off the main actor)
 
     /// One-shot completion: system prompt + user text → assistant text.
-    nonisolated static func complete(system: String, user: String, config c: TomoAIConfig) async throws -> String {
+    public nonisolated static func complete(system: String, user: String, config c: TomoAIConfig) async throws -> String {
         let base = c.baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
         if c.provider == .anthropic {
             let body: [String: Any] = [
@@ -136,7 +136,7 @@ enum TomoAI {
     }
 
     /// Model IDs the endpoint offers (GET /models works on every preset).
-    nonisolated static func listModels(config c: TomoAIConfig) async throws -> [String] {
+    public nonisolated static func listModels(config c: TomoAIConfig) async throws -> [String] {
         let base = c.baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
         guard let url = URL(string: "\(base)/models") else { throw TomoAIError(message: "Invalid base URL.") }
         var req = URLRequest(url: url, timeoutInterval: 10)
@@ -184,14 +184,16 @@ enum TomoAI {
 
 // MARK: - "AI provider" window
 
-struct TomoAISettingsView: View {
-    @ObservedObject var lang = TomoLanguages.shared
+public struct TomoAISettingsView: View {
+    @ObservedObject public var lang = TomoLanguages.shared
     @State private var config = TomoAI.config
     @State private var models: [String] = []
     @State private var status = ""
     @State private var busy = false
 
-    var body: some View {
+    public init() {}
+
+    public var body: some View {
         Form {
             Picker(lang.learner("ai.provider"), selection: $config.provider) {
                 ForEach(TomoAIProvider.allCases) { Text($0.title).tag($0) }

@@ -317,7 +317,7 @@ Learning in small moments (HCI):
 - Trusty & Truong (2011), CHI: https://doi.org/10.1145/1978942.1979114
 - Cai et al. (2015), Wait-Learning, CHI: https://doi.org/10.1145/2702123.2702267
 
-Checked on this Mac (macOS 27.2, 2026-10-03): [`NLEmbedding`](https://developer.apple.com/documentation/naturallanguage/nlembedding) word and sentence embeddings exist for en, es, fr and de, not ja. This repo: [leveling-points.md](leveling-points.md), [learner-data-schema.md](learner-data-schema.md), [answer-evaluation.md](answer-evaluation.md), [TomoGame.swift](../../mac-demo/NotchBuddy/Sources/App/TomoGame.swift), [TomoView.swift](../../mac-demo/NotchBuddy/Sources/App/TomoView.swift), [ja.json](../../mac-demo/NotchBuddy/Resources/languages/ja.json).
+Checked on this Mac (macOS 27.2, 2026-10-03): [`NLEmbedding`](https://developer.apple.com/documentation/naturallanguage/nlembedding) word and sentence embeddings exist for en, es, fr and de, not ja. This repo: [leveling-points.md](leveling-points.md), [learner-data-schema.md](learner-data-schema.md), [answer-evaluation.md](answer-evaluation.md), [TomoGame.swift](../../TomoCore/Sources/TomoCore/TomoGame.swift), [TomoView.swift](../../mac-demo/NotchBuddy/Sources/App/TomoView.swift), [ja.json](../../TomoCore/Sources/TomoCore/Resources/languages/ja.json).
 
 [asher]: https://doi.org/10.1111/j.1540-4781.1969.tb04552.x
 [sl95]: https://doi.org/10.1093/applin/16.3.371

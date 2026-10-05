@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import TomoCore
 
 // MARK: - App icon from the character code (debug tool)
 //

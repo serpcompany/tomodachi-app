@@ -23,3 +23,7 @@ __pycache__/
 
 # Doc checks (npm install for the link check)
 node_modules/
+
+# Swift packages (TomoCore)
+.build/
+.swiftpm/

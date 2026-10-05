@@ -1,4 +1,5 @@
 import SwiftUI
+import TomoCore
 
 /// Top-level SwiftUI view rendered inside the 720×320 transparent panel.
 /// The island is drawn at the top-center; everything else is transparent and click-through.

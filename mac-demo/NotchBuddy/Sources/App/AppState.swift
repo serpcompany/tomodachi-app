@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import TomoCore
 
 
 @MainActor
@@ -51,9 +52,10 @@ final class AppState: ObservableObject {
     // File drag-over state (mailbox morph glow + mouth spring)
     @Published var fileDragOver: Bool = false
 
-    // Sound enabled — persisted
-    @Published var soundEnabled: Bool = true {
-        didSet { UserDefaults.standard.set(soundEnabled, forKey: "soundEnabled") }
+    // Sound enabled: Tomo's switch (TomoGame.soundEnabled, persisted there)
+    var soundEnabled: Bool {
+        get { TomoGame.shared.soundEnabled }
+        set { TomoGame.shared.soundEnabled = newValue }
     }
 
     // Claude model used by the chat and the search — persisted
@@ -247,7 +249,6 @@ final class AppState: ObservableObject {
     private init() {
         let ud = UserDefaults.standard
 
-        if let v = ud.object(forKey: "soundEnabled") as? Bool   { soundEnabled = v }
         if let v = ud.object(forKey: "soundVolume")  as? Double { soundVolume  = v }
         if let v = ud.string(forKey: "claudeModel"),
            !v.trimmingCharacters(in: .whitespaces).isEmpty { claudeModel = v }

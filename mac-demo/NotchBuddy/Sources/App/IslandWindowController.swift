@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import SwiftUI
+import TomoCore
 
 @MainActor
 final class IslandWindowController: NSWindowController {
@@ -851,13 +852,6 @@ struct GhostBotView: View {
 // MARK: - Notification names
 
 extension Notification.Name {
-    static let triggerEmote     = Notification.Name("notchBuddy.triggerEmote")
-    static let triggerSlap      = Notification.Name("notchBuddy.triggerSlap")
-    static let botDizzy         = Notification.Name("notchBuddy.botDizzy")
-    static let botGreet         = Notification.Name("notchBuddy.botGreet")
-    static let botBlink         = Notification.Name("notchBuddy.botBlink")
-    static let botSetTgEs       = Notification.Name("notchBuddy.botSetTgEs")
-    static let botGulp          = Notification.Name("notchBuddy.botGulp")
     static let botMorphTo       = Notification.Name("notchBuddy.botMorphTo")
     static let islandAction     = Notification.Name("notchBuddy.islandAction")
     static let islandCollapse   = Notification.Name("notchBuddy.islandCollapse")

@@ -10,7 +10,7 @@ Give each Tomo question a small **answer spec**: its type (yes/no, pick from a c
 
 ### What goes wrong today
 
-I ran the demo's `offlineReply` rules ([TomoChat.swift](../../mac-demo/NotchBuddy/Sources/App/TomoChat.swift)) on a few likely answers:
+I ran the demo's `offlineReply` rules ([TomoChat.swift](../../TomoCore/Sources/TomoCore/TomoChat.swift)) on a few likely answers:
 
 | Learner says | Tomo replies today | Why |
 |---|---|---|
@@ -255,5 +255,5 @@ Zenbu monorepo (`../zenbujapanese-monorepo`, read only):
 - `docs/technologies.md`, `docs/data-sources.md`, `docs/agents/ios.md`
 
 This repo:
-- [TomoChat.swift](../../mac-demo/NotchBuddy/Sources/App/TomoChat.swift) (`offlineReply`, `TomoBrain.reply`, `TomoListener`)
-- [TomoAI.swift](../../mac-demo/NotchBuddy/Sources/App/TomoAI.swift)
+- [TomoChat.swift](../../TomoCore/Sources/TomoCore/TomoChat.swift) (`offlineReply`, `TomoBrain.reply`, `TomoListener`)
+- [TomoAI.swift](../../TomoCore/Sources/TomoCore/TomoAI.swift)

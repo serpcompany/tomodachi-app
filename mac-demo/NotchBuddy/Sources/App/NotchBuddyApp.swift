@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import TomoCore
 
 @main
 struct NotchBuddyApp: App {

@@ -1,4 +1,5 @@
 import SwiftUI
+import TomoCore
 
 // MARK: - Layout grid
 //
@@ -172,7 +173,7 @@ struct TomoView: View {
     }
 
     @ViewBuilder private var choices: some View {
-        if game.round.kind == .meaning {
+        if game.round.kind == .meaning || game.round.kind == .reply {
             VStack(spacing: TomoGrid.pillGap) {
                 ForEach(game.round.choices) { c in
                     MeaningPill(choice: c, phase: game.phase, isAnswer: c.id == game.round.answer) { game.pick(c) }
@@ -357,20 +358,6 @@ struct PracticeChip: View {
         return practiceText("practice.chip", until: until, lang)
     }
 }
-
-/// "Nothing counts until 5:44 AM…" (`key`), or the `key.now` variant when there's no time to give.
-@MainActor func practiceText(_ key: String, until: Date?, _ lang: TomoLanguages) -> String {
-    guard let until else { return lang.learner("\(key).now") }
-    let f = DateFormatter()
-    f.locale = Locale(identifier: lang.learner.id)
-    f.timeStyle = .short
-    f.formattingContext = .middleOfSentence
-    if !Calendar.current.isDateInToday(wallClock(until)) { f.dateStyle = .short; f.doesRelativeDateFormatting = true }
-    return lang.learner(key, ["time": f.string(from: wallClock(until))])
-}
-
-/// A time on Tomo's clock (which testing can move ahead, TomoClock) on the Mac's clock.
-@MainActor private func wallClock(_ d: Date) -> Date { d.addingTimeInterval(Date().timeIntervalSince(TomoClock.now)) }
 
 /// A round icon button (replay) next to the word; its label is the tooltip.
 private struct IconButton: View {
@@ -810,13 +797,7 @@ struct OutcomeBadge: View {
         }
     }
 
-    static func why(_ o: TomoOutcome, _ lang: TomoLanguages) -> String {
-        switch o {
-        case .win(let counted): lang.learner(counted ? "outcome.why.win" : "outcome.why.practice")
-        case .loss:            lang.learner("outcome.why.loss")
-        case .neutral(let r):  lang.learner("outcome.why.\(r)", ["language": lang.targetName])
-        }
-    }
+    static func why(_ o: TomoOutcome, _ lang: TomoLanguages) -> String { o.why(lang) }
 
     var body: some View {
         HStack(spacing: 4) {
