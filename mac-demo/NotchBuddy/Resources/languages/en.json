@@ -68,72 +68,146 @@
       "age": 1,
       "rounds": [
         {
-          "id": "en:doggy",
-          "say": "Doggy!",
-          "romanization": null,
+          "id": "en:daddy",
+          "say": "Daddy!",
           "meaning": {
-            "en": "doggy",
-            "ja": "わんちゃん（いぬ）"
+            "en": "daddy",
+            "ja": "パパ"
           },
-          "grownUp": "dog",
-          "answer": "🐶",
+          "category": "people",
+          "answer": "👨",
           "choices": [
-            "🐱",
-            "🐶",
-            "🚗"
-          ],
-          "praise": "Doggy! Woof!"
-        },
-        {
-          "id": "en:kitty",
-          "say": "Kitty!",
-          "romanization": null,
-          "meaning": {
-            "en": "kitty",
-            "ja": "ニャンニャン（ねこ）"
-          },
-          "grownUp": "cat",
-          "answer": "🐱",
-          "choices": [
-            "🐶",
-            "🐮",
+            "🛝",
+            "👨",
             "🐱"
           ],
-          "praise": "Meow!"
+          "praise": "Daddy!"
         },
         {
-          "id": "en:moo",
-          "say": "Moo!",
-          "romanization": null,
+          "id": "en:hi",
+          "say": "Hi!",
           "meaning": {
-            "en": "moo-cow",
-            "ja": "モーモー（うし）"
+            "en": "hi",
+            "ja": "やあ／こんにちは"
           },
-          "grownUp": "cow",
-          "answer": "🐮",
+          "category": "games_routines",
+          "praise": "Hi!"
+        },
+        {
+          "id": "en:mommy",
+          "say": "Mommy!",
+          "meaning": {
+            "en": "mommy",
+            "ja": "ママ"
+          },
+          "category": "people",
+          "answer": "👩",
           "choices": [
-            "🐮",
-            "🐤",
+            "👩",
+            "😩",
+            "🚂"
+          ],
+          "praise": "Mommy!"
+        },
+        {
+          "id": "en:ball",
+          "say": "Ball!",
+          "meaning": {
+            "en": "ball",
+            "ja": "ボール"
+          },
+          "category": "toys",
+          "answer": "⚽",
+          "choices": [
+            "🏠",
+            "⚽",
+            "🐱"
+          ],
+          "praise": "Ball!"
+        },
+        {
+          "id": "en:book",
+          "say": "Book!",
+          "meaning": {
+            "en": "book",
+            "ja": "本"
+          },
+          "category": "toys",
+          "answer": "📕",
+          "choices": [
+            "🐦",
+            "😴",
+            "📕"
+          ],
+          "praise": "Book!"
+        },
+        {
+          "id": "en:bye",
+          "say": "Bye!",
+          "meaning": {
+            "en": "bye",
+            "ja": "バイバイ"
+          },
+          "category": "games_routines",
+          "answer": "👋",
+          "choices": [
+            "🐘",
+            "👋",
+            "💡"
+          ],
+          "praise": "Bye!"
+        },
+        {
+          "id": "en:dog",
+          "say": "Dog!",
+          "meaning": {
+            "en": "dog",
+            "ja": "犬"
+          },
+          "category": "animals",
+          "answer": "🐶",
+          "choices": [
+            "💧",
+            "🥄",
             "🐶"
           ],
-          "praise": "Moooo!"
+          "praise": "Dog!"
         },
         {
-          "id": "en:vroom",
-          "say": "Vroom vroom!",
-          "romanization": null,
+          "id": "en:no",
+          "say": "No!",
           "meaning": {
-            "en": "car (vroom vroom)",
-            "ja": "ブーブー（くるま）"
+            "en": "no",
+            "ja": "ううん"
           },
-          "grownUp": "car",
-          "answer": "🚗",
+          "category": "games_routines",
+          "praise": "No!"
+        },
+        {
+          "id": "en:uhoh",
+          "say": "Uh oh!",
+          "meaning": {
+            "en": "uh oh",
+            "ja": "あーあっ"
+          },
+          "category": "sounds",
+          "praise": "Uh oh!"
+        },
+        {
+          "id": "en:grandma",
+          "say": "Grandma!",
+          "meaning": {
+            "en": "grandma",
+            "ja": "おばあさん"
+          },
+          "category": "people",
+          "answer": "👵",
           "choices": [
-            "🚗",
-            "🐮",
-            "🍎"
+            "🚽",
+            "🚌",
+            "👵"
           ],
-          "praise": "Vroom!"
+          "praise": "Grandma!"
         }
       ]
     },
@@ -141,57 +215,4919 @@
       "age": 1,
       "rounds": [
         {
-          "id": "en:numnum",
-          "say": "Num num!",
-          "romanization": null,
+          "id": "en:bath",
+          "say": "Bath!",
           "meaning": {
-            "en": "yum yum! (I'm hungry)",
-            "ja": "まんま！（おなかすいた）"
+            "en": "bath",
+            "ja": "おふろ"
           },
-          "grownUp": "I'm hungry",
+          "category": "games_routines",
+          "answer": "🛁",
+          "choices": [
+            "👄",
+            "👆",
+            "🛁"
+          ],
+          "praise": "Bath!"
+        },
+        {
+          "id": "en:yumyum",
+          "say": "Yum yum!",
+          "meaning": {
+            "en": "yum yum",
+            "ja": "おいしいね"
+          },
+          "grownUp": "yummy",
+          "category": "sounds",
+          "praise": "Yum yum!"
+        },
+        {
+          "id": "en:allgone",
+          "say": "All gone!",
+          "meaning": {
+            "en": "all gone",
+            "ja": "ぜんぶない"
+          },
+          "category": "descriptive_words",
+          "praise": "All gone!"
+        },
+        {
+          "id": "en:milk",
+          "say": "Milk!",
+          "meaning": {
+            "en": "milk",
+            "ja": "牛乳"
+          },
+          "category": "food_drink",
+          "answer": "🥛",
+          "choices": [
+            "🐘",
+            "🥛",
+            "📕"
+          ],
+          "praise": "Milk!"
+        },
+        {
+          "id": "en:bottle",
+          "say": "Bottle!",
+          "meaning": {
+            "en": "bottle",
+            "ja": "ほにゅうびん"
+          },
+          "category": "household",
+          "praise": "Bottle!"
+        },
+        {
+          "id": "en:diaper",
+          "say": "Diaper!",
+          "meaning": {
+            "en": "diaper",
+            "ja": "おむつ"
+          },
+          "category": "clothing",
+          "praise": "Diaper!"
+        },
+        {
+          "id": "en:eat",
+          "say": "Eat!",
+          "meaning": {
+            "en": "eat",
+            "ja": "たべる"
+          },
+          "category": "action_words",
           "need": "eat",
-          "praise": "Yummy!"
+          "praise": "Eat!"
+        },
+        {
+          "id": "en:peekaboo",
+          "say": "Peekaboo!",
+          "meaning": {
+            "en": "peekaboo",
+            "ja": "イナイイナイバー"
+          },
+          "category": "games_routines",
+          "answer": "🙈",
+          "choices": [
+            "🪆",
+            "🦷",
+            "🙈"
+          ],
+          "praise": "Peekaboo!"
+        },
+        {
+          "id": "en:water",
+          "say": "Water!",
+          "meaning": {
+            "en": "water",
+            "ja": "水"
+          },
+          "category": "food_drink",
+          "answer": "💧",
+          "choices": [
+            "🚲",
+            "💧",
+            "🦁"
+          ],
+          "praise": "Water!"
+        },
+        {
+          "id": "en:baby",
+          "say": "Baby!",
+          "meaning": {
+            "en": "baby",
+            "ja": "赤ちゃん"
+          },
+          "category": "people",
+          "answer": "👶",
+          "choices": [
+            "🐶",
+            "📺",
+            "👶"
+          ],
+          "praise": "Baby!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:banana",
+          "say": "Banana!",
+          "meaning": {
+            "en": "banana",
+            "ja": "バナナ"
+          },
+          "category": "food_drink",
+          "answer": "🍌",
+          "choices": [
+            "🦁",
+            "🍌",
+            "🛁"
+          ],
+          "praise": "Banana!"
         },
         {
           "id": "en:nightnight",
-          "say": "Night-night…",
-          "romanization": null,
+          "say": "Night night!",
           "meaning": {
-            "en": "sleepy-time",
-            "ja": "ねんね…"
+            "en": "night night",
+            "ja": "おやすみ"
           },
-          "grownUp": "go to sleep",
+          "grownUp": "good night",
+          "category": "games_routines",
+          "praise": "Night night!"
+        },
+        {
+          "id": "en:grandpa",
+          "say": "Grandpa!",
+          "meaning": {
+            "en": "grandpa",
+            "ja": "おじいさん"
+          },
+          "category": "people",
+          "answer": "👴",
+          "choices": [
+            "👆",
+            "👴",
+            "📄"
+          ],
+          "praise": "Grandpa!"
+        },
+        {
+          "id": "en:hello",
+          "say": "Hello!",
+          "meaning": {
+            "en": "hello",
+            "ja": "こんにちは"
+          },
+          "category": "games_routines",
+          "praise": "Hello!"
+        },
+        {
+          "id": "en:kiss",
+          "say": "Kiss!",
+          "meaning": {
+            "en": "kiss",
+            "ja": "キスする"
+          },
+          "category": "action_words",
+          "answer": "😘",
+          "choices": [
+            "😘",
+            "💡",
+            "🙈"
+          ],
+          "praise": "Kiss!"
+        },
+        {
+          "id": "en:woofwoof",
+          "say": "Woof woof!",
+          "meaning": {
+            "en": "woof woof",
+            "ja": "ワンワン"
+          },
+          "grownUp": "dog",
+          "category": "sounds",
+          "answer": "🐶",
+          "choices": [
+            "🥶",
+            "🐴",
+            "🐶"
+          ],
+          "praise": "Woof woof!"
+        },
+        {
+          "id": "en:car",
+          "say": "Car!",
+          "meaning": {
+            "en": "car",
+            "ja": "車"
+          },
+          "category": "vehicles",
+          "answer": "🚗",
+          "choices": [
+            "🚗",
+            "🛏️",
+            "☎️"
+          ],
+          "praise": "Car!"
+        },
+        {
+          "id": "en:yes",
+          "say": "Yes!",
+          "meaning": {
+            "en": "yes",
+            "ja": "はい"
+          },
+          "category": "games_routines",
+          "praise": "Yes!"
+        },
+        {
+          "id": "en:nap",
+          "say": "Nap!",
+          "meaning": {
+            "en": "nap",
+            "ja": "おひるね"
+          },
+          "category": "games_routines",
           "need": "sleep",
-          "praise": "Night-night…"
+          "praise": "Nap!"
         },
         {
-          "id": "en:uppy",
-          "say": "Uppy!",
-          "romanization": null,
+          "id": "en:cat",
+          "say": "Cat!",
           "meaning": {
-            "en": "pick me up!",
-            "ja": "だっこ！"
+            "en": "cat",
+            "ja": "ねこ"
           },
-          "grownUp": "pick me up",
-          "need": "hug",
-          "praise": "Hehe!"
+          "category": "animals",
+          "answer": "🐱",
+          "choices": [
+            "💡",
+            "😴",
+            "🐱"
+          ],
+          "praise": "Cat!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:meow",
+          "say": "Meow!",
+          "meaning": {
+            "en": "meow",
+            "ja": "ニャンニャン"
+          },
+          "grownUp": "cat",
+          "category": "sounds",
+          "answer": "🐱",
+          "choices": [
+            "🌳",
+            "🐱",
+            "🐦"
+          ],
+          "praise": "Meow!"
         },
         {
-          "id": "en:shoes",
-          "say": "Shoes!",
-          "romanization": null,
+          "id": "en:shoe",
+          "say": "Shoe!",
           "meaning": {
-            "en": "shoes",
+            "en": "shoe",
             "ja": "くつ"
           },
-          "grownUp": "shoes",
+          "category": "clothing",
           "answer": "👟",
           "choices": [
-            "🧸",
             "👟",
+            "🐮",
+            "🐶"
+          ],
+          "praise": "Shoe!"
+        },
+        {
+          "id": "en:nose",
+          "say": "Nose!",
+          "meaning": {
+            "en": "nose",
+            "ja": "鼻"
+          },
+          "category": "body_parts",
+          "answer": "👃",
+          "choices": [
+            "👃",
+            "🧀",
+            "😢"
+          ],
+          "praise": "Nose!"
+        },
+        {
+          "id": "en:ouch",
+          "say": "Ouch!",
+          "meaning": {
+            "en": "ouch",
+            "ja": "アイタ"
+          },
+          "category": "sounds",
+          "answer": "🤕",
+          "choices": [
+            "🥶",
+            "🩹",
+            "🤕"
+          ],
+          "praise": "Ouch!"
+        },
+        {
+          "id": "en:cup",
+          "say": "Cup!",
+          "meaning": {
+            "en": "cup",
+            "ja": "コップ"
+          },
+          "category": "household",
+          "answer": "🥤",
+          "choices": [
+            "👄",
+            "🥤",
+            "🐴"
+          ],
+          "praise": "Cup!"
+        },
+        {
+          "id": "en:foot",
+          "say": "Foot!",
+          "meaning": {
+            "en": "foot",
+            "ja": "足"
+          },
+          "category": "body_parts",
+          "answer": "🦶",
+          "choices": [
+            "🐶",
+            "🦉",
+            "🦶"
+          ],
+          "praise": "Foot!"
+        },
+        {
+          "id": "en:outside",
+          "say": "Outside!",
+          "meaning": {
+            "en": "outside",
+            "ja": "そと"
+          },
+          "category": "places",
+          "praise": "Outside!"
+        },
+        {
+          "id": "en:bed",
+          "say": "Bed!",
+          "meaning": {
+            "en": "bed",
+            "ja": "ベッド"
+          },
+          "category": "furniture_rooms",
+          "answer": "🛏️",
+          "choices": [
+            "🐐",
+            "🍜",
+            "🛏️"
+          ],
+          "praise": "Bed!"
+        },
+        {
+          "id": "en:more",
+          "say": "More!",
+          "meaning": {
+            "en": "more",
+            "ja": "もっと"
+          },
+          "category": "quantifiers",
+          "praise": "More!"
+        },
+        {
+          "id": "en:telephone",
+          "say": "Telephone!",
+          "meaning": {
+            "en": "telephone",
+            "ja": "でんわ"
+          },
+          "category": "household",
+          "answer": "☎️",
+          "choices": [
+            "😘",
+            "👄",
+            "☎️"
+          ],
+          "praise": "Telephone!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:toy",
+          "say": "Toy!",
+          "meaning": {
+            "en": "toy",
+            "ja": "おもちゃ"
+          },
+          "category": "toys",
+          "answer": "🧸",
+          "choices": [
+            "🐮",
+            "🐐",
+            "🧸"
+          ],
+          "praise": "Toy!"
+        },
+        {
+          "id": "en:bathtub",
+          "say": "Bathtub!",
+          "meaning": {
+            "en": "bathtub",
+            "ja": "おふろ（浴槽）"
+          },
+          "category": "furniture_rooms",
+          "answer": "🛁",
+          "choices": [
+            "🛁",
+            "🚽",
+            "🌱"
+          ],
+          "praise": "Bathtub!"
+        },
+        {
+          "id": "en:drink",
+          "say": "Drink!",
+          "meaning": {
+            "en": "drink",
+            "ja": "のみもの"
+          },
+          "category": "food_drink",
+          "praise": "Drink!"
+        },
+        {
+          "id": "en:hug",
+          "say": "Hug!",
+          "meaning": {
+            "en": "hug",
+            "ja": "ぎゅっとする（だっこ）"
+          },
+          "category": "action_words",
+          "need": "hug",
+          "praise": "Hug!"
+        },
+        {
+          "id": "en:drink2",
+          "say": "Drink!",
+          "meaning": {
+            "en": "drink",
+            "ja": "のむ"
+          },
+          "category": "action_words",
+          "praise": "Drink!"
+        },
+        {
+          "id": "en:food",
+          "say": "Food!",
+          "meaning": {
+            "en": "food",
+            "ja": "たべもの"
+          },
+          "category": "food_drink",
+          "praise": "Food!"
+        },
+        {
+          "id": "en:baabaa",
+          "say": "Baa baa!",
+          "meaning": {
+            "en": "baa baa",
+            "ja": "メーメー"
+          },
+          "grownUp": "sheep",
+          "category": "sounds",
+          "answer": "🐐",
+          "choices": [
+            "🤫",
+            "🐐",
+            "👂"
+          ],
+          "praise": "Baa baa!"
+        },
+        {
+          "id": "en:grrr",
+          "say": "Grrr!",
+          "meaning": {
+            "en": "grrr",
+            "ja": "ガオー（うなり声）"
+          },
+          "category": "sounds",
+          "praise": "Grrr!"
+        },
+        {
+          "id": "en:moo",
+          "say": "Moo!",
+          "meaning": {
+            "en": "moo",
+            "ja": "モー"
+          },
+          "grownUp": "cow",
+          "category": "sounds",
+          "answer": "🐮",
+          "choices": [
+            "🐮",
+            "🐵",
+            "🚗"
+          ],
+          "praise": "Moo!"
+        },
+        {
+          "id": "en:eye",
+          "say": "Eye!",
+          "meaning": {
+            "en": "eye",
+            "ja": "目"
+          },
+          "category": "body_parts",
+          "answer": "👁️",
+          "choices": [
+            "🥵",
+            "👁️",
+            "🌙"
+          ],
+          "praise": "Eye!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:bird",
+          "say": "Bird!",
+          "meaning": {
+            "en": "bird",
+            "ja": "とり"
+          },
+          "category": "animals",
+          "answer": "🐦",
+          "choices": [
+            "🥕",
+            "🐦",
+            "🚶"
+          ],
+          "praise": "Bird!"
+        },
+        {
+          "id": "en:apple",
+          "say": "Apple!",
+          "meaning": {
+            "en": "apple",
+            "ja": "リンゴ"
+          },
+          "category": "food_drink",
+          "answer": "🍎",
+          "choices": [
+            "🍎",
+            "🐶",
+            "🧥"
+          ],
+          "praise": "Apple!"
+        },
+        {
+          "id": "en:bubbles",
+          "say": "Bubbles!",
+          "meaning": {
+            "en": "bubbles",
+            "ja": "シャボン玉"
+          },
+          "category": "toys",
+          "answer": "🫧",
+          "choices": [
+            "😘",
+            "🏃",
+            "🫧"
+          ],
+          "praise": "Bubbles!"
+        },
+        {
+          "id": "en:cheese",
+          "say": "Cheese!",
+          "meaning": {
+            "en": "cheese",
+            "ja": "チーズ"
+          },
+          "category": "food_drink",
+          "answer": "🧀",
+          "choices": [
+            "🐵",
+            "🧀",
+            "❤️"
+          ],
+          "praise": "Cheese!"
+        },
+        {
+          "id": "en:ear",
+          "say": "Ear!",
+          "meaning": {
+            "en": "ear",
+            "ja": "耳"
+          },
+          "category": "body_parts",
+          "answer": "👂",
+          "choices": [
+            "🥄",
+            "👂",
+            "👨"
+          ],
+          "praise": "Ear!"
+        },
+        {
+          "id": "en:shh",
+          "say": "Shh!",
+          "meaning": {
+            "en": "shh",
+            "ja": "シー"
+          },
+          "category": "games_routines",
+          "answer": "🤫",
+          "choices": [
+            "🚗",
+            "🤫",
+            "🌱"
+          ],
+          "praise": "Shh!"
+        },
+        {
+          "id": "en:sock",
+          "say": "Sock!",
+          "meaning": {
+            "en": "sock",
+            "ja": "くつ下"
+          },
+          "category": "clothing",
+          "answer": "🧦",
+          "choices": [
+            "🧦",
+            "👶",
+            "🧃"
+          ],
+          "praise": "Sock!"
+        },
+        {
+          "id": "en:thankyou",
+          "say": "Thank you!",
+          "meaning": {
+            "en": "thank you",
+            "ja": "ありがとう"
+          },
+          "category": "games_routines",
+          "praise": "Thank you!"
+        },
+        {
+          "id": "en:go",
+          "say": "Go!",
+          "meaning": {
+            "en": "go",
+            "ja": "行く"
+          },
+          "category": "action_words",
+          "praise": "Go!"
+        },
+        {
+          "id": "en:hair",
+          "say": "Hair!",
+          "meaning": {
+            "en": "hair",
+            "ja": "かみ"
+          },
+          "category": "body_parts",
+          "praise": "Hair!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:kitty",
+          "say": "Kitty!",
+          "meaning": {
+            "en": "kitty",
+            "ja": "ねこちゃん"
+          },
+          "grownUp": "cat",
+          "category": "animals",
+          "answer": "🐱",
+          "choices": [
+            "🧸",
+            "🐱",
+            "🚃"
+          ],
+          "praise": "Kitty!"
+        },
+        {
+          "id": "en:mouth",
+          "say": "Mouth!",
+          "meaning": {
+            "en": "mouth",
+            "ja": "くち"
+          },
+          "category": "body_parts",
+          "answer": "👄",
+          "choices": [
+            "👄",
+            "🍌",
+            "🚃"
+          ],
+          "praise": "Mouth!"
+        },
+        {
+          "id": "en:up",
+          "say": "Up!",
+          "meaning": {
+            "en": "up",
+            "ja": "うえ"
+          },
+          "category": "locations",
+          "praise": "Up!"
+        },
+        {
+          "id": "en:vroom",
+          "say": "Vroom!",
+          "meaning": {
+            "en": "vroom",
+            "ja": "ブーブー"
+          },
+          "grownUp": "car",
+          "category": "sounds",
+          "answer": "🚗",
+          "choices": [
+            "👁️",
+            "🚗",
+            "🦵"
+          ],
+          "praise": "Vroom!"
+        },
+        {
+          "id": "en:bellybutton",
+          "say": "Belly button!",
+          "meaning": {
+            "en": "belly button",
+            "ja": "おへそ"
+          },
+          "category": "body_parts",
+          "praise": "Belly button!"
+        },
+        {
+          "id": "en:blanket",
+          "say": "Blanket!",
+          "meaning": {
+            "en": "blanket",
+            "ja": "毛布"
+          },
+          "category": "household",
+          "praise": "Blanket!"
+        },
+        {
+          "id": "en:door",
+          "say": "Door!",
+          "meaning": {
+            "en": "door",
+            "ja": "ドア"
+          },
+          "category": "furniture_rooms",
+          "answer": "🚪",
+          "choices": [
+            "❤️",
+            "🚶",
+            "🚪"
+          ],
+          "praise": "Door!"
+        },
+        {
+          "id": "en:head",
+          "say": "Head!",
+          "meaning": {
+            "en": "head",
+            "ja": "あたま"
+          },
+          "category": "body_parts",
+          "praise": "Head!"
+        },
+        {
+          "id": "en:puppy",
+          "say": "Puppy!",
+          "meaning": {
+            "en": "puppy",
+            "ja": "こいぬ"
+          },
+          "category": "animals",
+          "answer": "🐶",
+          "choices": [
+            "🐶",
+            "👨",
+            "🪆"
+          ],
+          "praise": "Puppy!"
+        },
+        {
+          "id": "en:toothbrush",
+          "say": "Toothbrush!",
+          "meaning": {
+            "en": "toothbrush",
+            "ja": "歯ブラシ"
+          },
+          "category": "household",
+          "answer": "🪥",
+          "choices": [
+            "😄",
+            "🪥",
+            "☀️"
+          ],
+          "praise": "Toothbrush!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:tummy",
+          "say": "Tummy!",
+          "meaning": {
+            "en": "tummy",
+            "ja": "おなか"
+          },
+          "grownUp": "stomach",
+          "category": "body_parts",
+          "praise": "Tummy!"
+        },
+        {
+          "id": "en:dance",
+          "say": "Dance!",
+          "meaning": {
+            "en": "dance",
+            "ja": "おどる"
+          },
+          "category": "action_words",
+          "answer": "💃",
+          "choices": [
+            "🪟",
+            "💃",
+            "👩"
+          ],
+          "praise": "Dance!"
+        },
+        {
+          "id": "en:stroller",
+          "say": "Stroller!",
+          "meaning": {
+            "en": "stroller",
+            "ja": "ベビーカー"
+          },
+          "category": "vehicles",
+          "praise": "Stroller!"
+        },
+        {
+          "id": "en:breakfast",
+          "say": "Breakfast!",
+          "meaning": {
+            "en": "breakfast",
+            "ja": "あさごはん"
+          },
+          "category": "games_routines",
+          "praise": "Breakfast!"
+        },
+        {
+          "id": "en:look",
+          "say": "Look!",
+          "meaning": {
+            "en": "look",
+            "ja": "みる（ほら見て）"
+          },
+          "category": "action_words",
+          "praise": "Look!"
+        },
+        {
+          "id": "en:give",
+          "say": "Give!",
+          "meaning": {
+            "en": "give",
+            "ja": "あげる"
+          },
+          "category": "action_words",
+          "praise": "Give!"
+        },
+        {
+          "id": "en:highchair",
+          "say": "High chair!",
+          "meaning": {
+            "en": "high chair",
+            "ja": "ベビーチェア"
+          },
+          "category": "furniture_rooms",
+          "praise": "High chair!"
+        },
+        {
+          "id": "en:balloon",
+          "say": "Balloon!",
+          "meaning": {
+            "en": "balloon",
+            "ja": "風船"
+          },
+          "category": "toys",
+          "answer": "🎈",
+          "choices": [
+            "🎈",
+            "🥚",
+            "💧"
+          ],
+          "praise": "Balloon!"
+        },
+        {
+          "id": "en:duck",
+          "say": "Duck!",
+          "meaning": {
+            "en": "duck",
+            "ja": "アヒル"
+          },
+          "category": "animals",
+          "answer": "🦆",
+          "choices": [
+            "🦆",
+            "🧦",
+            "🟦"
+          ],
+          "praise": "Duck!"
+        },
+        {
+          "id": "en:hat",
+          "say": "Hat!",
+          "meaning": {
+            "en": "hat",
+            "ja": "ぼうし"
+          },
+          "category": "clothing",
+          "answer": "🧢",
+          "choices": [
+            "🧢",
+            "🍓",
+            "🐛"
+          ],
+          "praise": "Hat!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:hot",
+          "say": "Hot!",
+          "meaning": {
+            "en": "hot",
+            "ja": "あつい"
+          },
+          "category": "descriptive_words",
+          "answer": "🥵",
+          "choices": [
+            "🚶",
+            "🫧",
+            "🥵"
+          ],
+          "praise": "Hot!"
+        },
+        {
+          "id": "en:quackquack",
+          "say": "Quack quack!",
+          "meaning": {
+            "en": "quack quack",
+            "ja": "ガーガー"
+          },
+          "grownUp": "duck",
+          "category": "sounds",
+          "answer": "🦆",
+          "choices": [
+            "🚗",
+            "🦆",
+            "🐵"
+          ],
+          "praise": "Quack quack!"
+        },
+        {
+          "id": "en:bear",
+          "say": "Bear!",
+          "meaning": {
+            "en": "bear",
+            "ja": "くま"
+          },
+          "category": "animals",
+          "answer": "🐻",
+          "choices": [
+            "🐻",
+            "👴",
             "🍎"
           ],
-          "praise": "Shoes!"
+          "praise": "Bear!"
+        },
+        {
+          "id": "en:choochoo",
+          "say": "Choo choo!",
+          "meaning": {
+            "en": "choo choo",
+            "ja": "シュッポッポー"
+          },
+          "grownUp": "train",
+          "category": "sounds",
+          "answer": "🚂",
+          "choices": [
+            "🚂",
+            "🌧️",
+            "🪨"
+          ],
+          "praise": "Choo choo!"
+        },
+        {
+          "id": "en:cookie",
+          "say": "Cookie!",
+          "meaning": {
+            "en": "cookie",
+            "ja": "クッキー"
+          },
+          "category": "food_drink",
+          "answer": "🍪",
+          "choices": [
+            "🚌",
+            "🍪",
+            "🖍️"
+          ],
+          "praise": "Cookie!"
+        },
+        {
+          "id": "en:cow",
+          "say": "Cow!",
+          "meaning": {
+            "en": "cow",
+            "ja": "牛"
+          },
+          "category": "animals",
+          "answer": "🐮",
+          "choices": [
+            "🐮",
+            "🪥",
+            "🍟"
+          ],
+          "praise": "Cow!"
+        },
+        {
+          "id": "en:fish",
+          "say": "Fish!",
+          "meaning": {
+            "en": "fish",
+            "ja": "さかな"
+          },
+          "category": "animals",
+          "answer": "🐟",
+          "choices": [
+            "🚲",
+            "🏠",
+            "🐟"
+          ],
+          "praise": "Fish!"
+        },
+        {
+          "id": "en:keys",
+          "say": "Keys!",
+          "meaning": {
+            "en": "keys",
+            "ja": "かぎ"
+          },
+          "category": "household",
+          "answer": "🔑",
+          "choices": [
+            "🧢",
+            "🚌",
+            "🔑"
+          ],
+          "praise": "Keys!"
+        },
+        {
+          "id": "en:please",
+          "say": "Please!",
+          "meaning": {
+            "en": "please",
+            "ja": "おねがい"
+          },
+          "category": "games_routines",
+          "answer": "🙏",
+          "choices": [
+            "🙏",
+            "🐟",
+            "🥚"
+          ],
+          "praise": "Please!"
+        },
+        {
+          "id": "en:truck",
+          "say": "Truck!",
+          "meaning": {
+            "en": "truck",
+            "ja": "トラック"
+          },
+          "category": "vehicles",
+          "answer": "🚚",
+          "choices": [
+            "🍦",
+            "🥚",
+            "🚚"
+          ],
+          "praise": "Truck!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:airplane",
+          "say": "Airplane!",
+          "meaning": {
+            "en": "airplane",
+            "ja": "飛行機"
+          },
+          "category": "vehicles",
+          "answer": "✈️",
+          "choices": [
+            "✈️",
+            "👶",
+            "🧱"
+          ],
+          "praise": "Airplane!"
+        },
+        {
+          "id": "en:bunny",
+          "say": "Bunny!",
+          "meaning": {
+            "en": "bunny",
+            "ja": "うさちゃん（うさぎ）"
+          },
+          "grownUp": "rabbit",
+          "category": "animals",
+          "answer": "🐰",
+          "choices": [
+            "🥚",
+            "🍪",
+            "🐰"
+          ],
+          "praise": "Bunny!"
+        },
+        {
+          "id": "en:chair",
+          "say": "Chair!",
+          "meaning": {
+            "en": "chair",
+            "ja": "いす"
+          },
+          "category": "furniture_rooms",
+          "answer": "🪑",
+          "choices": [
+            "🚶",
+            "🐦",
+            "🪑"
+          ],
+          "praise": "Chair!"
+        },
+        {
+          "id": "en:cracker",
+          "say": "Cracker!",
+          "meaning": {
+            "en": "cracker",
+            "ja": "クラッカー"
+          },
+          "category": "food_drink",
+          "answer": "🍘",
+          "choices": [
+            "🫧",
+            "🍘",
+            "🥶"
+          ],
+          "praise": "Cracker!"
+        },
+        {
+          "id": "en:down",
+          "say": "Down!",
+          "meaning": {
+            "en": "down",
+            "ja": "した（へ）"
+          },
+          "category": "locations",
+          "praise": "Down!"
+        },
+        {
+          "id": "en:flower",
+          "say": "Flower!",
+          "meaning": {
+            "en": "flower",
+            "ja": "花"
+          },
+          "category": "outside",
+          "answer": "🌸",
+          "choices": [
+            "🌸",
+            "🐵",
+            "🥤"
+          ],
+          "praise": "Flower!"
+        },
+        {
+          "id": "en:hand",
+          "say": "Hand!",
+          "meaning": {
+            "en": "hand",
+            "ja": "手"
+          },
+          "category": "body_parts",
+          "answer": "✋",
+          "choices": [
+            "🚌",
+            "🐶",
+            "✋"
+          ],
+          "praise": "Hand!"
+        },
+        {
+          "id": "en:horse",
+          "say": "Horse!",
+          "meaning": {
+            "en": "horse",
+            "ja": "うま"
+          },
+          "category": "animals",
+          "answer": "🐴",
+          "choices": [
+            "💦",
+            "🐴",
+            "🛏️"
+          ],
+          "praise": "Horse!"
+        },
+        {
+          "id": "en:light",
+          "say": "Light!",
+          "meaning": {
+            "en": "light",
+            "ja": "でんき"
+          },
+          "category": "household",
+          "answer": "💡",
+          "choices": [
+            "⚠️",
+            "💡",
+            "🐢"
+          ],
+          "praise": "Light!"
+        },
+        {
+          "id": "en:pig",
+          "say": "Pig!",
+          "meaning": {
+            "en": "pig",
+            "ja": "ぶた"
+          },
+          "category": "animals",
+          "answer": "🐷",
+          "choices": [
+            "🦆",
+            "🐐",
+            "🐷"
+          ],
+          "praise": "Pig!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:spoon",
+          "say": "Spoon!",
+          "meaning": {
+            "en": "spoon",
+            "ja": "スプーン"
+          },
+          "category": "household",
+          "answer": "🥄",
+          "choices": [
+            "🏡",
+            "👟",
+            "🥄"
+          ],
+          "praise": "Spoon!"
+        },
+        {
+          "id": "en:toe",
+          "say": "Toe!",
+          "meaning": {
+            "en": "toe",
+            "ja": "足の指"
+          },
+          "category": "body_parts",
+          "praise": "Toe!"
+        },
+        {
+          "id": "en:tree",
+          "say": "Tree!",
+          "meaning": {
+            "en": "tree",
+            "ja": "木"
+          },
+          "category": "outside",
+          "answer": "🌳",
+          "choices": [
+            "🌳",
+            "🛁",
+            "🍞"
+          ],
+          "praise": "Tree!"
+        },
+        {
+          "id": "en:arm",
+          "say": "Arm!",
+          "meaning": {
+            "en": "arm",
+            "ja": "うで"
+          },
+          "category": "body_parts",
+          "answer": "💪",
+          "choices": [
+            "🪟",
+            "💪",
+            "🤕"
+          ],
+          "praise": "Arm!"
+        },
+        {
+          "id": "en:block",
+          "say": "Block!",
+          "meaning": {
+            "en": "block",
+            "ja": "つみき"
+          },
+          "category": "toys",
+          "answer": "🧱",
+          "choices": [
+            "🛁",
+            "🧱",
+            "🐸"
+          ],
+          "praise": "Block!"
+        },
+        {
+          "id": "en:boots",
+          "say": "Boots!",
+          "meaning": {
+            "en": "boots",
+            "ja": "長ぐつ"
+          },
+          "category": "clothing",
+          "answer": "👢",
+          "choices": [
+            "👢",
+            "🥵",
+            "💧"
+          ],
+          "praise": "Boots!"
+        },
+        {
+          "id": "en:bowl",
+          "say": "Bowl!",
+          "meaning": {
+            "en": "bowl",
+            "ja": "茶わん"
+          },
+          "category": "household",
+          "praise": "Bowl!"
+        },
+        {
+          "id": "en:bread",
+          "say": "Bread!",
+          "meaning": {
+            "en": "bread",
+            "ja": "パン"
+          },
+          "category": "food_drink",
+          "answer": "🍞",
+          "choices": [
+            "🍞",
+            "☀️",
+            "💪"
+          ],
+          "praise": "Bread!"
+        },
+        {
+          "id": "en:brush",
+          "say": "Brush!",
+          "meaning": {
+            "en": "brush",
+            "ja": "ブラシ"
+          },
+          "category": "household",
+          "praise": "Brush!"
+        },
+        {
+          "id": "en:bus",
+          "say": "Bus!",
+          "meaning": {
+            "en": "bus",
+            "ja": "バス"
+          },
+          "category": "vehicles",
+          "answer": "🚌",
+          "choices": [
+            "💡",
+            "🚌",
+            "👵"
+          ],
+          "praise": "Bus!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:egg",
+          "say": "Egg!",
+          "meaning": {
+            "en": "egg",
+            "ja": "たまご"
+          },
+          "category": "food_drink",
+          "answer": "🥚",
+          "choices": [
+            "📕",
+            "🥚",
+            "💪"
+          ],
+          "praise": "Egg!"
+        },
+        {
+          "id": "en:finger",
+          "say": "Finger!",
+          "meaning": {
+            "en": "finger",
+            "ja": "指"
+          },
+          "category": "body_parts",
+          "answer": "👆",
+          "choices": [
+            "👆",
+            "🧥",
+            "📄"
+          ],
+          "praise": "Finger!"
+        },
+        {
+          "id": "en:fork",
+          "say": "Fork!",
+          "meaning": {
+            "en": "fork",
+            "ja": "フォーク"
+          },
+          "category": "household",
+          "answer": "🍴",
+          "choices": [
+            "👀",
+            "🍦",
+            "🍴"
+          ],
+          "praise": "Fork!"
+        },
+        {
+          "id": "en:home",
+          "say": "Home!",
+          "meaning": {
+            "en": "home",
+            "ja": "おうち"
+          },
+          "category": "places",
+          "answer": "🏠",
+          "choices": [
+            "☀️",
+            "🏠",
+            "🔑"
+          ],
+          "praise": "Home!"
+        },
+        {
+          "id": "en:monkey",
+          "say": "Monkey!",
+          "meaning": {
+            "en": "monkey",
+            "ja": "さる"
+          },
+          "category": "animals",
+          "answer": "🐵",
+          "choices": [
+            "🐵",
+            "🪑",
+            "👕"
+          ],
+          "praise": "Monkey!"
+        },
+        {
+          "id": "en:off",
+          "say": "Off!",
+          "meaning": {
+            "en": "off",
+            "ja": "はずれて"
+          },
+          "category": "locations",
+          "praise": "Off!"
+        },
+        {
+          "id": "en:on",
+          "say": "On!",
+          "meaning": {
+            "en": "on",
+            "ja": "うえ（に）"
+          },
+          "category": "locations",
+          "praise": "On!"
+        },
+        {
+          "id": "en:open",
+          "say": "Open!",
+          "meaning": {
+            "en": "open",
+            "ja": "あける"
+          },
+          "category": "action_words",
+          "praise": "Open!"
+        },
+        {
+          "id": "en:pants",
+          "say": "Pants!",
+          "meaning": {
+            "en": "pants",
+            "ja": "ズボン"
+          },
+          "category": "clothing",
+          "answer": "👖",
+          "choices": [
+            "🛏️",
+            "👖",
+            "🍘"
+          ],
+          "praise": "Pants!"
+        },
+        {
+          "id": "en:play",
+          "say": "Play!",
+          "meaning": {
+            "en": "play",
+            "ja": "あそぶ"
+          },
+          "category": "action_words",
+          "praise": "Play!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:shirt",
+          "say": "Shirt!",
+          "meaning": {
+            "en": "shirt",
+            "ja": "シャツ"
+          },
+          "category": "clothing",
+          "answer": "👕",
+          "choices": [
+            "🪆",
+            "👕",
+            "🌙"
+          ],
+          "praise": "Shirt!"
+        },
+        {
+          "id": "en:tooth",
+          "say": "Tooth!",
+          "meaning": {
+            "en": "tooth",
+            "ja": "歯"
+          },
+          "category": "body_parts",
+          "answer": "🦷",
+          "choices": [
+            "🌳",
+            "🦷",
+            "👩"
+          ],
+          "praise": "Tooth!"
+        },
+        {
+          "id": "en:train",
+          "say": "Train!",
+          "meaning": {
+            "en": "train",
+            "ja": "電車"
+          },
+          "category": "vehicles",
+          "answer": "🚃",
+          "choices": [
+            "🚃",
+            "🪑",
+            "🐢"
+          ],
+          "praise": "Train!"
+        },
+        {
+          "id": "en:tv",
+          "say": "TV!",
+          "meaning": {
+            "en": "TV",
+            "ja": "テレビ"
+          },
+          "category": "furniture_rooms",
+          "answer": "📺",
+          "choices": [
+            "📺",
+            "🐦",
+            "🚶"
+          ],
+          "praise": "TV!"
+        },
+        {
+          "id": "en:bathroom",
+          "say": "Bathroom!",
+          "meaning": {
+            "en": "bathroom",
+            "ja": "トイレ（お手洗い）"
+          },
+          "category": "furniture_rooms",
+          "praise": "Bathroom!"
+        },
+        {
+          "id": "en:bib",
+          "say": "Bib!",
+          "meaning": {
+            "en": "bib",
+            "ja": "よだれかけ"
+          },
+          "category": "clothing",
+          "praise": "Bib!"
+        },
+        {
+          "id": "en:bite",
+          "say": "Bite!",
+          "meaning": {
+            "en": "bite",
+            "ja": "かむ"
+          },
+          "category": "action_words",
+          "praise": "Bite!"
+        },
+        {
+          "id": "en:chicken",
+          "say": "Chicken!",
+          "meaning": {
+            "en": "chicken",
+            "ja": "にわとり"
+          },
+          "category": "animals",
+          "praise": "Chicken!"
+        },
+        {
+          "id": "en:coat",
+          "say": "Coat!",
+          "meaning": {
+            "en": "coat",
+            "ja": "コート"
+          },
+          "category": "clothing",
+          "praise": "Coat!"
+        },
+        {
+          "id": "en:elephant",
+          "say": "Elephant!",
+          "meaning": {
+            "en": "elephant",
+            "ja": "ぞう"
+          },
+          "category": "animals",
+          "answer": "🐘",
+          "choices": [
+            "🐘",
+            "👵",
+            "🛏️"
+          ],
+          "praise": "Elephant!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:face",
+          "say": "Face!",
+          "meaning": {
+            "en": "face",
+            "ja": "顔"
+          },
+          "category": "body_parts",
+          "answer": "🙂",
+          "choices": [
+            "🥶",
+            "☎️",
+            "🙂"
+          ],
+          "praise": "Face!"
+        },
+        {
+          "id": "en:help",
+          "say": "Help!",
+          "meaning": {
+            "en": "help",
+            "ja": "たすける（てつだう）"
+          },
+          "category": "action_words",
+          "praise": "Help!"
+        },
+        {
+          "id": "en:jacket",
+          "say": "Jacket!",
+          "meaning": {
+            "en": "jacket",
+            "ja": "ジャンパー"
+          },
+          "category": "clothing",
+          "answer": "🧥",
+          "choices": [
+            "👃",
+            "🧥",
+            "🚚"
+          ],
+          "praise": "Jacket!"
+        },
+        {
+          "id": "en:leg",
+          "say": "Leg!",
+          "meaning": {
+            "en": "leg",
+            "ja": "足"
+          },
+          "category": "body_parts",
+          "answer": "🦵",
+          "choices": [
+            "🐴",
+            "🦵",
+            "📄"
+          ],
+          "praise": "Leg!"
+        },
+        {
+          "id": "en:lion",
+          "say": "Lion!",
+          "meaning": {
+            "en": "lion",
+            "ja": "ライオン"
+          },
+          "category": "animals",
+          "answer": "🦁",
+          "choices": [
+            "🦁",
+            "🌳",
+            "🦵"
+          ],
+          "praise": "Lion!"
+        },
+        {
+          "id": "en:pajamas",
+          "say": "Pajamas!",
+          "meaning": {
+            "en": "pajamas",
+            "ja": "パジャマ"
+          },
+          "category": "clothing",
+          "praise": "Pajamas!"
+        },
+        {
+          "id": "en:read",
+          "say": "Read!",
+          "meaning": {
+            "en": "read",
+            "ja": "よむ"
+          },
+          "category": "action_words",
+          "praise": "Read!"
+        },
+        {
+          "id": "en:sleep",
+          "say": "Sleep!",
+          "meaning": {
+            "en": "sleep",
+            "ja": "ねる"
+          },
+          "category": "action_words",
+          "need": "sleep",
+          "praise": "Sleep!"
+        },
+        {
+          "id": "en:stairs",
+          "say": "Stairs!",
+          "meaning": {
+            "en": "stairs",
+            "ja": "階段"
+          },
+          "category": "furniture_rooms",
+          "praise": "Stairs!"
+        },
+        {
+          "id": "en:stop",
+          "say": "Stop!",
+          "meaning": {
+            "en": "stop",
+            "ja": "とまる／やめる"
+          },
+          "category": "action_words",
+          "praise": "Stop!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:table",
+          "say": "Table!",
+          "meaning": {
+            "en": "table",
+            "ja": "テーブル"
+          },
+          "category": "furniture_rooms",
+          "praise": "Table!"
+        },
+        {
+          "id": "en:teddybear",
+          "say": "Teddybear!",
+          "meaning": {
+            "en": "teddybear",
+            "ja": "くまのぬいぐるみ"
+          },
+          "category": "animals",
+          "answer": "🧸",
+          "choices": [
+            "🧸",
+            "⚽",
+            "🍗"
+          ],
+          "praise": "Teddybear!"
+        },
+        {
+          "id": "en:walk",
+          "say": "Walk!",
+          "meaning": {
+            "en": "walk",
+            "ja": "あるく"
+          },
+          "category": "action_words",
+          "answer": "🚶",
+          "choices": [
+            "🚃",
+            "🚶",
+            "🥣"
+          ],
+          "praise": "Walk!"
+        },
+        {
+          "id": "en:yucky",
+          "say": "Yucky!",
+          "meaning": {
+            "en": "yucky",
+            "ja": "まずい"
+          },
+          "category": "descriptive_words",
+          "praise": "Yucky!"
+        },
+        {
+          "id": "en:blow",
+          "say": "Blow!",
+          "meaning": {
+            "en": "blow",
+            "ja": "ふく（いきを）"
+          },
+          "category": "action_words",
+          "praise": "Blow!"
+        },
+        {
+          "id": "en:cheerios",
+          "say": "Cheerios!",
+          "meaning": {
+            "en": "cheerios",
+            "ja": "シリアル（チェリオス）"
+          },
+          "category": "food_drink",
+          "praise": "Cheerios!"
+        },
+        {
+          "id": "en:clean",
+          "say": "Clean!",
+          "meaning": {
+            "en": "clean",
+            "ja": "かたづける"
+          },
+          "category": "action_words",
+          "praise": "Clean!"
+        },
+        {
+          "id": "en:couch",
+          "say": "Couch!",
+          "meaning": {
+            "en": "couch",
+            "ja": "ソファー"
+          },
+          "category": "furniture_rooms",
+          "answer": "🛋️",
+          "choices": [
+            "🛋️",
+            "🪥",
+            "🍗"
+          ],
+          "praise": "Couch!"
+        },
+        {
+          "id": "en:dinner",
+          "say": "Dinner!",
+          "meaning": {
+            "en": "dinner",
+            "ja": "ばんごはん"
+          },
+          "category": "games_routines",
+          "praise": "Dinner!"
+        },
+        {
+          "id": "en:kitchen",
+          "say": "Kitchen!",
+          "meaning": {
+            "en": "kitchen",
+            "ja": "台所"
+          },
+          "category": "furniture_rooms",
+          "praise": "Kitchen!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:lunch",
+          "say": "Lunch!",
+          "meaning": {
+            "en": "lunch",
+            "ja": "おひるごはん"
+          },
+          "category": "games_routines",
+          "praise": "Lunch!"
+        },
+        {
+          "id": "en:tickle",
+          "say": "Tickle!",
+          "meaning": {
+            "en": "tickle",
+            "ja": "くすぐる"
+          },
+          "category": "action_words",
+          "praise": "Tickle!"
+        },
+        {
+          "id": "en:tongue",
+          "say": "Tongue!",
+          "meaning": {
+            "en": "tongue",
+            "ja": "舌"
+          },
+          "category": "body_parts",
+          "answer": "👅",
+          "choices": [
+            "🐴",
+            "📄",
+            "👅"
+          ],
+          "praise": "Tongue!"
+        },
+        {
+          "id": "en:wash",
+          "say": "Wash!",
+          "meaning": {
+            "en": "wash",
+            "ja": "あらう"
+          },
+          "category": "action_words",
+          "praise": "Wash!"
+        },
+        {
+          "id": "en:window",
+          "say": "Window!",
+          "meaning": {
+            "en": "window",
+            "ja": "窓"
+          },
+          "category": "furniture_rooms",
+          "answer": "🪟",
+          "choices": [
+            "🍓",
+            "🩹",
+            "🪟"
+          ],
+          "praise": "Window!"
+        },
+        {
+          "id": "en:animal",
+          "say": "Animal!",
+          "meaning": {
+            "en": "animal",
+            "ja": "どうぶつ"
+          },
+          "category": "animals",
+          "praise": "Animal!"
+        },
+        {
+          "id": "en:bedroom",
+          "say": "Bedroom!",
+          "meaning": {
+            "en": "bedroom",
+            "ja": "しんしつ"
+          },
+          "category": "furniture_rooms",
+          "answer": "🛏️",
+          "choices": [
+            "🛏️",
+            "🐛",
+            "👃"
+          ],
+          "praise": "Bedroom!"
+        },
+        {
+          "id": "en:close",
+          "say": "Close!",
+          "meaning": {
+            "en": "close",
+            "ja": "しめる"
+          },
+          "category": "action_words",
+          "praise": "Close!"
+        },
+        {
+          "id": "en:get",
+          "say": "Get!",
+          "meaning": {
+            "en": "get",
+            "ja": "もらう"
+          },
+          "category": "action_words",
+          "praise": "Get!"
+        },
+        {
+          "id": "en:throw",
+          "say": "Throw!",
+          "meaning": {
+            "en": "throw",
+            "ja": "なげる"
+          },
+          "category": "action_words",
+          "praise": "Throw!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:crib",
+          "say": "Crib!",
+          "meaning": {
+            "en": "crib",
+            "ja": "ベビーベッド"
+          },
+          "category": "furniture_rooms",
+          "praise": "Crib!"
+        },
+        {
+          "id": "en:hungry",
+          "say": "Hungry!",
+          "meaning": {
+            "en": "hungry",
+            "ja": "おなかすいた"
+          },
+          "category": "descriptive_words",
+          "praise": "Hungry!"
+        },
+        {
+          "id": "en:sleepy",
+          "say": "Sleepy!",
+          "meaning": {
+            "en": "sleepy",
+            "ja": "ねむい"
+          },
+          "category": "descriptive_words",
+          "praise": "Sleepy!"
+        },
+        {
+          "id": "en:trash",
+          "say": "Trash!",
+          "meaning": {
+            "en": "trash",
+            "ja": "ごみ"
+          },
+          "category": "household",
+          "praise": "Trash!"
+        },
+        {
+          "id": "en:wait",
+          "say": "Wait!",
+          "meaning": {
+            "en": "wait",
+            "ja": "まつ"
+          },
+          "category": "action_words",
+          "praise": "Wait!"
+        },
+        {
+          "id": "en:bring",
+          "say": "Bring!",
+          "meaning": {
+            "en": "bring",
+            "ja": "持ってくる"
+          },
+          "category": "action_words",
+          "praise": "Bring!"
+        },
+        {
+          "id": "en:careful",
+          "say": "Careful!",
+          "meaning": {
+            "en": "careful",
+            "ja": "きをつけて"
+          },
+          "category": "descriptive_words",
+          "answer": "⚠️",
+          "choices": [
+            "⚠️",
+            "🐶",
+            "🌸"
+          ],
+          "praise": "Careful!"
+        },
+        {
+          "id": "en:gentle",
+          "say": "Gentle!",
+          "meaning": {
+            "en": "gentle",
+            "ja": "やさしく"
+          },
+          "category": "descriptive_words",
+          "praise": "Gentle!"
+        },
+        {
+          "id": "en:in",
+          "say": "In!",
+          "meaning": {
+            "en": "in",
+            "ja": "なか（に）"
+          },
+          "category": "locations",
+          "praise": "In!"
+        },
+        {
+          "id": "en:owie",
+          "say": "Owie!",
+          "meaning": {
+            "en": "owie",
+            "ja": "いたいところ"
+          },
+          "grownUp": "hurt",
+          "category": "body_parts",
+          "answer": "🩹",
+          "choices": [
+            "❤️",
+            "🩹",
+            "🐘"
+          ],
+          "praise": "Owie!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:cold",
+          "say": "Cold!",
+          "meaning": {
+            "en": "cold",
+            "ja": "寒い"
+          },
+          "category": "descriptive_words",
+          "answer": "🥶",
+          "choices": [
+            "🛋️",
+            "🥶",
+            "🧀"
+          ],
+          "praise": "Cold!"
+        },
+        {
+          "id": "en:bee",
+          "say": "Bee!",
+          "meaning": {
+            "en": "bee",
+            "ja": "はち"
+          },
+          "category": "animals",
+          "answer": "🐝",
+          "choices": [
+            "🐝",
+            "🙏",
+            "🍴"
+          ],
+          "praise": "Bee!"
+        },
+        {
+          "id": "en:bicycle",
+          "say": "Bicycle!",
+          "meaning": {
+            "en": "bicycle",
+            "ja": "自転車"
+          },
+          "category": "vehicles",
+          "answer": "🚲",
+          "choices": [
+            "🔑",
+            "🚲",
+            "⭐"
+          ],
+          "praise": "Bicycle!"
+        },
+        {
+          "id": "en:doll",
+          "say": "Doll!",
+          "meaning": {
+            "en": "doll",
+            "ja": "人形"
+          },
+          "category": "toys",
+          "answer": "🪆",
+          "choices": [
+            "🪆",
+            "🐱",
+            "🏠"
+          ],
+          "praise": "Doll!"
+        },
+        {
+          "id": "en:frog",
+          "say": "Frog!",
+          "meaning": {
+            "en": "frog",
+            "ja": "カエル"
+          },
+          "category": "animals",
+          "answer": "🐸",
+          "choices": [
+            "🍴",
+            "🙏",
+            "🐸"
+          ],
+          "praise": "Frog!"
+        },
+        {
+          "id": "en:out",
+          "say": "Out!",
+          "meaning": {
+            "en": "out",
+            "ja": "そと（へ）"
+          },
+          "category": "locations",
+          "praise": "Out!"
+        },
+        {
+          "id": "en:potty",
+          "say": "Potty!",
+          "meaning": {
+            "en": "potty",
+            "ja": "おまる"
+          },
+          "grownUp": "toilet",
+          "category": "furniture_rooms",
+          "praise": "Potty!"
+        },
+        {
+          "id": "en:box",
+          "say": "Box!",
+          "meaning": {
+            "en": "box",
+            "ja": "はこ"
+          },
+          "category": "household",
+          "answer": "📦",
+          "choices": [
+            "📺",
+            "📦",
+            "🦉"
+          ],
+          "praise": "Box!"
+        },
+        {
+          "id": "en:butterfly",
+          "say": "Butterfly!",
+          "meaning": {
+            "en": "butterfly",
+            "ja": "チョウチョ"
+          },
+          "category": "animals",
+          "answer": "🦋",
+          "choices": [
+            "🙈",
+            "🖍️",
+            "🦋"
+          ],
+          "praise": "Butterfly!"
+        },
+        {
+          "id": "en:chicken2",
+          "say": "Chicken!",
+          "meaning": {
+            "en": "chicken",
+            "ja": "とりにく"
+          },
+          "category": "food_drink",
+          "answer": "🍗",
+          "choices": [
+            "🍗",
+            "⚽",
+            "📺"
+          ],
+          "praise": "Chicken!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:cry",
+          "say": "Cry!",
+          "meaning": {
+            "en": "cry",
+            "ja": "なく"
+          },
+          "category": "action_words",
+          "answer": "😢",
+          "choices": [
+            "🛋️",
+            "😢",
+            "🍓"
+          ],
+          "praise": "Cry!"
+        },
+        {
+          "id": "en:dirty",
+          "say": "Dirty!",
+          "meaning": {
+            "en": "dirty",
+            "ja": "きたない"
+          },
+          "category": "descriptive_words",
+          "praise": "Dirty!"
+        },
+        {
+          "id": "en:jump",
+          "say": "Jump!",
+          "meaning": {
+            "en": "jump",
+            "ja": "とぶ"
+          },
+          "category": "action_words",
+          "praise": "Jump!"
+        },
+        {
+          "id": "en:orange",
+          "say": "Orange!",
+          "meaning": {
+            "en": "orange",
+            "ja": "オレンジ"
+          },
+          "category": "food_drink",
+          "answer": "🍊",
+          "choices": [
+            "👀",
+            "🐮",
+            "🍊"
+          ],
+          "praise": "Orange!"
+        },
+        {
+          "id": "en:owl",
+          "say": "Owl!",
+          "meaning": {
+            "en": "owl",
+            "ja": "フクロウ"
+          },
+          "category": "animals",
+          "answer": "🦉",
+          "choices": [
+            "🦉",
+            "🪨",
+            "⚽"
+          ],
+          "praise": "Owl!"
+        },
+        {
+          "id": "en:park",
+          "say": "Park!",
+          "meaning": {
+            "en": "park",
+            "ja": "公園"
+          },
+          "category": "places",
+          "praise": "Park!"
+        },
+        {
+          "id": "en:run",
+          "say": "Run!",
+          "meaning": {
+            "en": "run",
+            "ja": "はしる"
+          },
+          "category": "action_words",
+          "answer": "🏃",
+          "choices": [
+            "💧",
+            "🐷",
+            "🏃"
+          ],
+          "praise": "Run!"
+        },
+        {
+          "id": "en:see",
+          "say": "See!",
+          "meaning": {
+            "en": "see",
+            "ja": "みる"
+          },
+          "category": "action_words",
+          "answer": "👀",
+          "choices": [
+            "🧸",
+            "⭐",
+            "👀"
+          ],
+          "praise": "See!"
+        },
+        {
+          "id": "en:sheep",
+          "say": "Sheep!",
+          "meaning": {
+            "en": "sheep",
+            "ja": "ひつじ"
+          },
+          "category": "animals",
+          "answer": "🐑",
+          "choices": [
+            "😊",
+            "🐑",
+            "😢"
+          ],
+          "praise": "Sheep!"
+        },
+        {
+          "id": "en:slide",
+          "say": "Slide!",
+          "meaning": {
+            "en": "slide",
+            "ja": "すべり台"
+          },
+          "category": "outside",
+          "answer": "🛝",
+          "choices": [
+            "🍪",
+            "🏃",
+            "🛝"
+          ],
+          "praise": "Slide!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:swing",
+          "say": "Swing!",
+          "meaning": {
+            "en": "swing",
+            "ja": "ブランコ"
+          },
+          "category": "outside",
+          "praise": "Swing!"
+        },
+        {
+          "id": "en:towel",
+          "say": "Towel!",
+          "meaning": {
+            "en": "towel",
+            "ja": "タオル"
+          },
+          "category": "household",
+          "praise": "Towel!"
+        },
+        {
+          "id": "en:carrots",
+          "say": "Carrots!",
+          "meaning": {
+            "en": "carrots",
+            "ja": "にんじん"
+          },
+          "category": "food_drink",
+          "answer": "🥕",
+          "choices": [
+            "🛋️",
+            "👴",
+            "🥕"
+          ],
+          "praise": "Carrots!"
+        },
+        {
+          "id": "en:firetruck",
+          "say": "Firetruck!",
+          "meaning": {
+            "en": "firetruck",
+            "ja": "消防車"
+          },
+          "category": "vehicles",
+          "answer": "🚒",
+          "choices": [
+            "🦋",
+            "🐶",
+            "🚒"
+          ],
+          "praise": "Firetruck!"
+        },
+        {
+          "id": "en:glasses",
+          "say": "Glasses!",
+          "meaning": {
+            "en": "glasses",
+            "ja": "めがね"
+          },
+          "category": "household",
+          "answer": "👓",
+          "choices": [
+            "👓",
+            "🐶",
+            "🍇"
+          ],
+          "praise": "Glasses!"
+        },
+        {
+          "id": "en:happy",
+          "say": "Happy!",
+          "meaning": {
+            "en": "happy",
+            "ja": "うれしい"
+          },
+          "category": "descriptive_words",
+          "answer": "😄",
+          "choices": [
+            "😄",
+            "👁️",
+            "🦵"
+          ],
+          "praise": "Happy!"
+        },
+        {
+          "id": "en:refrigerator",
+          "say": "Refrigerator!",
+          "meaning": {
+            "en": "refrigerator",
+            "ja": "冷蔵庫"
+          },
+          "category": "furniture_rooms",
+          "praise": "Refrigerator!"
+        },
+        {
+          "id": "en:where",
+          "say": "Where?",
+          "meaning": {
+            "en": "where",
+            "ja": "どこ"
+          },
+          "category": "question_words",
+          "praise": "Where?"
+        },
+        {
+          "id": "en:splash",
+          "say": "Splash!",
+          "meaning": {
+            "en": "splash",
+            "ja": "ジャー"
+          },
+          "category": "action_words",
+          "answer": "💦",
+          "choices": [
+            "💦",
+            "🐱",
+            "🚂"
+          ],
+          "praise": "Splash!"
+        },
+        {
+          "id": "en:wipe",
+          "say": "Wipe!",
+          "meaning": {
+            "en": "wipe",
+            "ja": "ふく（ふきとる）"
+          },
+          "category": "action_words",
+          "praise": "Wipe!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:bug",
+          "say": "Bug!",
+          "meaning": {
+            "en": "bug",
+            "ja": "虫"
+          },
+          "category": "animals",
+          "answer": "🐛",
+          "choices": [
+            "🏠",
+            "🐛",
+            "🚚"
+          ],
+          "praise": "Bug!"
+        },
+        {
+          "id": "en:knee",
+          "say": "Knee!",
+          "meaning": {
+            "en": "knee",
+            "ja": "ひざ"
+          },
+          "category": "body_parts",
+          "praise": "Knee!"
+        },
+        {
+          "id": "en:pillow",
+          "say": "Pillow!",
+          "meaning": {
+            "en": "pillow",
+            "ja": "枕"
+          },
+          "category": "household",
+          "praise": "Pillow!"
+        },
+        {
+          "id": "en:cheek",
+          "say": "Cheek!",
+          "meaning": {
+            "en": "cheek",
+            "ja": "ほっぺ"
+          },
+          "category": "body_parts",
+          "praise": "Cheek!"
+        },
+        {
+          "id": "en:fall",
+          "say": "Fall!",
+          "meaning": {
+            "en": "fall",
+            "ja": "おちる"
+          },
+          "category": "action_words",
+          "praise": "Fall!"
+        },
+        {
+          "id": "en:mouse",
+          "say": "Mouse!",
+          "meaning": {
+            "en": "mouse",
+            "ja": "ねずみ"
+          },
+          "category": "animals",
+          "answer": "🐭",
+          "choices": [
+            "⚠️",
+            "🐭",
+            "🥚"
+          ],
+          "praise": "Mouse!"
+        },
+        {
+          "id": "en:toast",
+          "say": "Toast!",
+          "meaning": {
+            "en": "toast",
+            "ja": "トースト"
+          },
+          "category": "food_drink",
+          "answer": "🍞",
+          "choices": [
+            "💧",
+            "🍞",
+            "🦆"
+          ],
+          "praise": "Toast!"
+        },
+        {
+          "id": "en:turtle",
+          "say": "Turtle!",
+          "meaning": {
+            "en": "turtle",
+            "ja": "かめ"
+          },
+          "category": "animals",
+          "answer": "🐢",
+          "choices": [
+            "🐢",
+            "📄",
+            "🐶"
+          ],
+          "praise": "Turtle!"
+        },
+        {
+          "id": "en:broom",
+          "say": "Broom!",
+          "meaning": {
+            "en": "broom",
+            "ja": "ほうき"
+          },
+          "category": "household",
+          "answer": "🧹",
+          "choices": [
+            "👢",
+            "⚠️",
+            "🧹"
+          ],
+          "praise": "Broom!"
+        },
+        {
+          "id": "en:giraffe",
+          "say": "Giraffe!",
+          "meaning": {
+            "en": "giraffe",
+            "ja": "きりん"
+          },
+          "category": "animals",
+          "answer": "🦒",
+          "choices": [
+            "💦",
+            "😴",
+            "🦒"
+          ],
+          "praise": "Giraffe!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:noodles",
+          "say": "Noodles!",
+          "meaning": {
+            "en": "noodles",
+            "ja": "めん"
+          },
+          "category": "food_drink",
+          "answer": "🍜",
+          "choices": [
+            "🥶",
+            "👟",
+            "🍜"
+          ],
+          "praise": "Noodles!"
+        },
+        {
+          "id": "en:asleep",
+          "say": "Asleep!",
+          "meaning": {
+            "en": "asleep",
+            "ja": "ねている"
+          },
+          "category": "descriptive_words",
+          "answer": "😴",
+          "choices": [
+            "😴",
+            "🧢",
+            "🍊"
+          ],
+          "praise": "Asleep!"
+        },
+        {
+          "id": "en:kick",
+          "say": "Kick!",
+          "meaning": {
+            "en": "kick",
+            "ja": "ける"
+          },
+          "category": "action_words",
+          "praise": "Kick!"
+        },
+        {
+          "id": "en:vacuum",
+          "say": "Vacuum!",
+          "meaning": {
+            "en": "vacuum",
+            "ja": "そうじき"
+          },
+          "category": "household",
+          "praise": "Vacuum!"
+        },
+        {
+          "id": "en:draw",
+          "say": "Draw!",
+          "meaning": {
+            "en": "draw",
+            "ja": "えをかく"
+          },
+          "category": "action_words",
+          "answer": "🖍️",
+          "choices": [
+            "🫧",
+            "🍓",
+            "🖍️"
+          ],
+          "praise": "Draw!"
+        },
+        {
+          "id": "en:tired",
+          "say": "Tired!",
+          "meaning": {
+            "en": "tired",
+            "ja": "疲れた"
+          },
+          "category": "descriptive_words",
+          "answer": "😩",
+          "choices": [
+            "🐑",
+            "😩",
+            "🍪"
+          ],
+          "praise": "Tired!"
+        },
+        {
+          "id": "en:thirsty",
+          "say": "Thirsty!",
+          "meaning": {
+            "en": "thirsty",
+            "ja": "のどがかわいた"
+          },
+          "category": "descriptive_words",
+          "praise": "Thirsty!"
+        },
+        {
+          "id": "en:touch",
+          "say": "Touch!",
+          "meaning": {
+            "en": "touch",
+            "ja": "さわる"
+          },
+          "category": "action_words",
+          "praise": "Touch!"
+        },
+        {
+          "id": "en:cockadoodledoo",
+          "say": "Cockadoodledoo!",
+          "meaning": {
+            "en": "cockadoodledoo",
+            "ja": "こけこっこ"
+          },
+          "grownUp": "rooster",
+          "category": "sounds",
+          "answer": "🐔",
+          "choices": [
+            "🚃",
+            "🦷",
+            "🐔"
+          ],
+          "praise": "Cockadoodledoo!"
+        },
+        {
+          "id": "en:put",
+          "say": "Put!",
+          "meaning": {
+            "en": "put",
+            "ja": "おく"
+          },
+          "category": "action_words",
+          "praise": "Put!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:say",
+          "say": "Say!",
+          "meaning": {
+            "en": "say",
+            "ja": "いう"
+          },
+          "category": "action_words",
+          "praise": "Say!"
+        },
+        {
+          "id": "en:smile",
+          "say": "Smile!",
+          "meaning": {
+            "en": "smile",
+            "ja": "にっこりする"
+          },
+          "category": "action_words",
+          "answer": "😊",
+          "choices": [
+            "🚃",
+            "😊",
+            "🥣"
+          ],
+          "praise": "Smile!"
+        },
+        {
+          "id": "en:under",
+          "say": "Under!",
+          "meaning": {
+            "en": "under",
+            "ja": "した"
+          },
+          "category": "locations",
+          "praise": "Under!"
+        },
+        {
+          "id": "en:inside2",
+          "say": "Inside!",
+          "meaning": {
+            "en": "inside",
+            "ja": "なか"
+          },
+          "category": "locations",
+          "praise": "Inside!"
+        },
+        {
+          "id": "en:juice",
+          "say": "Juice!",
+          "meaning": {
+            "en": "juice",
+            "ja": "ジュース"
+          },
+          "category": "food_drink",
+          "answer": "🧃",
+          "choices": [
+            "👃",
+            "🧃",
+            "🙂"
+          ],
+          "praise": "Juice!"
+        },
+        {
+          "id": "en:mine",
+          "say": "Mine!",
+          "meaning": {
+            "en": "mine",
+            "ja": "わたしの"
+          },
+          "category": "pronouns",
+          "praise": "Mine!"
+        },
+        {
+          "id": "en:boat",
+          "say": "Boat!",
+          "meaning": {
+            "en": "boat",
+            "ja": "ボート"
+          },
+          "category": "vehicles",
+          "answer": "⛵",
+          "choices": [
+            "⚠️",
+            "⛵",
+            "👂"
+          ],
+          "praise": "Boat!"
+        },
+        {
+          "id": "en:water2",
+          "say": "Water!",
+          "meaning": {
+            "en": "water",
+            "ja": "みず（川や池の）"
+          },
+          "category": "outside",
+          "answer": "💧",
+          "choices": [
+            "💧",
+            "🪟",
+            "🐔"
+          ],
+          "praise": "Water!"
+        },
+        {
+          "id": "en:big",
+          "say": "Big!",
+          "meaning": {
+            "en": "big",
+            "ja": "おおきい"
+          },
+          "category": "descriptive_words",
+          "praise": "Big!"
+        },
+        {
+          "id": "en:buttocks",
+          "say": "Buttocks!",
+          "meaning": {
+            "en": "buttocks",
+            "ja": "おしり"
+          },
+          "category": "body_parts",
+          "praise": "Buttocks!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:cake",
+          "say": "Cake!",
+          "meaning": {
+            "en": "cake",
+            "ja": "ケーキ"
+          },
+          "category": "food_drink",
+          "answer": "🍰",
+          "choices": [
+            "🙏",
+            "🍰",
+            "🦒"
+          ],
+          "praise": "Cake!"
+        },
+        {
+          "id": "en:grapes",
+          "say": "Grapes!",
+          "meaning": {
+            "en": "grapes",
+            "ja": "ぶどう"
+          },
+          "category": "food_drink",
+          "answer": "🍇",
+          "choices": [
+            "💦",
+            "🍇",
+            "🧦"
+          ],
+          "praise": "Grapes!"
+        },
+        {
+          "id": "en:icecream",
+          "say": "Ice cream!",
+          "meaning": {
+            "en": "ice cream",
+            "ja": "アイスクリーム"
+          },
+          "category": "food_drink",
+          "answer": "🍦",
+          "choices": [
+            "🩹",
+            "🍦",
+            "🐱"
+          ],
+          "praise": "Ice cream!"
+        },
+        {
+          "id": "en:me",
+          "say": "Me!",
+          "meaning": {
+            "en": "me",
+            "ja": "わたし（を）"
+          },
+          "category": "pronouns",
+          "praise": "Me!"
+        },
+        {
+          "id": "en:moon",
+          "say": "Moon!",
+          "meaning": {
+            "en": "moon",
+            "ja": "お月さん"
+          },
+          "category": "outside",
+          "answer": "🌙",
+          "choices": [
+            "🍘",
+            "🌙",
+            "🐭"
+          ],
+          "praise": "Moon!"
+        },
+        {
+          "id": "en:pizza",
+          "say": "Pizza!",
+          "meaning": {
+            "en": "pizza",
+            "ja": "ピザ"
+          },
+          "category": "food_drink",
+          "answer": "🍕",
+          "choices": [
+            "🍕",
+            "🧸",
+            "🛏️"
+          ],
+          "praise": "Pizza!"
+        },
+        {
+          "id": "en:rain",
+          "say": "Rain!",
+          "meaning": {
+            "en": "rain",
+            "ja": "雨"
+          },
+          "category": "outside",
+          "answer": "🌧️",
+          "choices": [
+            "🐘",
+            "🖍️",
+            "🌧️"
+          ],
+          "praise": "Rain!"
+        },
+        {
+          "id": "en:rock",
+          "say": "Rock!",
+          "meaning": {
+            "en": "rock",
+            "ja": "いわ"
+          },
+          "category": "outside",
+          "answer": "🪨",
+          "choices": [
+            "💦",
+            "🛏️",
+            "🪨"
+          ],
+          "praise": "Rock!"
+        },
+        {
+          "id": "en:sit",
+          "say": "Sit!",
+          "meaning": {
+            "en": "sit",
+            "ja": "すわる"
+          },
+          "category": "action_words",
+          "praise": "Sit!"
+        },
+        {
+          "id": "en:soap",
+          "say": "Soap!",
+          "meaning": {
+            "en": "soap",
+            "ja": "石鹸"
+          },
+          "category": "household",
+          "answer": "🧼",
+          "choices": [
+            "🦆",
+            "🧼",
+            "👆"
+          ],
+          "praise": "Soap!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:frenchfries",
+          "say": "French fries!",
+          "meaning": {
+            "en": "french fries",
+            "ja": "フライドポテト"
+          },
+          "category": "food_drink",
+          "answer": "🍟",
+          "choices": [
+            "🍟",
+            "🤕",
+            "🚲"
+          ],
+          "praise": "French fries!"
+        },
+        {
+          "id": "en:gopotty",
+          "say": "Go potty!",
+          "meaning": {
+            "en": "go potty",
+            "ja": "トイレに行く"
+          },
+          "category": "games_routines",
+          "answer": "🚽",
+          "choices": [
+            "👀",
+            "🚶",
+            "🚽"
+          ],
+          "praise": "Go potty!"
+        },
+        {
+          "id": "en:grass",
+          "say": "Grass!",
+          "meaning": {
+            "en": "grass",
+            "ja": "草"
+          },
+          "category": "outside",
+          "answer": "🌱",
+          "choices": [
+            "🧹",
+            "🐮",
+            "🌱"
+          ],
+          "praise": "Grass!"
+        },
+        {
+          "id": "en:house",
+          "say": "House!",
+          "meaning": {
+            "en": "house",
+            "ja": "いえ"
+          },
+          "category": "places",
+          "answer": "🏡",
+          "choices": [
+            "🏡",
+            "🐴",
+            "📄"
+          ],
+          "praise": "House!"
+        },
+        {
+          "id": "en:inside",
+          "say": "Inside!",
+          "meaning": {
+            "en": "inside",
+            "ja": "なか"
+          },
+          "category": "locations",
+          "praise": "Inside!"
+        },
+        {
+          "id": "en:love",
+          "say": "Love!",
+          "meaning": {
+            "en": "love",
+            "ja": "だいすき"
+          },
+          "category": "action_words",
+          "answer": "❤️",
+          "choices": [
+            "🥚",
+            "🌙",
+            "❤️"
+          ],
+          "praise": "Love!"
+        },
+        {
+          "id": "en:paper",
+          "say": "Paper!",
+          "meaning": {
+            "en": "paper",
+            "ja": "かみ"
+          },
+          "category": "household",
+          "answer": "📄",
+          "choices": [
+            "📄",
+            "👃",
+            "❤️"
+          ],
+          "praise": "Paper!"
+        },
+        {
+          "id": "en:snack",
+          "say": "Snack!",
+          "meaning": {
+            "en": "snack",
+            "ja": "おやつ"
+          },
+          "category": "games_routines",
+          "praise": "Snack!"
+        },
+        {
+          "id": "en:star",
+          "say": "Star!",
+          "meaning": {
+            "en": "star",
+            "ja": "星"
+          },
+          "category": "outside",
+          "answer": "⭐",
+          "choices": [
+            "⭐",
+            "👟",
+            "🐑"
+          ],
+          "praise": "Star!"
+        },
+        {
+          "id": "en:strawberry",
+          "say": "Strawberry!",
+          "meaning": {
+            "en": "strawberry",
+            "ja": "いちご"
+          },
+          "category": "food_drink",
+          "answer": "🍓",
+          "choices": [
+            "⭐",
+            "💡",
+            "🍓"
+          ],
+          "praise": "Strawberry!"
+        },
+        {
+          "id": "en:yogurt",
+          "say": "Yogurt!",
+          "meaning": {
+            "en": "yogurt",
+            "ja": "ヨーグルト"
+          },
+          "category": "food_drink",
+          "praise": "Yogurt!"
+        }
+      ]
+    },
+    {
+      "age": 1,
+      "rounds": [
+        {
+          "id": "en:frenchfries",
+          "say": "French fries!",
+          "meaning": {
+            "en": "french fries",
+            "ja": "フライドポテト"
+          },
+          "category": "food_drink",
+          "answer": "🍟",
+          "choices": [
+            "🍟",
+            "🤕",
+            "🚲"
+          ],
+          "praise": "French fries!"
+        },
+        {
+          "id": "en:gopotty",
+          "say": "Go potty!",
+          "meaning": {
+            "en": "go potty",
+            "ja": "トイレに行く"
+          },
+          "category": "games_routines",
+          "answer": "🚽",
+          "choices": [
+            "👀",
+            "🚶",
+            "🚽"
+          ],
+          "praise": "Go potty!"
+        },
+        {
+          "id": "en:grass",
+          "say": "Grass!",
+          "meaning": {
+            "en": "grass",
+            "ja": "草"
+          },
+          "category": "outside",
+          "answer": "🌱",
+          "choices": [
+            "🧹",
+            "🐮",
+            "🌱"
+          ],
+          "praise": "Grass!"
+        },
+        {
+          "id": "en:house",
+          "say": "House!",
+          "meaning": {
+            "en": "house",
+            "ja": "いえ"
+          },
+          "category": "places",
+          "answer": "🏡",
+          "choices": [
+            "🏡",
+            "🐴",
+            "📄"
+          ],
+          "praise": "House!"
+        },
+        {
+          "id": "en:inside",
+          "say": "Inside!",
+          "meaning": {
+            "en": "inside",
+            "ja": "なか"
+          },
+          "category": "locations",
+          "praise": "Inside!"
+        },
+        {
+          "id": "en:love",
+          "say": "Love!",
+          "meaning": {
+            "en": "love",
+            "ja": "だいすき"
+          },
+          "category": "action_words",
+          "answer": "❤️",
+          "choices": [
+            "🥚",
+            "🌙",
+            "❤️"
+          ],
+          "praise": "Love!"
+        },
+        {
+          "id": "en:paper",
+          "say": "Paper!",
+          "meaning": {
+            "en": "paper",
+            "ja": "かみ"
+          },
+          "category": "household",
+          "answer": "📄",
+          "choices": [
+            "📄",
+            "👃",
+            "❤️"
+          ],
+          "praise": "Paper!"
+        },
+        {
+          "id": "en:snack",
+          "say": "Snack!",
+          "meaning": {
+            "en": "snack",
+            "ja": "おやつ"
+          },
+          "category": "games_routines",
+          "praise": "Snack!"
+        },
+        {
+          "id": "en:star",
+          "say": "Star!",
+          "meaning": {
+            "en": "star",
+            "ja": "星"
+          },
+          "category": "outside",
+          "answer": "⭐",
+          "choices": [
+            "⭐",
+            "👟",
+            "🐑"
+          ],
+          "praise": "Star!"
+        },
+        {
+          "id": "en:strawberry",
+          "say": "Strawberry!",
+          "meaning": {
+            "en": "strawberry",
+            "ja": "いちご"
+          },
+          "category": "food_drink",
+          "answer": "🍓",
+          "choices": [
+            "⭐",
+            "💡",
+            "🍓"
+          ],
+          "praise": "Strawberry!"
+        },
+        {
+          "id": "en:yogurt",
+          "say": "Yogurt!",
+          "meaning": {
+            "en": "yogurt",
+            "ja": "ヨーグルト"
+          },
+          "category": "food_drink",
+          "praise": "Yogurt!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:boy",
+          "say": "Boy!",
+          "meaning": {
+            "en": "boy",
+            "ja": "おとこのこ"
+          },
+          "category": "people",
+          "answer": "👦",
+          "choices": [
+            "🍈",
+            "🌽",
+            "👦"
+          ],
+          "praise": "Boy!"
+        },
+        {
+          "id": "en:candy",
+          "say": "Candy!",
+          "meaning": {
+            "en": "candy",
+            "ja": "あめ"
+          },
+          "category": "food_drink",
+          "answer": "🍬",
+          "choices": [
+            "🍬",
+            "⛽",
+            "🩲"
+          ],
+          "praise": "Candy!"
+        },
+        {
+          "id": "en:coffee",
+          "say": "Coffee!",
+          "meaning": {
+            "en": "coffee",
+            "ja": "コーヒー"
+          },
+          "category": "food_drink",
+          "answer": "☕",
+          "choices": [
+            "👗",
+            "☕",
+            "✏️"
+          ],
+          "praise": "Coffee!"
+        },
+        {
+          "id": "en:corn",
+          "say": "Corn!",
+          "meaning": {
+            "en": "corn",
+            "ja": "コーン"
+          },
+          "category": "food_drink",
+          "answer": "🌽",
+          "choices": [
+            "🌃",
+            "🎁",
+            "🌽"
+          ],
+          "praise": "Corn!"
+        },
+        {
+          "id": "en:garbage",
+          "say": "Garbage!",
+          "meaning": {
+            "en": "garbage",
+            "ja": "ごみ"
+          },
+          "category": "household",
+          "answer": "🗑️",
+          "choices": [
+            "🗑️",
+            "🎁",
+            "🐴"
+          ],
+          "praise": "Garbage!"
+        },
+        {
+          "id": "en:good",
+          "say": "Good!",
+          "meaning": {
+            "en": "good",
+            "ja": "いい"
+          },
+          "category": "descriptive_words",
+          "praise": "Good!"
+        },
+        {
+          "id": "en:green",
+          "say": "Green!",
+          "meaning": {
+            "en": "green",
+            "ja": "みどり"
+          },
+          "category": "descriptive_words",
+          "answer": "🟩",
+          "choices": [
+            "❄️",
+            "🏫",
+            "🟩"
+          ],
+          "praise": "Green!"
+        },
+        {
+          "id": "en:ice",
+          "say": "Ice!",
+          "meaning": {
+            "en": "ice",
+            "ja": "こおり"
+          },
+          "category": "food_drink",
+          "answer": "🧊",
+          "choices": [
+            "✍️",
+            "🐯",
+            "🧊"
+          ],
+          "praise": "Ice!"
+        },
+        {
+          "id": "en:orange2",
+          "say": "Orange!",
+          "meaning": {
+            "en": "orange",
+            "ja": "オレンジ"
+          },
+          "category": "descriptive_words",
+          "answer": "🟧",
+          "choices": [
+            "🟧",
+            "🍔",
+            "🔪"
+          ],
+          "praise": "Orange!"
+        },
+        {
+          "id": "en:pancake",
+          "say": "Pancake!",
+          "meaning": {
+            "en": "pancake",
+            "ja": "ホットケーキ"
+          },
+          "category": "food_drink",
+          "answer": "🥞",
+          "choices": [
+            "📢",
+            "🧤",
+            "🥞"
+          ],
+          "praise": "Pancake!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:peas",
+          "say": "Peas!",
+          "meaning": {
+            "en": "peas",
+            "ja": "グリンピース"
+          },
+          "category": "food_drink",
+          "praise": "Peas!"
+        },
+        {
+          "id": "en:picture",
+          "say": "Picture!",
+          "meaning": {
+            "en": "picture",
+            "ja": "絵"
+          },
+          "category": "household",
+          "answer": "🖼️",
+          "choices": [
+            "🔍",
+            "☀️",
+            "🖼️"
+          ],
+          "praise": "Picture!"
+        },
+        {
+          "id": "en:plate",
+          "say": "Plate!",
+          "meaning": {
+            "en": "plate",
+            "ja": "おさら"
+          },
+          "category": "household",
+          "answer": "🍽️",
+          "choices": [
+            "👗",
+            "🍽️",
+            "🌬️"
+          ],
+          "praise": "Plate!"
+        },
+        {
+          "id": "en:pool",
+          "say": "Pool!",
+          "meaning": {
+            "en": "pool",
+            "ja": "プール"
+          },
+          "category": "outside",
+          "praise": "Pool!"
+        },
+        {
+          "id": "en:red",
+          "say": "Red!",
+          "meaning": {
+            "en": "red",
+            "ja": "赤い"
+          },
+          "category": "descriptive_words",
+          "answer": "🟥",
+          "choices": [
+            "👗",
+            "🍩",
+            "🟥"
+          ],
+          "praise": "Red!"
+        },
+        {
+          "id": "en:shower",
+          "say": "Shower!",
+          "meaning": {
+            "en": "shower",
+            "ja": "シャワー"
+          },
+          "category": "furniture_rooms",
+          "answer": "🚿",
+          "choices": [
+            "🟩",
+            "🐜",
+            "🚿"
+          ],
+          "praise": "Shower!"
+        },
+        {
+          "id": "en:tiger",
+          "say": "Tiger!",
+          "meaning": {
+            "en": "tiger",
+            "ja": "トラ"
+          },
+          "category": "animals",
+          "answer": "🐯",
+          "choices": [
+            "🐯",
+            "🟩",
+            "🪴"
+          ],
+          "praise": "Tiger!"
+        },
+        {
+          "id": "en:yellow",
+          "say": "Yellow!",
+          "meaning": {
+            "en": "yellow",
+            "ja": "きいろ"
+          },
+          "category": "descriptive_words",
+          "answer": "🟨",
+          "choices": [
+            "🟨",
+            "🫘",
+            "🧈"
+          ],
+          "praise": "Yellow!"
+        },
+        {
+          "id": "en:you",
+          "say": "You!",
+          "meaning": {
+            "en": "you",
+            "ja": "あなた"
+          },
+          "category": "pronouns",
+          "praise": "You!"
+        },
+        {
+          "id": "en:clean2",
+          "say": "Clean!",
+          "meaning": {
+            "en": "clean",
+            "ja": "きれい"
+          },
+          "category": "descriptive_words",
+          "praise": "Clean!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:clock",
+          "say": "Clock!",
+          "meaning": {
+            "en": "clock",
+            "ja": "時計"
+          },
+          "category": "household",
+          "answer": "🕐",
+          "choices": [
+            "🍫",
+            "⛄",
+            "🕐"
+          ],
+          "praise": "Clock!"
+        },
+        {
+          "id": "en:fish2",
+          "say": "Fish!",
+          "meaning": {
+            "en": "fish",
+            "ja": "さかな（料理）"
+          },
+          "category": "food_drink",
+          "praise": "Fish!"
+        },
+        {
+          "id": "en:girl",
+          "say": "Girl!",
+          "meaning": {
+            "en": "girl",
+            "ja": "おんなのこ"
+          },
+          "category": "people",
+          "answer": "👧",
+          "choices": [
+            "👧",
+            "🌬️",
+            "🛝"
+          ],
+          "praise": "Girl!"
+        },
+        {
+          "id": "en:helicopter",
+          "say": "Helicopter!",
+          "meaning": {
+            "en": "helicopter",
+            "ja": "ヘリコプター"
+          },
+          "category": "vehicles",
+          "answer": "🚁",
+          "choices": [
+            "👧",
+            "🚁",
+            "🥜"
+          ],
+          "praise": "Helicopter!"
+        },
+        {
+          "id": "en:i",
+          "say": "I!",
+          "meaning": {
+            "en": "I",
+            "ja": "わたし"
+          },
+          "category": "pronouns",
+          "praise": "I!"
+        },
+        {
+          "id": "en:medicine",
+          "say": "Medicine!",
+          "meaning": {
+            "en": "medicine",
+            "ja": "くすり"
+          },
+          "category": "household",
+          "answer": "💊",
+          "choices": [
+            "🚁",
+            "💊",
+            "🛣️"
+          ],
+          "praise": "Medicine!"
+        },
+        {
+          "id": "en:my",
+          "say": "My!",
+          "meaning": {
+            "en": "my",
+            "ja": "わたしの"
+          },
+          "category": "pronouns",
+          "praise": "My!"
+        },
+        {
+          "id": "en:napkin",
+          "say": "Napkin!",
+          "meaning": {
+            "en": "napkin",
+            "ja": "ナプキン"
+          },
+          "category": "household",
+          "praise": "Napkin!"
+        },
+        {
+          "id": "en:night",
+          "say": "Night!",
+          "meaning": {
+            "en": "night",
+            "ja": "よる"
+          },
+          "category": "time_words",
+          "answer": "🌃",
+          "choices": [
+            "🚿",
+            "🌃",
+            "🛣️"
+          ],
+          "praise": "Night!"
+        },
+        {
+          "id": "en:peanutbutter",
+          "say": "Peanut butter!",
+          "meaning": {
+            "en": "peanut butter",
+            "ja": "ピーナッツバター"
+          },
+          "category": "food_drink",
+          "answer": "🥜",
+          "choices": [
+            "🥜",
+            "🐿️",
+            "🏫"
+          ],
+          "praise": "Peanut butter!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:popcorn",
+          "say": "Popcorn!",
+          "meaning": {
+            "en": "popcorn",
+            "ja": "ポップコーン"
+          },
+          "category": "food_drink",
+          "answer": "🍿",
+          "choices": [
+            "🍿",
+            "⌚",
+            "🎁"
+          ],
+          "praise": "Popcorn!"
+        },
+        {
+          "id": "en:potatochip",
+          "say": "Potato chip!",
+          "meaning": {
+            "en": "potato chip",
+            "ja": "ポテトチップス"
+          },
+          "category": "food_drink",
+          "answer": "🍟",
+          "choices": [
+            "🍟",
+            "💴",
+            "👧"
+          ],
+          "praise": "Potato chip!"
+        },
+        {
+          "id": "en:push",
+          "say": "Push!",
+          "meaning": {
+            "en": "push",
+            "ja": "おす"
+          },
+          "category": "action_words",
+          "praise": "Push!"
+        },
+        {
+          "id": "en:puzzle",
+          "say": "Puzzle!",
+          "meaning": {
+            "en": "puzzle",
+            "ja": "パズル"
+          },
+          "category": "toys",
+          "answer": "🧩",
+          "choices": [
+            "💊",
+            "🧩",
+            "🤒"
+          ],
+          "praise": "Puzzle!"
+        },
+        {
+          "id": "en:ride",
+          "say": "Ride!",
+          "meaning": {
+            "en": "ride",
+            "ja": "のる"
+          },
+          "category": "action_words",
+          "praise": "Ride!"
+        },
+        {
+          "id": "en:room",
+          "say": "Room!",
+          "meaning": {
+            "en": "room",
+            "ja": "部屋"
+          },
+          "category": "furniture_rooms",
+          "praise": "Room!"
+        },
+        {
+          "id": "en:school",
+          "say": "School!",
+          "meaning": {
+            "en": "school",
+            "ja": "学校"
+          },
+          "category": "places",
+          "answer": "🏫",
+          "choices": [
+            "🧤",
+            "🔍",
+            "🏫"
+          ],
+          "praise": "School!"
+        },
+        {
+          "id": "en:sing",
+          "say": "Sing!",
+          "meaning": {
+            "en": "sing",
+            "ja": "うたう"
+          },
+          "category": "action_words",
+          "praise": "Sing!"
+        },
+        {
+          "id": "en:sky",
+          "say": "Sky!",
+          "meaning": {
+            "en": "sky",
+            "ja": "空"
+          },
+          "category": "outside",
+          "praise": "Sky!"
+        },
+        {
+          "id": "en:snow",
+          "say": "Snow!",
+          "meaning": {
+            "en": "snow",
+            "ja": "雪"
+          },
+          "category": "outside",
+          "answer": "❄️",
+          "choices": [
+            "🟧",
+            "❄️",
+            "🧹"
+          ],
+          "praise": "Snow!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:soup",
+          "say": "Soup!",
+          "meaning": {
+            "en": "soup",
+            "ja": "スープ"
+          },
+          "category": "food_drink",
+          "answer": "🥣",
+          "choices": [
+            "🪣",
+            "☀️",
+            "🥣"
+          ],
+          "praise": "Soup!"
+        },
+        {
+          "id": "en:spaghetti",
+          "say": "Spaghetti!",
+          "meaning": {
+            "en": "spaghetti",
+            "ja": "スパゲッティ"
+          },
+          "category": "food_drink",
+          "answer": "🍝",
+          "choices": [
+            "👦",
+            "🍝",
+            "🏊"
+          ],
+          "praise": "Spaghetti!"
+        },
+        {
+          "id": "en:stick",
+          "say": "Stick!",
+          "meaning": {
+            "en": "stick",
+            "ja": "くっつける"
+          },
+          "category": "outside",
+          "praise": "Stick!"
+        },
+        {
+          "id": "en:store",
+          "say": "Store!",
+          "meaning": {
+            "en": "store",
+            "ja": "お店"
+          },
+          "category": "places",
+          "answer": "🏪",
+          "choices": [
+            "🐯",
+            "🏪",
+            "🏁"
+          ],
+          "praise": "Store!"
+        },
+        {
+          "id": "en:story",
+          "say": "Story!",
+          "meaning": {
+            "en": "story",
+            "ja": "おはなし"
+          },
+          "category": "toys",
+          "praise": "Story!"
+        },
+        {
+          "id": "en:swim",
+          "say": "Swim!",
+          "meaning": {
+            "en": "swim",
+            "ja": "およぐ"
+          },
+          "category": "action_words",
+          "answer": "🏊",
+          "choices": [
+            "🥪",
+            "🫘",
+            "🏊"
+          ],
+          "praise": "Swim!"
+        },
+        {
+          "id": "en:swing2",
+          "say": "Swing!",
+          "meaning": {
+            "en": "swing",
+            "ja": "ゆれる"
+          },
+          "category": "action_words",
+          "praise": "Swing!"
+        },
+        {
+          "id": "en:tissue",
+          "say": "Tissue!",
+          "meaning": {
+            "en": "tissue",
+            "ja": "ティッシュ"
+          },
+          "category": "household",
+          "praise": "Tissue!"
+        },
+        {
+          "id": "en:what",
+          "say": "What?",
+          "meaning": {
+            "en": "what",
+            "ja": "なに"
+          },
+          "category": "question_words",
+          "praise": "What?"
+        },
+        {
+          "id": "en:work",
+          "say": "Work!",
+          "meaning": {
+            "en": "work",
+            "ja": "お仕事"
+          },
+          "category": "places",
+          "praise": "Work!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:zipper",
+          "say": "Zipper!",
+          "meaning": {
+            "en": "zipper",
+            "ja": "チャック"
+          },
+          "category": "clothing",
+          "praise": "Zipper!"
+        },
+        {
+          "id": "en:applesauce",
+          "say": "Applesauce!",
+          "meaning": {
+            "en": "applesauce",
+            "ja": "りんごのピューレ"
+          },
+          "category": "food_drink",
+          "praise": "Applesauce!"
+        },
+        {
+          "id": "en:aunt",
+          "say": "Aunt!",
+          "meaning": {
+            "en": "aunt",
+            "ja": "おばさん"
+          },
+          "category": "people",
+          "praise": "Aunt!"
+        },
+        {
+          "id": "en:awake",
+          "say": "Awake!",
+          "meaning": {
+            "en": "awake",
+            "ja": "おきている"
+          },
+          "category": "descriptive_words",
+          "praise": "Awake!"
+        },
+        {
+          "id": "en:bad",
+          "say": "Bad!",
+          "meaning": {
+            "en": "bad",
+            "ja": "悪い"
+          },
+          "category": "descriptive_words",
+          "praise": "Bad!"
+        },
+        {
+          "id": "en:beach",
+          "say": "Beach!",
+          "meaning": {
+            "en": "beach",
+            "ja": "すなはま"
+          },
+          "category": "places",
+          "answer": "🏖️",
+          "choices": [
+            "🏖️",
+            "🚜",
+            "👮"
+          ],
+          "praise": "Beach!"
+        },
+        {
+          "id": "en:beans",
+          "say": "Beans!",
+          "meaning": {
+            "en": "beans",
+            "ja": "豆"
+          },
+          "category": "food_drink",
+          "answer": "🫘",
+          "choices": [
+            "🫘",
+            "🐺",
+            "☀️"
+          ],
+          "praise": "Beans!"
+        },
+        {
+          "id": "en:black",
+          "say": "Black!",
+          "meaning": {
+            "en": "black",
+            "ja": "黒い"
+          },
+          "category": "descriptive_words",
+          "answer": "⬛",
+          "choices": [
+            "⬛",
+            "🛒",
+            "🛣️"
+          ],
+          "praise": "Black!"
+        },
+        {
+          "id": "en:break",
+          "say": "Break!",
+          "meaning": {
+            "en": "break",
+            "ja": "こわす"
+          },
+          "category": "action_words",
+          "praise": "Break!"
+        },
+        {
+          "id": "en:butter",
+          "say": "Butter!",
+          "meaning": {
+            "en": "butter",
+            "ja": "バター"
+          },
+          "category": "food_drink",
+          "answer": "🧈",
+          "choices": [
+            "🐑",
+            "🧈",
+            "🚁"
+          ],
+          "praise": "Butter!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:carry",
+          "say": "Carry!",
+          "meaning": {
+            "en": "carry",
+            "ja": "はこぶ"
+          },
+          "category": "action_words",
+          "praise": "Carry!"
+        },
+        {
+          "id": "en:catch",
+          "say": "Catch!",
+          "meaning": {
+            "en": "catch",
+            "ja": "つかまえる"
+          },
+          "category": "action_words",
+          "praise": "Catch!"
+        },
+        {
+          "id": "en:chocolate",
+          "say": "Chocolate!",
+          "meaning": {
+            "en": "chocolate",
+            "ja": "チョコレート"
+          },
+          "category": "food_drink",
+          "answer": "🍫",
+          "choices": [
+            "👧",
+            "🍫",
+            "💴"
+          ],
+          "praise": "Chocolate!"
+        },
+        {
+          "id": "en:climb",
+          "say": "Climb!",
+          "meaning": {
+            "en": "climb",
+            "ja": "のぼる"
+          },
+          "category": "action_words",
+          "praise": "Climb!"
+        },
+        {
+          "id": "en:cloud",
+          "say": "Cloud!",
+          "meaning": {
+            "en": "cloud",
+            "ja": "雲"
+          },
+          "category": "outside",
+          "answer": "☁️",
+          "choices": [
+            "🍽️",
+            "👗",
+            "☁️"
+          ],
+          "praise": "Cloud!"
+        },
+        {
+          "id": "en:comb",
+          "say": "Comb!",
+          "meaning": {
+            "en": "comb",
+            "ja": "くし"
+          },
+          "category": "household",
+          "praise": "Comb!"
+        },
+        {
+          "id": "en:cook",
+          "say": "Cook!",
+          "meaning": {
+            "en": "cook",
+            "ja": "りょうりする"
+          },
+          "category": "action_words",
+          "answer": "🍳",
+          "choices": [
+            "📷",
+            "🍳",
+            "👨"
+          ],
+          "praise": "Cook!"
+        },
+        {
+          "id": "en:doctor",
+          "say": "Doctor!",
+          "meaning": {
+            "en": "doctor",
+            "ja": "お医者さん"
+          },
+          "category": "people",
+          "answer": "🧑‍⚕️",
+          "choices": [
+            "🛝",
+            "🌬️",
+            "🧑‍⚕️"
+          ],
+          "praise": "Doctor!"
+        },
+        {
+          "id": "en:donut",
+          "say": "Donut!",
+          "meaning": {
+            "en": "donut",
+            "ja": "ドーナツ"
+          },
+          "category": "food_drink",
+          "answer": "🍩",
+          "choices": [
+            "💴",
+            "🛣️",
+            "🍩"
+          ],
+          "praise": "Donut!"
+        },
+        {
+          "id": "en:dress",
+          "say": "Dress!",
+          "meaning": {
+            "en": "dress",
+            "ja": "ワンピース"
+          },
+          "category": "clothing",
+          "answer": "👗",
+          "choices": [
+            "🎮",
+            "👗",
+            "🤔"
+          ],
+          "praise": "Dress!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:drive",
+          "say": "Drive!",
+          "meaning": {
+            "en": "drive",
+            "ja": "うんてんする"
+          },
+          "category": "action_words",
+          "praise": "Drive!"
+        },
+        {
+          "id": "en:fast",
+          "say": "Fast!",
+          "meaning": {
+            "en": "fast",
+            "ja": "はやい"
+          },
+          "category": "descriptive_words",
+          "praise": "Fast!"
+        },
+        {
+          "id": "en:find",
+          "say": "Find!",
+          "meaning": {
+            "en": "find",
+            "ja": "みつける"
+          },
+          "category": "action_words",
+          "answer": "🔍",
+          "choices": [
+            "👧",
+            "🔍",
+            "👦"
+          ],
+          "praise": "Find!"
+        },
+        {
+          "id": "en:fix",
+          "say": "Fix!",
+          "meaning": {
+            "en": "fix",
+            "ja": "なおす"
+          },
+          "category": "action_words",
+          "praise": "Fix!"
+        },
+        {
+          "id": "en:givemefive",
+          "say": "Give me five!!",
+          "meaning": {
+            "en": "give me five!",
+            "ja": "ハイタッチ！"
+          },
+          "category": "games_routines",
+          "answer": "🙌",
+          "choices": [
+            "🤕",
+            "🙌",
+            "🏁"
+          ],
+          "praise": "Give me five!!"
+        },
+        {
+          "id": "en:gonnagetyou",
+          "say": "Gonna get you!!",
+          "meaning": {
+            "en": "gonna get you!",
+            "ja": "つかまえちゃうぞ！"
+          },
+          "category": "games_routines",
+          "praise": "Gonna get you!!"
+        },
+        {
+          "id": "en:hamburger",
+          "say": "Hamburger!",
+          "meaning": {
+            "en": "hamburger",
+            "ja": "ハンバーグ"
+          },
+          "category": "food_drink",
+          "answer": "🍔",
+          "choices": [
+            "🟨",
+            "🤕",
+            "🍔"
+          ],
+          "praise": "Hamburger!"
+        },
+        {
+          "id": "en:heavy",
+          "say": "Heavy!",
+          "meaning": {
+            "en": "heavy",
+            "ja": "重い"
+          },
+          "category": "descriptive_words",
+          "praise": "Heavy!"
+        },
+        {
+          "id": "en:here",
+          "say": "Here!",
+          "meaning": {
+            "en": "here",
+            "ja": "ここ"
+          },
+          "category": "locations",
+          "praise": "Here!"
+        },
+        {
+          "id": "en:hide",
+          "say": "Hide!",
+          "meaning": {
+            "en": "hide",
+            "ja": "かくす"
+          },
+          "category": "action_words",
+          "praise": "Hide!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:hit",
+          "say": "Hit!",
+          "meaning": {
+            "en": "hit",
+            "ja": "たたく"
+          },
+          "category": "action_words",
+          "praise": "Hit!"
+        },
+        {
+          "id": "en:hold",
+          "say": "Hold!",
+          "meaning": {
+            "en": "hold",
+            "ja": "もつ"
+          },
+          "category": "action_words",
+          "praise": "Hold!"
+        },
+        {
+          "id": "en:hurt",
+          "say": "Hurt!",
+          "meaning": {
+            "en": "hurt",
+            "ja": "けがした／いたい"
+          },
+          "category": "descriptive_words",
+          "answer": "🤕",
+          "choices": [
+            "🐧",
+            "📿",
+            "🤕"
+          ],
+          "praise": "Hurt!"
+        },
+        {
+          "id": "en:knife",
+          "say": "Knife!",
+          "meaning": {
+            "en": "knife",
+            "ja": "ナイフ"
+          },
+          "category": "household",
+          "answer": "🔪",
+          "choices": [
+            "🍔",
+            "🔪",
+            "🏁"
+          ],
+          "praise": "Knife!"
+        },
+        {
+          "id": "en:like",
+          "say": "Like!",
+          "meaning": {
+            "en": "like",
+            "ja": "すき"
+          },
+          "category": "action_words",
+          "praise": "Like!"
+        },
+        {
+          "id": "en:lips",
+          "say": "Lips!",
+          "meaning": {
+            "en": "lips",
+            "ja": "くちびる"
+          },
+          "category": "body_parts",
+          "praise": "Lips!"
+        },
+        {
+          "id": "en:little",
+          "say": "Little!",
+          "meaning": {
+            "en": "little",
+            "ja": "ちいさい"
+          },
+          "category": "descriptive_words",
+          "praise": "Little!"
+        },
+        {
+          "id": "en:money",
+          "say": "Money!",
+          "meaning": {
+            "en": "money",
+            "ja": "お金"
+          },
+          "category": "household",
+          "answer": "💴",
+          "choices": [
+            "💴",
+            "🍈",
+            "😢"
+          ],
+          "praise": "Money!"
+        },
+        {
+          "id": "en:motorcycle",
+          "say": "Motorcycle!",
+          "meaning": {
+            "en": "motorcycle",
+            "ja": "バイク"
+          },
+          "category": "vehicles",
+          "answer": "🏍️",
+          "choices": [
+            "🏍️",
+            "📷",
+            "🥜"
+          ],
+          "praise": "Motorcycle!"
+        },
+        {
+          "id": "en:now",
+          "say": "Now!",
+          "meaning": {
+            "en": "now",
+            "ja": "いま"
+          },
+          "category": "time_words",
+          "praise": "Now!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:pen",
+          "say": "Pen!",
+          "meaning": {
+            "en": "pen",
+            "ja": "ペン"
+          },
+          "category": "toys",
+          "answer": "🖊️",
+          "choices": [
+            "🖊️",
+            "🥫",
+            "🤕"
+          ],
+          "praise": "Pen!"
+        },
+        {
+          "id": "en:present",
+          "say": "Present!",
+          "meaning": {
+            "en": "present",
+            "ja": "プレゼント"
+          },
+          "category": "toys",
+          "answer": "🎁",
+          "choices": [
+            "🎁",
+            "🗑️",
+            "😢"
+          ],
+          "praise": "Present!"
+        },
+        {
+          "id": "en:raisin",
+          "say": "Raisin!",
+          "meaning": {
+            "en": "raisin",
+            "ja": "レーズン"
+          },
+          "category": "food_drink",
+          "praise": "Raisin!"
+        },
+        {
+          "id": "en:sandwich",
+          "say": "Sandwich!",
+          "meaning": {
+            "en": "sandwich",
+            "ja": "サンドイッチ"
+          },
+          "category": "food_drink",
+          "answer": "🥪",
+          "choices": [
+            "🌅",
+            "🥪",
+            "🪜"
+          ],
+          "praise": "Sandwich!"
+        },
+        {
+          "id": "en:shorts",
+          "say": "Shorts!",
+          "meaning": {
+            "en": "shorts",
+            "ja": "半ズボン"
+          },
+          "category": "clothing",
+          "answer": "🩲",
+          "choices": [
+            "⬜",
+            "🩲",
+            "🍫"
+          ],
+          "praise": "Shorts!"
+        },
+        {
+          "id": "en:sink",
+          "say": "Sink!",
+          "meaning": {
+            "en": "sink",
+            "ja": "ながし"
+          },
+          "category": "furniture_rooms",
+          "praise": "Sink!"
+        },
+        {
+          "id": "en:slide2",
+          "say": "Slide!",
+          "meaning": {
+            "en": "slide",
+            "ja": "すべる"
+          },
+          "category": "action_words",
+          "praise": "Slide!"
+        },
+        {
+          "id": "en:sobig",
+          "say": "So big!!",
+          "meaning": {
+            "en": "so big!",
+            "ja": "こんなに大きい！"
+          },
+          "category": "games_routines",
+          "praise": "So big!!"
+        },
+        {
+          "id": "en:squirrel",
+          "say": "Squirrel!",
+          "meaning": {
+            "en": "squirrel",
+            "ja": "リス"
+          },
+          "category": "animals",
+          "answer": "🐿️",
+          "choices": [
+            "🐿️",
+            "👗",
+            "👦"
+          ],
+          "praise": "Squirrel!"
+        },
+        {
+          "id": "en:that",
+          "say": "That!",
+          "meaning": {
+            "en": "that",
+            "ja": "あれ（それ）"
+          },
+          "category": "pronouns",
+          "praise": "That!"
         }
       ]
     },
@@ -200,54 +5136,133 @@
       "rounds": [
         {
           "id": "en:there",
-          "say": "Doggy there!",
-          "romanization": null,
+          "say": "There!",
           "meaning": {
-            "en": "There's a doggy!",
-            "ja": "ワンワン いた！"
+            "en": "there",
+            "ja": "あそこ"
           },
-          "grownUp": "There's a dog!",
-          "answer": "🐶",
-          "choices": [
-            "🚗",
-            "🐱",
-            "🐶"
-          ],
-          "praise": "Cute doggy!"
+          "category": "locations",
+          "praise": "There!"
         },
         {
-          "id": "en:apple",
-          "say": "Apple please!",
-          "romanization": null,
+          "id": "en:alligator",
+          "say": "Alligator!",
           "meaning": {
-            "en": "Apple, please!",
-            "ja": "りんご ちょうだい"
+            "en": "alligator",
+            "ja": "ワニ"
           },
-          "grownUp": "Can I have an apple, please?",
-          "answer": "🍎",
+          "category": "animals",
+          "answer": "🐊",
           "choices": [
-            "🍌",
-            "🍎",
-            "🍙"
+            "🐊",
+            "🎉",
+            "🌃"
           ],
-          "praise": "Thank you!"
+          "praise": "Alligator!"
         },
         {
-          "id": "en:fast",
-          "say": "Car fast!",
-          "romanization": null,
+          "id": "en:and",
+          "say": "And!",
           "meaning": {
-            "en": "The car is fast!",
-            "ja": "ブーブー はやい！"
+            "en": "and",
+            "ja": "そして"
           },
-          "grownUp": "The car is fast!",
-          "answer": "🚗",
+          "category": "connecting_words",
+          "praise": "And!"
+        },
+        {
+          "id": "en:ant",
+          "say": "Ant!",
+          "meaning": {
+            "en": "ant",
+            "ja": "アリ"
+          },
+          "category": "animals",
+          "answer": "🐜",
           "choices": [
-            "🐢",
-            "🐮",
-            "🚗"
+            "🥛",
+            "🐜",
+            "☀️"
           ],
-          "praise": "So fast!"
+          "praise": "Ant!"
+        },
+        {
+          "id": "en:basket",
+          "say": "Basket!",
+          "meaning": {
+            "en": "basket",
+            "ja": "かご"
+          },
+          "category": "household",
+          "answer": "🧺",
+          "choices": [
+            "🧺",
+            "🌬️",
+            "🍩"
+          ],
+          "praise": "Basket!"
+        },
+        {
+          "id": "en:build",
+          "say": "Build!",
+          "meaning": {
+            "en": "build",
+            "ja": "つくる（組み立てる）"
+          },
+          "category": "action_words",
+          "praise": "Build!"
+        },
+        {
+          "id": "en:closet",
+          "say": "Closet!",
+          "meaning": {
+            "en": "closet",
+            "ja": "おしいれ"
+          },
+          "category": "furniture_rooms",
+          "praise": "Closet!"
+        },
+        {
+          "id": "en:drop",
+          "say": "Drop!",
+          "meaning": {
+            "en": "drop",
+            "ja": "おとす"
+          },
+          "category": "action_words",
+          "praise": "Drop!"
+        },
+        {
+          "id": "en:game",
+          "say": "Game!",
+          "meaning": {
+            "en": "game",
+            "ja": "ゲーム"
+          },
+          "category": "toys",
+          "answer": "🎮",
+          "choices": [
+            "🥣",
+            "🎮",
+            "🌬️"
+          ],
+          "praise": "Game!"
+        },
+        {
+          "id": "en:glass",
+          "say": "Glass!",
+          "meaning": {
+            "en": "glass",
+            "ja": "コップ（ガラス）"
+          },
+          "category": "household",
+          "answer": "🥛",
+          "choices": [
+            "🫘",
+            "🎃",
+            "🥛"
+          ],
+          "praise": "Glass!"
         }
       ]
     },
@@ -255,45 +5270,2387 @@
       "age": 2,
       "rounds": [
         {
-          "id": "en:wantfood",
-          "say": "Want food",
-          "romanization": null,
+          "id": "en:have",
+          "say": "Have!",
           "meaning": {
-            "en": "I want to eat",
-            "ja": "まんま たべたい"
+            "en": "have",
+            "ja": "もっている"
           },
-          "grownUp": "I want to eat",
-          "need": "eat",
-          "praise": "Yummy!"
+          "category": "action_words",
+          "praise": "Have!"
         },
         {
-          "id": "en:sleepy",
-          "say": "Go night-night",
-          "romanization": null,
+          "id": "en:loud",
+          "say": "Loud!",
           "meaning": {
-            "en": "I want to sleep",
-            "ja": "ねんね する"
+            "en": "loud",
+            "ja": "うるさい"
           },
-          "grownUp": "I want to go to sleep",
-          "need": "sleep",
-          "praise": "Night-night…"
-        },
-        {
-          "id": "en:water",
-          "say": "Drink water",
-          "romanization": null,
-          "meaning": {
-            "en": "I want water",
-            "ja": "おみず のむ"
-          },
-          "grownUp": "I want to drink some water",
-          "answer": "💧",
+          "category": "descriptive_words",
+          "answer": "📢",
           "choices": [
-            "💧",
-            "🍙",
-            "🍎"
+            "👧",
+            "🕐",
+            "📢"
           ],
-          "praise": "Glug glug!"
+          "praise": "Loud!"
+        },
+        {
+          "id": "en:man",
+          "say": "Man!",
+          "meaning": {
+            "en": "man",
+            "ja": "おとこのひと"
+          },
+          "category": "people",
+          "answer": "👨",
+          "choices": [
+            "✍️",
+            "👨",
+            "🐴"
+          ],
+          "praise": "Man!"
+        },
+        {
+          "id": "en:muffin",
+          "say": "Muffin!",
+          "meaning": {
+            "en": "muffin",
+            "ja": "マフィン"
+          },
+          "category": "food_drink",
+          "answer": "🧁",
+          "choices": [
+            "👨",
+            "🧁",
+            "🔨"
+          ],
+          "praise": "Muffin!"
+        },
+        {
+          "id": "en:nice",
+          "say": "Nice!",
+          "meaning": {
+            "en": "nice",
+            "ja": "すてき"
+          },
+          "category": "descriptive_words",
+          "praise": "Nice!"
+        },
+        {
+          "id": "en:paint",
+          "say": "Paint!",
+          "meaning": {
+            "en": "paint",
+            "ja": "ぬる"
+          },
+          "category": "action_words",
+          "praise": "Paint!"
+        },
+        {
+          "id": "en:party",
+          "say": "Party!",
+          "meaning": {
+            "en": "party",
+            "ja": "パーティー"
+          },
+          "category": "places",
+          "answer": "🎉",
+          "choices": [
+            "🎉",
+            "🙌",
+            "🔨"
+          ],
+          "praise": "Party!"
+        },
+        {
+          "id": "en:pencil",
+          "say": "Pencil!",
+          "meaning": {
+            "en": "pencil",
+            "ja": "えんぴつ"
+          },
+          "category": "toys",
+          "answer": "✏️",
+          "choices": [
+            "🪴",
+            "🥣",
+            "✏️"
+          ],
+          "praise": "Pencil!"
+        },
+        {
+          "id": "en:popsicle",
+          "say": "Popsicle!",
+          "meaning": {
+            "en": "popsicle",
+            "ja": "アイスキャンディー"
+          },
+          "category": "food_drink",
+          "praise": "Popsicle!"
+        },
+        {
+          "id": "en:potato",
+          "say": "Potato!",
+          "meaning": {
+            "en": "potato",
+            "ja": "じゃがいも"
+          },
+          "category": "food_drink",
+          "answer": "🥔",
+          "choices": [
+            "🏫",
+            "🥔",
+            "🐿️"
+          ],
+          "praise": "Potato!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:pretty",
+          "say": "Pretty!",
+          "meaning": {
+            "en": "pretty",
+            "ja": "きれい"
+          },
+          "category": "descriptive_words",
+          "praise": "Pretty!"
+        },
+        {
+          "id": "en:sad",
+          "say": "Sad!",
+          "meaning": {
+            "en": "sad",
+            "ja": "かなしい"
+          },
+          "category": "descriptive_words",
+          "answer": "😢",
+          "choices": [
+            "😢",
+            "🚩",
+            "🪜"
+          ],
+          "praise": "Sad!"
+        },
+        {
+          "id": "en:scared",
+          "say": "Scared!",
+          "meaning": {
+            "en": "scared",
+            "ja": "こわがってる"
+          },
+          "category": "descriptive_words",
+          "answer": "😨",
+          "choices": [
+            "🗑️",
+            "🌽",
+            "😨"
+          ],
+          "praise": "Scared!"
+        },
+        {
+          "id": "en:scissors",
+          "say": "Scissors!",
+          "meaning": {
+            "en": "scissors",
+            "ja": "はさみ"
+          },
+          "category": "household",
+          "answer": "✂️",
+          "choices": [
+            "✂️",
+            "🏪",
+            "🪜"
+          ],
+          "praise": "Scissors!"
+        },
+        {
+          "id": "en:share",
+          "say": "Share!",
+          "meaning": {
+            "en": "share",
+            "ja": "わける"
+          },
+          "category": "action_words",
+          "praise": "Share!"
+        },
+        {
+          "id": "en:shopping",
+          "say": "Shopping!",
+          "meaning": {
+            "en": "shopping",
+            "ja": "お買いもの"
+          },
+          "category": "games_routines",
+          "answer": "🛒",
+          "choices": [
+            "🥛",
+            "🥫",
+            "🛒"
+          ],
+          "praise": "Shopping!"
+        },
+        {
+          "id": "en:shovel",
+          "say": "Shovel!",
+          "meaning": {
+            "en": "shovel",
+            "ja": "スコップ"
+          },
+          "category": "outside",
+          "praise": "Shovel!"
+        },
+        {
+          "id": "en:stand",
+          "say": "Stand!",
+          "meaning": {
+            "en": "stand",
+            "ja": "たつ"
+          },
+          "category": "action_words",
+          "praise": "Stand!"
+        },
+        {
+          "id": "en:street",
+          "say": "Street!",
+          "meaning": {
+            "en": "street",
+            "ja": "どうろ"
+          },
+          "category": "outside",
+          "answer": "🛣️",
+          "choices": [
+            "🗑️",
+            "🛣️",
+            "👛"
+          ],
+          "praise": "Street!"
+        },
+        {
+          "id": "en:talk",
+          "say": "Talk!",
+          "meaning": {
+            "en": "talk",
+            "ja": "はなす"
+          },
+          "category": "action_words",
+          "answer": "🗣️",
+          "choices": [
+            "🧍",
+            "🗣️",
+            "🤒"
+          ],
+          "praise": "Talk!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:this",
+          "say": "This!",
+          "meaning": {
+            "en": "this",
+            "ja": "これ"
+          },
+          "category": "pronouns",
+          "praise": "This!"
+        },
+        {
+          "id": "en:too",
+          "say": "Too!",
+          "meaning": {
+            "en": "too",
+            "ja": "〜も"
+          },
+          "category": "quantifiers",
+          "praise": "Too!"
+        },
+        {
+          "id": "en:tractor",
+          "say": "Tractor!",
+          "meaning": {
+            "en": "tractor",
+            "ja": "トラクター"
+          },
+          "category": "vehicles",
+          "answer": "🚜",
+          "choices": [
+            "🏫",
+            "🚜",
+            "🍖"
+          ],
+          "praise": "Tractor!"
+        },
+        {
+          "id": "en:turnaround",
+          "say": "Turn around!",
+          "meaning": {
+            "en": "turn around",
+            "ja": "まわる"
+          },
+          "category": "games_routines",
+          "praise": "Turn around!"
+        },
+        {
+          "id": "en:uncle",
+          "say": "Uncle!",
+          "meaning": {
+            "en": "uncle",
+            "ja": "おじさん"
+          },
+          "category": "people",
+          "praise": "Uncle!"
+        },
+        {
+          "id": "en:watch",
+          "say": "Watch!",
+          "meaning": {
+            "en": "watch",
+            "ja": "うで時計"
+          },
+          "category": "household",
+          "answer": "⌚",
+          "choices": [
+            "🧊",
+            "👨",
+            "⌚"
+          ],
+          "praise": "Watch!"
+        },
+        {
+          "id": "en:watch2",
+          "say": "Watch!",
+          "meaning": {
+            "en": "watch",
+            "ja": "みる（じっと）"
+          },
+          "category": "action_words",
+          "praise": "Watch!"
+        },
+        {
+          "id": "en:work2",
+          "say": "Work!",
+          "meaning": {
+            "en": "work",
+            "ja": "はたらく"
+          },
+          "category": "action_words",
+          "answer": "💼",
+          "choices": [
+            "🛝",
+            "🛣️",
+            "💼"
+          ],
+          "praise": "Work!"
+        },
+        {
+          "id": "en:zebra",
+          "say": "Zebra!",
+          "meaning": {
+            "en": "zebra",
+            "ja": "しまうま"
+          },
+          "category": "animals",
+          "answer": "🦓",
+          "choices": [
+            "🫛",
+            "🦓",
+            "🍫"
+          ],
+          "praise": "Zebra!"
+        },
+        {
+          "id": "en:all",
+          "say": "All!",
+          "meaning": {
+            "en": "all",
+            "ja": "ぜんぶ"
+          },
+          "category": "quantifiers",
+          "praise": "All!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:away",
+          "say": "Away!",
+          "meaning": {
+            "en": "away",
+            "ja": "むこうへ"
+          },
+          "category": "locations",
+          "praise": "Away!"
+        },
+        {
+          "id": "en:back",
+          "say": "Back!",
+          "meaning": {
+            "en": "back",
+            "ja": "もどって"
+          },
+          "category": "locations",
+          "praise": "Back!"
+        },
+        {
+          "id": "en:brother",
+          "say": "Brother!",
+          "meaning": {
+            "en": "brother",
+            "ja": "お兄さん"
+          },
+          "category": "people",
+          "answer": "👦",
+          "choices": [
+            "⬛",
+            "👦",
+            "🍔"
+          ],
+          "praise": "Brother!"
+        },
+        {
+          "id": "en:brown",
+          "say": "Brown!",
+          "meaning": {
+            "en": "brown",
+            "ja": "ちゃいろ"
+          },
+          "category": "descriptive_words",
+          "answer": "🟫",
+          "choices": [
+            "🍩",
+            "🧑‍⚕️",
+            "🟫"
+          ],
+          "praise": "Brown!"
+        },
+        {
+          "id": "en:bucket",
+          "say": "Bucket!",
+          "meaning": {
+            "en": "bucket",
+            "ja": "バケツ"
+          },
+          "category": "household",
+          "answer": "🪣",
+          "choices": [
+            "🏖️",
+            "🪣",
+            "🛝"
+          ],
+          "praise": "Bucket!"
+        },
+        {
+          "id": "en:bump",
+          "say": "Bump!",
+          "meaning": {
+            "en": "bump",
+            "ja": "ぶつかる"
+          },
+          "category": "action_words",
+          "praise": "Bump!"
+        },
+        {
+          "id": "en:camera",
+          "say": "Camera!",
+          "meaning": {
+            "en": "camera",
+            "ja": "カメラ"
+          },
+          "category": "household",
+          "answer": "📷",
+          "choices": [
+            "🍿",
+            "📷",
+            "💼"
+          ],
+          "praise": "Camera!"
+        },
+        {
+          "id": "en:cut",
+          "say": "Cut!",
+          "meaning": {
+            "en": "cut",
+            "ja": "切る"
+          },
+          "category": "action_words",
+          "praise": "Cut!"
+        },
+        {
+          "id": "en:cute",
+          "say": "Cute!",
+          "meaning": {
+            "en": "cute",
+            "ja": "かわいい"
+          },
+          "category": "descriptive_words",
+          "praise": "Cute!"
+        },
+        {
+          "id": "en:dark",
+          "say": "Dark!",
+          "meaning": {
+            "en": "dark",
+            "ja": "くらい"
+          },
+          "category": "descriptive_words",
+          "praise": "Dark!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:dish",
+          "say": "Dish!",
+          "meaning": {
+            "en": "dish",
+            "ja": "お皿"
+          },
+          "category": "household",
+          "answer": "🍽️",
+          "choices": [
+            "🍽️",
+            "🚩",
+            "🏍️"
+          ],
+          "praise": "Dish!"
+        },
+        {
+          "id": "en:dry",
+          "say": "Dry!",
+          "meaning": {
+            "en": "dry",
+            "ja": "かわかす"
+          },
+          "category": "action_words",
+          "praise": "Dry!"
+        },
+        {
+          "id": "en:dry2",
+          "say": "Dry!",
+          "meaning": {
+            "en": "dry",
+            "ja": "かわいた"
+          },
+          "category": "descriptive_words",
+          "praise": "Dry!"
+        },
+        {
+          "id": "en:empty",
+          "say": "Empty!",
+          "meaning": {
+            "en": "empty",
+            "ja": "からっぽ"
+          },
+          "category": "descriptive_words",
+          "praise": "Empty!"
+        },
+        {
+          "id": "en:feed",
+          "say": "Feed!",
+          "meaning": {
+            "en": "feed",
+            "ja": "たべさせる"
+          },
+          "category": "action_words",
+          "need": "eat",
+          "praise": "Feed!"
+        },
+        {
+          "id": "en:friend",
+          "say": "Friend!",
+          "meaning": {
+            "en": "friend",
+            "ja": "おともだち"
+          },
+          "category": "people",
+          "praise": "Friend!"
+        },
+        {
+          "id": "en:full",
+          "say": "Full!",
+          "meaning": {
+            "en": "full",
+            "ja": "いっぱい"
+          },
+          "category": "descriptive_words",
+          "praise": "Full!"
+        },
+        {
+          "id": "en:gloves",
+          "say": "Gloves!",
+          "meaning": {
+            "en": "gloves",
+            "ja": "てぶくろ"
+          },
+          "category": "clothing",
+          "answer": "🧤",
+          "choices": [
+            "🧤",
+            "🗣️",
+            "🍬"
+          ],
+          "praise": "Gloves!"
+        },
+        {
+          "id": "en:hammer",
+          "say": "Hammer!",
+          "meaning": {
+            "en": "hammer",
+            "ja": "かなづち"
+          },
+          "category": "household",
+          "answer": "🔨",
+          "choices": [
+            "🔨",
+            "🔍",
+            "👩"
+          ],
+          "praise": "Hammer!"
+        },
+        {
+          "id": "en:hear",
+          "say": "Hear!",
+          "meaning": {
+            "en": "hear",
+            "ja": "聞こえる"
+          },
+          "category": "action_words",
+          "praise": "Hear!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:high",
+          "say": "High!",
+          "meaning": {
+            "en": "high",
+            "ja": "たかい"
+          },
+          "category": "descriptive_words",
+          "praise": "High!"
+        },
+        {
+          "id": "en:hose",
+          "say": "Hose!",
+          "meaning": {
+            "en": "hose",
+            "ja": "ホース"
+          },
+          "category": "outside",
+          "praise": "Hose!"
+        },
+        {
+          "id": "en:it",
+          "say": "It!",
+          "meaning": {
+            "en": "it",
+            "ja": "それ"
+          },
+          "category": "pronouns",
+          "praise": "It!"
+        },
+        {
+          "id": "en:knock",
+          "say": "Knock!",
+          "meaning": {
+            "en": "knock",
+            "ja": "ノックする"
+          },
+          "category": "action_words",
+          "praise": "Knock!"
+        },
+        {
+          "id": "en:later",
+          "say": "Later!",
+          "meaning": {
+            "en": "later",
+            "ja": "あとで"
+          },
+          "category": "time_words",
+          "praise": "Later!"
+        },
+        {
+          "id": "en:lick",
+          "say": "Lick!",
+          "meaning": {
+            "en": "lick",
+            "ja": "なめる"
+          },
+          "category": "action_words",
+          "praise": "Lick!"
+        },
+        {
+          "id": "en:livingroom",
+          "say": "Living room!",
+          "meaning": {
+            "en": "living room",
+            "ja": "リビング"
+          },
+          "category": "furniture_rooms",
+          "praise": "Living room!"
+        },
+        {
+          "id": "en:make",
+          "say": "Make!",
+          "meaning": {
+            "en": "make",
+            "ja": "つくる"
+          },
+          "category": "action_words",
+          "praise": "Make!"
+        },
+        {
+          "id": "en:meat",
+          "say": "Meat!",
+          "meaning": {
+            "en": "meat",
+            "ja": "肉"
+          },
+          "category": "food_drink",
+          "answer": "🍖",
+          "choices": [
+            "🛒",
+            "👛",
+            "🍖"
+          ],
+          "praise": "Meat!"
+        },
+        {
+          "id": "en:morning",
+          "say": "Morning!",
+          "meaning": {
+            "en": "morning",
+            "ja": "あさ"
+          },
+          "category": "time_words",
+          "answer": "🌅",
+          "choices": [
+            "🟥",
+            "🌅",
+            "🛒"
+          ],
+          "praise": "Morning!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:necklace",
+          "say": "Necklace!",
+          "meaning": {
+            "en": "necklace",
+            "ja": "ネックレス"
+          },
+          "category": "clothing",
+          "answer": "📿",
+          "choices": [
+            "🧊",
+            "📿",
+            "👦"
+          ],
+          "praise": "Necklace!"
+        },
+        {
+          "id": "en:oven",
+          "say": "Oven!",
+          "meaning": {
+            "en": "oven",
+            "ja": "オーブン"
+          },
+          "category": "furniture_rooms",
+          "praise": "Oven!"
+        },
+        {
+          "id": "en:penguin",
+          "say": "Penguin!",
+          "meaning": {
+            "en": "penguin",
+            "ja": "ペンギン"
+          },
+          "category": "animals",
+          "answer": "🐧",
+          "choices": [
+            "📿",
+            "🗑️",
+            "🐧"
+          ],
+          "praise": "Penguin!"
+        },
+        {
+          "id": "en:pickle",
+          "say": "Pickle!",
+          "meaning": {
+            "en": "pickle",
+            "ja": "ピクルス"
+          },
+          "category": "food_drink",
+          "praise": "Pickle!"
+        },
+        {
+          "id": "en:plant",
+          "say": "Plant!",
+          "meaning": {
+            "en": "plant",
+            "ja": "植物"
+          },
+          "category": "household",
+          "answer": "🪴",
+          "choices": [
+            "🪴",
+            "🐿️",
+            "👦"
+          ],
+          "praise": "Plant!"
+        },
+        {
+          "id": "en:playdough",
+          "say": "Play dough!",
+          "meaning": {
+            "en": "play dough",
+            "ja": "ねんど"
+          },
+          "category": "toys",
+          "praise": "Play dough!"
+        },
+        {
+          "id": "en:playground",
+          "say": "Playground!",
+          "meaning": {
+            "en": "playground",
+            "ja": "あそびば"
+          },
+          "category": "places",
+          "answer": "🛝",
+          "choices": [
+            "🥫",
+            "🟫",
+            "🛝"
+          ],
+          "praise": "Playground!"
+        },
+        {
+          "id": "en:pull",
+          "say": "Pull!",
+          "meaning": {
+            "en": "pull",
+            "ja": "ひっぱる"
+          },
+          "category": "action_words",
+          "praise": "Pull!"
+        },
+        {
+          "id": "en:pumpkin",
+          "say": "Pumpkin!",
+          "meaning": {
+            "en": "pumpkin",
+            "ja": "かぼちゃ"
+          },
+          "category": "food_drink",
+          "answer": "🎃",
+          "choices": [
+            "🚿",
+            "🎃",
+            "🔍"
+          ],
+          "praise": "Pumpkin!"
+        },
+        {
+          "id": "en:purse",
+          "say": "Purse!",
+          "meaning": {
+            "en": "purse",
+            "ja": "ハンドバッグ"
+          },
+          "category": "household",
+          "answer": "👛",
+          "choices": [
+            "👛",
+            "🍟",
+            "🌬️"
+          ],
+          "praise": "Purse!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:quiet",
+          "say": "Quiet!",
+          "meaning": {
+            "en": "quiet",
+            "ja": "しずか"
+          },
+          "category": "descriptive_words",
+          "praise": "Quiet!"
+        },
+        {
+          "id": "en:shake",
+          "say": "Shake!",
+          "meaning": {
+            "en": "shake",
+            "ja": "ふる"
+          },
+          "category": "action_words",
+          "praise": "Shake!"
+        },
+        {
+          "id": "en:shoulder",
+          "say": "Shoulder!",
+          "meaning": {
+            "en": "shoulder",
+            "ja": "肩"
+          },
+          "category": "body_parts",
+          "praise": "Shoulder!"
+        },
+        {
+          "id": "en:show",
+          "say": "Show!",
+          "meaning": {
+            "en": "show",
+            "ja": "みせる"
+          },
+          "category": "action_words",
+          "praise": "Show!"
+        },
+        {
+          "id": "en:sick",
+          "say": "Sick!",
+          "meaning": {
+            "en": "sick",
+            "ja": "病気"
+          },
+          "category": "descriptive_words",
+          "answer": "🤒",
+          "choices": [
+            "🤒",
+            "📷",
+            "🍽️"
+          ],
+          "praise": "Sick!"
+        },
+        {
+          "id": "en:sister",
+          "say": "Sister!",
+          "meaning": {
+            "en": "sister",
+            "ja": "お姉さん"
+          },
+          "category": "people",
+          "answer": "👧",
+          "choices": [
+            "🌬️",
+            "👧",
+            "👏"
+          ],
+          "praise": "Sister!"
+        },
+        {
+          "id": "en:snowman",
+          "say": "Snowman!",
+          "meaning": {
+            "en": "snowman",
+            "ja": "雪だるま"
+          },
+          "category": "outside",
+          "answer": "⛄",
+          "choices": [
+            "🧑‍🚒",
+            "⛄",
+            "🧁"
+          ],
+          "praise": "Snowman!"
+        },
+        {
+          "id": "en:soft",
+          "say": "Soft!",
+          "meaning": {
+            "en": "soft",
+            "ja": "やわらかい"
+          },
+          "category": "descriptive_words",
+          "praise": "Soft!"
+        },
+        {
+          "id": "en:some",
+          "say": "Some!",
+          "meaning": {
+            "en": "some",
+            "ja": "いくつか"
+          },
+          "category": "quantifiers",
+          "praise": "Some!"
+        },
+        {
+          "id": "en:spill",
+          "say": "Spill!",
+          "meaning": {
+            "en": "spill",
+            "ja": "こぼす"
+          },
+          "category": "action_words",
+          "praise": "Spill!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:stay",
+          "say": "Stay!",
+          "meaning": {
+            "en": "stay",
+            "ja": "いる（とどまる）"
+          },
+          "category": "action_words",
+          "praise": "Stay!"
+        },
+        {
+          "id": "en:sticky",
+          "say": "Sticky!",
+          "meaning": {
+            "en": "sticky",
+            "ja": "べたべた"
+          },
+          "category": "descriptive_words",
+          "praise": "Sticky!"
+        },
+        {
+          "id": "en:stuck",
+          "say": "Stuck!",
+          "meaning": {
+            "en": "stuck",
+            "ja": "うごかない"
+          },
+          "category": "descriptive_words",
+          "praise": "Stuck!"
+        },
+        {
+          "id": "en:sweater",
+          "say": "Sweater!",
+          "meaning": {
+            "en": "sweater",
+            "ja": "セーター"
+          },
+          "category": "clothing",
+          "praise": "Sweater!"
+        },
+        {
+          "id": "en:sweep",
+          "say": "Sweep!",
+          "meaning": {
+            "en": "sweep",
+            "ja": "はく（ほうきで）"
+          },
+          "category": "action_words",
+          "answer": "🧹",
+          "choices": [
+            "😨",
+            "🧹",
+            "🎁"
+          ],
+          "praise": "Sweep!"
+        },
+        {
+          "id": "en:take",
+          "say": "Take!",
+          "meaning": {
+            "en": "take",
+            "ja": "とる"
+          },
+          "category": "action_words",
+          "praise": "Take!"
+        },
+        {
+          "id": "en:tape",
+          "say": "Tape!",
+          "meaning": {
+            "en": "tape",
+            "ja": "テープ"
+          },
+          "category": "household",
+          "praise": "Tape!"
+        },
+        {
+          "id": "en:underpants",
+          "say": "Underpants!",
+          "meaning": {
+            "en": "underpants",
+            "ja": "パンツ（下着）"
+          },
+          "category": "clothing",
+          "answer": "🩲",
+          "choices": [
+            "🦓",
+            "👧",
+            "🩲"
+          ],
+          "praise": "Underpants!"
+        },
+        {
+          "id": "en:wake",
+          "say": "Wake!",
+          "meaning": {
+            "en": "wake",
+            "ja": "おきる"
+          },
+          "category": "action_words",
+          "praise": "Wake!"
+        },
+        {
+          "id": "en:white",
+          "say": "White!",
+          "meaning": {
+            "en": "white",
+            "ja": "白い"
+          },
+          "category": "descriptive_words",
+          "answer": "⬜",
+          "choices": [
+            "👦",
+            "🤔",
+            "⬜"
+          ],
+          "praise": "White!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:why",
+          "say": "Why?",
+          "meaning": {
+            "en": "why",
+            "ja": "どうして"
+          },
+          "category": "question_words",
+          "praise": "Why?"
+        },
+        {
+          "id": "en:wind",
+          "say": "Wind!",
+          "meaning": {
+            "en": "wind",
+            "ja": "風"
+          },
+          "category": "outside",
+          "answer": "🌬️",
+          "choices": [
+            "🌬️",
+            "👏",
+            "🚜"
+          ],
+          "praise": "Wind!"
+        },
+        {
+          "id": "en:windy",
+          "say": "Windy!",
+          "meaning": {
+            "en": "windy",
+            "ja": "かぜがつよい"
+          },
+          "category": "descriptive_words",
+          "answer": "🌬️",
+          "choices": [
+            "🐊",
+            "🍽️",
+            "🌬️"
+          ],
+          "praise": "Windy!"
+        },
+        {
+          "id": "en:zoo",
+          "say": "Zoo!",
+          "meaning": {
+            "en": "zoo",
+            "ja": "動物園"
+          },
+          "category": "places",
+          "praise": "Zoo!"
+        },
+        {
+          "id": "en:alot",
+          "say": "A lot!",
+          "meaning": {
+            "en": "a lot",
+            "ja": "たくさん"
+          },
+          "category": "quantifiers",
+          "praise": "A lot!"
+        },
+        {
+          "id": "en:backyard",
+          "say": "Backyard!",
+          "meaning": {
+            "en": "backyard",
+            "ja": "うらにわ"
+          },
+          "category": "outside",
+          "praise": "Backyard!"
+        },
+        {
+          "id": "en:bat",
+          "say": "Bat!",
+          "meaning": {
+            "en": "bat",
+            "ja": "バット"
+          },
+          "category": "toys",
+          "praise": "Bat!"
+        },
+        {
+          "id": "en:better",
+          "say": "Better!",
+          "meaning": {
+            "en": "better",
+            "ja": "よりよい"
+          },
+          "category": "descriptive_words",
+          "praise": "Better!"
+        },
+        {
+          "id": "en:buy",
+          "say": "Buy!",
+          "meaning": {
+            "en": "buy",
+            "ja": "買う"
+          },
+          "category": "action_words",
+          "praise": "Buy!"
+        },
+        {
+          "id": "en:chalk",
+          "say": "Chalk!",
+          "meaning": {
+            "en": "chalk",
+            "ja": "チョーク"
+          },
+          "category": "toys",
+          "praise": "Chalk!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:chase",
+          "say": "Chase!",
+          "meaning": {
+            "en": "chase",
+            "ja": "おいかける"
+          },
+          "category": "action_words",
+          "praise": "Chase!"
+        },
+        {
+          "id": "en:cover",
+          "say": "Cover!",
+          "meaning": {
+            "en": "cover",
+            "ja": "おおう"
+          },
+          "category": "action_words",
+          "praise": "Cover!"
+        },
+        {
+          "id": "en:day",
+          "say": "Day!",
+          "meaning": {
+            "en": "day",
+            "ja": "ひる"
+          },
+          "category": "time_words",
+          "answer": "☀️",
+          "choices": [
+            "👧",
+            "☀️",
+            "🍿"
+          ],
+          "praise": "Day!"
+        },
+        {
+          "id": "en:deer",
+          "say": "Deer!",
+          "meaning": {
+            "en": "deer",
+            "ja": "シカ"
+          },
+          "category": "animals",
+          "answer": "🦌",
+          "choices": [
+            "🦌",
+            "🚜",
+            "🏪"
+          ],
+          "praise": "Deer!"
+        },
+        {
+          "id": "en:drawer",
+          "say": "Drawer!",
+          "meaning": {
+            "en": "drawer",
+            "ja": "ひきだし"
+          },
+          "category": "furniture_rooms",
+          "praise": "Drawer!"
+        },
+        {
+          "id": "en:farm",
+          "say": "Farm!",
+          "meaning": {
+            "en": "farm",
+            "ja": "のうじょう"
+          },
+          "category": "places",
+          "praise": "Farm!"
+        },
+        {
+          "id": "en:finish",
+          "say": "Finish!",
+          "meaning": {
+            "en": "finish",
+            "ja": "おわらせる"
+          },
+          "category": "action_words",
+          "answer": "🏁",
+          "choices": [
+            "🌅",
+            "😢",
+            "🏁"
+          ],
+          "praise": "Finish!"
+        },
+        {
+          "id": "en:fireman",
+          "say": "Fireman!",
+          "meaning": {
+            "en": "fireman",
+            "ja": "しょうぼうし"
+          },
+          "category": "people",
+          "answer": "🧑‍🚒",
+          "choices": [
+            "🥨",
+            "🐺",
+            "🧑‍🚒"
+          ],
+          "praise": "Fireman!"
+        },
+        {
+          "id": "en:first",
+          "say": "First!",
+          "meaning": {
+            "en": "first",
+            "ja": "いちばん"
+          },
+          "category": "descriptive_words",
+          "praise": "First!"
+        },
+        {
+          "id": "en:flag",
+          "say": "Flag!",
+          "meaning": {
+            "en": "flag",
+            "ja": "旗"
+          },
+          "category": "outside",
+          "answer": "🚩",
+          "choices": [
+            "🚩",
+            "🤕",
+            "🌅"
+          ],
+          "praise": "Flag!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:garage",
+          "say": "Garage!",
+          "meaning": {
+            "en": "garage",
+            "ja": "ガレージ"
+          },
+          "category": "furniture_rooms",
+          "praise": "Garage!"
+        },
+        {
+          "id": "en:garden",
+          "say": "Garden!",
+          "meaning": {
+            "en": "garden",
+            "ja": "庭"
+          },
+          "category": "outside",
+          "praise": "Garden!"
+        },
+        {
+          "id": "en:hard",
+          "say": "Hard!",
+          "meaning": {
+            "en": "hard",
+            "ja": "かたい"
+          },
+          "category": "descriptive_words",
+          "praise": "Hard!"
+        },
+        {
+          "id": "en:he",
+          "say": "He!",
+          "meaning": {
+            "en": "he",
+            "ja": "かれ"
+          },
+          "category": "pronouns",
+          "praise": "He!"
+        },
+        {
+          "id": "en:hurry",
+          "say": "Hurry!",
+          "meaning": {
+            "en": "hurry",
+            "ja": "いそぐ"
+          },
+          "category": "action_words",
+          "praise": "Hurry!"
+        },
+        {
+          "id": "en:ladder",
+          "say": "Ladder!",
+          "meaning": {
+            "en": "ladder",
+            "ja": "はしご"
+          },
+          "category": "outside",
+          "answer": "🪜",
+          "choices": [
+            "🥣",
+            "🪜",
+            "🥫"
+          ],
+          "praise": "Ladder!"
+        },
+        {
+          "id": "en:lamp",
+          "say": "Lamp!",
+          "meaning": {
+            "en": "lamp",
+            "ja": "ランプ"
+          },
+          "category": "household",
+          "answer": "🪔",
+          "choices": [
+            "🪔",
+            "🫛",
+            "🎉"
+          ],
+          "praise": "Lamp!"
+        },
+        {
+          "id": "en:lawnmower",
+          "say": "Lawn mower!",
+          "meaning": {
+            "en": "lawn mower",
+            "ja": "しばかりき"
+          },
+          "category": "outside",
+          "praise": "Lawn mower!"
+        },
+        {
+          "id": "en:listen",
+          "say": "Listen!",
+          "meaning": {
+            "en": "listen",
+            "ja": "きく"
+          },
+          "category": "action_words",
+          "praise": "Listen!"
+        },
+        {
+          "id": "en:lollipop",
+          "say": "Lollipop!",
+          "meaning": {
+            "en": "lollipop",
+            "ja": "ペロペロキャンディー"
+          },
+          "category": "food_drink",
+          "answer": "🍭",
+          "choices": [
+            "🍭",
+            "❄️",
+            "🐓"
+          ],
+          "praise": "Lollipop!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:mad",
+          "say": "Mad!",
+          "meaning": {
+            "en": "mad",
+            "ja": "おこってる"
+          },
+          "category": "descriptive_words",
+          "answer": "😠",
+          "choices": [
+            "✏️",
+            "🎉",
+            "😠"
+          ],
+          "praise": "Mad!"
+        },
+        {
+          "id": "en:mittens",
+          "say": "Mittens!",
+          "meaning": {
+            "en": "mittens",
+            "ja": "ミトン（てぶくろ）"
+          },
+          "category": "clothing",
+          "praise": "Mittens!"
+        },
+        {
+          "id": "en:new",
+          "say": "New!",
+          "meaning": {
+            "en": "new",
+            "ja": "あたらしい"
+          },
+          "category": "descriptive_words",
+          "praise": "New!"
+        },
+        {
+          "id": "en:noisy",
+          "say": "Noisy!",
+          "meaning": {
+            "en": "noisy",
+            "ja": "うるさい"
+          },
+          "category": "descriptive_words",
+          "praise": "Noisy!"
+        },
+        {
+          "id": "en:not",
+          "say": "Not!",
+          "meaning": {
+            "en": "not",
+            "ja": "〜ない"
+          },
+          "category": "quantifiers",
+          "praise": "Not!"
+        },
+        {
+          "id": "en:nuts",
+          "say": "Nuts!",
+          "meaning": {
+            "en": "nuts",
+            "ja": "ナッツ"
+          },
+          "category": "food_drink",
+          "praise": "Nuts!"
+        },
+        {
+          "id": "en:over",
+          "say": "Over!",
+          "meaning": {
+            "en": "over",
+            "ja": "こえて"
+          },
+          "category": "locations",
+          "praise": "Over!"
+        },
+        {
+          "id": "en:pattycake",
+          "say": "Pattycake!",
+          "meaning": {
+            "en": "pattycake",
+            "ja": "てあそび（パティケーキ）"
+          },
+          "category": "games_routines",
+          "answer": "👏",
+          "choices": [
+            "👏",
+            "🧩",
+            "🩲"
+          ],
+          "praise": "Pattycake!"
+        },
+        {
+          "id": "en:people",
+          "say": "People!",
+          "meaning": {
+            "en": "people",
+            "ja": "人"
+          },
+          "category": "people",
+          "answer": "🧍",
+          "choices": [
+            "😢",
+            "🧍",
+            "🦓"
+          ],
+          "praise": "People!"
+        },
+        {
+          "id": "en:pick",
+          "say": "Pick!",
+          "meaning": {
+            "en": "pick",
+            "ja": "えらぶ"
+          },
+          "category": "action_words",
+          "praise": "Pick!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:police",
+          "say": "Police!",
+          "meaning": {
+            "en": "police",
+            "ja": "けいさつ"
+          },
+          "category": "people",
+          "answer": "👮",
+          "choices": [
+            "😠",
+            "👮",
+            "🍈"
+          ],
+          "praise": "Police!"
+        },
+        {
+          "id": "en:pour",
+          "say": "Pour!",
+          "meaning": {
+            "en": "pour",
+            "ja": "そそぐ"
+          },
+          "category": "action_words",
+          "praise": "Pour!"
+        },
+        {
+          "id": "en:pretzel",
+          "say": "Pretzel!",
+          "meaning": {
+            "en": "pretzel",
+            "ja": "プレッツェル"
+          },
+          "category": "food_drink",
+          "answer": "🥨",
+          "choices": [
+            "📢",
+            "🧤",
+            "🥨"
+          ],
+          "praise": "Pretzel!"
+        },
+        {
+          "id": "en:sauce",
+          "say": "Sauce!",
+          "meaning": {
+            "en": "sauce",
+            "ja": "ソース"
+          },
+          "category": "food_drink",
+          "praise": "Sauce!"
+        },
+        {
+          "id": "en:sidewalk",
+          "say": "Sidewalk!",
+          "meaning": {
+            "en": "sidewalk",
+            "ja": "ほどう"
+          },
+          "category": "outside",
+          "praise": "Sidewalk!"
+        },
+        {
+          "id": "en:slipper",
+          "say": "Slipper!",
+          "meaning": {
+            "en": "slipper",
+            "ja": "スリッパ"
+          },
+          "category": "clothing",
+          "praise": "Slipper!"
+        },
+        {
+          "id": "en:slow",
+          "say": "Slow!",
+          "meaning": {
+            "en": "slow",
+            "ja": "遅い"
+          },
+          "category": "descriptive_words",
+          "praise": "Slow!"
+        },
+        {
+          "id": "en:stove",
+          "say": "Stove!",
+          "meaning": {
+            "en": "stove",
+            "ja": "ストーブ"
+          },
+          "category": "furniture_rooms",
+          "praise": "Stove!"
+        },
+        {
+          "id": "en:taste",
+          "say": "Taste!",
+          "meaning": {
+            "en": "taste",
+            "ja": "あじみする"
+          },
+          "category": "action_words",
+          "praise": "Taste!"
+        },
+        {
+          "id": "en:teacher",
+          "say": "Teacher!",
+          "meaning": {
+            "en": "teacher",
+            "ja": "せんせい"
+          },
+          "category": "people",
+          "answer": "🧑‍🏫",
+          "choices": [
+            "💴",
+            "🧺",
+            "🧑‍🏫"
+          ],
+          "praise": "Teacher!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:thislittlepiggy",
+          "say": "This little piggy!",
+          "meaning": {
+            "en": "this little piggy",
+            "ja": "ゆびあそび（このこぶたちゃん）"
+          },
+          "category": "games_routines",
+          "praise": "This little piggy!"
+        },
+        {
+          "id": "en:today",
+          "say": "Today!",
+          "meaning": {
+            "en": "today",
+            "ja": "きょう"
+          },
+          "category": "time_words",
+          "praise": "Today!"
+        },
+        {
+          "id": "en:turkey",
+          "say": "Turkey!",
+          "meaning": {
+            "en": "turkey",
+            "ja": "七面鳥"
+          },
+          "category": "animals",
+          "answer": "🦃",
+          "choices": [
+            "😢",
+            "😠",
+            "🦃"
+          ],
+          "praise": "Turkey!"
+        },
+        {
+          "id": "en:washingmachine",
+          "say": "Washing machine!",
+          "meaning": {
+            "en": "washing machine",
+            "ja": "せんたくき"
+          },
+          "category": "furniture_rooms",
+          "praise": "Washing machine!"
+        },
+        {
+          "id": "en:who",
+          "say": "Who?",
+          "meaning": {
+            "en": "who",
+            "ja": "だれ"
+          },
+          "category": "question_words",
+          "praise": "Who?"
+        },
+        {
+          "id": "en:with",
+          "say": "With!",
+          "meaning": {
+            "en": "with",
+            "ja": "いっしょに"
+          },
+          "category": "locations",
+          "praise": "With!"
+        },
+        {
+          "id": "en:write",
+          "say": "Write!",
+          "meaning": {
+            "en": "write",
+            "ja": "かく"
+          },
+          "category": "action_words",
+          "answer": "✍️",
+          "choices": [
+            "🥣",
+            "✍️",
+            "🍽️"
+          ],
+          "praise": "Write!"
+        },
+        {
+          "id": "en:yard",
+          "say": "Yard!",
+          "meaning": {
+            "en": "yard",
+            "ja": "にわ"
+          },
+          "category": "places",
+          "praise": "Yard!"
+        },
+        {
+          "id": "en:after",
+          "say": "After!",
+          "meaning": {
+            "en": "after",
+            "ja": "あとで"
+          },
+          "category": "time_words",
+          "praise": "After!"
+        },
+        {
+          "id": "en:another",
+          "say": "Another!",
+          "meaning": {
+            "en": "another",
+            "ja": "もうひとつ"
+          },
+          "category": "quantifiers",
+          "praise": "Another!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:behind",
+          "say": "Behind!",
+          "meaning": {
+            "en": "behind",
+            "ja": "うしろ"
+          },
+          "category": "locations",
+          "praise": "Behind!"
+        },
+        {
+          "id": "en:belt",
+          "say": "Belt!",
+          "meaning": {
+            "en": "belt",
+            "ja": "ベルト"
+          },
+          "category": "clothing",
+          "praise": "Belt!"
+        },
+        {
+          "id": "en:can",
+          "say": "Can!",
+          "meaning": {
+            "en": "can",
+            "ja": "かん"
+          },
+          "category": "household",
+          "answer": "🥫",
+          "choices": [
+            "😨",
+            "🥫",
+            "🎬"
+          ],
+          "praise": "Can!"
+        },
+        {
+          "id": "en:dryer",
+          "say": "Dryer!",
+          "meaning": {
+            "en": "dryer",
+            "ja": "かんそうき"
+          },
+          "category": "furniture_rooms",
+          "praise": "Dryer!"
+        },
+        {
+          "id": "en:fit",
+          "say": "Fit!",
+          "meaning": {
+            "en": "fit",
+            "ja": "はいる（ぴったり）"
+          },
+          "category": "action_words",
+          "praise": "Fit!"
+        },
+        {
+          "id": "en:gasstation",
+          "say": "Gas station!",
+          "meaning": {
+            "en": "gas station",
+            "ja": "ガソリンスタンド"
+          },
+          "category": "places",
+          "answer": "⛽",
+          "choices": [
+            "⛽",
+            "🥞",
+            "🎁"
+          ],
+          "praise": "Gas station!"
+        },
+        {
+          "id": "en:greenbeans",
+          "say": "Green beans!",
+          "meaning": {
+            "en": "green beans",
+            "ja": "さやいんげん"
+          },
+          "category": "food_drink",
+          "answer": "🫛",
+          "choices": [
+            "🛝",
+            "🧍",
+            "🫛"
+          ],
+          "praise": "Green beans!"
+        },
+        {
+          "id": "en:her",
+          "say": "Her!",
+          "meaning": {
+            "en": "her",
+            "ja": "かのじょ（を・の）"
+          },
+          "category": "pronouns",
+          "praise": "Her!"
+        },
+        {
+          "id": "en:jeans",
+          "say": "Jeans!",
+          "meaning": {
+            "en": "jeans",
+            "ja": "ジーパン"
+          },
+          "category": "clothing",
+          "praise": "Jeans!"
+        },
+        {
+          "id": "en:jelly",
+          "say": "Jelly!",
+          "meaning": {
+            "en": "jelly",
+            "ja": "ゼリー"
+          },
+          "category": "food_drink",
+          "praise": "Jelly!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:lady",
+          "say": "Lady!",
+          "meaning": {
+            "en": "lady",
+            "ja": "おんなのひと"
+          },
+          "category": "people",
+          "answer": "👩",
+          "choices": [
+            "🔪",
+            "🐜",
+            "👩"
+          ],
+          "praise": "Lady!"
+        },
+        {
+          "id": "en:lamb",
+          "say": "Lamb!",
+          "meaning": {
+            "en": "lamb",
+            "ja": "こひつじ"
+          },
+          "category": "animals",
+          "answer": "🐑",
+          "choices": [
+            "🧹",
+            "🐑",
+            "🚿"
+          ],
+          "praise": "Lamb!"
+        },
+        {
+          "id": "en:long",
+          "say": "Long!",
+          "meaning": {
+            "en": "long",
+            "ja": "長い"
+          },
+          "category": "descriptive_words",
+          "praise": "Long!"
+        },
+        {
+          "id": "en:melon",
+          "say": "Melon!",
+          "meaning": {
+            "en": "melon",
+            "ja": "メロン"
+          },
+          "category": "food_drink",
+          "answer": "🍈",
+          "choices": [
+            "🍈",
+            "🏪",
+            "🤔"
+          ],
+          "praise": "Melon!"
+        },
+        {
+          "id": "en:movie",
+          "say": "Movie!",
+          "meaning": {
+            "en": "movie",
+            "ja": "映画"
+          },
+          "category": "places",
+          "answer": "🎬",
+          "choices": [
+            "🩲",
+            "🍽️",
+            "🎬"
+          ],
+          "praise": "Movie!"
+        },
+        {
+          "id": "en:nail",
+          "say": "Nail!",
+          "meaning": {
+            "en": "nail",
+            "ja": "くぎ"
+          },
+          "category": "household",
+          "praise": "Nail!"
+        },
+        {
+          "id": "en:old",
+          "say": "Old!",
+          "meaning": {
+            "en": "old",
+            "ja": "ふるい"
+          },
+          "category": "descriptive_words",
+          "praise": "Old!"
+        },
+        {
+          "id": "en:ontopof",
+          "say": "On top of!",
+          "meaning": {
+            "en": "on top of",
+            "ja": "のうえ"
+          },
+          "category": "locations",
+          "praise": "On top of!"
+        },
+        {
+          "id": "en:picnic",
+          "say": "Picnic!",
+          "meaning": {
+            "en": "picnic",
+            "ja": "ピクニック"
+          },
+          "category": "places",
+          "praise": "Picnic!"
+        },
+        {
+          "id": "en:sandbox",
+          "say": "Sandbox!",
+          "meaning": {
+            "en": "sandbox",
+            "ja": "砂場"
+          },
+          "category": "outside",
+          "praise": "Sandbox!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:she",
+          "say": "She!",
+          "meaning": {
+            "en": "she",
+            "ja": "かのじょ"
+          },
+          "category": "pronouns",
+          "praise": "She!"
+        },
+        {
+          "id": "en:tomorrow",
+          "say": "Tomorrow!",
+          "meaning": {
+            "en": "tomorrow",
+            "ja": "あした"
+          },
+          "category": "time_words",
+          "praise": "Tomorrow!"
+        },
+        {
+          "id": "en:vitamins",
+          "say": "Vitamins!",
+          "meaning": {
+            "en": "vitamins",
+            "ja": "ビタミン"
+          },
+          "category": "food_drink",
+          "praise": "Vitamins!"
+        },
+        {
+          "id": "en:wolf",
+          "say": "Wolf!",
+          "meaning": {
+            "en": "wolf",
+            "ja": "おおかみ"
+          },
+          "category": "animals",
+          "answer": "🐺",
+          "choices": [
+            "🧑‍🚒",
+            "🥜",
+            "🐺"
+          ],
+          "praise": "Wolf!"
+        },
+        {
+          "id": "en:your",
+          "say": "Your!",
+          "meaning": {
+            "en": "your",
+            "ja": "あなたの"
+          },
+          "category": "pronouns",
+          "praise": "Your!"
+        },
+        {
+          "id": "en:around",
+          "say": "Around!",
+          "meaning": {
+            "en": "around",
+            "ja": "まわり"
+          },
+          "category": "locations",
+          "praise": "Around!"
+        },
+        {
+          "id": "en:because",
+          "say": "Because!",
+          "meaning": {
+            "en": "because",
+            "ja": "だって"
+          },
+          "category": "connecting_words",
+          "praise": "Because!"
+        },
+        {
+          "id": "en:goose",
+          "say": "Goose!",
+          "meaning": {
+            "en": "goose",
+            "ja": "ガチョウ"
+          },
+          "category": "animals",
+          "answer": "🪿",
+          "choices": [
+            "🟩",
+            "🔪",
+            "🪿"
+          ],
+          "praise": "Goose!"
+        },
+        {
+          "id": "en:how",
+          "say": "How?",
+          "meaning": {
+            "en": "how",
+            "ja": "どう"
+          },
+          "category": "question_words",
+          "praise": "How?"
+        },
+        {
+          "id": "en:mailman",
+          "say": "Mailman!",
+          "meaning": {
+            "en": "mailman",
+            "ja": "ゆうびんやさん"
+          },
+          "category": "people",
+          "praise": "Mailman!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:pony",
+          "say": "Pony!",
+          "meaning": {
+            "en": "pony",
+            "ja": "ポニー"
+          },
+          "category": "animals",
+          "answer": "🐴",
+          "choices": [
+            "🖊️",
+            "🐴",
+            "⛄"
+          ],
+          "praise": "Pony!"
+        },
+        {
+          "id": "en:pretend",
+          "say": "Pretend!",
+          "meaning": {
+            "en": "pretend",
+            "ja": "ごっこあそびする"
+          },
+          "category": "action_words",
+          "praise": "Pretend!"
+        },
+        {
+          "id": "en:roof",
+          "say": "Roof!",
+          "meaning": {
+            "en": "roof",
+            "ja": "屋根"
+          },
+          "category": "outside",
+          "praise": "Roof!"
+        },
+        {
+          "id": "en:rooster",
+          "say": "Rooster!",
+          "meaning": {
+            "en": "rooster",
+            "ja": "おんどり"
+          },
+          "category": "animals",
+          "answer": "🐓",
+          "choices": [
+            "📷",
+            "🎬",
+            "🐓"
+          ],
+          "praise": "Rooster!"
+        },
+        {
+          "id": "en:same",
+          "say": "Same!",
+          "meaning": {
+            "en": "same",
+            "ja": "同じ"
+          },
+          "category": "quantifiers",
+          "praise": "Same!"
+        },
+        {
+          "id": "en:sofa",
+          "say": "Sofa!",
+          "meaning": {
+            "en": "sofa",
+            "ja": "ソファー"
+          },
+          "category": "furniture_rooms",
+          "praise": "Sofa!"
+        },
+        {
+          "id": "en:think",
+          "say": "Think!",
+          "meaning": {
+            "en": "think",
+            "ja": "かんがえる"
+          },
+          "category": "action_words",
+          "answer": "🤔",
+          "choices": [
+            "🍿",
+            "🤔",
+            "🟩"
+          ],
+          "praise": "Think!"
+        },
+        {
+          "id": "en:tiny",
+          "say": "Tiny!",
+          "meaning": {
+            "en": "tiny",
+            "ja": "とてもちいさい"
+          },
+          "category": "descriptive_words",
+          "praise": "Tiny!"
+        },
+        {
+          "id": "en:we",
+          "say": "We!",
+          "meaning": {
+            "en": "we",
+            "ja": "わたしたち"
+          },
+          "category": "pronouns",
+          "praise": "We!"
         }
       ]
     },
@@ -381,6 +7738,1071 @@
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "age": 3,
+      "rounds": [
+        {
+          "id": "en:above",
+          "say": "Above!",
+          "meaning": {
+            "en": "above",
+            "ja": "うえのほう"
+          },
+          "category": "locations",
+          "praise": "Above!"
+        },
+        {
+          "id": "en:ankle",
+          "say": "Ankle!",
+          "meaning": {
+            "en": "ankle",
+            "ja": "足首"
+          },
+          "category": "body_parts",
+          "praise": "Ankle!"
+        },
+        {
+          "id": "en:any",
+          "say": "Any!",
+          "meaning": {
+            "en": "any",
+            "ja": "なにか"
+          },
+          "category": "quantifiers",
+          "praise": "Any!"
+        },
+        {
+          "id": "en:babysitter",
+          "say": "Babysitter!",
+          "meaning": {
+            "en": "babysitter",
+            "ja": "ベビーシッター"
+          },
+          "category": "people",
+          "praise": "Babysitter!"
+        },
+        {
+          "id": "en:basement",
+          "say": "Basement!",
+          "meaning": {
+            "en": "basement",
+            "ja": "地下室"
+          },
+          "category": "furniture_rooms",
+          "praise": "Basement!"
+        },
+        {
+          "id": "en:beads",
+          "say": "Beads!",
+          "meaning": {
+            "en": "beads",
+            "ja": "ビーズ"
+          },
+          "category": "clothing",
+          "praise": "Beads!"
+        },
+        {
+          "id": "en:before",
+          "say": "Before!",
+          "meaning": {
+            "en": "before",
+            "ja": "まえ"
+          },
+          "category": "time_words",
+          "praise": "Before!"
+        },
+        {
+          "id": "en:bench",
+          "say": "Bench!",
+          "meaning": {
+            "en": "bench",
+            "ja": "ベンチ"
+          },
+          "category": "furniture_rooms",
+          "praise": "Bench!"
+        },
+        {
+          "id": "en:beside",
+          "say": "Beside!",
+          "meaning": {
+            "en": "beside",
+            "ja": "そば"
+          },
+          "category": "locations",
+          "praise": "Beside!"
+        },
+        {
+          "id": "en:but",
+          "say": "But!",
+          "meaning": {
+            "en": "but",
+            "ja": "でも"
+          },
+          "category": "connecting_words",
+          "praise": "But!"
+        }
+      ]
+    },
+    {
+      "age": 3,
+      "rounds": [
+        {
+          "id": "en:camping",
+          "say": "Camping!",
+          "meaning": {
+            "en": "camping",
+            "ja": "キャンプ"
+          },
+          "category": "places",
+          "answer": "🏕️",
+          "choices": [
+            "🌠",
+            "🌙",
+            "🏕️"
+          ],
+          "praise": "Camping!"
+        },
+        {
+          "id": "en:child",
+          "say": "Child!",
+          "meaning": {
+            "en": "child",
+            "ja": "こども"
+          },
+          "category": "people",
+          "answer": "🧒",
+          "choices": [
+            "🧒",
+            "🪨",
+            "⛸️"
+          ],
+          "praise": "Child!"
+        },
+        {
+          "id": "en:church",
+          "say": "Church!",
+          "meaning": {
+            "en": "church",
+            "ja": "きょうかい"
+          },
+          "category": "places",
+          "answer": "⛪",
+          "choices": [
+            "📻",
+            "🍮",
+            "⛪"
+          ],
+          "praise": "Church!"
+        },
+        {
+          "id": "en:circus",
+          "say": "Circus!",
+          "meaning": {
+            "en": "circus",
+            "ja": "サーカス"
+          },
+          "category": "places",
+          "answer": "🎪",
+          "choices": [
+            "🤠",
+            "🥤",
+            "🎪"
+          ],
+          "praise": "Circus!"
+        },
+        {
+          "id": "en:clown",
+          "say": "Clown!",
+          "meaning": {
+            "en": "clown",
+            "ja": "ピエロ"
+          },
+          "category": "people",
+          "answer": "🤡",
+          "choices": [
+            "🤡",
+            "🪨",
+            "⛸️"
+          ],
+          "praise": "Clown!"
+        },
+        {
+          "id": "en:coke",
+          "say": "Coke!",
+          "meaning": {
+            "en": "coke",
+            "ja": "コーラ"
+          },
+          "category": "food_drink",
+          "answer": "🥤",
+          "choices": [
+            "🪙",
+            "😈",
+            "🥤"
+          ],
+          "praise": "Coke!"
+        },
+        {
+          "id": "en:country",
+          "say": "Country!",
+          "meaning": {
+            "en": "country",
+            "ja": "いなか"
+          },
+          "category": "places",
+          "praise": "Country!"
+        },
+        {
+          "id": "en:cowboy",
+          "say": "Cowboy!",
+          "meaning": {
+            "en": "cowboy",
+            "ja": "カウボーイ"
+          },
+          "category": "people",
+          "answer": "🤠",
+          "choices": [
+            "🪨",
+            "🌠",
+            "🤠"
+          ],
+          "praise": "Cowboy!"
+        },
+        {
+          "id": "en:donkey",
+          "say": "Donkey!",
+          "meaning": {
+            "en": "donkey",
+            "ja": "ロバ"
+          },
+          "category": "animals",
+          "answer": "🫏",
+          "choices": [
+            "🍮",
+            "🧍",
+            "🫏"
+          ],
+          "praise": "Donkey!"
+        },
+        {
+          "id": "en:downtown",
+          "say": "Downtown!",
+          "meaning": {
+            "en": "downtown",
+            "ja": "まちなか"
+          },
+          "category": "places",
+          "answer": "🏙️",
+          "choices": [
+            "🪨",
+            "🛷",
+            "🏙️"
+          ],
+          "praise": "Downtown!"
+        }
+      ]
+    },
+    {
+      "age": 3,
+      "rounds": [
+        {
+          "id": "en:dump",
+          "say": "Dump!",
+          "meaning": {
+            "en": "dump",
+            "ja": "ぶちまける"
+          },
+          "category": "action_words",
+          "praise": "Dump!"
+        },
+        {
+          "id": "en:each",
+          "say": "Each!",
+          "meaning": {
+            "en": "each",
+            "ja": "それぞれ"
+          },
+          "category": "quantifiers",
+          "praise": "Each!"
+        },
+        {
+          "id": "en:every",
+          "say": "Every!",
+          "meaning": {
+            "en": "every",
+            "ja": "ぜんぶの"
+          },
+          "category": "quantifiers",
+          "praise": "Every!"
+        },
+        {
+          "id": "en:fine",
+          "say": "Fine!",
+          "meaning": {
+            "en": "fine",
+            "ja": "だいじょうぶ"
+          },
+          "category": "descriptive_words",
+          "praise": "Fine!"
+        },
+        {
+          "id": "en:glue",
+          "say": "Glue!",
+          "meaning": {
+            "en": "glue",
+            "ja": "のり"
+          },
+          "category": "toys",
+          "praise": "Glue!"
+        },
+        {
+          "id": "en:gum",
+          "say": "Gum!",
+          "meaning": {
+            "en": "gum",
+            "ja": "ガム"
+          },
+          "category": "food_drink",
+          "praise": "Gum!"
+        },
+        {
+          "id": "en:hate",
+          "say": "Hate!",
+          "meaning": {
+            "en": "hate",
+            "ja": "だいきらい"
+          },
+          "category": "action_words",
+          "praise": "Hate!"
+        },
+        {
+          "id": "en:hen",
+          "say": "Hen!",
+          "meaning": {
+            "en": "hen",
+            "ja": "めんどり"
+          },
+          "category": "animals",
+          "answer": "🐔",
+          "choices": [
+            "🍮",
+            "🐔",
+            "🧍"
+          ],
+          "praise": "Hen!"
+        },
+        {
+          "id": "en:hers",
+          "say": "Hers!",
+          "meaning": {
+            "en": "hers",
+            "ja": "かのじょのもの"
+          },
+          "category": "pronouns",
+          "praise": "Hers!"
+        },
+        {
+          "id": "en:him",
+          "say": "Him!",
+          "meaning": {
+            "en": "him",
+            "ja": "かれ（を）"
+          },
+          "category": "pronouns",
+          "praise": "Him!"
+        }
+      ]
+    },
+    {
+      "age": 3,
+      "rounds": [
+        {
+          "id": "en:his",
+          "say": "His!",
+          "meaning": {
+            "en": "his",
+            "ja": "かれの"
+          },
+          "category": "pronouns",
+          "praise": "His!"
+        },
+        {
+          "id": "en:if",
+          "say": "If!",
+          "meaning": {
+            "en": "if",
+            "ja": "もしも"
+          },
+          "category": "connecting_words",
+          "praise": "If!"
+        },
+        {
+          "id": "en:into",
+          "say": "Into!",
+          "meaning": {
+            "en": "into",
+            "ja": "なかへ"
+          },
+          "category": "locations",
+          "praise": "Into!"
+        },
+        {
+          "id": "en:jar",
+          "say": "Jar!",
+          "meaning": {
+            "en": "jar",
+            "ja": "びん"
+          },
+          "category": "household",
+          "answer": "🫙",
+          "choices": [
+            "🤡",
+            "🎪",
+            "🫙"
+          ],
+          "praise": "Jar!"
+        },
+        {
+          "id": "en:jello",
+          "say": "Jello!",
+          "meaning": {
+            "en": "jello",
+            "ja": "ゼリー"
+          },
+          "category": "food_drink",
+          "praise": "Jello!"
+        },
+        {
+          "id": "en:last",
+          "say": "Last!",
+          "meaning": {
+            "en": "last",
+            "ja": "さいご"
+          },
+          "category": "descriptive_words",
+          "praise": "Last!"
+        },
+        {
+          "id": "en:moose",
+          "say": "Moose!",
+          "meaning": {
+            "en": "moose",
+            "ja": "ヘラジカ"
+          },
+          "category": "animals",
+          "answer": "🫎",
+          "choices": [
+            "🧒",
+            "🫎",
+            "🏕️"
+          ],
+          "praise": "Moose!"
+        },
+        {
+          "id": "en:mop",
+          "say": "Mop!",
+          "meaning": {
+            "en": "mop",
+            "ja": "モップ"
+          },
+          "category": "household",
+          "praise": "Mop!"
+        },
+        {
+          "id": "en:much",
+          "say": "Much!",
+          "meaning": {
+            "en": "much",
+            "ja": "たくさん"
+          },
+          "category": "quantifiers",
+          "praise": "Much!"
+        },
+        {
+          "id": "en:myself",
+          "say": "Myself!",
+          "meaning": {
+            "en": "myself",
+            "ja": "じぶん"
+          },
+          "category": "pronouns",
+          "praise": "Myself!"
+        }
+      ]
+    },
+    {
+      "age": 3,
+      "rounds": [
+        {
+          "id": "en:naughty",
+          "say": "Naughty!",
+          "meaning": {
+            "en": "naughty",
+            "ja": "いたずら"
+          },
+          "category": "descriptive_words",
+          "answer": "😈",
+          "choices": [
+            "🧍",
+            "😈",
+            "🪙"
+          ],
+          "praise": "Naughty!"
+        },
+        {
+          "id": "en:nextto",
+          "say": "Next to!",
+          "meaning": {
+            "en": "next to",
+            "ja": "となり"
+          },
+          "category": "locations",
+          "praise": "Next to!"
+        },
+        {
+          "id": "en:none",
+          "say": "None!",
+          "meaning": {
+            "en": "none",
+            "ja": "ない"
+          },
+          "category": "quantifiers",
+          "praise": "None!"
+        },
+        {
+          "id": "en:nurse",
+          "say": "Nurse!",
+          "meaning": {
+            "en": "nurse",
+            "ja": "かんごしさん"
+          },
+          "category": "people",
+          "praise": "Nurse!"
+        },
+        {
+          "id": "en:other",
+          "say": "Other!",
+          "meaning": {
+            "en": "other",
+            "ja": "ほかの"
+          },
+          "category": "quantifiers",
+          "praise": "Other!"
+        },
+        {
+          "id": "en:our",
+          "say": "Our!",
+          "meaning": {
+            "en": "our",
+            "ja": "わたしたちの"
+          },
+          "category": "pronouns",
+          "praise": "Our!"
+        },
+        {
+          "id": "en:penny",
+          "say": "Penny!",
+          "meaning": {
+            "en": "penny",
+            "ja": "1セント玉"
+          },
+          "category": "household",
+          "answer": "🪙",
+          "choices": [
+            "🤠",
+            "🥤",
+            "🪙"
+          ],
+          "praise": "Penny!"
+        },
+        {
+          "id": "en:person",
+          "say": "Person!",
+          "meaning": {
+            "en": "person",
+            "ja": "人"
+          },
+          "category": "people",
+          "answer": "🧍",
+          "choices": [
+            "🧍",
+            "🫎",
+            "🐔"
+          ],
+          "praise": "Person!"
+        },
+        {
+          "id": "en:playpen",
+          "say": "Play pen!",
+          "meaning": {
+            "en": "play pen",
+            "ja": "ベビーサークル"
+          },
+          "category": "furniture_rooms",
+          "praise": "Play pen!"
+        },
+        {
+          "id": "en:poor",
+          "say": "Poor!",
+          "meaning": {
+            "en": "poor",
+            "ja": "かわいそうな"
+          },
+          "category": "descriptive_words",
+          "praise": "Poor!"
+        }
+      ]
+    },
+    {
+      "age": 3,
+      "rounds": [
+        {
+          "id": "en:porch",
+          "say": "Porch!",
+          "meaning": {
+            "en": "porch",
+            "ja": "ポーチ（玄関前）"
+          },
+          "category": "furniture_rooms",
+          "praise": "Porch!"
+        },
+        {
+          "id": "en:pudding",
+          "say": "Pudding!",
+          "meaning": {
+            "en": "pudding",
+            "ja": "プリン"
+          },
+          "category": "food_drink",
+          "answer": "🍮",
+          "choices": [
+            "🧒",
+            "🍮",
+            "🏕️"
+          ],
+          "praise": "Pudding!"
+        },
+        {
+          "id": "en:radio",
+          "say": "Radio!",
+          "meaning": {
+            "en": "radio",
+            "ja": "ラジオ"
+          },
+          "category": "household",
+          "answer": "📻",
+          "choices": [
+            "🌠",
+            "🌙",
+            "📻"
+          ],
+          "praise": "Radio!"
+        },
+        {
+          "id": "en:rip",
+          "say": "Rip!",
+          "meaning": {
+            "en": "rip",
+            "ja": "びりっとやぶる"
+          },
+          "category": "action_words",
+          "praise": "Rip!"
+        },
+        {
+          "id": "en:rockingchair",
+          "say": "Rocking chair!",
+          "meaning": {
+            "en": "rocking chair",
+            "ja": "ゆりいす"
+          },
+          "category": "furniture_rooms",
+          "praise": "Rocking chair!"
+        },
+        {
+          "id": "en:salt",
+          "say": "Salt!",
+          "meaning": {
+            "en": "salt",
+            "ja": "しお"
+          },
+          "category": "food_drink",
+          "answer": "🧂",
+          "choices": [
+            "⛸️",
+            "🧂",
+            "🧣"
+          ],
+          "praise": "Salt!"
+        },
+        {
+          "id": "en:scarf",
+          "say": "Scarf!",
+          "meaning": {
+            "en": "scarf",
+            "ja": "マフラー"
+          },
+          "category": "clothing",
+          "answer": "🧣",
+          "choices": [
+            "🧣",
+            "🌲",
+            "🏕️"
+          ],
+          "praise": "Scarf!"
+        },
+        {
+          "id": "en:skate",
+          "say": "Skate!",
+          "meaning": {
+            "en": "skate",
+            "ja": "スケートする"
+          },
+          "category": "action_words",
+          "answer": "⛸️",
+          "choices": [
+            "🤡",
+            "🫎",
+            "⛸️"
+          ],
+          "praise": "Skate!"
+        },
+        {
+          "id": "en:sled",
+          "say": "Sled!",
+          "meaning": {
+            "en": "sled",
+            "ja": "そり"
+          },
+          "category": "vehicles",
+          "answer": "🛷",
+          "choices": [
+            "🧒",
+            "🛷",
+            "🏕️"
+          ],
+          "praise": "Sled!"
+        },
+        {
+          "id": "en:sneaker",
+          "say": "Sneaker!",
+          "meaning": {
+            "en": "sneaker",
+            "ja": "スニーカー"
+          },
+          "category": "clothing",
+          "praise": "Sneaker!"
+        }
+      ]
+    },
+    {
+      "age": 3,
+      "rounds": [
+        {
+          "id": "en:snowsuit",
+          "say": "Snowsuit!",
+          "meaning": {
+            "en": "snowsuit",
+            "ja": "スキーウェア"
+          },
+          "category": "clothing",
+          "praise": "Snowsuit!"
+        },
+        {
+          "id": "en:so",
+          "say": "So!",
+          "meaning": {
+            "en": "so",
+            "ja": "だから"
+          },
+          "category": "connecting_words",
+          "praise": "So!"
+        },
+        {
+          "id": "en:soda",
+          "say": "Soda!",
+          "meaning": {
+            "en": "soda",
+            "ja": "ソーダ"
+          },
+          "category": "food_drink",
+          "praise": "Soda!"
+        },
+        {
+          "id": "en:sprinkler",
+          "say": "Sprinkler!",
+          "meaning": {
+            "en": "sprinkler",
+            "ja": "スプリンクラー"
+          },
+          "category": "outside",
+          "praise": "Sprinkler!"
+        },
+        {
+          "id": "en:stone",
+          "say": "Stone!",
+          "meaning": {
+            "en": "stone",
+            "ja": "石"
+          },
+          "category": "outside",
+          "answer": "🪨",
+          "choices": [
+            "🧂",
+            "📻",
+            "🪨"
+          ],
+          "praise": "Stone!"
+        },
+        {
+          "id": "en:tear",
+          "say": "Tear!",
+          "meaning": {
+            "en": "tear",
+            "ja": "やぶる"
+          },
+          "category": "action_words",
+          "praise": "Tear!"
+        },
+        {
+          "id": "en:their",
+          "say": "Their!",
+          "meaning": {
+            "en": "their",
+            "ja": "かれらの"
+          },
+          "category": "pronouns",
+          "praise": "Their!"
+        },
+        {
+          "id": "en:them",
+          "say": "Them!",
+          "meaning": {
+            "en": "them",
+            "ja": "かれら（を）"
+          },
+          "category": "pronouns",
+          "praise": "Them!"
+        },
+        {
+          "id": "en:then",
+          "say": "Then!",
+          "meaning": {
+            "en": "then",
+            "ja": "それから"
+          },
+          "category": "connecting_words",
+          "praise": "Then!"
+        },
+        {
+          "id": "en:these",
+          "say": "These!",
+          "meaning": {
+            "en": "these",
+            "ja": "これら"
+          },
+          "category": "pronouns",
+          "praise": "These!"
+        }
+      ]
+    },
+    {
+      "age": 3,
+      "rounds": [
+        {
+          "id": "en:they",
+          "say": "They!",
+          "meaning": {
+            "en": "they",
+            "ja": "かれら"
+          },
+          "category": "pronouns",
+          "praise": "They!"
+        },
+        {
+          "id": "en:those",
+          "say": "Those!",
+          "meaning": {
+            "en": "those",
+            "ja": "あれら"
+          },
+          "category": "pronouns",
+          "praise": "Those!"
+        },
+        {
+          "id": "en:tights",
+          "say": "Tights!",
+          "meaning": {
+            "en": "tights",
+            "ja": "タイツ"
+          },
+          "category": "clothing",
+          "praise": "Tights!"
+        },
+        {
+          "id": "en:time",
+          "say": "Time!",
+          "meaning": {
+            "en": "time",
+            "ja": "時間"
+          },
+          "category": "time_words",
+          "praise": "Time!"
+        },
+        {
+          "id": "en:tonight",
+          "say": "Tonight!",
+          "meaning": {
+            "en": "tonight",
+            "ja": "こんや"
+          },
+          "category": "time_words",
+          "answer": "🌙",
+          "choices": [
+            "🌠",
+            "🌙",
+            "🪨"
+          ],
+          "praise": "Tonight!"
+        },
+        {
+          "id": "en:tray",
+          "say": "Tray!",
+          "meaning": {
+            "en": "tray",
+            "ja": "おぼん"
+          },
+          "category": "household",
+          "praise": "Tray!"
+        },
+        {
+          "id": "en:tricycle",
+          "say": "Tricycle!",
+          "meaning": {
+            "en": "tricycle",
+            "ja": "三輪車"
+          },
+          "category": "vehicles",
+          "praise": "Tricycle!"
+        },
+        {
+          "id": "en:tuna",
+          "say": "Tuna!",
+          "meaning": {
+            "en": "tuna",
+            "ja": "ツナ"
+          },
+          "category": "food_drink",
+          "praise": "Tuna!"
+        },
+        {
+          "id": "en:us",
+          "say": "Us!",
+          "meaning": {
+            "en": "us",
+            "ja": "わたしたち（を）"
+          },
+          "category": "pronouns",
+          "praise": "Us!"
+        },
+        {
+          "id": "en:vanilla",
+          "say": "Vanilla!",
+          "meaning": {
+            "en": "vanilla",
+            "ja": "バニラ"
+          },
+          "category": "food_drink",
+          "praise": "Vanilla!"
+        }
+      ]
+    },
+    {
+      "age": 3,
+      "rounds": [
+        {
+          "id": "en:walker",
+          "say": "Walker!",
+          "meaning": {
+            "en": "walker",
+            "ja": "歩行器"
+          },
+          "category": "household",
+          "praise": "Walker!"
+        },
+        {
+          "id": "en:when",
+          "say": "When?",
+          "meaning": {
+            "en": "when",
+            "ja": "いつ"
+          },
+          "category": "question_words",
+          "praise": "When?"
+        },
+        {
+          "id": "en:which",
+          "say": "Which?",
+          "meaning": {
+            "en": "which",
+            "ja": "どっち"
+          },
+          "category": "question_words",
+          "praise": "Which?"
+        },
+        {
+          "id": "en:wish",
+          "say": "Wish!",
+          "meaning": {
+            "en": "wish",
+            "ja": "ねがう"
+          },
+          "category": "action_words",
+          "answer": "🌠",
+          "choices": [
+            "🫏",
+            "🧍",
+            "🌠"
+          ],
+          "praise": "Wish!"
+        },
+        {
+          "id": "en:woods",
+          "say": "Woods!",
+          "meaning": {
+            "en": "woods",
+            "ja": "森"
+          },
+          "category": "places",
+          "answer": "🌲",
+          "choices": [
+            "🌙",
+            "🪨",
+            "🌲"
+          ],
+          "praise": "Woods!"
+        },
+        {
+          "id": "en:yesterday",
+          "say": "Yesterday!",
+          "meaning": {
+            "en": "yesterday",
+            "ja": "きのう"
+          },
+          "category": "time_words",
+          "praise": "Yesterday!"
+        },
+        {
+          "id": "en:yourself",
+          "say": "Yourself!",
+          "meaning": {
+            "en": "yourself",
+            "ja": "あなたじしん"
+          },
+          "category": "pronouns",
+          "praise": "Yourself!"
         }
       ]
     }
