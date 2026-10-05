@@ -820,3 +820,33 @@ private struct TomoChickReactions: ViewModifier {
     }
 }
 
+
+/// Tomo held in one pose, for places that can't animate: widgets and Live Activities only redraw when
+/// their content changes (decisions.md, 2026-10-06). Drawn by the same TomoChick, half a second into
+/// `state` (and `emote`), so it's never caught mid-blink and a win still has its sparkles.
+public struct TomoChickStill: View {
+    var state: BotState
+    var emote: BotEmote?
+    var growth: CGFloat
+
+    public init(state: BotState = .idle, emote: BotEmote? = nil, growth: CGFloat) {
+        self.state = state
+        self.emote = emote
+        self.growth = growth
+    }
+
+    public var body: some View {
+        Canvas { context, size in
+            let chick = TomoChick()
+            var t = 100.0
+            chick.clock = { t }
+            chick.setGrowth(growth)
+            chick.step()
+            chick.setState(state, force: true)
+            if let emote { chick.emote(emote) }
+            t += 0.5
+            chick.step()
+            chick.draw(context, size: size)
+        }
+    }
+}

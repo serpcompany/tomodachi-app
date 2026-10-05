@@ -2,6 +2,12 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
+### 2026-10-06: Widgets and Live Activities show Tomo still, posed by each update
+Inside the apps Tomo is always alive. On the Home Screen and the Lock Screen it's a `TomoChickStill`: the same drawing, held in one pose that changes with each update (asking, happy, in its shell or hatched). **Why:** iOS widgets and Live Activities can't run their own animation; they only animate a change, for up to two seconds. The owner accepted this exception to "Tomo is always alive" for those surfaces only.
+
+### 2026-10-06: Tomodachi stays its own iPhone app for now
+Tomo on the iPhone is a separate app (`ios-demo/`, `com.zenbujapanese.tomodachi`), not a part of the Zenbu Japanese app. Its views live in `TomoCore` where they can, so moving it into the Zenbu app later stays cheap. **Why:** Tomo is still proving itself, and the Zenbu app is shipped; the owner chose to keep them apart and revisit (the Zenbu app has the dictionary, Sudachi and Known Words that #6, #9 and #28 want).
+
 ### 2026-10-06: 3さい questions are multiple choice for now
 Tomo's talking questions are asked with three choices: what the line means (new questions), or a reply that fits (reviews, alternating with the meaning). Wrong replies come from other questions, never this question's own answers. Typing or saying an answer is switched off (`TomoGame.talkAsChoices`), not deleted. **Why:** the owner tried typing at 3さい and translated the question into English, which scored nothing; free answers need clear instructions, a Japanese keyboard and AI to judge them. Choices work offline and still check understanding.
 
