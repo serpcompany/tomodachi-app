@@ -81,6 +81,8 @@ final class TomoProgress {
     private var store: TomoStore?
     private var directory: URL
     private var levelOfItem: [String: Int] = [:]
+    private var roundIndex: [String: TargetPack.Round] = [:]
+    private var starterIndex: [String: TargetPack.Starter] = [:]
 
     init(pack: TargetPack, learner: String, directory: URL = TomoStore.directory) {
         self.pack = pack
@@ -96,6 +98,9 @@ final class TomoProgress {
         isScratch = false
         levelOfItem = Dictionary(pack.levels.enumerated().flatMap { i, l in l.itemIDs.map { ($0, i + 1) } },
                                  uniquingKeysWith: { a, _ in a })
+        roundIndex = Dictionary(pack.levels.flatMap { $0.rounds ?? [] }.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        starterIndex = Dictionary(pack.levels.flatMap { $0.starters ?? [] }.compactMap { s in s.id.map { ($0, s) } },
+                                  uniquingKeysWith: { a, _ in a })
         store = TomoStore(learner: learner, target: pack.id, directory: directory)
         items = store?.loadItems() ?? [:]
         if let t = store?.loadTomo() {
@@ -209,13 +214,27 @@ final class TomoProgress {
         return pool.filter { items[$0]?.stage == low }.randomElement()
     }
 
-    func round(_ id: String) -> TargetPack.Round? {
-        pack.levels.lazy.compactMap { $0.rounds?.first { $0.id == id } }.first
+    func round(_ id: String) -> TargetPack.Round? { roundIndex[id] }
+    func starter(_ id: String) -> TargetPack.Starter? { starterIndex[id] }
+    func isStarter(_ id: String) -> Bool { starterIndex[id] != nil }
+
+    /// Two wrong meanings for "Pick the meaning": other words' meanings, another category first. Never the
+    /// same meaning, and never a word that sounds the same (きる "cut" for きる "put on").
+    func otherMeanings(for id: String, learner: String) -> [String] {
+        guard let r = roundIndex[id] else { return [] }
+        let meaning = r.meaning(learner).lowercased()
+        let candidates = roundIndex.values.filter {
+            $0.id != id && $0.say != r.say && $0.meaning(learner).lowercased() != meaning
+        }
+        let other = candidates.filter { $0.category != r.category }
+        var picked: [String] = []
+        for c in (other.count >= 2 ? other : candidates).shuffled() {
+            let m = c.meaning(learner)
+            if !picked.contains(where: { $0.lowercased() == m.lowercased() }) { picked.append(m) }
+            if picked.count == 2 { break }
+        }
+        return picked
     }
-    func starter(_ id: String) -> TargetPack.Starter? {
-        pack.levels.lazy.compactMap { $0.starters?.first { $0.id == id } }.first
-    }
-    func isStarter(_ id: String) -> Bool { starter(id) != nil }
 
     // MARK: Answers
 
@@ -299,24 +318,37 @@ final class TomoProgress {
             }
         }
         finishLevel()
-        check(p.levelKnown == p.levelNeeded, "level 1 done: \(p.levelKnown)/\(p.levelNeeded)")
+        check(p.levelKnown >= p.levelNeeded, "level 1 done: \(p.levelKnown)/\(p.levelNeeded)")
         let up1 = p.levelUpIfReady()
-        check(up1?.level == 2 && up1?.birthday == false && p.age == 1, "→ level 2, still 1さい")
+        check(up1?.level == 2 && up1?.birthday == (pack.levels[1].age > pack.levels[0].age),
+              "→ level 2, age \(pack.levels[1].age)")
         check(p.levelUpIfReady() == nil, "no level up before level 2 is done")
         check(p.newItems.first == pack.levels[1].itemIDs.first, "level 2's items are unlocked")
-        finishLevel()
-        let up2 = p.levelUpIfReady()
-        check(up2?.level == 3 && up2?.birthday == true && p.age == 2, "→ level 3 is a birthday: 2さい")
+        // Keep going until the first birthday: it must land on the first level with a higher age.
+        let firstAge2 = (pack.levels.firstIndex { $0.age > pack.levels[0].age } ?? 0) + 1
+        var birthday: (level: Int, birthday: Bool)?
+        while birthday == nil, !p.isLastLevel {
+            finishLevel()
+            if let up = p.levelUpIfReady(), up.birthday { birthday = up }
+        }
+        check(birthday?.level == firstAge2 && p.age == pack.levels[firstAge2 - 1].age,
+              "the first birthday is level \(firstAge2): \(p.age)さい")
+
+        if let m = pack.levels.flatMap({ $0.rounds ?? [] }).first(where: { $0.answer == nil && $0.need == nil }) {
+            let others = p.otherMeanings(for: m.id, learner: "en")
+            check(others.count == 2 && !others.contains(m.meaning("en")) && Set(others).count == 2,
+                  "\"\(m.say)\" gets two other meanings: \(others.joined(separator: ", "))")
+        }
 
         let reopened = TomoProgress(pack: pack, learner: "en", directory: dir)
-        check(reopened.level == 3 && reopened.age == 2 && reopened.items.count == p.items.count,
+        check(reopened.level == p.level && reopened.age == p.age && reopened.items.count == p.items.count,
               "progress survives reopening (\(reopened.items.count) items)")
         let other = TomoProgress(pack: pack, learner: "ja", directory: dir)
         check(other.level == 1 && other.items.isEmpty, "another language pair is another Tomo")
 
         reopened.scratch(age: 3)
         check(reopened.isScratch && reopened.age == 3 && reopened.isTalkLevel, "testing at 3さい → the talking level")
-        check(TomoProgress(pack: pack, learner: "en", directory: dir).level == 3, "testing ages don't touch saved progress")
+        check(TomoProgress(pack: pack, learner: "en", directory: dir).level == p.level, "testing ages don't touch saved progress")
 
         reopened.startOver()
         let fresh = TomoProgress(pack: pack, learner: "en", directory: dir)

@@ -61,6 +61,7 @@ struct TargetPack: Codable, Sendable {
         let need: String?       // "eat" | "sleep" | "hug": answer is the action, not a picture
         let answer: String?     // emoji of the right picture (picture rounds)
         let choices: [String]?  // emojis (picture rounds)
+        let category: String?   // "animals", "action_words"…: keeps "Pick the meaning" choices apart
         let praise: String
     }
     struct Example: Codable, Sendable { let say: String; let translation: Localized }
@@ -75,7 +76,7 @@ struct TargetPack: Codable, Sendable {
     /// `age` is the age Tomo has on this level, so a level with a higher age than the one before is a birthday.
     struct Level: Codable, Sendable {
         let age: Int
-        let rounds: [Round]?    // ages 1–2: picture and need rounds
+        let rounds: [Round]?    // picture, need and meaning rounds
         let starters: [Starter]?  // talking ages: opening questions
 
         var itemIDs: [String] { (rounds ?? []).map(\.id) + (starters ?? []).compactMap(\.id) }

@@ -34,7 +34,7 @@ Change them in **Settings → General** (I speak / I'm learning). The menu and S
 | `age` | Age label format: `{n}さい`, `{n} año` / `{n} años` |
 | `labels`, `lines` | Tomo's own words: "again", "listening…", wrong, ouch, grew up, level up, bye, "say it in my language", "I don't understand" |
 | `ai` | Persona (`"a {age}-year-old child from Spain"`) and language-specific rules (script, register), placed into a shared prompt template. `ai.rulesByAge` replaces the rules from an age on. Reply length and style follow Tomo's age |
-| `levels` | Tomo's levels, in order. Each has an `age` and either `rounds` (picture rounds with `answer` + `choices`, or need rounds with `need`: eat / sleep / hug) or `starters` (conversation openers with example answers). Every item has an `id` like `ja:wanwan` or `ja:talk-onaka-suita`. A level whose `age` is higher than the one before is a birthday |
+| `levels` | Tomo's levels, in order. Each has an `age` and either `rounds` or `starters` (conversation openers with example answers). A round is a **picture** round (`answer` emoji + 3 `choices`), a **need** round (`need`: eat / sleep / hug), or, with neither, a **meaning** round: the learner picks its meaning out of three, the other two taken from other words (a different `category` first, never a word that sounds the same). Every item has an `id` like `ja:wanwan` or `ja:talk-onaka-suita`. A level whose `age` is higher than the one before is a birthday. Japanese levels are generated: see below |
 | `startersByAge` | Openers for ages past the levels (testing older Tomos), from an age on (`fromAge`) |
 | `offlineReplies` | Placeholder keyword replies. The dictionary system replaces them |
 | `helpPhrases` | Whole answers that mean "I didn't understand" in this language (なに, わかんない). The learner file has its own ("what", "huh") |
@@ -49,6 +49,10 @@ Change them in **Settings → General** (I speak / I'm learning). The menu and S
 | Language check (layer 1 of answer checking) | `Jpan`: contains kana or kanji. Latin-script: Apple's language identifier decides between target and learner, and a known pack word also passes | — |
 | AI | Persona and rules from the pack; `say` must be in the target language | `translation` comes back in the learner language |
 | Growth | Levels and their ages; item ids are namespaced per language (`ja:…`, `es:…`) | — |
+
+## Japanese levels are generated
+
+`mac-demo/scripts/build-ja-levels.py` rebuilds `ja.json`'s levels from Wordbank's Japanese CDI data. The source is pinned (commit and SHA-256 per file) in `mac-demo/scripts/sources/wordbank-japanese.source.json`; downloads are cached in `mac-demo/build/data-cache/`. Hand fixes live in `mac-demo/scripts/data/ja-curation.json`: a picture (emoji) or an action per word, meaning and reading fixes, grown-up words for baby talk, and words to leave out. The talking level is kept as it is. Run it with `--review` to get a table of every word for checking. The same approach works for English and Spanish, which Wordbank also has.
 
 ## Adding a language
 

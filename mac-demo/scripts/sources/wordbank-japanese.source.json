@@ -1,0 +1,18 @@
+{
+  "name": "Wordbank: Japanese CDI (Words & Gestures, Words & Sentences)",
+  "use": "The age when half of children understand or say each word; Tomo's Japanese levels (scripts/build-ja-levels.py)",
+  "license": "CC BY 4.0 (Wordbank data, https://langcog.github.io/wordbank-datapage/faq.html)",
+  "attribution": "Frank, Braginsky, Yurovsky & Marchman (2017), Wordbank, J. Child Language 44(3). Japanese data: Tsuji; Hagihara et al. (2023); Minagawa. Instrument: Japanese CDI (Ogura & Watamaki 2004).",
+  "note": "The J-CDI developers control the instrument's distribution. Ask them before shipping a beta that contains this word list (issue: see docs/decisions.md, 2026-10-06).",
+  "repository": "https://github.com/langcog/wordbank",
+  "commit": "85bb0707df659e634e9f18d7bc0b2e791da41276",
+  "retrieved": "2026-10-06",
+  "files": {
+    "raw_data/Japanese_WS/[Japanese_WS].csv": "96f230476f563658bc9a02deeb72e805b19d76c05b0a4e9fb70d88c85cac6059",
+    "raw_data/Japanese_WG/[Japanese_WG].csv": "2737318853243b2aac405ede044869d47ae3c81c01a495173d8d3132ba0dd045",
+    "raw_data/Japanese_WS/JapaneseWS_Tsuji_data.csv": "62e00409eca13524c8d8dcc0e934ee7c996da6bb6026c8ebfe7d9ba67f816dc1",
+    "raw_data/Japanese_WS/JapaneseWS_Hagihara_data.csv": "0458fb45c395c9866f5da3fac744c8a45c415e532bbb61ed41f2b9cf7c75d16d",
+    "raw_data/Japanese_WS/JapaneseWS_Minagawa_data.csv": "7ed98d9a52344899780b7cf94f31f64ddd1ad1ed1eb1666adc09ea053843e5e9",
+    "raw_data/Japanese_WG/JapaneseWG_Tsuji_data.csv": "3e97eb389a3a12248b20fed78f90b4902114336300f7d4055265949e10cd1566"
+  }
+}

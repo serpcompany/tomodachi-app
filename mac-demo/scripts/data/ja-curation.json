@@ -1,0 +1,1224 @@
+{
+  "_about": "Hand curation for scripts/build-ja-levels.py, keyed by item id. picture: an emoji (Pick the picture). need: eat | sleep | hug (Do what Tomo says). meaning, kana, grownUp: fixes to Wordbank's gloss, reading, or the baby word's grown-up word (null removes it). Words with neither picture nor need are asked by meaning (Pick the meaning). Draft until a native speaker reviews it.",
+  "exclude": [
+    "キャラクターの名前",
+    "きょうだいの名前",
+    "自分の名前",
+    "先生の名前",
+    "友だちの名前",
+    "ペットの名前",
+    "おチンチン",
+    "おっぱい",
+    "ja:sakana2",
+    "ja:gohan2",
+    "ja:ofuro2",
+    "ja:jiiji2"
+  ],
+  "items": {
+    "ja:aaa": {
+      "grownUp": null
+    },
+    "ja:acchi": {
+      "meaning": "that way"
+    },
+    "ja:ageru": {
+      "meaning": "give"
+    },
+    "ja:ahiru": {
+      "picture": "🦆"
+    },
+    "ja:aisukuriimu": {
+      "picture": "🍦"
+    },
+    "ja:aita": {
+      "picture": "🤕",
+      "meaning": "ouch",
+      "grownUp": "いたい"
+    },
+    "ja:akachan": {
+      "picture": "👶"
+    },
+    "ja:akai": {
+      "picture": "🟥"
+    },
+    "ja:ame": {
+      "picture": "🍬"
+    },
+    "ja:ame2": {
+      "picture": "🌧️"
+    },
+    "ja:ano": {
+      "meaning": "that… (over there)"
+    },
+    "ja:aoi": {
+      "picture": "🟦"
+    },
+    "ja:are": {
+      "meaning": "that (over there)"
+    },
+    "ja:ari": {
+      "picture": "🐜"
+    },
+    "ja:aru": {
+      "meaning": "there is (a thing)"
+    },
+    "ja:aruku": {
+      "picture": "🚶"
+    },
+    "ja:asa": {
+      "picture": "🌅"
+    },
+    "ja:ashi": {
+      "picture": "🦵"
+    },
+    "ja:asoko": {
+      "meaning": "over there"
+    },
+    "ja:atsui": {
+      "picture": "🥵"
+    },
+    "ja:baaba": {
+      "picture": "👵",
+      "meaning": "granny",
+      "grownUp": "おばあさん"
+    },
+    "ja:baibai": {
+      "picture": "👋"
+    },
+    "ja:baiku": {
+      "picture": "🏍️"
+    },
+    "ja:baketsu": {
+      "picture": "🪣"
+    },
+    "ja:banana": {
+      "picture": "🍌"
+    },
+    "ja:basu": {
+      "picture": "🚌"
+    },
+    "ja:bataa": {
+      "picture": "🧈"
+    },
+    "ja:beddo": {
+      "picture": "🛏️"
+    },
+    "ja:bideo": {
+      "picture": "📼"
+    },
+    "ja:booru": {
+      "picture": "⚽"
+    },
+    "ja:boushi": {
+      "picture": "🧢"
+    },
+    "ja:budou": {
+      "picture": "🍇"
+    },
+    "ja:buta": {
+      "picture": "🐷"
+    },
+    "ja:buubuu": {
+      "picture": "🚗"
+    },
+    "ja:buubuu2": {
+      "picture": "🐷",
+      "meaning": "oink",
+      "grownUp": "ぶた"
+    },
+    "ja:buun": {
+      "picture": "✈️",
+      "meaning": "zoom (airplane)",
+      "grownUp": "ひこうき（飛行機）"
+    },
+    "ja:byouki": {
+      "picture": "🤒"
+    },
+    "ja:chanko": {
+      "meaning": "sit down",
+      "grownUp": "すわる"
+    },
+    "ja:chigau": {
+      "meaning": "that's wrong"
+    },
+    "ja:chiizu": {
+      "picture": "🧀"
+    },
+    "ja:chokichoki": {
+      "picture": "✂️",
+      "meaning": "snip snip"
+    },
+    "ja:chokoreeto": {
+      "picture": "🍫"
+    },
+    "ja:choucho": {
+      "picture": "🦋"
+    },
+    "ja:cyuncyun": {
+      "picture": "🐦",
+      "meaning": "tweet tweet",
+      "grownUp": "すずめ"
+    },
+    "ja:cyuucyuu": {
+      "picture": "🐭",
+      "grownUp": "ねずみ"
+    },
+    "ja:cyuushajou": {
+      "picture": "🅿️"
+    },
+    "ja:dakko": {
+      "need": "hug",
+      "meaning": "pick me up"
+    },
+    "ja:daku": {
+      "need": "hug"
+    },
+    "ja:dame": {
+      "picture": "🙅"
+    },
+    "ja:dasu": {
+      "meaning": "take out"
+    },
+    "ja:denchi": {
+      "picture": "🔋"
+    },
+    "ja:denki": {
+      "picture": "💡"
+    },
+    "ja:densya": {
+      "picture": "🚃"
+    },
+    "ja:denwa": {
+      "picture": "☎️"
+    },
+    "ja:depaato": {
+      "picture": "🏬",
+      "meaning": "department store"
+    },
+    "ja:doa": {
+      "picture": "🚪"
+    },
+    "ja:doonatsu": {
+      "picture": "🍩"
+    },
+    "ja:e": {
+      "picture": "🖼️",
+      "meaning": "drawing"
+    },
+    "ja:ebi": {
+      "picture": "🦐"
+    },
+    "ja:ehon": {
+      "picture": "📖",
+      "meaning": "picture book"
+    },
+    "ja:eiga": {
+      "picture": "🎬"
+    },
+    "ja:enen": {
+      "picture": "😭",
+      "meaning": "waah (crying)",
+      "grownUp": "なく（泣く）"
+    },
+    "ja:enpitsu": {
+      "picture": "✏️"
+    },
+    "ja:fuchi": {
+      "meaning": "rim"
+    },
+    "ja:fune": {
+      "picture": "🚢"
+    },
+    "ja:furaipan": {
+      "picture": "🍳",
+      "meaning": "frying pan"
+    },
+    "ja:fuusen": {
+      "picture": "🎈"
+    },
+    "ja:fwooku": {
+      "picture": "🍴"
+    },
+    "ja:gaagaa": {
+      "picture": "🦆"
+    },
+    "ja:gakkou": {
+      "picture": "🏫"
+    },
+    "ja:gaoo": {
+      "picture": "🦁"
+    },
+    "ja:gasorinsutando": {
+      "picture": "⛽"
+    },
+    "ja:geemu": {
+      "picture": "🎮"
+    },
+    "ja:genki": {
+      "meaning": "full of energy"
+    },
+    "ja:getabako": {
+      "meaning": "shoe cupboard"
+    },
+    "ja:gohan": {
+      "picture": "🍚"
+    },
+    "ja:gomennasai": {
+      "picture": "🙇"
+    },
+    "ja:gomibako": {
+      "picture": "🗑️"
+    },
+    "ja:gorira": {
+      "picture": "🦍"
+    },
+    "ja:gottsun": {
+      "meaning": "bonk"
+    },
+    "ja:guruguru": {
+      "picture": "🌀"
+    },
+    "ja:gyuunyuu": {
+      "picture": "🥛"
+    },
+    "ja:ha": {
+      "picture": "🦷"
+    },
+    "ja:haburashi": {
+      "picture": "🪥"
+    },
+    "ja:hachi": {
+      "picture": "🐝"
+    },
+    "ja:hako": {
+      "picture": "📦"
+    },
+    "ja:haku": {
+      "meaning": "put on (shoes, pants)"
+    },
+    "ja:hana": {
+      "picture": "👃"
+    },
+    "ja:hana2": {
+      "picture": "🌸"
+    },
+    "ja:hanbaagu": {
+      "picture": "🍔"
+    },
+    "ja:happa": {
+      "picture": "🍃"
+    },
+    "ja:hasami": {
+      "picture": "✂️"
+    },
+    "ja:hashi": {
+      "picture": "🥢"
+    },
+    "ja:hashi2": {
+      "meaning": "end"
+    },
+    "ja:hashigo": {
+      "picture": "🪜"
+    },
+    "ja:hashiru": {
+      "picture": "🏃"
+    },
+    "ja:hata": {
+      "picture": "🚩"
+    },
+    "ja:hato": {
+      "picture": "🕊️"
+    },
+    "ja:hebi": {
+      "picture": "🐍"
+    },
+    "ja:herikoputaa": {
+      "picture": "🚁"
+    },
+    "ja:hikouki": {
+      "picture": "✈️"
+    },
+    "ja:hiru": {
+      "meaning": "noon"
+    },
+    "ja:hito": {
+      "picture": "🧍",
+      "meaning": "person"
+    },
+    "ja:hitotsu": {
+      "meaning": "one (thing)"
+    },
+    "ja:hitsuji": {
+      "picture": "🐑"
+    },
+    "ja:hiyoko": {
+      "picture": "🐤"
+    },
+    "ja:hoikujyo": {
+      "meaning": "daycare"
+    },
+    "ja:hon": {
+      "picture": "📕"
+    },
+    "ja:hora": {
+      "meaning": "look!"
+    },
+    "ja:hoshi": {
+      "picture": "⭐"
+    },
+    "ja:hottokeeki": {
+      "picture": "🥞"
+    },
+    "ja:houki": {
+      "picture": "🧹"
+    },
+    "ja:ichi": {
+      "picture": "1️⃣"
+    },
+    "ja:ichigo": {
+      "picture": "🍓"
+    },
+    "ja:ie": {
+      "picture": "🏡",
+      "meaning": "house"
+    },
+    "ja:inaiinaibaa": {
+      "picture": "🙈"
+    },
+    "ja:inu": {
+      "picture": "🐶"
+    },
+    "ja:iru2": {
+      "meaning": "there is (someone)"
+    },
+    "ja:ishi": {
+      "picture": "🪨"
+    },
+    "ja:isu": {
+      "picture": "🪑"
+    },
+    "ja:itai": {
+      "meaning": "it hurts"
+    },
+    "ja:iya": {
+      "meaning": "no way"
+    },
+    "ja:jaa": {
+      "picture": "💦",
+      "meaning": "splash"
+    },
+    "ja:janpaa": {
+      "picture": "🧥"
+    },
+    "ja:jiiji": {
+      "picture": "👴",
+      "meaning": "grandpa (baby talk)",
+      "grownUp": "おじいさん"
+    },
+    "ja:jitensya": {
+      "picture": "🚲"
+    },
+    "ja:juusu": {
+      "picture": "🧃"
+    },
+    "ja:jyouzu": {
+      "meaning": "good at it"
+    },
+    "ja:kaakaa": {
+      "picture": "🐦‍⬛",
+      "grownUp": "カラス"
+    },
+    "ja:kaba": {
+      "picture": "🦛"
+    },
+    "ja:kaban": {
+      "picture": "👜"
+    },
+    "ja:kabocha": {
+      "picture": "🎃"
+    },
+    "ja:kaburu": {
+      "meaning": "put on (a hat)"
+    },
+    "ja:kado": {
+      "meaning": "corner"
+    },
+    "ja:kaeru": {
+      "picture": "🐸"
+    },
+    "ja:kagi": {
+      "picture": "🔑"
+    },
+    "ja:kago": {
+      "picture": "🧺"
+    },
+    "ja:kaisya": {
+      "picture": "🏢",
+      "meaning": "office"
+    },
+    "ja:kaku": {
+      "picture": "✍️"
+    },
+    "ja:kame": {
+      "picture": "🐢"
+    },
+    "ja:kamera": {
+      "picture": "📷"
+    },
+    "ja:kami2": {
+      "picture": "📄",
+      "meaning": "paper"
+    },
+    "ja:kan": {
+      "picture": "🥫"
+    },
+    "ja:kani": {
+      "picture": "🦀"
+    },
+    "ja:kao": {
+      "picture": "🙂"
+    },
+    "ja:karasu": {
+      "picture": "🐦‍⬛"
+    },
+    "ja:karee": {
+      "picture": "🍛"
+    },
+    "ja:kasa": {
+      "picture": "☂️"
+    },
+    "ja:katazukeru": {
+      "meaning": "tidy up"
+    },
+    "ja:kaze": {
+      "picture": "🌬️"
+    },
+    "ja:keeki": {
+      "picture": "🍰"
+    },
+    "ja:kega": {
+      "picture": "🩹"
+    },
+    "ja:ki": {
+      "picture": "🌳"
+    },
+    "ja:kikoeru": {
+      "meaning": "can hear"
+    },
+    "ja:kirei": {
+      "meaning": "pretty"
+    },
+    "ja:kireikirei": {
+      "meaning": "all clean"
+    },
+    "ja:kirin": {
+      "picture": "🦒"
+    },
+    "ja:kiru": {
+      "meaning": "put on (clothes)"
+    },
+    "ja:kisya": {
+      "picture": "🚂",
+      "meaning": "steam train"
+    },
+    "ja:kitsune": {
+      "picture": "🦊"
+    },
+    "ja:koara": {
+      "picture": "🐨"
+    },
+    "ja:kocchi": {
+      "meaning": "this way"
+    },
+    "ja:kodomo": {
+      "picture": "🧒"
+    },
+    "ja:kokekokko": {
+      "picture": "🐔"
+    },
+    "ja:koko": {
+      "meaning": "here"
+    },
+    "ja:kono": {
+      "meaning": "this…"
+    },
+    "ja:koohii": {
+      "picture": "☕"
+    },
+    "ja:koon": {
+      "picture": "🌽"
+    },
+    "ja:koori": {
+      "picture": "🧊"
+    },
+    "ja:koppu": {
+      "picture": "🥤",
+      "meaning": "cup"
+    },
+    "ja:kore": {
+      "meaning": "this"
+    },
+    "ja:korobu": {
+      "meaning": "trip over"
+    },
+    "ja:kowai": {
+      "picture": "😱"
+    },
+    "ja:kuchi": {
+      "picture": "👄"
+    },
+    "ja:kujira": {
+      "picture": "🐳"
+    },
+    "ja:kukkii": {
+      "picture": "🍪"
+    },
+    "ja:kukku": {
+      "picture": "👟",
+      "meaning": "shoes (baby talk)",
+      "grownUp": "くつ（靴）"
+    },
+    "ja:kuma": {
+      "picture": "🐻"
+    },
+    "ja:kumo": {
+      "picture": "☁️"
+    },
+    "ja:kureyon": {
+      "picture": "🖍️"
+    },
+    "ja:kuroi": {
+      "picture": "⬛"
+    },
+    "ja:kuruma": {
+      "picture": "🚗"
+    },
+    "ja:kusa": {
+      "picture": "🌱"
+    },
+    "ja:kusuri": {
+      "picture": "💊"
+    },
+    "ja:kutsu": {
+      "picture": "👟"
+    },
+    "ja:kutsushita": {
+      "picture": "🧦"
+    },
+    "ja:kyanpu": {
+      "picture": "🏕️"
+    },
+    "ja:kyuuri": {
+      "picture": "🥒"
+    },
+    "ja:mado": {
+      "picture": "🪟"
+    },
+    "ja:mae": {
+      "meaning": "front"
+    },
+    "ja:mafuraa": {
+      "picture": "🧣"
+    },
+    "ja:maiku": {
+      "picture": "🎤"
+    },
+    "ja:mama": {
+      "picture": "👩"
+    },
+    "ja:mame": {
+      "picture": "🫘"
+    },
+    "ja:manma": {
+      "need": "eat",
+      "meaning": "food (baby talk)",
+      "grownUp": "ごはん"
+    },
+    "ja:mata": {
+      "meaning": "again"
+    },
+    "ja:me": {
+      "picture": "👁️"
+    },
+    "ja:meemee": {
+      "picture": "🐐"
+    },
+    "ja:megane": {
+      "picture": "👓"
+    },
+    "ja:meron": {
+      "picture": "🍈"
+    },
+    "ja:mezamashi": {
+      "picture": "⏰",
+      "meaning": "alarm clock"
+    },
+    "ja:michi": {
+      "picture": "🛣️"
+    },
+    "ja:midori": {
+      "picture": "🟩"
+    },
+    "ja:mieru": {
+      "meaning": "can see"
+    },
+    "ja:mikan": {
+      "picture": "🍊"
+    },
+    "ja:mimi": {
+      "picture": "👂"
+    },
+    "ja:miruku": {
+      "picture": "🍼"
+    },
+    "ja:misoshiru": {
+      "meaning": "miso soup"
+    },
+    "ja:mizu": {
+      "picture": "💧"
+    },
+    "ja:momo": {
+      "picture": "🍑"
+    },
+    "ja:moo": {
+      "picture": "🐮"
+    },
+    "ja:mori": {
+      "picture": "🌲"
+    },
+    "ja:motsu": {
+      "meaning": "hold"
+    },
+    "ja:mushi": {
+      "picture": "🐛"
+    },
+    "ja:nabe": {
+      "meaning": "pot"
+    },
+    "ja:nagagutsu": {
+      "picture": "👢"
+    },
+    "ja:nai": {
+      "meaning": "there isn't any"
+    },
+    "ja:naifu": {
+      "picture": "🔪"
+    },
+    "ja:nainai": {
+      "meaning": "put it away",
+      "grownUp": "かたづける"
+    },
+    "ja:naka": {
+      "meaning": "inside"
+    },
+    "ja:naku": {
+      "picture": "😢"
+    },
+    "ja:nashi": {
+      "picture": "🍐"
+    },
+    "ja:nashi2": {
+      "meaning": "nothing"
+    },
+    "ja:nasu": {
+      "picture": "🍆"
+    },
+    "ja:nekkuresu": {
+      "picture": "📿"
+    },
+    "ja:neko": {
+      "picture": "🐱"
+    },
+    "ja:nekutai": {
+      "picture": "👔"
+    },
+    "ja:nenne": {
+      "need": "sleep",
+      "meaning": "sleepy-time",
+      "grownUp": "ねる（寝る）"
+    },
+    "ja:neru": {
+      "need": "sleep"
+    },
+    "ja:nezumi": {
+      "picture": "🐭"
+    },
+    "ja:niku": {
+      "picture": "🍖"
+    },
+    "ja:ningyoo": {
+      "picture": "🪆",
+      "kana": "にんぎょう"
+    },
+    "ja:ninjin": {
+      "picture": "🥕"
+    },
+    "ja:niwatori": {
+      "picture": "🐔"
+    },
+    "ja:nugu": {
+      "meaning": "take off"
+    },
+    "ja:nyannyan": {
+      "picture": "🐱",
+      "grownUp": "ねこ"
+    },
+    "ja:obaasan": {
+      "picture": "👵"
+    },
+    "ja:obuu": {
+      "meaning": "carry on your back"
+    },
+    "ja:ocha": {
+      "picture": "🍵"
+    },
+    "ja:ochiru": {
+      "meaning": "fall down"
+    },
+    "ja:odoru": {
+      "picture": "💃"
+    },
+    "ja:ofuro": {
+      "picture": "🛁"
+    },
+    "ja:ohimesama": {
+      "picture": "👸"
+    },
+    "ja:ohisama": {
+      "picture": "☀️"
+    },
+    "ja:oichii": {
+      "picture": "😋",
+      "meaning": "yummy (baby talk)",
+      "grownUp": "おいしい"
+    },
+    "ja:oimo": {
+      "picture": "🍠"
+    },
+    "ja:oishasan": {
+      "picture": "🧑‍⚕️"
+    },
+    "ja:ojiisan": {
+      "picture": "👴"
+    },
+    "ja:okaasan": {
+      "meaning": "mother"
+    },
+    "ja:okaimono": {
+      "picture": "🛒"
+    },
+    "ja:okane": {
+      "picture": "💴"
+    },
+    "ja:okoru": {
+      "picture": "😠"
+    },
+    "ja:omawarisan": {
+      "picture": "👮"
+    },
+    "ja:omise": {
+      "picture": "🏪",
+      "meaning": "shop"
+    },
+    "ja:omocha": {
+      "picture": "🧸"
+    },
+    "ja:oneesan": {
+      "picture": "👧"
+    },
+    "ja:onigiri": {
+      "picture": "🍙"
+    },
+    "ja:oniisan": {
+      "picture": "👦"
+    },
+    "ja:ookami": {
+      "picture": "🐺"
+    },
+    "ja:oosama": {
+      "picture": "🤴"
+    },
+    "ja:orikou": {
+      "meaning": "well-behaved"
+    },
+    "ja:osara": {
+      "picture": "🍽️"
+    },
+    "ja:oshigoto": {
+      "meaning": "work"
+    },
+    "ja:osoto": {
+      "meaning": "outdoors"
+    },
+    "ja:osushi": {
+      "picture": "🍣"
+    },
+    "ja:otete": {
+      "picture": "✋",
+      "meaning": "hand (baby talk)",
+      "grownUp": "て（手）"
+    },
+    "ja:otousan": {
+      "meaning": "father"
+    },
+    "ja:otsukisan": {
+      "picture": "🌙"
+    },
+    "ja:ouchi": {
+      "picture": "🏠",
+      "meaning": "home"
+    },
+    "ja:outa": {
+      "picture": "🎵"
+    },
+    "ja:oyogu": {
+      "picture": "🏊"
+    },
+    "ja:pakapaka": {
+      "picture": "🐴",
+      "meaning": "clip-clop",
+      "grownUp": "うま"
+    },
+    "ja:pakupaku": {
+      "meaning": "munch munch",
+      "grownUp": "たべる"
+    },
+    "ja:pan": {
+      "picture": "🍞"
+    },
+    "ja:panda": {
+      "picture": "🐼"
+    },
+    "ja:pantsu": {
+      "picture": "🩲"
+    },
+    "ja:papa": {
+      "picture": "👨"
+    },
+    "ja:patokaa": {
+      "picture": "🚓"
+    },
+    "ja:pazuru": {
+      "picture": "🧩"
+    },
+    "ja:pen": {
+      "picture": "🖊️"
+    },
+    "ja:pengin": {
+      "picture": "🐧"
+    },
+    "ja:piano": {
+      "picture": "🎹"
+    },
+    "ja:piiman": {
+      "picture": "🫑"
+    },
+    "ja:piyopiyo": {
+      "picture": "🐤",
+      "meaning": "peep peep",
+      "grownUp": "ひよこ"
+    },
+    "ja:ponpon": {
+      "meaning": "tummy (baby talk)",
+      "grownUp": "おなか"
+    },
+    "ja:poon": {
+      "meaning": "toss"
+    },
+    "ja:potetochippusu": {
+      "picture": "🍟",
+      "meaning": "french fries"
+    },
+    "ja:potto": {
+      "meaning": "kettle"
+    },
+    "ja:purezento": {
+      "picture": "🎁"
+    },
+    "ja:purin": {
+      "picture": "🍮"
+    },
+    "ja:raamen": {
+      "picture": "🍜",
+      "meaning": "ramen"
+    },
+    "ja:raion": {
+      "picture": "🦁"
+    },
+    "ja:ribon": {
+      "picture": "🎀"
+    },
+    "ja:ringo": {
+      "picture": "🍎"
+    },
+    "ja:risu": {
+      "picture": "🐿️"
+    },
+    "ja:saakasu": {
+      "picture": "🎪"
+    },
+    "ja:saifu": {
+      "picture": "👛"
+    },
+    "ja:sakana": {
+      "picture": "🐟"
+    },
+    "ja:sakki": {
+      "meaning": "a moment ago"
+    },
+    "ja:samui": {
+      "picture": "🥶",
+      "meaning": "cold (weather)"
+    },
+    "ja:sandoicchi": {
+      "picture": "🥪"
+    },
+    "ja:saru": {
+      "picture": "🐵"
+    },
+    "ja:sekken": {
+      "picture": "🧼"
+    },
+    "ja:senbei": {
+      "picture": "🍘"
+    },
+    "ja:sensei": {
+      "picture": "🧑‍🏫"
+    },
+    "ja:shabondama": {
+      "picture": "🫧"
+    },
+    "ja:shii": {
+      "picture": "🤫"
+    },
+    "ja:shiishi": {
+      "meaning": "pee-pee",
+      "grownUp": "おしっこ"
+    },
+    "ja:shimau": {
+      "meaning": "put away"
+    },
+    "ja:shimauma": {
+      "picture": "🦓"
+    },
+    "ja:shiroi": {
+      "picture": "⬜"
+    },
+    "ja:shita": {
+      "picture": "👅"
+    },
+    "ja:shoubousya": {
+      "picture": "🚒"
+    },
+    "ja:socchi": {
+      "meaning": "that way (near you)"
+    },
+    "ja:soko": {
+      "meaning": "there (near you)"
+    },
+    "ja:sono": {
+      "meaning": "that… (near you)"
+    },
+    "ja:sore": {
+      "meaning": "that (near you)"
+    },
+    "ja:sou": {
+      "meaning": "that's right"
+    },
+    "ja:suberidai": {
+      "picture": "🛝"
+    },
+    "ja:sugoi": {
+      "meaning": "amazing"
+    },
+    "ja:suidou": {
+      "picture": "🚰",
+      "meaning": "tap water"
+    },
+    "ja:suika": {
+      "picture": "🍉"
+    },
+    "ja:supagettii": {
+      "picture": "🍝"
+    },
+    "ja:supuun": {
+      "picture": "🥄"
+    },
+    "ja:sutoobu": {
+      "meaning": "heater"
+    },
+    "ja:suupaa": {
+      "meaning": "supermarket"
+    },
+    "ja:suupu": {
+      "picture": "🥣"
+    },
+    "ja:syanpuu": {
+      "picture": "🧴"
+    },
+    "ja:syatsu": {
+      "picture": "👕"
+    },
+    "ja:syawaa": {
+      "picture": "🚿"
+    },
+    "ja:syupoppoo": {
+      "picture": "🚂"
+    },
+    "ja:taberu": {
+      "need": "eat"
+    },
+    "ja:taiko": {
+      "picture": "🥁"
+    },
+    "ja:taitai": {
+      "picture": "🐟",
+      "meaning": "fish (baby talk)",
+      "grownUp": "さかな"
+    },
+    "ja:tamago": {
+      "picture": "🥚"
+    },
+    "ja:tansu": {
+      "meaning": "chest of drawers"
+    },
+    "ja:tanuki": {
+      "picture": "🦝"
+    },
+    "ja:te": {
+      "picture": "✋"
+    },
+    "ja:tebukuro": {
+      "picture": "🧤"
+    },
+    "ja:terebi": {
+      "picture": "📺"
+    },
+    "ja:toire": {
+      "picture": "🚽"
+    },
+    "ja:tokei": {
+      "picture": "🕐"
+    },
+    "ja:tomaru": {
+      "meaning": "stop (moving)"
+    },
+    "ja:tomato": {
+      "picture": "🍅"
+    },
+    "ja:tora": {
+      "picture": "🐯"
+    },
+    "ja:torakku": {
+      "picture": "🚚"
+    },
+    "ja:tori": {
+      "picture": "🐦"
+    },
+    "ja:tsukareta": {
+      "picture": "😩"
+    },
+    "ja:tsukeru": {
+      "meaning": "turn on"
+    },
+    "ja:tsukue": {
+      "meaning": "desk"
+    },
+    "ja:tsume": {
+      "picture": "💅",
+      "meaning": "nail"
+    },
+    "ja:tsumetai": {
+      "meaning": "cold (to touch)"
+    },
+    "ja:tsumiki": {
+      "picture": "🧱"
+    },
+    "ja:udon": {
+      "meaning": "udon noodles"
+    },
+    "ja:uma": {
+      "picture": "🐴"
+    },
+    "ja:umai": {
+      "meaning": "yummy"
+    },
+    "ja:umi": {
+      "picture": "🌊"
+    },
+    "ja:un": {
+      "meaning": "yeah"
+    },
+    "ja:unchi": {
+      "picture": "💩"
+    },
+    "ja:ureshii": {
+      "picture": "😄"
+    },
+    "ja:usagi": {
+      "picture": "🐰"
+    },
+    "ja:ushi": {
+      "picture": "🐮"
+    },
+    "ja:uun": {
+      "meaning": "nope"
+    },
+    "ja:wani": {
+      "picture": "🐊"
+    },
+    "ja:wanwan": {
+      "picture": "🐶",
+      "meaning": "woof woof (doggy)"
+    },
+    "ja:warau": {
+      "picture": "😆"
+    },
+    "ja:yaburu": {
+      "meaning": "tear"
+    },
+    "ja:yada": {
+      "meaning": "don't want to"
+    },
+    "ja:yama": {
+      "picture": "⛰️"
+    },
+    "ja:yameru": {
+      "meaning": "quit"
+    },
+    "ja:yaru": {
+      "meaning": "do (casual)"
+    },
+    "ja:yasai": {
+      "picture": "🥬"
+    },
+    "ja:yasashii": {
+      "meaning": "kind"
+    },
+    "ja:yoru": {
+      "picture": "🌃"
+    },
+    "ja:youfuku": {
+      "picture": "👚",
+      "meaning": "clothes"
+    },
+    "ja:yubi": {
+      "picture": "👆"
+    },
+    "ja:yuki": {
+      "picture": "❄️"
+    },
+    "ja:yukidaruma": {
+      "picture": "⛄"
+    },
+    "ja:yuubinyasan": {
+      "kana": "ゆうびんやさん"
+    },
+    "ja:zou": {
+      "picture": "🐘"
+    },
+    "ja:zubon": {
+      "picture": "👖"
+    }
+  }
+}
