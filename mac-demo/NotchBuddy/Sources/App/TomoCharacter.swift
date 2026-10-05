@@ -797,6 +797,9 @@ private struct TomoChickMoves: ViewModifier {
             .onReceive(NotificationCenter.default.publisher(for: .botGrow)) { n in
                 if let t = n.object as? CGFloat { chick.grow(to: t) }
             }
+            .onReceive(NotificationCenter.default.publisher(for: .botSetGrowth)) { n in
+                if let t = n.object as? CGFloat { chick.setGrowth(t) }
+            }
     }
 }
 

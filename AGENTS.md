@@ -33,6 +33,7 @@ The app is menu-bar only, so computer-use can't target it. Use the debug flags i
 - `TOMO_SNAPSHOT_DIR=<dir>` saves a PNG of the island every second.
 - `TOMO_AUTOPLAY=1`, `TOMO_STAGE=3` and `TOMO_AUTOCHAT="…|…"` drive it without clicks.
 - `TOMO_RENDER_SHEET=<dir>` renders every age and face of the character to one PNG; `TOMO_RENDER_ANIM=<dir>` renders a scripted scene frame by frame, to check motion.
+- Progress is saved, so **always pass `TOMO_DATA_DIR=<a temp dir>` to test runs**; otherwise they change the user's own Tomo. `TOMO_TIME_TRAVEL=<hours>` brings due words back; `TOMO_SELFTEST=1` checks the growth rules and quits.
 - Mute Tomo for test runs with `defaults write com.zenbujapanese.tomodachi soundEnabled -bool false`, and run `defaults delete com.zenbujapanese.tomodachi soundEnabled` afterwards.
 - The user may be watching or clicking the live app. A click shows up in snapshots as unexpected answers or restarts.
 - After testing, relaunch the user's copy with `mac-demo/run.sh`.

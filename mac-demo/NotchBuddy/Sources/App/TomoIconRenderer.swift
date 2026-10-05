@@ -11,6 +11,9 @@ import SwiftUI
 @MainActor
 enum TomoIconRenderer {
     static func renderIfRequested() {
+        if ProcessInfo.processInfo.environment["TOMO_SELFTEST"] != nil {   // TomoProgress rules + store
+            exit(TomoProgress.selfTest() ? 0 : 1)
+        }
         if let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_SOUNDS"] {
             TomoSounds.renderFiles(to: URL(fileURLWithPath: dir))
             NSApp.terminate(nil)

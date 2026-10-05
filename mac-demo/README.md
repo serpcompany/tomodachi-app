@@ -59,7 +59,9 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 
 | File | Change |
 |---|---|
-| `Sources/App/TomoGame.swift` | New. Rounds, visits, growth, help state, and the voice (`AVSpeechSynthesizer`, the pack's locale, raised pitch) |
+| `Sources/App/TomoGame.swift` | New. Rounds, visits, level-ups and birthdays, help state, and the voice (`AVSpeechSynthesizer`, the pack's locale, raised pitch) |
+| `Sources/App/TomoProgress.swift`, `Sources/App/TomoStore.swift` | New. Word stages, levels and ages; saved progress in SQLite |
+| `Sources/App/TomoWordsView.swift` | New. The Tomo's words window: every level and word, with its stage and when it's due |
 | `Sources/App/TomoView.swift` | New. The fixed-grid card (`TomoGrid`), picture/action tiles, chat card, help panel, header status |
 | `Sources/App/TomoChat.swift` | New. Talking-stage replies (language check, then AI if configured, offline otherwise), explain, on-device speech recognition |
 | `Sources/App/TomoLanguage.swift`, `Resources/languages/` | New. Language packs (`ja.json`, `en.json`, `es.json`), interface strings (`ui.en.json`, `ui.ja.json`), and the pair selection |
@@ -71,7 +73,7 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 | `Sources/App/TomoSounds.swift` | New. Tomo's sound effects, synthesized in code (no audio files) |
 | `Sources/App/TomoAI.swift` | New. Provider adapter (Anthropic API + any OpenAI-compatible endpoint) and the AI provider window |
 | `BotEngine.swift`, `BotCanvasView.swift`, `GreetingCanvasView.swift`, `UploadCanvasView.swift` | Deleted: Coucou's character and the canvases that drew it. The last versions are in git history (`git show 43a5ada:mac-demo/NotchBuddy/Sources/App/BotEngine.swift`) and in the upstream Coucou repo. Read them for technique only; Mochi's look, expressions and animations are reserved |
-| `AppDelegate.swift`, `AppState.swift` | No hooks or pollers. A single "tomo" task. Launches straight into the game |
+| `AppDelegate.swift`, `AppState.swift` | No hooks or pollers. A single "tomo" task. Launches straight into the game. "Start Tomo over…" asks first. Menu item "Tomo's words…"; snapshots also capture that window |
 | `IslandRootView.swift`, `IslandViewContent.swift`, `IslandTypes.swift` | The header and overview show Tomo. The island is taller. Draws `TomoCharacterView`; no greeting or upload canvas |
 | `IslandWindowController.swift` | Taller window (560 pt) so the help panel fits; the island's frame includes the help panel. The drag ghost draws `TomoCharacterView` |
 | `NotchBuddyApp.swift` | The Settings scene shows `TomoSettingsView` |
@@ -80,8 +82,12 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 | `ClaudeService.swift` | Keychain service renamed to `co.zenbu.tomodachi` (kept, so saved keys still load) |
 
 Debug only:
-- `TOMO_AUTOPLAY=1` plays stages 1–2 by itself.
-- `TOMO_STAGE=3 TOMO_AUTOCHAT="しごと してる|うん"` starts at the talking stage and types those answers.
+- `TOMO_AUTOPLAY=1` answers picture rounds by itself (one miss, then right).
+- `TOMO_STAGE=3 TOMO_AUTOCHAT="しごと してる|うん"` starts a testing Tomo at that age and types those answers. Testing ages run in memory; saved progress isn't touched.
+- `TOMO_DATA_DIR=/path` keeps saved progress in that folder instead of Application Support. **Use a temporary folder for test runs**, so they never change the learner's own Tomo.
+- `TOMO_TIME_TRAVEL=<hours>` starts Tomo's clock that far ahead, so due words come back without waiting. Settings → "Skip ahead a day (testing)" adds a day until you quit. Answers given while ahead are saved with those dates.
+- `TOMO_OPEN_WORDS=1` opens Tomo's words at launch; with `TOMO_SNAPSHOT_DIR` it's captured as `words-NNN.png`.
+- `TOMO_SELFTEST=1` checks the word-stage and level rules and the store in a temporary folder, prints each check, and quits (exit code 1 on a failure).
 - `TOMO_DROPIN_EVERY=8` sets the seconds between visits; `TOMO_NUDGE_EVERY=5` sets the seconds between nudge bounces.
 - `TOMO_TARGET=es` and `TOMO_LEARNER=en` pick the language pair.
 - `TOMO_SNAPSHOT_DIR=/path` saves a PNG of the island every second; with `TOMO_OPEN_SETTINGS=1` it also captures the Settings window.

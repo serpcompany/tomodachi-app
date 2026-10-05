@@ -34,6 +34,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .sink { [weak self] _ in
                 self?.rebuildMenu()
                 self?.settingsWindow?.title = TomoLanguages.shared.learner("menu.settingsTitle")
+                TomoWordsWindow.window?.title = TomoLanguages.shared.learner("words.title")
             }
     }
 
@@ -46,6 +47,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(withTitle: ui("menu.dropIn"), action: #selector(dropInNow), keyEquivalent: "d")
         menu.addItem(withTitle: ui("menu.talk", ["age": TomoLanguages.shared.target.ageLabel(TomoGame.chatStage)]),
                      action: #selector(skipToTalking), keyEquivalent: "3")
+        menu.addItem(withTitle: ui("menu.words"), action: #selector(openWords), keyEquivalent: "w")
         menu.addItem(withTitle: ui("menu.restart"), action: #selector(restartDemo), keyEquivalent: "r")
         menu.addItem(.separator())
         menu.addItem(withTitle: ui("menu.settings"), action: #selector(openSettings), keyEquivalent: ",")
@@ -62,8 +64,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         islandController?.expand(to: .overview)
     }
 
+    @objc private func openWords() {
+        TomoWordsWindow.show()
+    }
+
     @objc private func restartDemo() {
-        TomoGame.shared.restart()
+        TomoStartOver.confirm()
     }
 
     @objc private func skipToTalking() {
@@ -133,6 +139,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     let purl = URL(fileURLWithPath: dir).appendingPathComponent(String(format: "popover%d-%03d.png", i, n))
                     try? prep.representation(using: .png, properties: [:])?.write(to: purl)
                 }
+                // TOMO_OPEN_WORDS=1 also captures Tomo's words
+                if let wv = TomoWordsWindow.window?.contentView, TomoWordsWindow.window?.isVisible == true,
+                   let wrep = wv.bitmapImageRepForCachingDisplay(in: wv.bounds) {
+                    wv.cacheDisplay(in: wv.bounds, to: wrep)
+                    let wurl = URL(fileURLWithPath: dir).appendingPathComponent(String(format: "words-%03d.png", n))
+                    try? wrep.representation(using: .png, properties: [:])?.write(to: wurl)
+                }
                 // TOMO_OPEN_SETTINGS=1 also captures the Settings window
                 if let sv = self?.settingsWindow?.contentView, self?.settingsWindow?.isVisible == true,
                    let srep = sv.bitmapImageRepForCachingDisplay(in: sv.bounds) {
@@ -166,6 +179,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         game.start()
         game.dropIn(force: true)
         startDebugSnapshots()
+        if ProcessInfo.processInfo.environment["TOMO_OPEN_WORDS"] != nil {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { TomoWordsWindow.show() }
+        }
         if ProcessInfo.processInfo.environment["TOMO_OPEN_SETTINGS"] != nil {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in self?.openSettings() }
         }

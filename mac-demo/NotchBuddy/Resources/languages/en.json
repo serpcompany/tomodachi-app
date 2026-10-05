@@ -25,6 +25,7 @@
     "wrong": "Nooo!",
     "ouch": "Ow!",
     "grew": "I'm big now!",
+    "levelUp": "Yay!",
     "bye": "Bye-bye!",
     "seeYou": "See ya!",
     "sayItInMyLanguage": {
@@ -62,302 +63,324 @@
       }
     ]
   },
-  "stages": [
-    [
-      {
-        "id": "en:doggy",
-        "say": "Doggy!",
-        "romanization": null,
-        "meaning": {
-          "en": "doggy",
-          "ja": "わんちゃん（いぬ）"
-        },
-        "grownUp": "dog",
-        "answer": "🐶",
-        "choices": [
-          "🐱",
-          "🐶",
-          "🚗"
-        ],
-        "praise": "Doggy! Woof!"
-      },
-      {
-        "id": "en:numnum",
-        "say": "Num num!",
-        "romanization": null,
-        "meaning": {
-          "en": "yum yum! (I'm hungry)",
-          "ja": "まんま！（おなかすいた）"
-        },
-        "grownUp": "I'm hungry",
-        "need": "eat",
-        "praise": "Yummy!"
-      },
-      {
-        "id": "en:vroom",
-        "say": "Vroom vroom!",
-        "romanization": null,
-        "meaning": {
-          "en": "car (vroom vroom)",
-          "ja": "ブーブー（くるま）"
-        },
-        "grownUp": "car",
-        "answer": "🚗",
-        "choices": [
-          "🚗",
-          "🐮",
-          "🍎"
-        ],
-        "praise": "Vroom!"
-      },
-      {
-        "id": "en:kitty",
-        "say": "Kitty!",
-        "romanization": null,
-        "meaning": {
-          "en": "kitty",
-          "ja": "ニャンニャン（ねこ）"
-        },
-        "grownUp": "cat",
-        "answer": "🐱",
-        "choices": [
-          "🐶",
-          "🐮",
-          "🐱"
-        ],
-        "praise": "Meow!"
-      },
-      {
-        "id": "en:nightnight",
-        "say": "Night-night…",
-        "romanization": null,
-        "meaning": {
-          "en": "sleepy-time",
-          "ja": "ねんね…"
-        },
-        "grownUp": "go to sleep",
-        "need": "sleep",
-        "praise": "Night-night…"
-      },
-      {
-        "id": "en:moo",
-        "say": "Moo!",
-        "romanization": null,
-        "meaning": {
-          "en": "moo-cow",
-          "ja": "モーモー（うし）"
-        },
-        "grownUp": "cow",
-        "answer": "🐮",
-        "choices": [
-          "🐮",
-          "🐤",
-          "🐶"
-        ],
-        "praise": "Moooo!"
-      },
-      {
-        "id": "en:uppy",
-        "say": "Uppy!",
-        "romanization": null,
-        "meaning": {
-          "en": "pick me up!",
-          "ja": "だっこ！"
-        },
-        "grownUp": "pick me up",
-        "need": "hug",
-        "praise": "Hehe!"
-      },
-      {
-        "id": "en:shoes",
-        "say": "Shoes!",
-        "romanization": null,
-        "meaning": {
-          "en": "shoes",
-          "ja": "くつ"
-        },
-        "grownUp": "shoes",
-        "answer": "👟",
-        "choices": [
-          "🧸",
-          "👟",
-          "🍎"
-        ],
-        "praise": "Shoes!"
-      }
-    ],
-    [
-      {
-        "id": "en:there",
-        "say": "Doggy there!",
-        "romanization": null,
-        "meaning": {
-          "en": "There's a doggy!",
-          "ja": "ワンワン いた！"
-        },
-        "grownUp": "There's a dog!",
-        "answer": "🐶",
-        "choices": [
-          "🚗",
-          "🐱",
-          "🐶"
-        ],
-        "praise": "Cute doggy!"
-      },
-      {
-        "id": "en:wantfood",
-        "say": "Want food",
-        "romanization": null,
-        "meaning": {
-          "en": "I want to eat",
-          "ja": "まんま たべたい"
-        },
-        "grownUp": "I want to eat",
-        "need": "eat",
-        "praise": "Yummy!"
-      },
-      {
-        "id": "en:apple",
-        "say": "Apple please!",
-        "romanization": null,
-        "meaning": {
-          "en": "Apple, please!",
-          "ja": "りんご ちょうだい"
-        },
-        "grownUp": "Can I have an apple, please?",
-        "answer": "🍎",
-        "choices": [
-          "🍌",
-          "🍎",
-          "🍙"
-        ],
-        "praise": "Thank you!"
-      },
-      {
-        "id": "en:fast",
-        "say": "Car fast!",
-        "romanization": null,
-        "meaning": {
-          "en": "The car is fast!",
-          "ja": "ブーブー はやい！"
-        },
-        "grownUp": "The car is fast!",
-        "answer": "🚗",
-        "choices": [
-          "🐢",
-          "🐮",
-          "🚗"
-        ],
-        "praise": "So fast!"
-      },
-      {
-        "id": "en:sleepy",
-        "say": "Go night-night",
-        "romanization": null,
-        "meaning": {
-          "en": "I want to sleep",
-          "ja": "ねんね する"
-        },
-        "grownUp": "I want to go to sleep",
-        "need": "sleep",
-        "praise": "Night-night…"
-      },
-      {
-        "id": "en:water",
-        "say": "Drink water",
-        "romanization": null,
-        "meaning": {
-          "en": "I want water",
-          "ja": "おみず のむ"
-        },
-        "grownUp": "I want to drink some water",
-        "answer": "💧",
-        "choices": [
-          "💧",
-          "🍙",
-          "🍎"
-        ],
-        "praise": "Glug glug!"
-      }
-    ]
-  ],
-  "starters": [
+  "levels": [
     {
-      "say": "What are you doing?",
-      "romanization": null,
-      "translation": {
-        "en": "What are you doing?",
-        "ja": "なに してるの？"
-      },
-      "examples": [
+      "age": 1,
+      "rounds": [
         {
-          "say": "working",
-          "translation": {
-            "en": "working",
-            "ja": "しごと"
-          }
+          "id": "en:doggy",
+          "say": "Doggy!",
+          "romanization": null,
+          "meaning": {
+            "en": "doggy",
+            "ja": "わんちゃん（いぬ）"
+          },
+          "grownUp": "dog",
+          "answer": "🐶",
+          "choices": [
+            "🐱",
+            "🐶",
+            "🚗"
+          ],
+          "praise": "Doggy! Woof!"
         },
         {
-          "say": "watching TV",
-          "translation": {
-            "en": "watching TV",
-            "ja": "テレビ みてる"
-          }
+          "id": "en:kitty",
+          "say": "Kitty!",
+          "romanization": null,
+          "meaning": {
+            "en": "kitty",
+            "ja": "ニャンニャン（ねこ）"
+          },
+          "grownUp": "cat",
+          "answer": "🐱",
+          "choices": [
+            "🐶",
+            "🐮",
+            "🐱"
+          ],
+          "praise": "Meow!"
         },
         {
-          "say": "eating",
-          "translation": {
-            "en": "eating",
-            "ja": "たべてる"
-          }
+          "id": "en:moo",
+          "say": "Moo!",
+          "romanization": null,
+          "meaning": {
+            "en": "moo-cow",
+            "ja": "モーモー（うし）"
+          },
+          "grownUp": "cow",
+          "answer": "🐮",
+          "choices": [
+            "🐮",
+            "🐤",
+            "🐶"
+          ],
+          "praise": "Moooo!"
+        },
+        {
+          "id": "en:vroom",
+          "say": "Vroom vroom!",
+          "romanization": null,
+          "meaning": {
+            "en": "car (vroom vroom)",
+            "ja": "ブーブー（くるま）"
+          },
+          "grownUp": "car",
+          "answer": "🚗",
+          "choices": [
+            "🚗",
+            "🐮",
+            "🍎"
+          ],
+          "praise": "Vroom!"
         }
       ]
     },
     {
-      "say": "Are you hungry?",
-      "romanization": null,
-      "translation": {
-        "en": "Are you hungry?",
-        "ja": "おなか すいた？"
-      },
-      "examples": [
+      "age": 1,
+      "rounds": [
         {
-          "say": "yes!",
-          "translation": {
-            "en": "yes!",
-            "ja": "うん！"
-          }
+          "id": "en:numnum",
+          "say": "Num num!",
+          "romanization": null,
+          "meaning": {
+            "en": "yum yum! (I'm hungry)",
+            "ja": "まんま！（おなかすいた）"
+          },
+          "grownUp": "I'm hungry",
+          "need": "eat",
+          "praise": "Yummy!"
         },
         {
-          "say": "nope",
-          "translation": {
-            "en": "nope",
-            "ja": "ううん"
-          }
+          "id": "en:nightnight",
+          "say": "Night-night…",
+          "romanization": null,
+          "meaning": {
+            "en": "sleepy-time",
+            "ja": "ねんね…"
+          },
+          "grownUp": "go to sleep",
+          "need": "sleep",
+          "praise": "Night-night…"
+        },
+        {
+          "id": "en:uppy",
+          "say": "Uppy!",
+          "romanization": null,
+          "meaning": {
+            "en": "pick me up!",
+            "ja": "だっこ！"
+          },
+          "grownUp": "pick me up",
+          "need": "hug",
+          "praise": "Hehe!"
+        },
+        {
+          "id": "en:shoes",
+          "say": "Shoes!",
+          "romanization": null,
+          "meaning": {
+            "en": "shoes",
+            "ja": "くつ"
+          },
+          "grownUp": "shoes",
+          "answer": "👟",
+          "choices": [
+            "🧸",
+            "👟",
+            "🍎"
+          ],
+          "praise": "Shoes!"
         }
       ]
     },
     {
-      "say": "What's your favorite animal?",
-      "romanization": null,
-      "translation": {
-        "en": "What's your favorite animal?",
-        "ja": "すきな どうぶつは？"
-      },
-      "examples": [
+      "age": 2,
+      "rounds": [
         {
-          "say": "dogs",
-          "translation": {
-            "en": "dogs",
-            "ja": "いぬ"
-          }
+          "id": "en:there",
+          "say": "Doggy there!",
+          "romanization": null,
+          "meaning": {
+            "en": "There's a doggy!",
+            "ja": "ワンワン いた！"
+          },
+          "grownUp": "There's a dog!",
+          "answer": "🐶",
+          "choices": [
+            "🚗",
+            "🐱",
+            "🐶"
+          ],
+          "praise": "Cute doggy!"
         },
         {
-          "say": "I like cats",
+          "id": "en:apple",
+          "say": "Apple please!",
+          "romanization": null,
+          "meaning": {
+            "en": "Apple, please!",
+            "ja": "りんご ちょうだい"
+          },
+          "grownUp": "Can I have an apple, please?",
+          "answer": "🍎",
+          "choices": [
+            "🍌",
+            "🍎",
+            "🍙"
+          ],
+          "praise": "Thank you!"
+        },
+        {
+          "id": "en:fast",
+          "say": "Car fast!",
+          "romanization": null,
+          "meaning": {
+            "en": "The car is fast!",
+            "ja": "ブーブー はやい！"
+          },
+          "grownUp": "The car is fast!",
+          "answer": "🚗",
+          "choices": [
+            "🐢",
+            "🐮",
+            "🚗"
+          ],
+          "praise": "So fast!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "en:wantfood",
+          "say": "Want food",
+          "romanization": null,
+          "meaning": {
+            "en": "I want to eat",
+            "ja": "まんま たべたい"
+          },
+          "grownUp": "I want to eat",
+          "need": "eat",
+          "praise": "Yummy!"
+        },
+        {
+          "id": "en:sleepy",
+          "say": "Go night-night",
+          "romanization": null,
+          "meaning": {
+            "en": "I want to sleep",
+            "ja": "ねんね する"
+          },
+          "grownUp": "I want to go to sleep",
+          "need": "sleep",
+          "praise": "Night-night…"
+        },
+        {
+          "id": "en:water",
+          "say": "Drink water",
+          "romanization": null,
+          "meaning": {
+            "en": "I want water",
+            "ja": "おみず のむ"
+          },
+          "grownUp": "I want to drink some water",
+          "answer": "💧",
+          "choices": [
+            "💧",
+            "🍙",
+            "🍎"
+          ],
+          "praise": "Glug glug!"
+        }
+      ]
+    },
+    {
+      "age": 3,
+      "starters": [
+        {
+          "id": "en:talk-what-are-you-doing",
+          "say": "What are you doing?",
+          "romanization": null,
           "translation": {
-            "en": "I like cats",
-            "ja": "ねこが すき"
-          }
+            "en": "What are you doing?",
+            "ja": "なに してるの？"
+          },
+          "examples": [
+            {
+              "say": "working",
+              "translation": {
+                "en": "working",
+                "ja": "しごと"
+              }
+            },
+            {
+              "say": "watching TV",
+              "translation": {
+                "en": "watching TV",
+                "ja": "テレビ みてる"
+              }
+            },
+            {
+              "say": "eating",
+              "translation": {
+                "en": "eating",
+                "ja": "たべてる"
+              }
+            }
+          ]
+        },
+        {
+          "id": "en:talk-are-you-hungry",
+          "say": "Are you hungry?",
+          "romanization": null,
+          "translation": {
+            "en": "Are you hungry?",
+            "ja": "おなか すいた？"
+          },
+          "examples": [
+            {
+              "say": "yes!",
+              "translation": {
+                "en": "yes!",
+                "ja": "うん！"
+              }
+            },
+            {
+              "say": "nope",
+              "translation": {
+                "en": "nope",
+                "ja": "ううん"
+              }
+            }
+          ]
+        },
+        {
+          "id": "en:talk-whats-your-favorite-animal",
+          "say": "What's your favorite animal?",
+          "romanization": null,
+          "translation": {
+            "en": "What's your favorite animal?",
+            "ja": "すきな どうぶつは？"
+          },
+          "examples": [
+            {
+              "say": "dogs",
+              "translation": {
+                "en": "dogs",
+                "ja": "いぬ"
+              }
+            },
+            {
+              "say": "I like cats",
+              "translation": {
+                "en": "I like cats",
+                "ja": "ねこが すき"
+              }
+            }
+          ]
         }
       ]
     }
