@@ -16,6 +16,7 @@
 		5A2853E1494B345A841CF220 /* TomoVisitLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 643C75D304AC245CB7F57635 /* TomoVisitLiveActivity.swift */; };
 		65D3A2DECEF7CDCB4AC5EA6E /* TomoVisitActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 413F94AD4C585B825A5624A9 /* TomoVisitActivity.swift */; };
 		B1C493B8922D71739E609A43 /* TomoVisitActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 413F94AD4C585B825A5624A9 /* TomoVisitActivity.swift */; };
+		C638FD502B83DB4A36871A5C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0FDC47A6BEC3C329C93CC701 /* Assets.xcassets */; };
 		C94D68053CCE33DE6C8AC963 /* TomoWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AFE384C3477C520E3B46DF8E /* TomoWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E8D30060692C362463F39193 /* TomoCore in Frameworks */ = {isa = PBXBuildFile; productRef = 035D015A00A57BA89123F406 /* TomoCore */; };
 		EA15E88D0B48D561F9BF57A5 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D7EBDB597D2052726D407A36 /* WidgetKit.framework */; };
@@ -48,6 +49,7 @@
 
 /* Begin PBXFileReference section */
 		040E64E13B16E7A347446C38 /* TomodachiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomodachiApp.swift; sourceTree = "<group>"; };
+		0FDC47A6BEC3C329C93CC701 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		37822A1675BCDE011D4AE744 /* TomoCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TomoCore; path = ../../TomoCore; sourceTree = SOURCE_ROOT; };
 		413F94AD4C585B825A5624A9 /* TomoVisitActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoVisitActivity.swift; sourceTree = "<group>"; };
 		5DD481FC31C8E38E2AB4F657 /* TomoLiveVisit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoLiveVisit.swift; sourceTree = "<group>"; };
@@ -110,6 +112,7 @@
 		19E98207CFE8FA7C4D2A0A52 = {
 			isa = PBXGroup;
 			children = (
+				0FDC47A6BEC3C329C93CC701 /* Assets.xcassets */,
 				59FED26147B10FD57F703C45 /* Packages */,
 				56A65E95973B65C0892E8D08 /* Shared */,
 				0AF69C01C7BAC11AC25EB74A /* Sources */,
@@ -180,6 +183,7 @@
 			buildConfigurationList = C6E615538BA408A03F3B761D /* Build configuration list for PBXNativeTarget "Tomodachi" */;
 			buildPhases = (
 				5C3A995BA36B8B5A3307D588 /* Sources */,
+				5828AAA168E2EAC80442DC5E /* Resources */,
 				26DBFF058C9038DB2655EEA5 /* Frameworks */,
 				1FF9299FC3FB176009DEA529 /* Embed Foundation Extensions */,
 			);
@@ -237,6 +241,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		5828AAA168E2EAC80442DC5E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C638FD502B83DB4A36871A5C /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		5C3A995BA36B8B5A3307D588 /* Sources */ = {
