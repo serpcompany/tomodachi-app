@@ -24,6 +24,8 @@
 	<string>Tomo listens when you answer out loud.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Tomo turns what you say into text to understand you.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

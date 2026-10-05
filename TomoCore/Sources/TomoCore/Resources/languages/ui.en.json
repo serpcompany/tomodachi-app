@@ -151,7 +151,8 @@
     "glance.new": "A new word to learn",
     "glance.done": "All done for now",
     "glance.waiting": "Tomo is waiting for you",
-    "glance.about": "Tomo, and whether anything is waiting."
+    "glance.about": "Tomo, and whether anything is waiting.",
+    "glance.next": "New words in"
   },
   "helpPhrases": [
     "what",

@@ -13,6 +13,7 @@ import WidgetKit
 struct TomoWidgetBundle: WidgetBundle {
     var body: some Widget {
         TomoWidget()
+        TomoVisitLiveActivity()
     }
 }
 

@@ -5,7 +5,7 @@ import Foundation
 // The app writes one of these whenever progress changes; a widget (or anything else that can't run the
 // game) reads it. All text is already in the learner's language, so the reader needs no language packs.
 
-public struct TomoGlance: Codable, Sendable, Equatable {
+public struct TomoGlance: Codable, Sendable, Hashable {
     public var growth: Double           // 0 = in the shell, 1 = hatched, 2 = bigger (TomoChick)
     public var age: String              // "3さい"
     public var level: String            // "Lv 61"
@@ -15,11 +15,13 @@ public struct TomoGlance: Codable, Sendable, Equatable {
     public var nextDue: Date?           // when something counts again, if nothing does now
     public var statusLater: String      // the status from `nextDue` on ("Tomo is waiting for you")
     public var about: String            // the widget's description in the widget gallery
+    public var invite: String           // what Tomo calls out when something is waiting ("あそぼ！")
+    public var nextLabel: String        // before the countdown to `nextDue` ("New words in")
     public var updated: Date
 
     public static let placeholder = TomoGlance(growth: 0, age: "", level: "", progress: 0, waiting: false,
                                                status: "", nextDue: nil, statusLater: "", about: "",
-                                               updated: .distantPast)
+                                               invite: "", nextLabel: "", updated: .distantPast)
 
     // Shared between the app and its widgets through an App Group.
     public static let appGroup = "group.com.zenbujapanese.tomodachi"
@@ -48,6 +50,7 @@ extension TomoGame {
         return TomoGlance(growth: Double(min(max(stage - 1, 0), 2)), age: age, level: ui("level", ["n": "\(level)"]),
                           progress: levelProgress, waiting: waiting, status: status,
                           nextDue: nextDue.map(wallClock), statusLater: ui("glance.waiting"), about: ui("glance.about"),
-                          updated: Date())
+                          invite: TomoLanguages.shared.target.lines.invite ?? TomoLanguages.shared.target.lines.practice,
+                          nextLabel: ui("glance.next"), updated: Date())
     }
 }

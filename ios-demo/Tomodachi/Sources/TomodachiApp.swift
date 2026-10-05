@@ -8,12 +8,13 @@ import WidgetKit
 // A shell around TomoCore, like the Mac island: it sets TomoGame's closures and draws Tomo. On the iPhone
 // the app itself is Tomo's place: opening it is free play, and Tomo never leaves while you're looking.
 // The Home Screen widget reads a TomoGlance the shell writes whenever progress changes.
-// Lock Screen visits (Live Activities) come next.
+// The same glance drives Tomo's Lock Screen card (a Live Activity, TomoLiveVisit).
 
 @main
 struct TomodachiApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var shell = TomoPhoneShell.shared
+
 
     var body: some Scene {
         WindowGroup {
@@ -22,7 +23,7 @@ struct TomodachiApp: App {
         }
         .onChange(of: scenePhase) { _, phase in
             shell.isActive = phase == .active
-            if phase == .background { shell.updateWidgets() }
+            if phase != .active { shell.updateWidgets() }
         }
     }
 }
@@ -58,11 +59,18 @@ final class TomoPhoneShell: ObservableObject {
     /// Writes Tomo's glance for the widget and reloads it, when anything it shows changed.
     func updateWidgets() {
         var glance = TomoGame.shared.glance
+        // Testing (TOMO_CARD_COUNTDOWN=<seconds>): nothing waiting, next words in that many seconds.
+        if let secs = ProcessInfo.processInfo.environment["TOMO_CARD_COUNTDOWN"].flatMap(Double.init) {
+            glance.waiting = false
+            glance.status = TomoLanguages.shared.learner("glance.done")
+            glance.nextDue = (lastGlance?.nextDue).map { $0 } ?? Date().addingTimeInterval(secs)
+        }
         glance.updated = lastGlance?.updated ?? glance.updated
         guard glance != lastGlance else { return }
         glance.updated = Date()
         glance.save()
         lastGlance = glance
         WidgetCenter.shared.reloadTimelines(ofKind: "TomoWidget")
+        TomoLiveVisit.shared.show(glance)
     }
 }
