@@ -132,9 +132,9 @@ enum IslandConst {
 
     static let viewLayouts: [IslandView: ViewLayout] = [
         // Home is the reference: height 150
-        .overview:  ViewLayout(height: 196, botX: 66,  botY: 114, botDiameter: 72, agentMode: .none),
+        .overview:  ViewLayout(height: 208, botX: 66,  botY: 126, botDiameter: 72, agentMode: .none),   // +12: Tomo's level bar
         // All non-chat views match home height (150) — law
-        .empty:     ViewLayout(height: 196, botX: 66,  botY: 114, botDiameter: 72, agentMode: .none),
+        .empty:     ViewLayout(height: 208, botX: 66,  botY: 126, botDiameter: 72, agentMode: .none),
         .approval:  ViewLayout(height: 160, botX: 62,  botY: nil, botDiameter: 56, agentMode: .column),
         .question:  ViewLayout(height: 160, botX: 62,  botY: nil, botDiameter: 56, agentMode: .column),
         .error:     ViewLayout(height: 160, botX: 62,  botY: nil, botDiameter: 58, agentMode: .column),
