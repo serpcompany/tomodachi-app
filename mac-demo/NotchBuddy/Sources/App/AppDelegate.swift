@@ -34,7 +34,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .sink { [weak self] _ in
                 self?.rebuildMenu()
                 self?.settingsWindow?.title = TomoLanguages.shared.learner("menu.settingsTitle")
-                TomoWordsWindow.window?.title = TomoLanguages.shared.learner("words.title")
             }
     }
 
@@ -65,7 +64,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func openWords() {
-        TomoWordsWindow.show()
+        TomoSettingsNav.open(.words)
     }
 
     @objc private func restartDemo() {
@@ -82,17 +81,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var settingsWindow: NSWindow?
 
-    /// Settings: General (languages, visits, voice), AI provider, About.
+    /// Settings, laid out like System Settings: a sidebar of pages (TomoSettingsView). TomoSettingsNav picks the page.
     @objc private func openSettings() {
         // The island floats above every window; fold it away so it can't cover Settings.
         if AppState.shared.mode == .expanded { islandController?.collapse() }
         if settingsWindow == nil {
-            let win = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 520, height: 460),
-                               styleMask: [.titled, .closable], backing: .buffered, defer: false)
+            let win = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 780, height: 580),
+                               styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
+                               backing: .buffered, defer: false)
             win.title = TomoLanguages.shared.learner("menu.settingsTitle")
-            let host = NSHostingView(rootView: TomoSettingsView())
-            host.sizingOptions = [.preferredContentSize]
-            win.contentView = host
+            win.titleVisibility = .hidden
+            win.titlebarAppearsTransparent = true
+            win.minSize = NSSize(width: 720, height: 500)
+            win.contentView = NSHostingView(rootView: TomoSettingsView())
             win.isReleasedWhenClosed = false
             settingsWindow = win
         }
@@ -139,13 +140,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     let purl = URL(fileURLWithPath: dir).appendingPathComponent(String(format: "popover%d-%03d.png", i, n))
                     try? prep.representation(using: .png, properties: [:])?.write(to: purl)
                 }
-                // TOMO_OPEN_WORDS=1 also captures Tomo's words
-                if let wv = TomoWordsWindow.window?.contentView, TomoWordsWindow.window?.isVisible == true,
-                   let wrep = wv.bitmapImageRepForCachingDisplay(in: wv.bounds) {
-                    wv.cacheDisplay(in: wv.bounds, to: wrep)
-                    let wurl = URL(fileURLWithPath: dir).appendingPathComponent(String(format: "words-%03d.png", n))
-                    try? wrep.representation(using: .png, properties: [:])?.write(to: wurl)
-                }
                 // TOMO_OPEN_SETTINGS=1 also captures the Settings window
                 if let sv = self?.settingsWindow?.contentView, self?.settingsWindow?.isVisible == true,
                    let srep = sv.bitmapImageRepForCachingDisplay(in: sv.bounds) {
@@ -179,9 +173,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         game.start()
         game.dropIn(force: true)
         startDebugSnapshots()
-        if ProcessInfo.processInfo.environment["TOMO_OPEN_WORDS"] != nil {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { TomoWordsWindow.show() }
-        }
         if ProcessInfo.processInfo.environment["TOMO_OPEN_SETTINGS"] != nil {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in self?.openSettings() }
         }
