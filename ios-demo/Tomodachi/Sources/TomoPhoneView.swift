@@ -6,6 +6,7 @@ import TomoCore
 // Top to bottom: header (age, level, sound) and the level bar · Tomo, big and alive · what Tomo says ·
 // the result · the answers (picture tiles, meaning pills, or the answer box when Tomo talks).
 // Every text that can grow is capped (line limits, scaling), so the layout never shifts between rounds.
+// While the keyboard is up, Tomo and the text shrink so the header and the answer box stay in view.
 // All text comes from the language packs.
 
 struct TomoPhoneView: View {
@@ -16,6 +17,9 @@ struct TomoPhoneView: View {
 
     private var growth: CGFloat { CGFloat(min(max(game.stage - 1, 0), 2)) }
     private var said: String { game.isChat ? game.line.say : game.round.say }
+    /// Row sizes: full, or compact while the keyboard is up.
+    private var tomoSize: CGFloat { typing ? 120 : 230 }
+    private var speechHeight: CGFloat { typing ? 120 : 150 }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -25,24 +29,25 @@ struct TomoPhoneView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 10)
 
-            Spacer(minLength: 8)
+            Spacer(minLength: 4)
             TomoChickView(state: shell.botState, growth: growth)
-                .frame(width: 230, height: 230)
+                .frame(width: tomoSize, height: tomoSize)
                 .contentShape(Rectangle())
                 .onTapGesture { NotificationCenter.default.post(name: .triggerSlap, object: nil) }
             speech
-                .frame(height: 150, alignment: .top)
+                .frame(height: speechHeight, alignment: .top)
                 .padding(.horizontal, 24)
-            Spacer(minLength: 8)
+            Spacer(minLength: 4)
 
             answers
-                .frame(height: 230, alignment: .bottom)
+                .frame(height: typing ? nil : 230, alignment: .bottom)
                 .padding(.horizontal, 20)
                 .padding(.bottom, 12)
         }
         .foregroundStyle(Color(hex: "#F5F6F8"))
-        .background(background.ignoresSafeArea())
+        .background(background.ignoresSafeArea().onTapGesture { typing = false })
         .animation(.easeInOut(duration: 0.35), value: game.phase)
+        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: typing)
     }
 
     // MARK: Header
@@ -180,26 +185,27 @@ struct TomoPhoneView: View {
     }
 
     private var chatInput: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 10) {
-                PhonePill(title: lang.learner("hint"), icon: "lightbulb") { game.showHint() }
+        HStack(spacing: 10) {
+            Button { game.showHint() } label: {
+                Image(systemName: "lightbulb").font(.system(size: 18, weight: .semibold))
+                    .frame(width: 50, height: 50)
+                    .background(Color.white.opacity(game.help == .hint ? 0.2 : 0.08), in: Circle())
             }
-            HStack(spacing: 10) {
-                TextField("\(lang.target.labels.answerPrompt) \(lang.learner("typeIn", ["language": lang.targetName]))",
-                          text: $game.draft)
-                    .focused($typing)
-                    .submitLabel(.send)
-                    .onSubmit { game.submitDraft() }
-                    .font(.system(size: 17))
-                    .padding(.horizontal, 16).frame(height: 50)
-                    .background(Color.white.opacity(0.08), in: Capsule())
-                Button { game.submitDraft() } label: {
-                    Image(systemName: "arrow.up").font(.system(size: 18, weight: .bold))
-                        .frame(width: 50, height: 50)
-                        .background(Color(hex: game.draft.isEmpty ? "#3A3D44" : "#6366F1"), in: Circle())
-                }
-                .disabled(game.draft.isEmpty || game.phase != .asking)
+            .accessibilityLabel(lang.learner("hint"))
+            TextField("\(lang.target.labels.answerPrompt) \(lang.learner("typeIn", ["language": lang.targetName]))",
+                      text: $game.draft)
+                .focused($typing)
+                .submitLabel(.send)
+                .onSubmit { game.submitDraft() }
+                .font(.system(size: 17))
+                .padding(.horizontal, 16).frame(height: 50)
+                .background(Color.white.opacity(0.08), in: Capsule())
+            Button { game.submitDraft() } label: {
+                Image(systemName: "arrow.up").font(.system(size: 18, weight: .bold))
+                    .frame(width: 50, height: 50)
+                    .background(Color(hex: game.draft.isEmpty ? "#3A3D44" : "#6366F1"), in: Circle())
             }
+            .disabled(game.draft.isEmpty || game.phase != .asking)
         }
     }
 
