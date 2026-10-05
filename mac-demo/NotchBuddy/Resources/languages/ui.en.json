@@ -85,7 +85,7 @@
     "about.by": "by Zenbu Japanese",
     "level": "Lv {n}",
     "levelUp": "Level {level}! New words for Tomo to learn.",
-    "outcome.practice": "Win",
+    "outcome.practice": "Practice",
     "outcome.why.practice": "Practice: it's too soon after the last time to count. Come back later and it counts again.",
     "startOver.title": "Start Tomo over?",
     "startOver.body": "Your {language} Tomo goes back to level 1, and the words it learned from you are cleared. This can't be undone.",
@@ -139,8 +139,12 @@
     "growth.age.6": "Words children know before starting school.",
     "grewOlder": "Tomo grew up → {age}. New words to learn!",
     "settings.newPerDay": "New words a day",
-    "practice.now": "Practice: doesn't count right now.",
-    "practice.until": "Practice · counts again {when}"
+    "practice.start": "Practice",
+    "practice.later": "Later",
+    "practice.offer": "Nothing counts until {time}. You can practice, but it won't move the bar.",
+    "practice.offer.now": "Nothing counts right now. You can practice, but it won't move the bar.",
+    "practice.chip": "Practice until {time}",
+    "practice.chip.now": "Practice"
   },
   "helpPhrases": [
     "what",
