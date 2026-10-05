@@ -1,6 +1,6 @@
 # Age vocabulary data: what Tomo says and understands at each age
 
-> **Status: background only (2026-10-05).** We aren't building Tomo's content from this data. What Tomo asks and does will come from the Zenbu learning system later ([decisions.md](../decisions.md)), so the license requests below aren't needed.
+> **Status (2026-10-06): the Japanese CDI data from Wordbank is now Tomo's Japanese word list** (`mac-demo/scripts/build-ja-levels.py`; [decisions.md](../decisions.md)). Before a beta ships it, we ask the J-CDI developers ([#40](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/40)).
 
 Research for the open question in [concepts.md](../concepts.md). Licenses were checked on official pages on 2026-10-03. Anything not checked is marked **unverified**.
 

@@ -18,11 +18,16 @@ extension Notification.Name {
     static let botSetGrowth = Notification.Name("tomo.botSetGrowth")
 }
 
+/// One answer to pick: a picture (emoji), an action (emoji + label), or a meaning (label only).
 struct TomoChoice: Identifiable, Hashable {
-    var id: String { emoji }
-    let emoji: String
-    let label: String?      // shown only for need actions
+    let id: String
+    let emoji: String?
+    let label: String?
 }
+
+/// How a round is asked (issue #14): pick the picture, do what Tomo says, or pick the meaning.
+/// A word without a picture or an action is asked by its meaning, so every word can be asked.
+enum TomoRoundKind { case picture, need, meaning }
 
 enum TomoNeed: String, CaseIterable {
     case eat, sleep, hug
@@ -41,23 +46,37 @@ struct TomoRound {
     let meaning: String      // in the learner's language
     let adult: String?       // what grown-ups say instead (target language)
     let word: String         // item id counted toward growth ("ja:wanwan")
-    let answer: String       // emoji of the right choice
+    let answer: String       // id of the right choice
     let choices: [TomoChoice]
+    let kind: TomoRoundKind
     let need: TomoNeed?      // non-nil when the round is a need (feed / sleep / hug)
     let praise: String       // what Tomo says when you get it
 
     static let empty = TomoRound(say: "", romanization: nil, meaning: "", adult: nil, word: "",
-                                 answer: "", choices: [], need: nil, praise: "")
+                                 answer: "", choices: [], kind: .picture, need: nil, praise: "")
 }
 
 extension TomoRound {
-    init(_ r: TargetPack.Round, learner: LearnerPack) {
+    /// `otherMeanings`: two wrong meanings, for a round asked by meaning (TomoProgress.otherMeanings).
+    init(_ r: TargetPack.Round, learner: LearnerPack, otherMeanings: [String] = []) {
         let need = r.need.flatMap(TomoNeed.init(rawValue:))
-        let choices = need != nil
-            ? TomoNeed.allCases.map { TomoChoice(emoji: $0.emoji, label: learner("need.\($0.rawValue)")) }
-            : (r.choices ?? []).map { TomoChoice(emoji: $0, label: nil) }
-        self.init(say: r.say, romanization: r.romanization, meaning: r.meaning(learner.id), adult: r.grownUp,
-                  word: r.id, answer: need?.emoji ?? r.answer ?? "", choices: choices, need: need, praise: r.praise)
+        let meaning = r.meaning(learner.id)
+        let kind: TomoRoundKind, answer: String, choices: [TomoChoice]
+        if let need {
+            kind = .need
+            answer = need.emoji
+            choices = TomoNeed.allCases.map { TomoChoice(id: $0.emoji, emoji: $0.emoji, label: learner("need.\($0.rawValue)")) }
+        } else if let pic = r.answer, let pics = r.choices {
+            kind = .picture
+            answer = pic
+            choices = pics.map { TomoChoice(id: $0, emoji: $0, label: nil) }
+        } else {
+            kind = .meaning
+            answer = meaning
+            choices = ([meaning] + otherMeanings.prefix(2)).shuffled().map { TomoChoice(id: $0, emoji: nil, label: $0) }
+        }
+        self.init(say: r.say, romanization: r.romanization, meaning: meaning, adult: r.grownUp, word: r.id,
+                  answer: answer, choices: choices, kind: kind, need: need, praise: r.praise)
     }
 }
 
@@ -79,7 +98,7 @@ enum TomoPhase: Equatable {
     case asking
     case thinking            // talking stage: waiting for Tomo's reply
     case right
-    case wrong(String)       // emoji picked
+    case wrong(String)       // id of the choice picked
     case leveledUp
     case grew                // a new level that's also a birthday
 }
@@ -352,7 +371,8 @@ final class TomoGame: ObservableObject {
         itemCredited = false
         if let r = progress.round(id) {
             talking = false
-            present(TomoRound(r, learner: lang.learner), delay: delay)
+            present(TomoRound(r, learner: lang.learner,
+                              otherMeanings: progress.otherMeanings(for: id, learner: lang.learner.id)), delay: delay)
         } else if let s = progress.starter(id) {
             talking = true
             say(TomoLine(s, learner: lang.learner), delay: delay)
@@ -496,8 +516,8 @@ final class TomoGame: ObservableObject {
         touch()
         help = nil
         let tok = bump()
-        let mode = round.need == nil ? "picture" : "need"
-        if choice.emoji == round.answer {
+        let mode = "\(round.kind)"                     // picture | need | meaning, for the answer log
+        if choice.id == round.answer {
             let counted = currentItem.map {
                 progress.answeredRight($0, mode: mode, wrongTries: wrongTries, hint: hintUsed)
             } ?? false
@@ -509,7 +529,7 @@ final class TomoGame: ObservableObject {
             wrongTries += 1
             progress.logTry(currentItem, mode: mode, result: "wrong")
             outcome = .loss
-            phase = .wrong(choice.emoji)
+            phase = .wrong(choice.id)
             setBot(.error)
             speak(lang.target.lines.wrong, slow: false)
             after(1.2, tok) { [weak self] in
@@ -816,11 +836,11 @@ final class TomoGame: ObservableObject {
         after(2.5, tok) { [weak self] in
             guard let self else { return }
             let r = self.round
-            if !self.autoMissed, let wrong = r.choices.first(where: { $0.emoji != r.answer }) {
+            if !self.autoMissed, let wrong = r.choices.first(where: { $0.id != r.answer }) {
                 self.autoMissed = true
                 self.pick(wrong)
                 self.after(2.0, self.token) { [weak self] in self?.autoAnswer(self?.token ?? 0) }
-            } else if let right = r.choices.first(where: { $0.emoji == r.answer }) {
+            } else if let right = r.choices.first(where: { $0.id == r.answer }) {
                 self.pick(right)
             }
         }
