@@ -103,7 +103,7 @@ Particles and verb forms are listed once at least 50% of children use them (J-CD
   3. Every content word is on the age's say-list, or is a word the learner just said that Tomo understands (kids echo).
   4. Particles and verb endings are in the age's grammar profile.
   5. Length is within the age cap. Starting points to tune: 2 words at 1さい, 4 at 2さい, 8 at 3さい.
-  6. **New-word budget:** at most one word per visit from the next age's list. Log it so it comes back for review, which matches "at most one new word" in [user-journey.md](../user-journey.md).
+  6. **New-word budget:** at most one word per visit from the next age's list. Log it so it comes back for review, which matches "at most one new word" in [leveling-points.md](leveling-points.md).
 - **On failure:** regenerate once and name the bad words ("Tomo doesn't know 会社"). If that also fails, use a scripted line. Log every violation to tune the lists.
 - **Understanding the learner:** tokenize their reply the same way. If it has content words outside Tomo's understand-list, Tomo answers ん？ わかんない, even when the AI understood. See [answer-evaluation.md](answer-evaluation.md).
 
