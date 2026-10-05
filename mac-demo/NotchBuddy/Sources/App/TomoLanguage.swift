@@ -227,7 +227,7 @@ final class TomoLanguages: ObservableObject {
         let cut = CharacterSet.punctuationCharacters.union(.symbols).union(.whitespacesAndNewlines)
         let norm = text.lowercased().components(separatedBy: cut).joined(separator: " ")
             .split(separator: " ").joined(separator: " ")
-        if norm.isEmpty { return text.contains("?") || text.contains("？") }
+        if norm.isEmpty { return text.contains("?") || text.contains("？") }  // text-ok: matches a full-width question mark
         let phrases = (learner.helpPhrases ?? []) + (target.helpPhrases ?? [])
         return phrases.contains { $0.lowercased() == norm }
     }

@@ -2,6 +2,9 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
+### 2026-10-06: Docs and checks follow SERP's agent-harness standard
+Docs are maps and leaves, as in the [SERP agent-harness standard](https://github.com/serpcompany/serp/tree/main/docs/engineering/standards/agent-harness). `AGENTS.md` and READMEs point; each leaf covers one topic (purpose, invariants, boundaries, reasons); the code holds the detail. CI checks doc sizes (maps 120 lines, leaves 300), kebab-case names, internal links, and Japanese text in Swift strings. Debug flags and the snapshot matrix moved to `verification.md`; the Coucou license notes and changed files to `coucou-fork.md`; research got a map. The owner set `Stage: explore` and `Agents may merge: yes`. **Why:** our rule was "update architecture.md whenever a seam moves", which is how Keybumps' architecture doc grew to 4,500 words of per-PR detail. Our written rules weren't checked either: the dizzy card had Japanese in Swift despite the rule, and the new check found it.
+
 ### 2026-10-06: Practice is a mode you choose, like WaniKani's Extra Study
 When nothing would count, Tomo doesn't slip into practice rounds that look like progress. It says so first (nothing counts until a time; practice won't move the bar) and waits for **Practice** or **Later**. While practicing, the header says "Practice until …", the bar dims, and a right answer gets a blue **Practice** badge, not the green Win. **Why:** a tester played for minutes, saw "Win" every time and a bar that didn't move, and missed the small note saying it was practice. WaniKani avoids this by keeping the two apart: reviews only when due (its dashboard says "0 reviews" and when the next ones come) and a separate Extra Study that never touches progress. Practice still isn't counted, so the spacing stays honest.
 

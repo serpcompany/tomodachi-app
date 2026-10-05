@@ -354,12 +354,14 @@ struct FinishedView: View {
 // MARK: - Confused
 
 struct ConfusedView: View {
+    @ObservedObject var lang = TomoLanguages.shared
+
     var body: some View {
         ZStack {
             CardBackground(wash: .pink)
             VStack(alignment: .leading, spacing: 5) {
-                Text("いたい〜！").font(.system(size: 22, weight: .bold, design: .rounded))
-                Text("Too many pokes — Tomo is dizzy. Back in three seconds.")
+                Text(lang.target.lines.ouch).font(.system(size: 22, weight: .bold, design: .rounded))
+                Text(lang.learner("dizzy"))
                     .font(.system(size: 13)).foregroundColor(Color(hex: "#9398A1"))
             }
             .padding(.leading, 128)

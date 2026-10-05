@@ -93,7 +93,7 @@ enum TomoIconRenderer {
             }
         }
         let rows: [[AnyView]] = [
-            [AnyView(cell("1さい", growth: 0)), AnyView(cell("2さい", growth: 1)), AnyView(cell("3さい", growth: 2)),
+            [AnyView(cell("1さい", growth: 0)), AnyView(cell("2さい", growth: 1)), AnyView(cell("3さい", growth: 2)),  // text-ok: debug sheet labels
              AnyView(cell("look", growth: 1) { $0.lookX = 0.8; $0.lookY = -0.6; for _ in 0..<40 { $0.step() } })],
             [AnyView(cell("right", growth: 1) { $0.setState(.finished) }),
              AnyView(cell("wrong", growth: 1) { $0.setState(.error) }),
