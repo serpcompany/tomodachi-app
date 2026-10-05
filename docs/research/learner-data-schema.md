@@ -1,6 +1,6 @@
 # Learner data schema: what Tomo remembers about you
 
-Researched 2026-10-03. Answers the open question in [concepts.md](../concepts.md#open-questions-being-researched).
+Researched 2026-10-03. Answers the question in [#4](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/4) (closed; built as the learner store).
 
 ## The answer
 
@@ -516,14 +516,14 @@ Sync transports: **CloudKit/SwiftData** is Apple-only and can't reach the websit
 
 **Zenbu monorepo** (read-only, commit `738a7231`, 2026-09-30)
 
-- [CONTEXT.md](../../../zenbujapanese-monorepo/CONTEXT.md): Language Reference ID vs JMdict entry number
-- [ADR 0006](../../../zenbujapanese-monorepo/docs/adr/0006-share-language-data-as-a-versioned-artifact.md) (permanent IDs; `WordNoteID` must move before sync; sync backend not chosen), [ADR 0007](../../../zenbujapanese-monorepo/docs/adr/0007-publish-the-dictionary-at-permanent-urls-from-the-websites-copy.md) (learner data behind `/v1`), [ADR 0008](../../../zenbujapanese-monorepo/docs/adr/0008-share-one-typescript-search-core-built-for-the-most-constrained-client.md), [ADR 0001](../../../zenbujapanese-monorepo/docs/adr/0001-keep-language-data-and-tools-replaceable.md)
-- [docs/data-sources.md](../../../zenbujapanese-monorepo/docs/data-sources.md), [docs/technologies.md](../../../zenbujapanese-monorepo/docs/technologies.md) ("Cloudflare D1 through Drizzle")
-- Website storage: [drizzle.config.ts](../../../zenbujapanese-monorepo/apps/web/drizzle.config.ts), [src/db/schema.ts](../../../zenbujapanese-monorepo/apps/web/src/db/schema.ts) (empty), [wrangler.jsonc](../../../zenbujapanese-monorepo/apps/web/wrangler.jsonc) (three D1 bindings), [drizzle/meta/_journal.json](../../../zenbujapanese-monorepo/apps/web/drizzle/meta/_journal.json) (no migrations), [docs/product/index.md](../../../zenbujapanese-monorepo/apps/web/docs/product/index.md) (#468)
-- iOS learner data: [WordKnowledge.swift](../../../zenbujapanese-monorepo/apps/ios/Modules/Sources/SearchExperience/WordKnowledge.swift), [SavedItem.swift](../../../zenbujapanese-monorepo/apps/ios/Modules/Sources/SearchExperience/SavedItem.swift), [WordLists.swift](../../../zenbujapanese-monorepo/apps/ios/Modules/Sources/SearchExperience/WordLists.swift), [WordNoteStore.swift](../../../zenbujapanese-monorepo/apps/ios/Modules/Sources/SearchExperience/WordNoteStore.swift), [EncounterMediaStore.swift](../../../zenbujapanese-monorepo/apps/ios/Modules/Sources/SearchExperience/EncounterMediaStore.swift), [LocalJSONFile.swift](../../../zenbujapanese-monorepo/apps/ios/Modules/Sources/SearchExperience/LocalJSONFile.swift), [DictionaryEntry.swift](../../../zenbujapanese-monorepo/apps/ios/Modules/Sources/SearchExperience/DictionaryEntry.swift) (`LanguageReferenceID`)
-- [apps/ios/Tools/import_jmdict.py](../../../zenbujapanese-monorepo/apps/ios/Tools/import_jmdict.py) (`language_reference_id()`, `normalize_usage_notes()`)
+- `CONTEXT.md`: Language Reference ID vs JMdict entry number
+- ADR 0006 (`docs/adr/0006-share-language-data-as-a-versioned-artifact.md`) (permanent IDs; `WordNoteID` must move before sync; sync backend not chosen), ADR 0007 (`docs/adr/0007-publish-the-dictionary-at-permanent-urls-from-the-websites-copy.md`) (learner data behind `/v1`), ADR 0008 (`docs/adr/0008-share-one-typescript-search-core-built-for-the-most-constrained-client.md`), ADR 0001 (`docs/adr/0001-keep-language-data-and-tools-replaceable.md`)
+- `docs/data-sources.md`, `docs/technologies.md` ("Cloudflare D1 through Drizzle")
+- Website storage: `apps/web/drizzle.config.ts`, `apps/web/src/db/schema.ts` (empty), `apps/web/wrangler.jsonc` (three D1 bindings), `apps/web/drizzle/meta/_journal.json` (no migrations), `apps/web/docs/product/index.md` (#468)
+- iOS learner data: `apps/ios/Modules/Sources/SearchExperience/WordKnowledge.swift`, `apps/ios/Modules/Sources/SearchExperience/SavedItem.swift`, `apps/ios/Modules/Sources/SearchExperience/WordLists.swift`, `apps/ios/Modules/Sources/SearchExperience/WordNoteStore.swift`, `apps/ios/Modules/Sources/SearchExperience/EncounterMediaStore.swift`, `apps/ios/Modules/Sources/SearchExperience/LocalJSONFile.swift`, `apps/ios/Modules/Sources/SearchExperience/DictionaryEntry.swift` (`LanguageReferenceID`)
+- `apps/ios/Tools/import_jmdict.py` (`language_reference_id()`, `normalize_usage_notes()`)
 - `apps/ios/Modules/Sources/SearchExperience/Resources/LanguageReferenceData.sqlite3` (IDs above) and `apps/ios/LanguageData/Sources/JMdict_e-2026-08-10.gz` (`&chn;` count), both queried read-only
-- [language-data/README.md](../../../zenbujapanese-monorepo/language-data/README.md), [release.json](../../../zenbujapanese-monorepo/language-data/release.json) (`2026.10.1`)
+- `language-data/README.md`, `language-data/release.json` (`2026.10.1`)
 
 **External**
 

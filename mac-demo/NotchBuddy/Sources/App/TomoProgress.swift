@@ -391,7 +391,7 @@ final class TomoProgress {
             if let up = p.levelUpIfReady(), up.birthday { birthday = up }
         }
         check(birthday?.level == firstAge2 && p.age == pack.levels[firstAge2 - 1].age,
-              "the first birthday is level \(firstAge2): \(p.age)さい")
+              "the first birthday is level \(firstAge2): \(p.age)さい")  // text-ok: self-test output
 
         if let m = pack.levels.flatMap({ $0.rounds ?? [] }).first(where: { $0.answer == nil && $0.need == nil }) {
             let others = p.otherMeanings(for: m.id, learner: "en")
@@ -423,7 +423,7 @@ final class TomoProgress {
         check(other.level == 1 && other.items.isEmpty, "another language pair is another Tomo")
 
         reopened.scratch(age: 3)
-        check(reopened.isScratch && reopened.age == 3 && reopened.isTalkLevel, "testing at 3さい → the talking level")
+        check(reopened.isScratch && reopened.age == 3 && reopened.isTalkLevel, "testing at 3さい → the talking level")  // text-ok: self-test output
         check(TomoProgress(pack: pack, learner: "en", directory: dir).level == p.level, "testing ages don't touch saved progress")
 
         reopened.startOver()

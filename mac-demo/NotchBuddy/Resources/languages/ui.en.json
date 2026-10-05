@@ -144,7 +144,8 @@
     "practice.offer": "Nothing counts until {time}. You can practice, but it won't move the bar.",
     "practice.offer.now": "Nothing counts right now. You can practice, but it won't move the bar.",
     "practice.chip": "Practice until {time}",
-    "practice.chip.now": "Practice"
+    "practice.chip.now": "Practice",
+    "dizzy": "Too many pokes. Tomo is dizzy; back in three seconds."
   },
   "helpPhrases": [
     "what",

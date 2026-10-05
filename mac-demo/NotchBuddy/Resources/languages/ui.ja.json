@@ -144,7 +144,8 @@
     "practice.offer": "{time}まではカウントされません。練習はできますが、バーは進みません。",
     "practice.offer.now": "いまはカウントされません。練習はできますが、バーは進みません。",
     "practice.chip": "{time}まで練習",
-    "practice.chip.now": "練習中"
+    "practice.chip.now": "練習中",
+    "dizzy": "つつきすぎ！トモは目が回っています。3秒で戻ります。"
   },
   "helpPhrases": [
     "なに",
