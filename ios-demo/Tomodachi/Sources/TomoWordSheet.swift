@@ -41,7 +41,6 @@ struct TomoWordSheet: View {
     @State private var systemDictionary = false
 
     private var ui: LearnerPack { lang.learner }
-    private var hasSystemEntry: Bool { UIReferenceLibraryViewController.dictionaryHasDefinition(forTerm: word) }
 
     /// Tomo's whole line: what it means and how it reads (the pack's own, so it works offline).
     private var line: (say: String, reading: String?, meaning: String) {
@@ -85,9 +84,9 @@ struct TomoWordSheet: View {
                     if let url = lang.target.dictionaryURL(for: game.wordCard?.headword ?? word) {
                         Link(destination: url) { pill(ui("word.open"), icon: "safari") }
                     }
-                    if hasSystemEntry {
-                        Button { systemDictionary = true } label: { pill(ui("word.openMac"), icon: "character.book.closed") }
-                    }
+                    // Always offered: with no dictionary downloaded yet, iOS's own sheet offers to get one
+                    // (Japanese–English, 大辞泉, …), which a learner otherwise wouldn't find.
+                    Button { systemDictionary = true } label: { pill(ui("word.openMac"), icon: "character.book.closed") }
                 }
             }
             .padding(20)
