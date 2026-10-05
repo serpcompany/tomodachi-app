@@ -1,4 +1,5 @@
 import Foundation
+import TomoCore
 
 // MARK: - Island Mode
 
@@ -12,20 +13,6 @@ enum IslandView: String, CaseIterable {
     case overview, empty, approval, question, error, finished
     case confused, upload, uploading, choose, mail, prompt
     case searching, result, note, settings, greeting
-}
-
-// MARK: - Bot State
-
-enum BotState: String, CaseIterable {
-    case idle, working, thinking, searching
-    case approval, question, error, finished
-    case ratelimit, sleeping, dizzy
-}
-
-// MARK: - Bot Emote
-
-enum BotEmote: String, CaseIterable {
-    case love, surprised, proud, wink, yawn, happy, annoyed
 }
 
 // MARK: - Approval info (pending PermissionRequest from Claude Code)

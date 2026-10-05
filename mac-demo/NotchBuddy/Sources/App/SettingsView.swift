@@ -1,6 +1,7 @@
 import SwiftUI
 import ServiceManagement
 import AppKit
+import TomoCore
 
 struct SettingsView: View {
     @ObservedObject private var state = AppState.shared

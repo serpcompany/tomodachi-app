@@ -1,4 +1,5 @@
 import SwiftUI
+import TomoCore
 
 // MARK: - Settings → Words: every level and its words, with each word's stage
 //

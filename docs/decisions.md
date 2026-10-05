@@ -2,6 +2,15 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
+### 2026-10-06: 3さい questions are multiple choice for now
+Tomo's talking questions are asked with three choices: what the line means (new questions), or a reply that fits (reviews, alternating with the meaning). Wrong replies come from other questions, never this question's own answers. Typing or saying an answer is switched off (`TomoGame.talkAsChoices`), not deleted. **Why:** the owner tried typing at 3さい and translated the question into English, which scored nothing; free answers need clear instructions, a Japanese keyboard and AI to judge them. Choices work offline and still check understanding.
+
+### 2026-10-06: Romaji answers count as Japanese
+An answer typed in romaji ("shigoto shiteru") is turned into hiragana before it's checked, and the card shows the kana Tomo read. It's converted only when every word is valid romaji, so English ("what are you doing") still gets No score. **Why:** a learner without a Japanese keyboard, or one who can't read kana yet, still knows the answer; typing it in romaji shouldn't be a dead end.
+
+### 2026-10-06: Tomo's shared code is a Swift package, TomoCore
+Everything that isn't Mac-only (the game, growth and store, languages and packs, AI, voice, sounds, the chick's drawing) moved from the Mac app into a local Swift package, `TomoCore/`, that builds for macOS and iOS. The Mac app and the iPhone app are shells around it and talk to `TomoGame` through closures, not Coucou's `AppState`. It was done before any iPhone code ([#52](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/52)). **Why:** the iPhone app, its widgets and Live Activities need the same Tomo, and a package boundary keeps Mac-only code (the notch, AppKit, Dictionary.app) out of it. The cost: the API the shells use is marked `public`.
+
 ### 2026-10-06: Docs and checks follow SERP's agent-harness standard
 Docs are maps and leaves, as in the [SERP agent-harness standard](https://github.com/serpcompany/serp/tree/main/docs/engineering/standards/agent-harness). `AGENTS.md` and READMEs point; each leaf covers one topic (purpose, invariants, boundaries, reasons); the code holds the detail. CI checks doc sizes (maps 120 lines, leaves 300), kebab-case names, internal links, and Japanese text in Swift strings. Debug flags and the snapshot matrix moved to `verification.md`; the Coucou license notes and changed files to `coucou-fork.md`; research got a map. The owner set `Stage: explore` and `Agents may merge: yes`. **Why:** our rule was "update architecture.md whenever a seam moves", which is how Keybumps' architecture doc grew to 4,500 words of per-PR detail. Our written rules weren't checked either: the dizzy card had Japanese in Swift despite the rule, and the new check found it.
 

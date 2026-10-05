@@ -1,6 +1,6 @@
 // Fails when a Markdown doc is over its size budget, or a path under docs/ isn't kebab-case.
 // Copied from serpcompany/serp: budgets in docs/engineering/standards/agent-harness/docs-are-maps.md,
-// naming in docs/README.md there. This repo also checks the demo app's docs (mac-demo/*.md).
+// naming in docs/README.md there. This repo also checks the demo apps' docs (mac-demo/*.md, ios-demo/*.md).
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
@@ -29,7 +29,7 @@ const listFiles = (...pathspecs) =>
     .split("\n")
     .filter((path, index, all) => path && existsSync(path) && all.indexOf(path) === index);
 
-const files = listFiles("AGENTS.md", "README.md", "docs/*.md", "mac-demo/*.md");
+const files = listFiles("AGENTS.md", "README.md", "docs/*.md", "mac-demo/*.md", "ios-demo/*.md");
 
 const wrappedLines = (text) =>
   text

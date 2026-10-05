@@ -28,7 +28,8 @@ the [SERP engineering standards](https://github.com/serpcompany/serp/tree/main/d
 - **Checking a change:** [docs/verification.md](docs/verification.md) covers the debug flags, the snapshot
   matrix, the self-test and seeded progress. Read it before you build or test.
 - **Running the demo app:** [mac-demo/README.md](mac-demo/README.md) covers running, rebuilding, beta
-  builds and icons.
+  builds and icons. The iPhone app ([#52](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/52)):
+  [ios-demo/README.md](ios-demo/README.md).
 - **The Coucou fork:** [docs/coucou-fork.md](docs/coucou-fork.md) says what we may ship, which Coucou
   files we changed, and what's switched off.
 - **Research:** [docs/research/README.md](docs/research/README.md) holds the evidence behind the issues
@@ -46,6 +47,7 @@ the [SERP engineering standards](https://github.com/serpcompany/serp/tree/main/d
 ```bash
 cd mac-demo/NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug -derivedDataPath ../build build
 mac-demo/run.sh    # relaunches the owner's copy, with AI keys from .env
+cd TomoCore && swift build    # the shared package alone; the iPhone build is in ios-demo/README.md
 node .github/scripts/check-docs.mjs && node .github/scripts/check-swift-text.mjs
 ```
 
@@ -67,9 +69,10 @@ Checks in `.github/scripts/` enforce what they can. These rules need judgment:
   PR description holds the rest. Docs describe what's real, and plans go in issues that the docs link
   to. Sizes and names are checked: split a doc by topic rather than squeezing it.
 - **Put Tomo's code behind the seams** in [docs/architecture.md](docs/architecture.md), in `Tomo*.swift`
-  files, not inside Coucou files. If a change has to go into a Coucou file, add the file to
+  files, not inside Coucou files. Code that isn't Mac-only goes in the `TomoCore` package, so the iPhone
+  app gets it too. If a change has to go into a Coucou file, add the file to
   [docs/coucou-fork.md](docs/coucou-fork.md).
-- **Text lives in data.** Tomo's words go in the target pack (`Resources/languages/<id>.json`) and
+- **Text lives in data.** Tomo's words go in the target pack (`TomoCore/Sources/TomoCore/Resources/languages/<id>.json`) and
   interface text in `ui.<id>.json` ([docs/languages.md](docs/languages.md)). A check fails on Japanese in
   Swift strings. English in Swift is just as wrong, but no check catches it.
 - **Tomo is always alive.** It's drawn and animated live in code, with no static images or sprite sheets.

@@ -10,30 +10,30 @@ import SQLite3
 // The rules that fill it are in TomoProgress.swift.
 
 @MainActor
-final class TomoStore {
-    struct TomoRow { let metAt: Date; let level: Int; let age: Int }
-    struct ItemRow {
-        let id: String
-        var stage: Int
-        var due: Date?              // nil once burned
-        var introduced: Date
-        var answered: Date
-        var right: Int
-        var wrong: Int
-        var peak = 0                // the highest stage it ever reached: the experience bar never goes back
+public final class TomoStore {
+    public struct TomoRow: Sendable { public let metAt: Date; public let level: Int; public let age: Int }
+    public struct ItemRow: Sendable {
+        public let id: String
+        public var stage: Int
+        public var due: Date?              // nil once burned
+        public var introduced: Date
+        public var answered: Date
+        public var right: Int
+        public var wrong: Int
+        public var peak = 0                // the highest stage it ever reached: the experience bar never goes back
     }
 
     nonisolated(unsafe) private var db: OpaquePointer?
     private let learner: String
     private let target: String
 
-    static var directory: URL {
+    public static var directory: URL {
         if let d = ProcessInfo.processInfo.environment["TOMO_DATA_DIR"] { return URL(fileURLWithPath: d) }
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         return base.appendingPathComponent(Bundle.main.bundleIdentifier ?? "com.zenbujapanese.tomodachi")
     }
 
-    init?(learner: String, target: String, directory: URL = TomoStore.directory) {
+    public init?(learner: String, target: String, directory: URL = TomoStore.directory) {
         self.learner = learner
         self.target = target
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -71,21 +71,21 @@ final class TomoStore {
 
     // MARK: Tomo
 
-    func loadTomo() -> TomoRow? {
+    public func loadTomo() -> TomoRow? {
         query("SELECT met_at, level, age FROM tomo WHERE learner = ? AND target = ?", [learner, target]) {
             TomoRow(metAt: Date(timeIntervalSince1970: sqlite3_column_double($0, 0)),
                     level: Int(sqlite3_column_int64($0, 1)), age: Int(sqlite3_column_int64($0, 2)))
         }.first
     }
 
-    func saveTomo(_ t: TomoRow) {
+    public func saveTomo(_ t: TomoRow) {
         run("INSERT OR REPLACE INTO tomo (learner, target, met_at, level, age) VALUES (?, ?, ?, ?, ?)",
             [learner, target, t.metAt.timeIntervalSince1970, t.level, t.age])
     }
 
     // MARK: Items
 
-    func loadItems() -> [String: ItemRow] {
+    public func loadItems() -> [String: ItemRow] {
         let rows = query("""
             SELECT item_id, stage, due_at, introduced_at, answered_at, right_count, wrong_count, peak
             FROM item WHERE learner = ? AND target = ?
@@ -102,7 +102,7 @@ final class TomoStore {
         return Dictionary(rows.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
     }
 
-    func saveItem(_ i: ItemRow) {
+    public func saveItem(_ i: ItemRow) {
         run("""
             INSERT OR REPLACE INTO item
               (learner, target, item_id, stage, due_at, introduced_at, answered_at, right_count, wrong_count, peak)
@@ -114,7 +114,7 @@ final class TomoStore {
     // MARK: Logs
 
     /// One row per answer, counted or not. `result`: right | wrong | help | language.
-    func logAnswer(at: Date, item: String?, level: Int, mode: String, result: String, wrongTries: Int,
+    public func logAnswer(at: Date, item: String?, level: Int, mode: String, result: String, wrongTries: Int,
                    hint: Bool, counted: Bool, before: Int?, after: Int?) {
         run("""
             INSERT INTO answer (at, learner, target, item_id, level, mode, result, wrong_tries, hint, counted,
@@ -125,7 +125,7 @@ final class TomoStore {
     }
 
     /// Answers since a time (right and wrong tries), and how many of them moved a word up a stage.
-    func answerCounts(since: Date) -> (answers: Int, stronger: Int) {
+    public func answerCounts(since: Date) -> (answers: Int, stronger: Int) {
         query("""
             SELECT COUNT(*),
                    COALESCE(SUM(CASE WHEN counted = 1 AND stage_after > COALESCE(stage_before, 0) THEN 1 ELSE 0 END), 0)
@@ -136,13 +136,13 @@ final class TomoStore {
     }
 
     /// `kind`: level | age | reset.
-    func logGrowth(at: Date, kind: String, value: Int) {
+    public func logGrowth(at: Date, kind: String, value: Int) {
         run("INSERT INTO growth (at, learner, target, kind, value) VALUES (?, ?, ?, ?, ?)",
             [at.timeIntervalSince1970, learner, target, kind, value])
     }
 
     /// Start over: this pair's Tomo and words are cleared; the logs stay.
-    func clear(at: Date) {
+    public func clear(at: Date) {
         run("DELETE FROM item WHERE learner = ? AND target = ?", [learner, target])
         run("DELETE FROM tomo WHERE learner = ? AND target = ?", [learner, target])
         logGrowth(at: at, kind: "reset", value: 0)

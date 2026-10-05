@@ -11,27 +11,29 @@ import SwiftUI
 // `.triggerEmote`, `.triggerSlap`, `.botBlink`, `.botSetTgEs`.
 
 @MainActor
-final class TomoChick: ObservableObject {
+public final class TomoChick: ObservableObject {
     /// Where the cursor is, −1…1 (positive y = above Tomo).
-    var lookX: CGFloat = 0
-    var lookY: CGFloat = 0
+    public var lookX: CGFloat = 0
+    public var lookY: CGFloat = 0
     /// Extra canvas height above Tomo for particles (the canvas is taller than it is wide).
-    var particleOverhang: CGFloat = 0
+    public var particleOverhang: CGFloat = 0
     /// Small, decorative copy (no particles, wanders its gaze).
-    var isMini = false
+    public var isMini = false
     /// The time source: real time in the app, a scripted clock when rendering offline.
-    var clock: () -> Double = { CACurrentMediaTime() }
+    public var clock: () -> Double = { CACurrentMediaTime() }
     /// Seconds with nothing happening (no cursor movement, no events) before Tomo dozes off.
-    var dozeAfter: Double = 45
+    public var dozeAfter: Double = 45
     /// The frame being drawn (set by the view; reading it ties the Canvas to the frame timer).
-    var frameDate = Date()
+    public var frameDate = Date()
+
+    public init() {}
 
     /// 0 = 1さい (in the shell), 1 = 2さい (hatched), 2 = 3さい. Springs toward `growthTarget`.
-    var growth: CGFloat = 0
+    public var growth: CGFloat = 0
     private var growthTarget: CGFloat = 0
     private var growthVel: CGFloat = 0
 
-    private(set) var state: BotState = .idle
+    public private(set) var state: BotState = .idle
     private var baseFace: Face = .normal
     private var flash: (face: Face, until: Double)?
     private var moves: [Move] = []
@@ -71,7 +73,7 @@ final class TomoChick: ObservableObject {
 
     // MARK: Inputs
 
-    func setState(_ s: BotState, force: Bool = false) {
+    public func setState(_ s: BotState, force: Bool = false) {
         guard s != state || force else { return }
         stir()
         let previous = state
@@ -97,15 +99,15 @@ final class TomoChick: ObservableObject {
         }
     }
 
-    func blink() { blinkAt = clock() }
+    public func blink() { blinkAt = clock() }
 
     /// One beak flap per spoken line.
-    func talk() { stir(); add(.beak, 0.28) }
+    public func talk() { stir(); add(.beak, 0.28) }
 
     /// "Over here!": a double hop with a wing flap.
-    func nudge() { stir(); add(.nudge, 0.75); blink() }
+    public func nudge() { stir(); add(.nudge, 0.75); blink() }
 
-    func greet() {
+    public func greet() {
         stir()
         add(.hop(0.25), 0.45); add(.flap(6), 0.8)
         flash = (.happy, clock() + 1.4)
@@ -113,10 +115,10 @@ final class TomoChick: ObservableObject {
     }
 
     /// Eating (feed): two pecks.
-    func gulp() { stir(); add(.peck, 0.6) }
+    public func gulp() { stir(); add(.peck, 0.6) }
 
     /// Clicked on Tomo. Three pokes in a row make it dizzy.
-    func poke() {
+    public func poke() {
         stir()
         let now = clock()
         add(.squish, 0.35)
@@ -128,7 +130,7 @@ final class TomoChick: ObservableObject {
         }
     }
 
-    func emote(_ e: BotEmote) {
+    public func emote(_ e: BotEmote) {
         stir()
         let now = clock()
         switch e {
@@ -143,13 +145,13 @@ final class TomoChick: ObservableObject {
     }
 
     /// Cursor over Tomo: puff up a little.
-    func setHover(_ scale: CGFloat) {
+    public func setHover(_ scale: CGFloat) {
         if scale > 1 { stir() }
         puffTarget = scale > 1 ? 1.05 : 1
     }
 
     /// Grow up (or reset) to an age step.
-    func grow(to target: CGFloat) {
+    public func grow(to target: CGFloat) {
         stir()
         if target > growthTarget {
             add(.flap(5), 0.7); add(.hop(0.3), 0.5)
@@ -160,13 +162,13 @@ final class TomoChick: ObservableObject {
     }
 
     /// Jump straight to an age step (no animation).
-    func setGrowth(_ value: CGFloat) {
+    public func setGrowth(_ value: CGFloat) {
         growth = value; growthTarget = value; growthVel = 0
     }
 
     /// Something small Tomo does on its own between events, so it never sits frozen:
     /// a glance, a peep, a wing stretch, a curious tilt, a shuffle, preening, or a little hop.
-    func fidget() {
+    public func fidget() {
         let now = clock()
         switch Int.random(in: 0..<7) {
         case 0:
@@ -196,7 +198,7 @@ final class TomoChick: ObservableObject {
 
     // MARK: Frame
 
-    func step() {
+    public func step() {
         let now = clock()
         if !started {
             started = true
@@ -306,7 +308,7 @@ final class TomoChick: ObservableObject {
 
     // MARK: Drawing
 
-    func draw(_ context: GraphicsContext, size: CGSize) {
+    public func draw(_ context: GraphicsContext, size: CGSize) {
         let now = clock()
         let p = started ? pose : pose(at: now)
         let R = size.width * 0.3
@@ -346,25 +348,25 @@ final class TomoChick: ObservableObject {
     // MARK: - Parts
 
     private enum Shape {
-        static let bodyRX: CGFloat = 1.0
-        static let bodyRY: CGFloat = 0.94
+        public static let bodyRX: CGFloat = 1.0
+        public static let bodyRY: CGFloat = 0.94
     }
 
     private enum Palette {
-        static let bodyTop = Color(hex: "#FFE68C")
-        static let bodyBottom = Color(hex: "#FFC53A")
-        static let belly = Color(hex: "#FFF5CC")
-        static let wing = Color(hex: "#F6BA2C")
-        static let tuft = Color(hex: "#F3B226")
-        static let beakTop = Color(hex: "#F7982B")
-        static let beakBottom = Color(hex: "#E2771A")
-        static let mouth = Color(hex: "#8A3413")
-        static let cheek = Color(hex: "#FF8E6E")
-        static let ink = Color(hex: "#2B1B0E")
-        static let feet = Color(hex: "#EF8A2A")
-        static let shell = Color(hex: "#FFFBF1")
-        static let shellLine = Color(hex: "#E3D3B2")
-        static let heart = Color(hex: "#FF5C8A")
+        public static let bodyTop = Color(hex: "#FFE68C")
+        public static let bodyBottom = Color(hex: "#FFC53A")
+        public static let belly = Color(hex: "#FFF5CC")
+        public static let wing = Color(hex: "#F6BA2C")
+        public static let tuft = Color(hex: "#F3B226")
+        public static let beakTop = Color(hex: "#F7982B")
+        public static let beakBottom = Color(hex: "#E2771A")
+        public static let mouth = Color(hex: "#8A3413")
+        public static let cheek = Color(hex: "#FF8E6E")
+        public static let ink = Color(hex: "#2B1B0E")
+        public static let feet = Color(hex: "#EF8A2A")
+        public static let shell = Color(hex: "#FFFBF1")
+        public static let shellLine = Color(hex: "#E3D3B2")
+        public static let heart = Color(hex: "#FF5C8A")
     }
 
     private func drawBody(_ ctx: GraphicsContext, R: CGFloat) {
@@ -558,17 +560,17 @@ final class TomoChick: ObservableObject {
     // MARK: - Particles
 
     private struct Bit {
-        enum Kind {
+        public enum Kind {
             case sparkle, heart, z, shell
-            var gravity: CGFloat { self == .shell ? 3.2 : self == .sparkle ? 0.6 : -0.15 }
+            public var gravity: CGFloat { self == .shell ? 3.2 : self == .sparkle ? 0.6 : -0.15 }
         }
-        let kind: Kind
-        var pos: CGPoint        // relative to Tomo's center, in body radii
-        var vel: CGVector
-        var age: Double = 0
-        let life: Double
-        let size: CGFloat
-        let spin: CGFloat
+        public let kind: Kind
+        public var pos: CGPoint        // relative to Tomo's center, in body radii
+        public var vel: CGVector
+        public var age: Double = 0
+        public let life: Double
+        public let size: CGFloat
+        public let spin: CGFloat
     }
 
     private func emit(_ kind: Bit.Kind, _ count: Int) {
@@ -631,19 +633,19 @@ final class TomoChick: ObservableObject {
     private enum Face { case normal, happy, sleep, sleepy, squeeze, surprised, love, confused, dizzy, wink, flat }
 
     private struct Move {
-        enum Kind {
+        public enum Kind {
             case hop(CGFloat), nudge, shake, flap(Int), peck, rock, squish, wobble, beak
             case peep, stretch, tiltHold(CGFloat), shuffle, preen(CGFloat)
         }
-        let kind: Kind
-        let start: Double
-        let duration: Double
+        public let kind: Kind
+        public let start: Double
+        public let duration: Double
     }
 
     private struct Pose {
-        var dx: CGFloat = 0, dy: CGFloat = 0, rot: CGFloat = 0
-        var sx: CGFloat = 1, sy: CGFloat = 1
-        var wingL: CGFloat = 0, wingR: CGFloat = 0, beak: CGFloat = 0
+        public var dx: CGFloat = 0, dy: CGFloat = 0, rot: CGFloat = 0
+        public var sx: CGFloat = 1, sy: CGFloat = 1
+        public var wingL: CGFloat = 0, wingR: CGFloat = 0, beak: CGFloat = 0
     }
 
     private func add(_ kind: Move.Kind, _ duration: Double) {
@@ -742,53 +744,52 @@ final class TomoChick: ObservableObject {
     }
 }
 
+
 // MARK: - Views
 
-/// Tomo in the island: a Canvas redrawn every frame, gaze following the cursor.
-struct TomoCharacterView: View {
-    @ObservedObject var state: AppState
-    var particleOverhang: CGFloat = 0
+/// Tomo on its own: a Canvas redrawn every frame. Shells that know where the pointer is set `gaze`.
+public struct TomoChickView: View {
     @StateObject private var chick = TomoChick()
+    public var state: BotState
+    public var growth: CGFloat
+    public var gaze: (() -> CGPoint)?
 
-    var body: some View {
-        // The Canvas must read the timeline's date, or SwiftUI won't redraw it every frame.
-        TimelineView(.animation(paused: state.mode == .hidden)) { timeline in
+    public init(state: BotState = .idle, growth: CGFloat, gaze: (() -> CGPoint)? = nil) {
+        self.state = state
+        self.growth = growth
+        self.gaze = gaze
+    }
+
+    public var body: some View {
+        TimelineView(.animation) { timeline in
             Canvas { context, size in
                 chick.frameDate = timeline.date
-                let g = gaze()
-                chick.lookX = g.x
-                chick.lookY = g.y
-                chick.particleOverhang = particleOverhang
+                if let g = gaze?() { chick.lookX = g.x; chick.lookY = g.y }
                 chick.step()
                 chick.draw(context, size: size)
             }
         }
-        .onChange(of: state.effectiveState) { _, s in chick.setState(s) }
+        .onChange(of: state) { _, s in chick.setState(s) }
+        .onChange(of: growth) { _, g in chick.grow(to: g) }
         .onAppear {
-            chick.setState(state.effectiveState, force: true)
-            chick.setGrowth(CGFloat(min(max(TomoGame.shared.stage - 1, 0), 2)))
+            chick.setState(state, force: true)
+            chick.setGrowth(growth)
         }
-        .modifier(TomoChickMoves(chick: chick))
-        .modifier(TomoChickReactions(chick: chick))
+        .tomoReactions(chick)
     }
+}
 
-    /// Cursor direction relative to Tomo, −1…1 (positive y = above).
-    private func gaze() -> CGPoint {
-        let screen = NSScreen.main ?? NSScreen.screens[0]
-        let (w, h) = islandSize(mode: state.mode, view: state.view, progress: state.uploadProgress,
-                                nw: state.notchWidth, nh: state.notchHeight)
-        let (bx, by, _, _) = botPosition(mode: state.mode, view: state.view, islandW: w, islandH: h,
-                                         uploadProgress: state.uploadProgress)
-        let screenX = screen.frame.midX - w / 2 + bx
-        return CGPoint(x: tanh((state.mousePosition.x - screenX) / 260),
-                       y: -tanh((state.mousePosition.y - by) / 200))
+public extension View {
+    /// Tomo reacts to the game's notifications (talk, nudge, greet, grow, emotes, pokes).
+    func tomoReactions(_ chick: TomoChick) -> some View {
+        modifier(TomoChickMoves(chick: chick)).modifier(TomoChickReactions(chick: chick))
     }
 }
 
 private struct TomoChickMoves: ViewModifier {
-    let chick: TomoChick
+    public let chick: TomoChick
 
-    func body(content: Content) -> some View {
+    public func body(content: Content) -> some View {
         content
             .onReceive(NotificationCenter.default.publisher(for: .botTalk)) { _ in chick.talk() }
             .onReceive(NotificationCenter.default.publisher(for: .botNudge)) { _ in chick.nudge() }
@@ -804,9 +805,9 @@ private struct TomoChickMoves: ViewModifier {
 }
 
 private struct TomoChickReactions: ViewModifier {
-    let chick: TomoChick
+    public let chick: TomoChick
 
-    func body(content: Content) -> some View {
+    public func body(content: Content) -> some View {
         content
             .onReceive(NotificationCenter.default.publisher(for: .triggerEmote)) { n in
                 if let e = n.object as? BotEmote { chick.emote(e) }
@@ -819,25 +820,3 @@ private struct TomoChickReactions: ViewModifier {
     }
 }
 
-/// Small decorative Tomo for the leftover agent pills (switched off in Tomodachi; removed with issue #1).
-struct MiniBotCanvasView: View {
-    let task: AgentTask
-    @StateObject private var chick: TomoChick = {
-        let c = TomoChick()
-        c.isMini = true
-        c.setGrowth(1)
-        return c
-    }()
-
-    var body: some View {
-        TimelineView(.animation) { timeline in
-            Canvas { context, size in
-                chick.frameDate = timeline.date
-                chick.step()
-                chick.draw(context, size: size)
-            }
-        }
-        .onChange(of: task.state) { _, s in chick.setState(s) }
-        .onAppear { chick.setState(task.state, force: true) }
-    }
-}

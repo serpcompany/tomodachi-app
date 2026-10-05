@@ -1,10 +1,11 @@
 import SwiftUI
+import TomoCore
 
 // MARK: - Settings window (menu → Settings…), laid out like the Mac's System Settings
 //
 // A sidebar of pages on the left, the selected page on the right:
 //   Tomo (growth: age, level, growing up, today) · Words (every level and word) · General · AI · Testing · About
-// All text comes from the learner's interface strings (Resources/languages/ui.<id>.json).
+// All text comes from the learner's interface strings (TomoCore: Resources/languages/ui.<id>.json).
 
 /// Starting over clears this language pair's saved Tomo, so it always asks first.
 @MainActor

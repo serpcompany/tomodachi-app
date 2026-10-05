@@ -4,46 +4,46 @@ import Speech
 
 // MARK: - Talking stage: Tomo asks, you answer in your own words (typed or spoken)
 
-struct TomoLine: Equatable {
-    let say: String
-    let romanization: String?
-    let translation: String       // in the learner's language
-    var examples: [String] = []   // shown with the hint: things you could answer
+public struct TomoLine: Equatable, Sendable {
+    public let say: String
+    public let romanization: String?
+    public let translation: String       // in the learner's language
+    public var examples: [String] = []   // shown with the hint: things you could answer
 
-    static let empty = TomoLine(say: "", romanization: nil, translation: "")
+    public static let empty = TomoLine(say: "", romanization: nil, translation: "")
 }
 
 extension TomoLine {
-    init(_ s: TargetPack.Starter, learner: LearnerPack) {
+    public init(_ s: TargetPack.Starter, learner: LearnerPack) {
         self.init(say: s.say, romanization: s.romanization, translation: s.translation(learner.id),
                   examples: s.examples.map { "\($0.say) (\($0.translation(learner.id)))" })
     }
 }
 
 /// A learner-language explanation of one of Tomo's lines (the Explain panel).
-struct TomoExplanation: Sendable, Equatable {
-    struct Part: Sendable, Equatable, Hashable { let phrase: String; let meaning: String }
-    let translation: String
-    let parts: [Part]
-    let tip: String?
-    let usedAI: Bool
+public struct TomoExplanation: Sendable, Equatable {
+    public struct Part: Sendable, Equatable, Hashable { public let phrase: String; public let meaning: String }
+    public let translation: String
+    public let parts: [Part]
+    public let tip: String?
+    public let usedAI: Bool
 }
 
-struct TomoReply: Sendable {
-    let say: String
-    let romanization: String?
-    let translation: String
-    let understood: Bool
-    let mood: String              // happy | love | surprised | proud | confused
-    var wrongLanguage = false     // stopped by the language check: neutral, not a miss
+public struct TomoReply: Sendable {
+    public let say: String
+    public let romanization: String?
+    public let translation: String
+    public let understood: Bool
+    public let mood: String              // happy | love | surprised | proud | confused
+    public var wrongLanguage = false     // stopped by the language check: neutral, not a miss
 
-    init(say: String, romanization: String?, translation: String, understood: Bool, mood: String,
+    public init(say: String, romanization: String?, translation: String, understood: Bool, mood: String,
          wrongLanguage: Bool = false) {
         self.say = say; self.romanization = romanization; self.translation = translation
         self.understood = understood; self.mood = mood; self.wrongLanguage = wrongLanguage
     }
 
-    init(_ l: TargetPack.SpokenLine, learner: String, understood: Bool, mood: String, wrongLanguage: Bool = false) {
+    public init(_ l: TargetPack.SpokenLine, learner: String, understood: Bool, mood: String, wrongLanguage: Bool = false) {
         self.init(say: l.say, romanization: l.romanization, translation: l.translation(learner),
                   understood: understood, mood: mood, wrongLanguage: wrongLanguage)
     }
@@ -51,9 +51,9 @@ struct TomoReply: Sendable {
 
 // MARK: - Brain: the configured AI provider (TomoAI.swift), otherwise built-in replies
 
-enum TomoBrain {
+public enum TomoBrain {
     /// `transcript` alternates "Tomo: …" / "Learner: …" lines, newest last.
-    static func reply(to transcript: [String], ai: TomoAIConfig?, language: LanguageContext) async -> TomoReply {
+    public static func reply(to transcript: [String], ai: TomoAIConfig?, language: LanguageContext) async -> TomoReply {
         let answer = (transcript.last ?? "").replacingOccurrences(of: "Learner: ", with: "")
         if let gated = languageGate(answer, language: language) { return gated }
         if let ai, ai.isUsable, let r = try? await ask(ai, transcript: transcript, language: language) { return r }
@@ -62,14 +62,14 @@ enum TomoBrain {
 
     /// Layer 1 of answer checking (docs/architecture.md): not in the target language, no credit, no AI call.
     /// The AI can be talked into accepting English ("car" once counted), so this rule lives in code.
-    static func languageGate(_ answer: String, language: LanguageContext) -> TomoReply? {
+    public static func languageGate(_ answer: String, language: LanguageContext) -> TomoReply? {
         guard !language.target.looksLikeTarget(answer, learner: language.learner.id) else { return nil }
         return TomoReply(language.target.lines.sayItInMyLanguage, learner: language.learner.id,
                          understood: false, mood: "confused", wrongLanguage: true)
     }
 
     /// For the AI window's Test button: the pack's first question and first example answer.
-    static func test(config: TomoAIConfig, language: LanguageContext) async -> Result<TomoReply, Error> {
+    public static func test(config: TomoAIConfig, language: LanguageContext) async -> Result<TomoReply, Error> {
         let starter = language.target.starters.first
         let transcript = ["Tomo: \(starter?.say ?? "")", "Learner: \(starter?.examples.first?.say ?? "")"]
         do { return .success(try await ask(config, transcript: transcript, language: language)) }
@@ -77,7 +77,7 @@ enum TomoBrain {
     }
 
     /// Built from the language pair; the language-specific rules come from the pack.
-    static func systemPrompt(_ l: LanguageContext) -> String {
+    public static func systemPrompt(_ l: LanguageContext) -> String {
         let target = l.target.name("en"), learner = l.learner.name
         let romanization = l.target.romanization.map { "the \($0("en")) reading" } ?? "an empty string"
         let age = l.age
@@ -123,7 +123,7 @@ enum TomoBrain {
 
     // MARK: Help: explain a line in the learner's language, or say it simpler in the target language
 
-    static func explain(line: TomoLine, focus: String?, ai: TomoAIConfig?, language l: LanguageContext) async -> TomoExplanation {
+    public static func explain(line: TomoLine, focus: String?, ai: TomoAIConfig?, language l: LanguageContext) async -> TomoExplanation {
         let offline = TomoExplanation(translation: line.translation, parts: [], tip: nil, usedAI: false)
         guard let ai, ai.isUsable else { return offline }
         let target = l.target.name("en"), learner = l.learner.name
@@ -147,7 +147,7 @@ enum TomoBrain {
                                parts: parts, tip: tip, usedAI: true)
     }
 
-    static func simpler(line: TomoLine, ai: TomoAIConfig?, language l: LanguageContext) async -> TomoLine? {
+    public static func simpler(line: TomoLine, ai: TomoAIConfig?, language l: LanguageContext) async -> TomoLine? {
         guard let ai, ai.isUsable else { return nil }
         let target = l.target.name("en"), learner = l.learner.name
         let romanization = l.target.romanization.map { "the \($0("en")) reading" } ?? "an empty string"
@@ -170,7 +170,7 @@ enum TomoBrain {
 
     // MARK: Offline replies (placeholder keyword matching from the pack; the Zenbu dictionary replaces it)
 
-    static func offlineReply(to answer: String, language l: LanguageContext) -> TomoReply {
+    public static func offlineReply(to answer: String, language l: LanguageContext) -> TomoReply {
         let text = answer.lowercased()
         // Pack order matters while matching is substring-based (see docs/research/answer-evaluation.md).
         for rule in l.target.offlineReplies {
@@ -187,9 +187,9 @@ enum TomoBrain {
 // MARK: - Listening: on-device speech recognition in the target language, push the mic to talk
 
 @MainActor
-final class TomoListener: ObservableObject {
-    @Published private(set) var isListening = false
-    @Published private(set) var problem: String?
+public final class TomoListener: ObservableObject {
+    @Published public private(set) var isListening = false
+    @Published public private(set) var problem: String?
 
     private var recognizer: SFSpeechRecognizer?
     private let engine = AVAudioEngine()
@@ -202,7 +202,7 @@ final class TomoListener: ObservableObject {
     private var onPartial: ((String) -> Void)?
     private var onDone: ((String) -> Void)?
 
-    func toggle(onPartial: @escaping (String) -> Void, onDone: @escaping (String) -> Void) {
+    public func toggle(onPartial: @escaping (String) -> Void, onDone: @escaping (String) -> Void) {
         if isListening { stop(); return }
         self.onPartial = onPartial
         self.onDone = onDone
@@ -260,7 +260,7 @@ final class TomoListener: ObservableObject {
         }
     }
 
-    func stop() {
+    public func stop() {
         guard isListening else { return }
         isListening = false
         watchdog?.invalidate(); watchdog = nil

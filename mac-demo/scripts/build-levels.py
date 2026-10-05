@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Builds Tomo's levels for a language pack (NotchBuddy/Resources/languages/<id>.json → "levels") from Wordbank's
+"""Builds Tomo's levels for a language pack (TomoCore/Sources/TomoCore/Resources/languages/<id>.json → "levels") from Wordbank's
 CDI data: the words toddlers understand and say, and when.
 
   python3 mac-demo/scripts/build-levels.py ja            # rebuild ja.json's levels
@@ -49,7 +49,7 @@ LANGS = {
 def paths(lang):
     return {"source": ROOT / f"scripts/sources/{LANGS[lang]['source']}.source.json",
             "curation": ROOT / f"scripts/data/{lang}-curation.json",
-            "pack": ROOT / f"NotchBuddy/Resources/languages/{lang}.json",
+            "pack": ROOT.parent / f"TomoCore/Sources/TomoCore/Resources/languages/{lang}.json",
             "cache": ROOT / f"build/data-cache/{LANGS[lang]['source']}"}
 
 # ---------- sources
