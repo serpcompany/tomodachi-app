@@ -4,7 +4,7 @@ Tomo works with a **language pair**:
 - The **learner language** is the one you speak.
 - The **target language** is the one you're learning.
 
-Japanese-for-English-speakers is just the first pair. No Swift code contains text in a specific language; everything comes from data files.
+Japanese-for-English-speakers is just the first pair. No Swift code contains text in a specific language; everything comes from data files (`.github/scripts/check-swift-text.mjs` fails on Japanese in Swift strings).
 
 ## The two sides
 
@@ -63,7 +63,7 @@ English is for learners who speak Japanese, so every English word needs a Japane
 **A new target language:**
 1. Copy `es.json` to `<id>.json`. Fill in the locales, script, labels, lines, AI persona and rules, and the levels (rounds and starters, each with an `id`).
 2. Check the Mac has a voice (System Settings → Accessibility → Spoken Content) and on-device dictation for it.
-3. Run `TOMO_TARGET=<id>` with `TOMO_AUTOPLAY=1`, then `TOMO_STAGE=3 TOMO_AUTOCHAT="<an English word>|<a target answer>"` (see `mac-demo/README.md`).
+3. Run `TOMO_TARGET=<id>` with `TOMO_AUTOPLAY=1`, then `TOMO_STAGE=3 TOMO_AUTOCHAT="<an English word>|<a target answer>"` (see [verification.md](verification.md)).
 4. Have a native speaker review it, then set `reviewedByNativeSpeaker: true`.
 
 **A new learner language:**

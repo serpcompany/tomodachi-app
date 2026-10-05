@@ -75,7 +75,7 @@ Particles and verb forms are listed once at least 50% of children use them (J-CD
 
 ## Proposed pipeline
 
-1. **Pin the sources.** Use the monorepo's pattern ([JLPT source record](../../../zenbujapanese-monorepo/apps/ios/LanguageData/Sources/JLPT-Waller-2025-08-26.source.json)): snapshot URL, retrieval date, SHA-256, license and attribution. Start with Wordbank, the NINJAL lists and the JMdict tags.
+1. **Pin the sources.** Use the monorepo's pattern (JLPT source record (`apps/ios/LanguageData/Sources/JLPT-Waller-2025-08-26.source.json`)): snapshot URL, retrieval date, SHA-256, license and attribution. Start with Wordbank, the NINJAL lists and the JMdict tags.
 2. **Map to Language Reference IDs.**
    - Normalize each headword: katakana to a hiragana reading, strip glosses like アオ（青）, and keep the part of speech as a hint.
    - Match JMdict on reading + written form + part of speech.

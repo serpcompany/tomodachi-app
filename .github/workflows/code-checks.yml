@@ -1,0 +1,27 @@
+name: Code Checks
+
+on:
+  # No path filters: these checks take seconds, and a required check must report on every PR.
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  swift-text:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: No language-specific text in Swift
+        run: node .github/scripts/check-swift-text.mjs
