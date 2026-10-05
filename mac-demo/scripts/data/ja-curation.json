@@ -1,5 +1,5 @@
 {
-  "_about": "Hand curation for scripts/build-ja-levels.py, keyed by item id. picture: an emoji (Pick the picture). need: eat | sleep | hug (Do what Tomo says). meaning, kana, grownUp: fixes to Wordbank's gloss, reading, or the baby word's grown-up word (null removes it). Words with neither picture nor need are asked by meaning (Pick the meaning). Draft until a native speaker reviews it.",
+  "_about": "Hand curation for scripts/build-levels.py ja, keyed by item id. picture: an emoji (Pick the picture). need: eat | sleep | hug (Do what Tomo says). meaning, kana, grownUp: fixes to Wordbank's gloss, reading, or the baby word's grown-up word (null removes it). Words with neither picture nor need are asked by meaning (Pick the meaning). Draft until a native speaker reviews it.",
   "exclude": [
     "キャラクターの名前",
     "きょうだいの名前",

@@ -1,6 +1,6 @@
 {
   "name": "Wordbank: Japanese CDI (Words & Gestures, Words & Sentences)",
-  "use": "The age when half of children understand or say each word; Tomo's Japanese levels (scripts/build-ja-levels.py)",
+  "use": "The age when half of children understand or say each word; Tomo's Japanese levels (scripts/build-levels.py ja)",
   "license": "CC BY 4.0 (Wordbank data, https://langcog.github.io/wordbank-datapage/faq.html)",
   "attribution": "Frank, Braginsky, Yurovsky & Marchman (2017), Wordbank, J. Child Language 44(3). Japanese data: Tsuji; Hagihara et al. (2023); Minagawa. Instrument: Japanese CDI (Ogura & Watamaki 2004).",
   "note": "The J-CDI developers control the instrument's distribution. Ask them before shipping a beta that contains this word list (issue: see docs/decisions.md, 2026-10-06).",

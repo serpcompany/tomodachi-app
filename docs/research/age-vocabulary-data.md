@@ -1,6 +1,6 @@
 # Age vocabulary data: what Tomo says and understands at each age
 
-> **Status (2026-10-06): the Japanese CDI data from Wordbank is now Tomo's Japanese word list** (`mac-demo/scripts/build-ja-levels.py`; [decisions.md](../decisions.md)). Before a beta ships it, we ask the J-CDI developers ([#40](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/40)).
+> **Status (2026-10-06): the Japanese CDI data from Wordbank is now Tomo's Japanese word list** (`mac-demo/scripts/build-levels.py ja`; [decisions.md](../decisions.md)). Before a beta ships it, we ask the J-CDI developers ([#40](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/40)).
 
 Research for the open question in [concepts.md](../concepts.md). Licenses were checked on official pages on 2026-10-03. Anything not checked is marked **unverified**.
 

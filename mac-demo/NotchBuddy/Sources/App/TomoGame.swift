@@ -207,6 +207,7 @@ final class TomoGame: ObservableObject {
     // Visit state: nil = no visit (island closed, or opened by the user for free play)
     private var visitRoundsLeft: Int?
     private var visitDeadline = Date.distantFuture
+    private var visitStarted = Date.distantPast
     private var nextDropIn = Date.distantFuture
     private var wasOpen = false
     private var ticker: Timer?
@@ -341,6 +342,7 @@ final class TomoGame: ObservableObject {
         let talks = queue.contains(where: progress.isStarter) || (queue.isEmpty && stage >= Self.chatStage)
         visitRoundsLeft = force || talks ? DropIn.roundsPerVisit : queue.count
         visitDeadline = Date().addingTimeInterval(ignoreAfter + 1.5)
+        visitStarted = Date()
         pending = false
         openIsland?()
         wasOpen = true
@@ -415,7 +417,11 @@ final class TomoGame: ObservableObject {
             if !open && now >= nextDropIn { dropIn(force: false) }
             return
         }
-        if !open { markPending(); endVisit(); return }       // user closed it mid-visit (Esc)
+        // Closed mid-visit (Esc). A slow launch can take a moment to open the island, so not right after it opened.
+        if !open {
+            if now.timeIntervalSince(visitStarted) > 2 { markPending(); endVisit() }
+            return
+        }
         if AppState.shared.mouseInIsland || listener.isListening || help != nil {
             visitDeadline = now.addingTimeInterval(ignoreAfter)
         } else if now > visitDeadline && phase == .asking {

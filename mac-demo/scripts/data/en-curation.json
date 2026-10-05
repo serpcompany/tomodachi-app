@@ -1,0 +1,1039 @@
+{
+  "_about": "Hand curation for scripts/build-levels.py en, keyed by item id. ja: the Japanese meaning (English is for learners who speak Japanese; words that match a Japanese CDI word get it automatically). picture: an emoji. need: eat | sleep | hug. grownUp: the grown-up word for baby talk. Words with neither picture nor need are asked by meaning. Draft until a native speaker reviews it.",
+  "exclude": [
+    "babysitter's name",
+    "child's own name",
+    "pet's name",
+    "vagina*",
+    "penis*",
+    "a",
+    "an",
+    "the",
+    "of",
+    "to",
+    "at",
+    "by",
+    "for",
+    "about"
+  ],
+  "excludeCategories": [
+    "helping_verbs"
+  ],
+  "items": {
+    "en:above": {
+      "ja": "うえのほう"
+    },
+    "en:after": {
+      "ja": "あとで"
+    },
+    "en:allgone": {
+      "ja": "ぜんぶない"
+    },
+    "en:alligator": {
+      "ja": "ワニ",
+      "picture": "🐊"
+    },
+    "en:ankle": {
+      "ja": "足首"
+    },
+    "en:any": {
+      "ja": "なにか"
+    },
+    "en:applesauce": {
+      "ja": "りんごのピューレ"
+    },
+    "en:arm": {
+      "ja": "うで",
+      "picture": "💪"
+    },
+    "en:asleep": {
+      "ja": "ねている",
+      "picture": "😴"
+    },
+    "en:awake": {
+      "ja": "おきている"
+    },
+    "en:away": {
+      "ja": "むこうへ"
+    },
+    "en:baabaa": {
+      "grownUp": "sheep"
+    },
+    "en:babysitter": {
+      "ja": "ベビーシッター"
+    },
+    "en:back": {
+      "ja": "もどって"
+    },
+    "en:backyard": {
+      "ja": "うらにわ"
+    },
+    "en:basement": {
+      "ja": "地下室"
+    },
+    "en:bat": {
+      "ja": "バット"
+    },
+    "en:bathroom": {
+      "ja": "トイレ（お手洗い）"
+    },
+    "en:bathtub": {
+      "ja": "おふろ（浴槽）",
+      "picture": "🛁"
+    },
+    "en:beach": {
+      "ja": "すなはま",
+      "picture": "🏖️"
+    },
+    "en:beads": {
+      "ja": "ビーズ"
+    },
+    "en:bedroom": {
+      "ja": "しんしつ",
+      "picture": "🛏️"
+    },
+    "en:bench": {
+      "ja": "ベンチ"
+    },
+    "en:better": {
+      "ja": "よりよい"
+    },
+    "en:bib": {
+      "ja": "よだれかけ"
+    },
+    "en:big": {
+      "ja": "おおきい"
+    },
+    "en:bite": {
+      "ja": "かむ"
+    },
+    "en:blow": {
+      "ja": "ふく（いきを）"
+    },
+    "en:boat": {
+      "ja": "ボート",
+      "picture": "⛵"
+    },
+    "en:bottle": {
+      "ja": "ほにゅうびん"
+    },
+    "en:boy": {
+      "ja": "おとこのこ",
+      "picture": "👦"
+    },
+    "en:breakfast": {
+      "ja": "あさごはん"
+    },
+    "en:broken": {
+      "ja": "こわれた"
+    },
+    "en:brown": {
+      "ja": "ちゃいろ",
+      "picture": "🟫"
+    },
+    "en:brush": {
+      "ja": "ブラシ"
+    },
+    "en:build": {
+      "ja": "つくる（組み立てる）"
+    },
+    "en:bunny": {
+      "ja": "うさちゃん（うさぎ）",
+      "picture": "🐰",
+      "grownUp": "rabbit"
+    },
+    "en:buttocks": {
+      "ja": "おしり"
+    },
+    "en:can": {
+      "ja": "かん",
+      "picture": "🥫"
+    },
+    "en:careful": {
+      "ja": "きをつけて",
+      "picture": "⚠️"
+    },
+    "en:cereal": {
+      "ja": "シリアル",
+      "picture": "🥣"
+    },
+    "en:chalk": {
+      "ja": "チョーク"
+    },
+    "en:chase": {
+      "ja": "おいかける"
+    },
+    "en:cheerios": {
+      "ja": "シリアル（チェリオス）"
+    },
+    "en:chicken": {
+      "ja": "にわとり"
+    },
+    "en:chicken2": {
+      "ja": "とりにく",
+      "picture": "🍗"
+    },
+    "en:choochoo": {
+      "grownUp": "train"
+    },
+    "en:church": {
+      "ja": "きょうかい",
+      "picture": "⛪"
+    },
+    "en:clap": {
+      "ja": "てをたたく"
+    },
+    "en:clown": {
+      "ja": "ピエロ",
+      "picture": "🤡"
+    },
+    "en:coat": {
+      "ja": "コート"
+    },
+    "en:cockadoodledoo": {
+      "grownUp": "rooster"
+    },
+    "en:coke": {
+      "ja": "コーラ",
+      "picture": "🥤"
+    },
+    "en:cook": {
+      "ja": "りょうりする",
+      "picture": "🍳"
+    },
+    "en:couch": {
+      "ja": "ソファー",
+      "picture": "🛋️"
+    },
+    "en:country": {
+      "ja": "いなか"
+    },
+    "en:cover": {
+      "ja": "おおう"
+    },
+    "en:cowboy": {
+      "ja": "カウボーイ",
+      "picture": "🤠"
+    },
+    "en:cracker": {
+      "ja": "クラッカー"
+    },
+    "en:crib": {
+      "ja": "ベビーベッド"
+    },
+    "en:day": {
+      "ja": "ひる",
+      "picture": "☀️"
+    },
+    "en:deer": {
+      "ja": "シカ",
+      "picture": "🦌"
+    },
+    "en:dinner": {
+      "ja": "ばんごはん"
+    },
+    "en:dirty": {
+      "ja": "きたない"
+    },
+    "en:doggy": {
+      "grownUp": "dog"
+    },
+    "en:donkey": {
+      "ja": "ロバ",
+      "picture": "🫏"
+    },
+    "en:donut": {
+      "ja": "ドーナツ",
+      "picture": "🍩"
+    },
+    "en:down": {
+      "ja": "した（へ）"
+    },
+    "en:downtown": {
+      "ja": "まちなか",
+      "picture": "🏙️"
+    },
+    "en:draw": {
+      "ja": "えをかく",
+      "picture": "🖍️"
+    },
+    "en:dress": {
+      "ja": "ワンピース",
+      "picture": "👗"
+    },
+    "en:drink": {
+      "ja": "のみもの"
+    },
+    "en:drive": {
+      "ja": "うんてんする"
+    },
+    "en:drop": {
+      "ja": "おとす"
+    },
+    "en:dry": {
+      "ja": "かわかす"
+    },
+    "en:dryer": {
+      "ja": "かんそうき"
+    },
+    "en:dump": {
+      "ja": "ぶちまける"
+    },
+    "en:each": {
+      "ja": "それぞれ"
+    },
+    "en:eat": {
+      "need": "eat"
+    },
+    "en:every": {
+      "ja": "ぜんぶの"
+    },
+    "en:farm": {
+      "ja": "のうじょう"
+    },
+    "en:feed": {
+      "ja": "たべさせる",
+      "need": "eat"
+    },
+    "en:find": {
+      "ja": "みつける",
+      "picture": "🔍"
+    },
+    "en:fine": {
+      "ja": "だいじょうぶ"
+    },
+    "en:finish": {
+      "ja": "おわらせる",
+      "picture": "🏁"
+    },
+    "en:fireman": {
+      "ja": "しょうぼうし",
+      "picture": "🧑‍🚒"
+    },
+    "en:fish2": {
+      "ja": "さかな（料理）"
+    },
+    "en:fit": {
+      "ja": "はいる（ぴったり）"
+    },
+    "en:food": {
+      "ja": "たべもの"
+    },
+    "en:foot": {
+      "ja": "足",
+      "picture": "🦶"
+    },
+    "en:frenchfries": {
+      "ja": "フライドポテト"
+    },
+    "en:garage": {
+      "ja": "ガレージ"
+    },
+    "en:garbage": {
+      "ja": "ごみ",
+      "picture": "🗑️"
+    },
+    "en:gentle": {
+      "ja": "やさしく"
+    },
+    "en:girl": {
+      "ja": "おんなのこ",
+      "picture": "👧"
+    },
+    "en:givemefive": {
+      "ja": "ハイタッチ！",
+      "picture": "🙌"
+    },
+    "en:glass": {
+      "ja": "コップ（ガラス）",
+      "picture": "🥛"
+    },
+    "en:gloves": {
+      "ja": "てぶくろ",
+      "picture": "🧤"
+    },
+    "en:gonnagetyou": {
+      "ja": "つかまえちゃうぞ！"
+    },
+    "en:goose": {
+      "ja": "ガチョウ",
+      "picture": "🪿"
+    },
+    "en:gopotty": {
+      "ja": "トイレに行く",
+      "picture": "🚽"
+    },
+    "en:greenbeans": {
+      "ja": "さやいんげん",
+      "picture": "🫛"
+    },
+    "en:grrr": {
+      "ja": "ガオー（うなり声）"
+    },
+    "en:hammer": {
+      "ja": "かなづち",
+      "picture": "🔨"
+    },
+    "en:hate": {
+      "ja": "だいきらい"
+    },
+    "en:have": {
+      "ja": "もっている"
+    },
+    "en:he": {
+      "ja": "かれ"
+    },
+    "en:help": {
+      "ja": "たすける（てつだう）"
+    },
+    "en:hen": {
+      "ja": "めんどり",
+      "picture": "🐔"
+    },
+    "en:her": {
+      "ja": "かのじょ（を・の）"
+    },
+    "en:hers": {
+      "ja": "かのじょのもの"
+    },
+    "en:hi": {
+      "ja": "やあ／こんにちは"
+    },
+    "en:highchair": {
+      "ja": "ベビーチェア"
+    },
+    "en:him": {
+      "ja": "かれ（を）"
+    },
+    "en:his": {
+      "ja": "かれの"
+    },
+    "en:hug": {
+      "need": "hug",
+      "ja": "ぎゅっとする（だっこ）"
+    },
+    "en:hungry": {
+      "ja": "おなかすいた"
+    },
+    "en:hurry": {
+      "ja": "いそぐ"
+    },
+    "en:hurt": {
+      "ja": "けがした／いたい",
+      "picture": "🤕"
+    },
+    "en:i": {
+      "ja": "わたし"
+    },
+    "en:in": {
+      "ja": "なか（に）"
+    },
+    "en:inside": {
+      "ja": "なか"
+    },
+    "en:inside2": {
+      "ja": "なか"
+    },
+    "en:into": {
+      "ja": "なかへ"
+    },
+    "en:it": {
+      "ja": "それ"
+    },
+    "en:jar": {
+      "ja": "びん",
+      "picture": "🫙"
+    },
+    "en:jello": {
+      "ja": "ゼリー"
+    },
+    "en:kiss": {
+      "ja": "キスする",
+      "picture": "😘"
+    },
+    "en:kitty": {
+      "ja": "ねこちゃん",
+      "picture": "🐱",
+      "grownUp": "cat"
+    },
+    "en:knee": {
+      "ja": "ひざ"
+    },
+    "en:knock": {
+      "ja": "ノックする"
+    },
+    "en:lady": {
+      "ja": "おんなのひと",
+      "picture": "👩"
+    },
+    "en:lamb": {
+      "ja": "こひつじ",
+      "picture": "🐑"
+    },
+    "en:lamp": {
+      "ja": "ランプ",
+      "picture": "🪔"
+    },
+    "en:last": {
+      "ja": "さいご"
+    },
+    "en:lawnmower": {
+      "ja": "しばかりき"
+    },
+    "en:light": {
+      "ja": "でんき",
+      "picture": "💡"
+    },
+    "en:lips": {
+      "ja": "くちびる"
+    },
+    "en:little": {
+      "ja": "ちいさい"
+    },
+    "en:livingroom": {
+      "ja": "リビング"
+    },
+    "en:lollipop": {
+      "ja": "ペロペロキャンディー",
+      "picture": "🍭"
+    },
+    "en:look": {
+      "ja": "みる（ほら見て）"
+    },
+    "en:loud": {
+      "ja": "うるさい",
+      "picture": "📢"
+    },
+    "en:love": {
+      "ja": "だいすき",
+      "picture": "❤️"
+    },
+    "en:lunch": {
+      "ja": "おひるごはん"
+    },
+    "en:mad": {
+      "ja": "おこってる",
+      "picture": "😠"
+    },
+    "en:mailman": {
+      "ja": "ゆうびんやさん"
+    },
+    "en:man": {
+      "ja": "おとこのひと",
+      "picture": "👨"
+    },
+    "en:me": {
+      "ja": "わたし（を）"
+    },
+    "en:meow": {
+      "grownUp": "cat"
+    },
+    "en:mine": {
+      "ja": "わたしの"
+    },
+    "en:mittens": {
+      "ja": "ミトン（てぶくろ）"
+    },
+    "en:moo": {
+      "grownUp": "cow"
+    },
+    "en:moose": {
+      "ja": "ヘラジカ",
+      "picture": "🫎"
+    },
+    "en:mop": {
+      "ja": "モップ"
+    },
+    "en:much": {
+      "ja": "たくさん"
+    },
+    "en:muffin": {
+      "ja": "マフィン",
+      "picture": "🧁"
+    },
+    "en:my": {
+      "ja": "わたしの"
+    },
+    "en:myself": {
+      "ja": "じぶん"
+    },
+    "en:nap": {
+      "ja": "おひるね",
+      "need": "sleep"
+    },
+    "en:napkin": {
+      "ja": "ナプキン"
+    },
+    "en:naughty": {
+      "ja": "いたずら",
+      "picture": "😈"
+    },
+    "en:nice": {
+      "ja": "すてき"
+    },
+    "en:nightnight": {
+      "grownUp": "good night"
+    },
+    "en:noodles": {
+      "ja": "めん",
+      "picture": "🍜"
+    },
+    "en:not": {
+      "ja": "〜ない"
+    },
+    "en:nurse": {
+      "ja": "かんごしさん"
+    },
+    "en:nuts": {
+      "ja": "ナッツ"
+    },
+    "en:off": {
+      "ja": "はずれて"
+    },
+    "en:old": {
+      "ja": "ふるい"
+    },
+    "en:on": {
+      "ja": "うえ（に）"
+    },
+    "en:ontopof": {
+      "ja": "のうえ"
+    },
+    "en:orange": {
+      "ja": "オレンジ"
+    },
+    "en:orange2": {
+      "ja": "オレンジ",
+      "picture": "🟧"
+    },
+    "en:our": {
+      "ja": "わたしたちの"
+    },
+    "en:out": {
+      "ja": "そと（へ）"
+    },
+    "en:oven": {
+      "ja": "オーブン"
+    },
+    "en:over": {
+      "ja": "こえて"
+    },
+    "en:owie": {
+      "ja": "いたいところ",
+      "picture": "🩹",
+      "grownUp": "hurt"
+    },
+    "en:owl": {
+      "ja": "フクロウ",
+      "picture": "🦉"
+    },
+    "en:party": {
+      "ja": "パーティー",
+      "picture": "🎉"
+    },
+    "en:pattycake": {
+      "ja": "てあそび（パティケーキ）",
+      "picture": "👏"
+    },
+    "en:peanutbutter": {
+      "ja": "ピーナッツバター",
+      "picture": "🥜"
+    },
+    "en:peas": {
+      "ja": "グリンピース"
+    },
+    "en:penny": {
+      "ja": "1セント玉",
+      "picture": "🪙"
+    },
+    "en:pick": {
+      "ja": "えらぶ"
+    },
+    "en:pickle": {
+      "ja": "ピクルス"
+    },
+    "en:pizza": {
+      "ja": "ピザ",
+      "picture": "🍕"
+    },
+    "en:plant": {
+      "ja": "植物",
+      "picture": "🪴"
+    },
+    "en:plate": {
+      "ja": "おさら",
+      "picture": "🍽️"
+    },
+    "en:playdough": {
+      "ja": "ねんど"
+    },
+    "en:playground": {
+      "ja": "あそびば",
+      "picture": "🛝"
+    },
+    "en:playpen": {
+      "ja": "ベビーサークル"
+    },
+    "en:please": {
+      "ja": "おねがい",
+      "picture": "🙏"
+    },
+    "en:police": {
+      "ja": "けいさつ",
+      "picture": "👮"
+    },
+    "en:pony": {
+      "ja": "ポニー",
+      "picture": "🐴"
+    },
+    "en:poor": {
+      "ja": "かわいそうな"
+    },
+    "en:popcorn": {
+      "ja": "ポップコーン",
+      "picture": "🍿"
+    },
+    "en:popsicle": {
+      "ja": "アイスキャンディー"
+    },
+    "en:porch": {
+      "ja": "ポーチ（玄関前）"
+    },
+    "en:potato": {
+      "ja": "じゃがいも",
+      "picture": "🥔"
+    },
+    "en:potatochip": {
+      "ja": "ポテトチップス"
+    },
+    "en:potty": {
+      "grownUp": "toilet"
+    },
+    "en:pour": {
+      "ja": "そそぐ"
+    },
+    "en:pretend": {
+      "ja": "ごっこあそびする"
+    },
+    "en:pretzel": {
+      "ja": "プレッツェル",
+      "picture": "🥨"
+    },
+    "en:puppy": {
+      "ja": "こいぬ",
+      "picture": "🐶"
+    },
+    "en:purse": {
+      "ja": "ハンドバッグ",
+      "picture": "👛"
+    },
+    "en:quackquack": {
+      "grownUp": "duck"
+    },
+    "en:radio": {
+      "ja": "ラジオ",
+      "picture": "📻"
+    },
+    "en:raisin": {
+      "ja": "レーズン"
+    },
+    "en:ride": {
+      "ja": "のる"
+    },
+    "en:rip": {
+      "ja": "びりっとやぶる"
+    },
+    "en:rock": {
+      "ja": "いわ",
+      "picture": "🪨"
+    },
+    "en:rockingchair": {
+      "ja": "ゆりいす"
+    },
+    "en:rooster": {
+      "ja": "おんどり",
+      "picture": "🐓"
+    },
+    "en:sad": {
+      "ja": "かなしい",
+      "picture": "😢"
+    },
+    "en:salt": {
+      "ja": "しお",
+      "picture": "🧂"
+    },
+    "en:sauce": {
+      "ja": "ソース"
+    },
+    "en:scared": {
+      "ja": "こわがってる",
+      "picture": "😨"
+    },
+    "en:see": {
+      "ja": "みる",
+      "picture": "👀"
+    },
+    "en:shake": {
+      "ja": "ふる"
+    },
+    "en:share": {
+      "ja": "わける"
+    },
+    "en:she": {
+      "ja": "かのじょ"
+    },
+    "en:shorts": {
+      "ja": "半ズボン"
+    },
+    "en:sidewalk": {
+      "ja": "ほどう"
+    },
+    "en:sink": {
+      "ja": "ながし"
+    },
+    "en:skate": {
+      "ja": "スケートする",
+      "picture": "⛸️"
+    },
+    "en:sled": {
+      "ja": "そり",
+      "picture": "🛷"
+    },
+    "en:sleep": {
+      "need": "sleep"
+    },
+    "en:slide2": {
+      "ja": "すべる"
+    },
+    "en:smile": {
+      "ja": "にっこりする",
+      "picture": "😊"
+    },
+    "en:sneaker": {
+      "ja": "スニーカー"
+    },
+    "en:snowsuit": {
+      "ja": "スキーウェア"
+    },
+    "en:sobig": {
+      "ja": "こんなに大きい！"
+    },
+    "en:soda": {
+      "ja": "ソーダ"
+    },
+    "en:sofa": {
+      "ja": "ソファー"
+    },
+    "en:some": {
+      "ja": "いくつか"
+    },
+    "en:spaghetti": {
+      "ja": "スパゲッティ",
+      "picture": "🍝"
+    },
+    "en:sprinkler": {
+      "ja": "スプリンクラー"
+    },
+    "en:stay": {
+      "ja": "いる（とどまる）"
+    },
+    "en:sticky": {
+      "ja": "べたべた"
+    },
+    "en:stop": {
+      "ja": "とまる／やめる"
+    },
+    "en:story": {
+      "ja": "おはなし"
+    },
+    "en:street": {
+      "ja": "どうろ",
+      "picture": "🛣️"
+    },
+    "en:stroller": {
+      "ja": "ベビーカー"
+    },
+    "en:stuck": {
+      "ja": "うごかない"
+    },
+    "en:sweep": {
+      "ja": "はく（ほうきで）",
+      "picture": "🧹"
+    },
+    "en:swing2": {
+      "ja": "ゆれる"
+    },
+    "en:talk": {
+      "ja": "はなす",
+      "picture": "🗣️"
+    },
+    "en:tape": {
+      "ja": "テープ"
+    },
+    "en:taste": {
+      "ja": "あじみする"
+    },
+    "en:teddybear": {
+      "ja": "くまのぬいぐるみ",
+      "picture": "🧸"
+    },
+    "en:that": {
+      "ja": "あれ（それ）"
+    },
+    "en:their": {
+      "ja": "かれらの"
+    },
+    "en:them": {
+      "ja": "かれら（を）"
+    },
+    "en:then": {
+      "ja": "それから"
+    },
+    "en:these": {
+      "ja": "これら"
+    },
+    "en:they": {
+      "ja": "かれら"
+    },
+    "en:think": {
+      "ja": "かんがえる",
+      "picture": "🤔"
+    },
+    "en:thirsty": {
+      "ja": "のどがかわいた"
+    },
+    "en:thislittlepiggy": {
+      "ja": "ゆびあそび（このこぶたちゃん）"
+    },
+    "en:those": {
+      "ja": "あれら"
+    },
+    "en:tickle": {
+      "ja": "くすぐる"
+    },
+    "en:tiny": {
+      "ja": "とてもちいさい"
+    },
+    "en:toast": {
+      "ja": "トースト",
+      "picture": "🍞"
+    },
+    "en:toe": {
+      "ja": "足の指"
+    },
+    "en:tonight": {
+      "ja": "こんや",
+      "picture": "🌙"
+    },
+    "en:too": {
+      "ja": "〜も"
+    },
+    "en:tractor": {
+      "ja": "トラクター",
+      "picture": "🚜"
+    },
+    "en:trash": {
+      "ja": "ごみ"
+    },
+    "en:tray": {
+      "ja": "おぼん"
+    },
+    "en:tummy": {
+      "grownUp": "stomach"
+    },
+    "en:tuna": {
+      "ja": "ツナ"
+    },
+    "en:turkey": {
+      "ja": "七面鳥",
+      "picture": "🦃"
+    },
+    "en:underpants": {
+      "ja": "パンツ（下着）",
+      "picture": "🩲"
+    },
+    "en:us": {
+      "ja": "わたしたち（を）"
+    },
+    "en:vacuum": {
+      "ja": "そうじき"
+    },
+    "en:vanilla": {
+      "ja": "バニラ"
+    },
+    "en:vitamins": {
+      "ja": "ビタミン"
+    },
+    "en:vroom": {
+      "grownUp": "car"
+    },
+    "en:wake": {
+      "ja": "おきる"
+    },
+    "en:walker": {
+      "ja": "歩行器"
+    },
+    "en:washingmachine": {
+      "ja": "せんたくき"
+    },
+    "en:watch": {
+      "ja": "うで時計",
+      "picture": "⌚"
+    },
+    "en:watch2": {
+      "ja": "みる（じっと）"
+    },
+    "en:water2": {
+      "ja": "みず（川や池の）",
+      "picture": "💧"
+    },
+    "en:we": {
+      "ja": "わたしたち"
+    },
+    "en:wet": {
+      "ja": "ぬれた",
+      "picture": "💦"
+    },
+    "en:windy": {
+      "ja": "かぜがつよい",
+      "picture": "🌬️"
+    },
+    "en:wipe": {
+      "ja": "ふく（ふきとる）"
+    },
+    "en:wish": {
+      "ja": "ねがう",
+      "picture": "🌠"
+    },
+    "en:with": {
+      "ja": "いっしょに"
+    },
+    "en:woofwoof": {
+      "grownUp": "dog"
+    },
+    "en:work2": {
+      "ja": "はたらく",
+      "picture": "💼"
+    },
+    "en:yard": {
+      "ja": "にわ"
+    },
+    "en:yellow": {
+      "ja": "きいろ",
+      "picture": "🟨"
+    },
+    "en:you": {
+      "ja": "あなた"
+    },
+    "en:your": {
+      "ja": "あなたの"
+    },
+    "en:yourself": {
+      "ja": "あなたじしん"
+    },
+    "en:yumyum": {
+      "ja": "おいしいね",
+      "grownUp": "yummy"
+    }
+  }
+}
