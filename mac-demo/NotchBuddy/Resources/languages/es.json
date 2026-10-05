@@ -25,6 +25,7 @@
     "wrong": "¡Nooo!",
     "ouch": "¡Ay!",
     "grew": "¡Ya soy mayor!",
+    "levelUp": "¡Bien!",
     "bye": "¡Adiós!",
     "seeYou": "¡Hasta luego!",
     "sayItInMyLanguage": {
@@ -50,246 +51,268 @@
       "When confused, sound like a child: ¿Eh? No entiendo…"
     ]
   },
-  "stages": [
-    [
-      {
-        "id": "es:guau",
-        "say": "¡Guau guau!",
-        "romanization": null,
-        "meaning": {
-          "en": "woof woof (doggy)"
-        },
-        "grownUp": "el perro",
-        "answer": "🐶",
-        "choices": [
-          "🐱",
-          "🐶",
-          "🚗"
-        ],
-        "praise": "¡Guau guau!"
-      },
-      {
-        "id": "es:nam",
-        "say": "¡Ñam ñam!",
-        "romanization": null,
-        "meaning": {
-          "en": "yum yum! (I'm hungry)"
-        },
-        "grownUp": "la comida",
-        "need": "eat",
-        "praise": "¡Qué rico!"
-      },
-      {
-        "id": "es:brum",
-        "say": "¡Brum brum!",
-        "romanization": null,
-        "meaning": {
-          "en": "vroom vroom (car)"
-        },
-        "grownUp": "el coche",
-        "answer": "🚗",
-        "choices": [
-          "🚗",
-          "🐮",
-          "🍎"
-        ],
-        "praise": "¡Brum brum!"
-      },
-      {
-        "id": "es:miau",
-        "say": "¡Miau!",
-        "romanization": null,
-        "meaning": {
-          "en": "meow (kitty)"
-        },
-        "grownUp": "el gato",
-        "answer": "🐱",
-        "choices": [
-          "🐶",
-          "🐮",
-          "🐱"
-        ],
-        "praise": "¡Miau miau!"
-      },
-      {
-        "id": "es:mimir",
-        "say": "A mimir…",
-        "romanization": null,
-        "meaning": {
-          "en": "sleepy-time"
-        },
-        "grownUp": "dormir",
-        "need": "sleep",
-        "praise": "A mimir…"
-      },
-      {
-        "id": "es:muu",
-        "say": "¡Muu!",
-        "romanization": null,
-        "meaning": {
-          "en": "moo (cow)"
-        },
-        "grownUp": "la vaca",
-        "answer": "🐮",
-        "choices": [
-          "🐮",
-          "🐤",
-          "🐶"
-        ],
-        "praise": "¡Muuu!"
-      },
-      {
-        "id": "es:aupa",
-        "say": "¡Aúpa!",
-        "romanization": null,
-        "meaning": {
-          "en": "pick me up!"
-        },
-        "grownUp": "cógeme en brazos",
-        "need": "hug",
-        "praise": "¡Jiji!"
-      }
-    ],
-    [
-      {
-        "id": "es:mira",
-        "say": "¡Mira, un guau!",
-        "romanization": null,
-        "meaning": {
-          "en": "Look, a doggy!"
-        },
-        "grownUp": "¡Mira, un perro!",
-        "answer": "🐶",
-        "choices": [
-          "🚗",
-          "🐱",
-          "🐶"
-        ],
-        "praise": "¡Qué bonito!"
-      },
-      {
-        "id": "es:comer",
-        "say": "Quiero comer",
-        "romanization": null,
-        "meaning": {
-          "en": "I want to eat"
-        },
-        "grownUp": "Quiero comer",
-        "need": "eat",
-        "praise": "¡Qué rico!"
-      },
-      {
-        "id": "es:dame",
-        "say": "Dame manzana",
-        "romanization": null,
-        "meaning": {
-          "en": "Give me apple"
-        },
-        "grownUp": "Dame una manzana, por favor",
-        "answer": "🍎",
-        "choices": [
-          "🍌",
-          "🍎",
-          "🍙"
-        ],
-        "praise": "¡Gracias!"
-      },
-      {
-        "id": "es:rapido",
-        "say": "¡Coche rápido!",
-        "romanization": null,
-        "meaning": {
-          "en": "Fast car!"
-        },
-        "grownUp": "El coche es rápido",
-        "answer": "🚗",
-        "choices": [
-          "🐢",
-          "🐮",
-          "🚗"
-        ],
-        "praise": "¡Brum!"
-      },
-      {
-        "id": "es:sueno",
-        "say": "Tengo sueño",
-        "romanization": null,
-        "meaning": {
-          "en": "I'm sleepy"
-        },
-        "grownUp": "Tengo sueño",
-        "need": "sleep",
-        "praise": "Buenas noches…"
-      }
-    ]
-  ],
-  "starters": [
+  "levels": [
     {
-      "say": "¿Qué haces?",
-      "romanization": null,
-      "translation": {
-        "en": "What are you doing?"
-      },
-      "examples": [
+      "age": 1,
+      "rounds": [
         {
-          "say": "trabajo",
-          "translation": {
-            "en": "I'm working"
-          }
+          "id": "es:guau",
+          "say": "¡Guau guau!",
+          "romanization": null,
+          "meaning": {
+            "en": "woof woof (doggy)"
+          },
+          "grownUp": "el perro",
+          "answer": "🐶",
+          "choices": [
+            "🐱",
+            "🐶",
+            "🚗"
+          ],
+          "praise": "¡Guau guau!"
         },
         {
-          "say": "veo la tele",
-          "translation": {
-            "en": "watching TV"
-          }
+          "id": "es:miau",
+          "say": "¡Miau!",
+          "romanization": null,
+          "meaning": {
+            "en": "meow (kitty)"
+          },
+          "grownUp": "el gato",
+          "answer": "🐱",
+          "choices": [
+            "🐶",
+            "🐮",
+            "🐱"
+          ],
+          "praise": "¡Miau miau!"
         },
         {
-          "say": "como",
-          "translation": {
-            "en": "eating"
-          }
+          "id": "es:muu",
+          "say": "¡Muu!",
+          "romanization": null,
+          "meaning": {
+            "en": "moo (cow)"
+          },
+          "grownUp": "la vaca",
+          "answer": "🐮",
+          "choices": [
+            "🐮",
+            "🐤",
+            "🐶"
+          ],
+          "praise": "¡Muuu!"
+        },
+        {
+          "id": "es:brum",
+          "say": "¡Brum brum!",
+          "romanization": null,
+          "meaning": {
+            "en": "vroom vroom (car)"
+          },
+          "grownUp": "el coche",
+          "answer": "🚗",
+          "choices": [
+            "🚗",
+            "🐮",
+            "🍎"
+          ],
+          "praise": "¡Brum brum!"
         }
       ]
     },
     {
-      "say": "¿Tienes hambre?",
-      "romanization": null,
-      "translation": {
-        "en": "Are you hungry?"
-      },
-      "examples": [
+      "age": 1,
+      "rounds": [
         {
-          "say": "sí, mucha",
-          "translation": {
-            "en": "yes, very"
-          }
+          "id": "es:nam",
+          "say": "¡Ñam ñam!",
+          "romanization": null,
+          "meaning": {
+            "en": "yum yum! (I'm hungry)"
+          },
+          "grownUp": "la comida",
+          "need": "eat",
+          "praise": "¡Qué rico!"
         },
         {
-          "say": "no, gracias",
-          "translation": {
-            "en": "no, thanks"
-          }
+          "id": "es:mimir",
+          "say": "A mimir…",
+          "romanization": null,
+          "meaning": {
+            "en": "sleepy-time"
+          },
+          "grownUp": "dormir",
+          "need": "sleep",
+          "praise": "A mimir…"
+        },
+        {
+          "id": "es:aupa",
+          "say": "¡Aúpa!",
+          "romanization": null,
+          "meaning": {
+            "en": "pick me up!"
+          },
+          "grownUp": "cógeme en brazos",
+          "need": "hug",
+          "praise": "¡Jiji!"
         }
       ]
     },
     {
-      "say": "¿Qué animal te gusta?",
-      "romanization": null,
-      "translation": {
-        "en": "Which animal do you like?"
-      },
-      "examples": [
+      "age": 2,
+      "rounds": [
         {
-          "say": "el perro",
-          "translation": {
-            "en": "dogs"
-          }
+          "id": "es:mira",
+          "say": "¡Mira, un guau!",
+          "romanization": null,
+          "meaning": {
+            "en": "Look, a doggy!"
+          },
+          "grownUp": "¡Mira, un perro!",
+          "answer": "🐶",
+          "choices": [
+            "🚗",
+            "🐱",
+            "🐶"
+          ],
+          "praise": "¡Qué bonito!"
         },
         {
-          "say": "me gustan los gatos",
+          "id": "es:dame",
+          "say": "Dame manzana",
+          "romanization": null,
+          "meaning": {
+            "en": "Give me apple"
+          },
+          "grownUp": "Dame una manzana, por favor",
+          "answer": "🍎",
+          "choices": [
+            "🍌",
+            "🍎",
+            "🍙"
+          ],
+          "praise": "¡Gracias!"
+        },
+        {
+          "id": "es:rapido",
+          "say": "¡Coche rápido!",
+          "romanization": null,
+          "meaning": {
+            "en": "Fast car!"
+          },
+          "grownUp": "El coche es rápido",
+          "answer": "🚗",
+          "choices": [
+            "🐢",
+            "🐮",
+            "🚗"
+          ],
+          "praise": "¡Brum!"
+        }
+      ]
+    },
+    {
+      "age": 2,
+      "rounds": [
+        {
+          "id": "es:comer",
+          "say": "Quiero comer",
+          "romanization": null,
+          "meaning": {
+            "en": "I want to eat"
+          },
+          "grownUp": "Quiero comer",
+          "need": "eat",
+          "praise": "¡Qué rico!"
+        },
+        {
+          "id": "es:sueno",
+          "say": "Tengo sueño",
+          "romanization": null,
+          "meaning": {
+            "en": "I'm sleepy"
+          },
+          "grownUp": "Tengo sueño",
+          "need": "sleep",
+          "praise": "Buenas noches…"
+        }
+      ]
+    },
+    {
+      "age": 3,
+      "starters": [
+        {
+          "id": "es:talk-que-haces",
+          "say": "¿Qué haces?",
+          "romanization": null,
           "translation": {
-            "en": "I like cats"
-          }
+            "en": "What are you doing?"
+          },
+          "examples": [
+            {
+              "say": "trabajo",
+              "translation": {
+                "en": "I'm working"
+              }
+            },
+            {
+              "say": "veo la tele",
+              "translation": {
+                "en": "watching TV"
+              }
+            },
+            {
+              "say": "como",
+              "translation": {
+                "en": "eating"
+              }
+            }
+          ]
+        },
+        {
+          "id": "es:talk-tienes-hambre",
+          "say": "¿Tienes hambre?",
+          "romanization": null,
+          "translation": {
+            "en": "Are you hungry?"
+          },
+          "examples": [
+            {
+              "say": "sí, mucha",
+              "translation": {
+                "en": "yes, very"
+              }
+            },
+            {
+              "say": "no, gracias",
+              "translation": {
+                "en": "no, thanks"
+              }
+            }
+          ]
+        },
+        {
+          "id": "es:talk-que-animal-te-gusta",
+          "say": "¿Qué animal te gusta?",
+          "romanization": null,
+          "translation": {
+            "en": "Which animal do you like?"
+          },
+          "examples": [
+            {
+              "say": "el perro",
+              "translation": {
+                "en": "dogs"
+              }
+            },
+            {
+              "say": "me gustan los gatos",
+              "translation": {
+                "en": "I like cats"
+              }
+            }
+          ]
         }
       ]
     }
