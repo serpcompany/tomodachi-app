@@ -3,6 +3,21 @@ import SwiftUI
 // MARK: - Settings window (menu → Settings…): General · AI · About
 // All text comes from the learner's interface strings (Resources/languages/ui.<id>.json).
 
+/// Starting over clears this language pair's saved Tomo, so it always asks first.
+@MainActor
+enum TomoStartOver {
+    static func confirm() {
+        let lang = TomoLanguages.shared
+        let alert = NSAlert()
+        alert.messageText = lang.learner("startOver.title")
+        alert.informativeText = lang.learner("startOver.body", ["language": lang.targetName])
+        alert.addButton(withTitle: lang.learner("startOver.confirm"))
+        alert.addButton(withTitle: lang.learner("startOver.cancel"))
+        NSApp.activate()
+        if alert.runModal() == .alertFirstButtonReturn { TomoGame.shared.startOver() }
+    }
+}
+
 struct TomoSettingsView: View {
     @ObservedObject var lang = TomoLanguages.shared
 
@@ -23,6 +38,7 @@ struct TomoSettingsView: View {
 private struct TomoGeneralSettings: View {
     @ObservedObject var lang = TomoLanguages.shared
     @ObservedObject var state = AppState.shared
+    @ObservedObject var game = TomoGame.shared
     @State private var visitEvery = DropIn.every
 
     var body: some View {
@@ -30,12 +46,12 @@ private struct TomoGeneralSettings: View {
             Section {
                 Picker(lang.learner("settings.speak"), selection: Binding(
                     get: { lang.learner.id },
-                    set: { lang.select(learner: $0) })) {
+                    set: { lang.select(learner: $0); TomoGame.shared.reload() })) {
                     ForEach(lang.learners, id: \.id) { Text($0.name).tag($0.id) }
                 }
                 Picker(lang.learner("settings.learning"), selection: Binding(
                     get: { lang.target.id },
-                    set: { lang.select(target: $0); TomoGame.shared.restart() })) {
+                    set: { lang.select(target: $0); TomoGame.shared.reload() })) {
                     ForEach(lang.targets, id: \.id) { t in
                         Text("\(t.name(lang.learner.id)) (\(t.nativeName))"
                              + (t.reviewedByNativeSpeaker ? "" : " · \(lang.learner("settings.draft"))")).tag(t.id)
@@ -54,14 +70,23 @@ private struct TomoGeneralSettings: View {
             }
 
             Section {
-                Picker(lang.learner("settings.tryAge"), selection: Binding(
-                    get: { TomoGame.shared.stage },
-                    set: { TomoGame.shared.jump(toAge: $0) })) {
-                    ForEach([1, 2, 3, 5, 7, 10, 12], id: \.self) { Text(lang.target.ageLabel($0)).tag($0) }
-                }
-                Button(lang.learner("settings.restart")) { TomoGame.shared.restart() }
+                Button(lang.learner("settings.restart")) { TomoStartOver.confirm() }
             } footer: {
                 Text(lang.learner("settings.restartNote")).font(.caption).foregroundStyle(.secondary)
+            }
+
+            Section {
+                Picker(lang.learner("settings.tryAge"), selection: Binding(
+                    get: { game.stage },
+                    set: { game.jump(toAge: $0) })) {
+                    ForEach([1, 2, 3, 5, 7, 10, 12], id: \.self) { Text(lang.target.ageLabel($0)).tag($0) }
+                }
+                if game.isScratch {
+                    Button(lang.learner("settings.backToTomo")) { game.reload() }
+                }
+                Button(lang.learner("settings.skipAhead")) { game.skipAhead(days: 1) }
+            } footer: {
+                Text(lang.learner("settings.testingNote")).font(.caption).foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)

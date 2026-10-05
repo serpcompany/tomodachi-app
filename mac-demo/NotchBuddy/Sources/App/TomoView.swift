@@ -54,7 +54,7 @@ struct TomoView: View {
         case .thinking: return .indigo
         case .right:    return game.round.need == .sleep ? .indigo : .green
         case .wrong:    return .red
-        case .grew:     return .amber
+        case .leveledUp, .grew: return .amber
         }
     }
 
@@ -82,8 +82,11 @@ struct TomoView: View {
                 Group {
                     if game.phase == .grew {
                         banner(title: lang.target.lines.grew,
-                               subtitle: lang.learner(game.stage == 1 ? "grewPhrases" : "grewTalking",
-                                                      ["age": lang.target.ageLabel(game.stage + 1)]))
+                               subtitle: lang.learner(game.stage >= TomoGame.chatStage ? "grewTalking" : "grewPhrases",
+                                                      ["age": game.age]))
+                    } else if game.phase == .leveledUp {
+                        banner(title: lang.target.lines.levelUp,
+                               subtitle: lang.learner("levelUp", ["level": "\(game.level)"]))
                     } else if game.isChat {
                         TomoChatCard(game: game, listener: game.listener)
                     } else {
@@ -238,10 +241,11 @@ private struct SmallPill: View {
     }
 }
 
-// MARK: - Header status (left: name, age, growth bar · right: words, restart, voice, close)
+// MARK: - Header status (left: name, age, level, level bar · right: words known this level, start over, voice, close)
 
 struct TomoHeaderLeft: View {
     @ObservedObject var game = TomoGame.shared
+    @ObservedObject var lang = TomoLanguages.shared
 
     var body: some View {
         HStack(spacing: 8) {
@@ -252,7 +256,11 @@ struct TomoHeaderLeft: View {
                 .background(Color(hex: "#F6B99A").opacity(0.25))
                 .foregroundColor(Color(hex: "#FFD3BD"))
                 .clipShape(Capsule())
-            GrowthBar(progress: Double(game.progress) / Double(game.goal))
+            Text(lang.learner("level", ["n": "\(game.level)"]))
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(Color(hex: "#C9CDD4"))
+                .fixedSize()
+            GrowthBar(progress: Double(game.levelKnown) / Double(game.levelNeeded))
                 .frame(width: 70, height: 6)
         }
     }
@@ -265,10 +273,10 @@ struct TomoHeaderRight: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            Text("\(game.isChat ? lang.target.labels.talk : lang.target.labels.words) \(game.progress)/\(game.goal)")
+            Text("\(game.levelIsTalk ? lang.target.labels.talk : lang.target.labels.words) \(game.levelKnown)/\(game.levelNeeded)")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(Color(hex: "#8E939C"))
-            Button(action: { game.restart() }) {
+            Button(action: { TomoStartOver.confirm() }) {
                 Image(systemName: "arrow.counterclockwise").font(.system(size: 13))
                     .foregroundColor(Color(hex: "#8E939C"))
             }
@@ -621,7 +629,7 @@ struct OutcomeBadge: View {
 
     private var style: (icon: String, key: String, color: Color) {
         switch outcome {
-        case .win:     ("checkmark.circle.fill", "outcome.win", Color(hex: "#34D399"))
+        case .win(let counted): ("checkmark.circle.fill", counted ? "outcome.win" : "outcome.practice", Color(hex: "#34D399"))
         case .loss:    ("xmark.circle.fill", "outcome.loss", Color(hex: "#F4505E"))
         case .neutral: ("minus.circle.fill", "outcome.neutral", Color(hex: "#B0B5BE"))
         }
@@ -629,7 +637,7 @@ struct OutcomeBadge: View {
 
     static func why(_ o: TomoOutcome, _ lang: TomoLanguages) -> String {
         switch o {
-        case .win:             lang.learner("outcome.why.win")
+        case .win(let counted): lang.learner(counted ? "outcome.why.win" : "outcome.why.practice")
         case .loss:            lang.learner("outcome.why.loss")
         case .neutral(let r):  lang.learner("outcome.why.\(r)", ["language": lang.targetName])
         }

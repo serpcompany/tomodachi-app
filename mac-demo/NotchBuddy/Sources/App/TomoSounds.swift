@@ -17,6 +17,7 @@ final class TomoSounds {
         case miss       // soft falling boo-oop: Miss
         case hm         // questioning glide: No score
         case hatch      // pop + rising arpeggio: grew up
+        case levelUp    // quick rising chirps and a sparkle: a new level
         case boing      // poked
         case nudge      // "over here!"
         case munch      // eating
@@ -83,6 +84,7 @@ final class TomoSounds {
         on(.botNudge) { _ in .nudge }
         on(.triggerSlap) { _ in .boing }
         on(.botGulp) { _ in .munch }
+        on(.botLevelUp) { _ in .levelUp }
         on(.triggerEmote) { n in
             switch n.object as? BotEmote {
             case .love: return .trill
@@ -93,6 +95,10 @@ final class TomoSounds {
         nc.addObserver(forName: .botGrow, object: nil, queue: .main) { n in
             guard let g = n.object as? CGFloat else { return }
             MainActor.assumeIsolated { TomoSounds.shared.grew(to: g) }
+        }
+        nc.addObserver(forName: .botSetGrowth, object: nil, queue: .main) { n in   // no fanfare
+            guard let g = n.object as? CGFloat else { return }
+            MainActor.assumeIsolated { TomoSounds.shared.lastGrowth = g }
         }
     }
 
@@ -151,6 +157,11 @@ final class TomoSounds {
                     Note(start: 0.08, length: 0.07, from: 1800 * p, to: 2200 * p),
                     Note(start: 0.15, length: 0.07, from: 2300 * p, to: 2800 * p),
                     Note(start: 0.22, length: 0.16, from: 2800 * p, to: 3900 * p, vibrato: 0.03)]
+        case .levelUp:
+            return [Note(start: 0, length: 0.05, from: 2000 * p, to: 2400 * p),
+                    Note(start: 0.07, length: 0.05, from: 2400 * p, to: 2900 * p),
+                    Note(start: 0.14, length: 0.05, from: 2900 * p, to: 3500 * p),
+                    Note(start: 0.21, length: 0.14, from: 3300 * p, to: 4300 * p, gain: 0.8, vibrato: 0.03)]
         case .boing:
             return [Note(start: 0, length: 0.26, from: 520 * p, to: 250 * p, vibrato: 0.12, overtone: 0.4)]
         case .nudge:

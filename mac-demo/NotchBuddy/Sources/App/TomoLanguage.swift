@@ -6,7 +6,7 @@ import NaturalLanguage
 // Learner language: the language you speak. It drives the interface text, hints and translations.
 //   File: Resources/languages/ui.<id>.json
 // Target language: the language you're learning. It drives Tomo's words, voice, speech recognition,
-//   the "is this the right language?" check, the AI's character rules, and (later) age data.
+//   the "is this the right language?" check, the AI's character rules, and Tomo's levels.
 //   File: Resources/languages/<id>.json (a "language pack")
 // Translations inside a pack are keyed by learner language: {"en": "doggy", "es": "perrito"}.
 // No Swift code should contain text in a specific language. See docs/languages.md.
@@ -41,6 +41,7 @@ struct TargetPack: Codable, Sendable {
     }
     struct Lines: Codable, Sendable {
         let wrong: String, ouch: String, grew: String, bye: String, seeYou: String
+        let levelUp: String     // Tomo reached a new level (not a new age)
         let sayItInMyLanguage: SpokenLine
         let dontUnderstand: SpokenLine
     }
@@ -64,10 +65,20 @@ struct TargetPack: Codable, Sendable {
     }
     struct Example: Codable, Sendable { let say: String; let translation: Localized }
     struct Starter: Codable, Sendable {
+        let id: String?         // "ja:talk-onaka-suita": a starter with an id is an item that grows Tomo
         let say: String
         let romanization: String?
         let translation: Localized
         let examples: [Example]
+    }
+    /// One level: a small set of items. Tomo levels up when most of them are known (TomoProgress.swift).
+    /// `age` is the age Tomo has on this level, so a level with a higher age than the one before is a birthday.
+    struct Level: Codable, Sendable {
+        let age: Int
+        let rounds: [Round]?    // ages 1–2: picture and need rounds
+        let starters: [Starter]?  // talking ages: opening questions
+
+        var itemIDs: [String] { (rounds ?? []).map(\.id) + (starters ?? []).compactMap(\.id) }
     }
     struct OfflineReply: Codable, Sendable {
         let keys: [String]
@@ -89,9 +100,8 @@ struct TargetPack: Codable, Sendable {
     let labels: Labels
     let lines: Lines
     let ai: AIProfile
-    let stages: [[Round]]           // stages[0] = 1-year-old rounds, stages[1] = 2-year-old rounds
-    let starters: [Starter]         // conversation openers from the talking stage on
-    let startersByAge: [AgeStarters]?   // replaces `starters` from an age on
+    let levels: [Level]             // levels[0] = level 1. Each level's age marks when Tomo grows up
+    let startersByAge: [AgeStarters]?   // openers for ages past the levels (testing older Tomos)
     let offlineReplies: [OfflineReply]
     /// Whole answers that mean "I didn't understand" in the target language (なに？, わかんない).
     let helpPhrases: [String]?
@@ -109,8 +119,14 @@ struct TargetPack: Codable, Sendable {
     func aiRules(age: Int) -> [String] {
         (ai.rulesByAge ?? []).filter { $0.fromAge <= age }.max { $0.fromAge < $1.fromAge }?.rules ?? ai.rules
     }
+    /// Every opener in the levels (the talking stage's items).
+    var starters: [Starter] { levels.flatMap { $0.starters ?? [] } }
     func starters(age: Int) -> [Starter] {
         (startersByAge ?? []).filter { $0.fromAge <= age }.max { $0.fromAge < $1.fromAge }?.starters ?? starters
+    }
+    /// The first level at an age (testing jumps), or the last level if the levels stop before it.
+    func firstLevel(age: Int) -> Int {
+        (levels.firstIndex { $0.age >= age } ?? max(levels.count - 1, 0)) + 1
     }
 
     func ageLabel(_ n: Int) -> String {
