@@ -250,7 +250,7 @@ struct TomoHeaderLeft: View {
     var body: some View {
         HStack(spacing: 8) {
             Text("Tomodachi").font(.system(size: 13, weight: .semibold))   // the app; the character is Tomo
-            Button { TomoWordsWindow.show() } label: {     // Tomo's words: every level and word
+            Button { TomoSettingsNav.open(.tomo) } label: {    // Settings → Tomo: age, level, growing up
                 HStack(spacing: 8) {
                     Text(game.age)
                         .font(.system(size: 11, weight: .bold))
@@ -265,7 +265,7 @@ struct TomoHeaderLeft: View {
                 }
             }
             .buttonStyle(.plain)
-            .help(lang.learner("words.open"))
+            .help(lang.learner("settings.openTomo"))
             GrowthBar(progress: Double(game.levelKnown) / Double(game.levelNeeded))
                 .frame(width: 70, height: 6)
         }

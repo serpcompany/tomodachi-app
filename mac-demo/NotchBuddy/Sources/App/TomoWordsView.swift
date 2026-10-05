@@ -1,45 +1,12 @@
 import SwiftUI
 
-// MARK: - Tomo's words: every level and its words, with each word's stage
+// MARK: - Settings → Words: every level and its words, with each word's stage
 //
-// Opened from the menu bar ("Tomo's words…") or by clicking Tomo's age and level in the island header.
-// Locked levels are listed too, so you can see what's coming. Reads TomoGame.progress (TomoProgress.swift);
-// all text comes from the learner's interface strings and the target pack.
+// Opened from the menu bar ("Tomo's words…") or the sidebar in Settings. Locked levels are listed too,
+// so you can see what's coming. Reads TomoGame.progress (TomoProgress.swift); all text comes from the
+// learner's interface strings and the target pack.
 
-@MainActor
-enum TomoWordsWindow {
-    private(set) static var window: NSWindow?
-
-    static func show() {
-        if window == nil {
-            let win = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 580, height: 640),
-                               styleMask: [.titled, .closable, .resizable, .miniaturizable],
-                               backing: .buffered, defer: false)
-            win.contentView = NSHostingView(rootView: TomoWordsView())
-            win.minSize = NSSize(width: 480, height: 360)
-            win.isReleasedWhenClosed = false
-            window = win
-            place(win)
-        }
-        window?.title = TomoLanguages.shared.learner("words.title")
-        window?.makeKeyAndOrderFront(nil)
-        NSApp.activate()
-    }
-
-    /// Centered, with its title bar clear of the island (320 pt panel at the top of the notch screen).
-    private static func place(_ win: NSWindow) {
-        guard let screen = IslandWindowController.notchScreen() ?? NSScreen.main else { win.center(); return }
-        let visible = screen.visibleFrame
-        let top = min(visible.maxY, screen.frame.maxY - 332)
-        var frame = win.frame
-        frame.size.height = min(frame.height, max(top - visible.minY - 12, win.minSize.height))
-        frame.origin.x = visible.midX - frame.width / 2
-        frame.origin.y = max(visible.minY + 12, top - frame.height)
-        win.setFrame(frame, display: true)
-    }
-}
-
-struct TomoWordsView: View {
+struct TomoWordsPane: View {
     @ObservedObject var game = TomoGame.shared
     @ObservedObject var lang = TomoLanguages.shared
 
@@ -56,36 +23,16 @@ struct TomoWordsView: View {
                         levelSection(number: i + 1, level: level)
                     }
                 }
-                .padding(20)
+                .padding(.horizontal, 24).padding(.vertical, 14)
                 .id(game.progressVersion)
             }
         }
-        .frame(minWidth: 480, minHeight: 360)
-        .background(Color(nsColor: .windowBackgroundColor))
     }
 
-    // MARK: Summary: age, level, the bar to the next level, words per stage
+    // MARK: Summary: words per stage (age, level and the level bar are on the Tomo page)
 
     private var summary: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 10) {
-                Text(game.age)
-                    .font(.system(size: 15, weight: .bold))
-                    .padding(.horizontal, 10).padding(.vertical, 3)
-                    .background(Color.orange.opacity(0.18))
-                    .clipShape(Capsule())
-                Text(lang.learner("level", ["n": "\(game.level)"])).font(.system(size: 15, weight: .semibold))
-                Spacer()
-                Text(lang.learner("words.days", ["n": "\(daysTogether)"]))
-                    .font(.callout).foregroundStyle(.secondary)
-            }
-            ProgressView(value: Double(game.levelKnown), total: Double(max(game.levelNeeded, 1)))
-                .tint(.teal)
-            Text(progress.isLastLevel
-                 ? lang.learner("words.lastLevel", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)"])
-                 : lang.learner("words.toNext", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)",
-                                                 "next": "\(game.level + 1)"]))
-                .font(.callout).foregroundStyle(.secondary)
             HStack(spacing: 6) {
                 ForEach(["heard", "knows", "good", "loves", "forever"], id: \.self) { g in
                     StagePill(group: g, text: "\(lang.learner("stage.\(g)")) \(count(group: g))")
@@ -96,10 +43,6 @@ struct TomoWordsView: View {
                     .font(.callout).foregroundStyle(.orange)
             }
         }
-    }
-
-    private var daysTogether: Int {
-        max(1, (Calendar.current.dateComponents([.day], from: progress.metAt, to: TomoClock.now).day ?? 0) + 1)
     }
 
     private func count(group: String) -> Int {

@@ -232,7 +232,6 @@ struct TomoAISettingsView: View {
                 .font(.caption).foregroundStyle(.secondary)
         }
         .formStyle(.grouped)
-        .frame(width: 480)
     }
 
     private func fetchModels() {
