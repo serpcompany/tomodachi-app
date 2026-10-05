@@ -1220,5 +1220,235 @@
     "ja:zubon": {
       "picture": "👖"
     }
-  }
+  },
+  "ninjal": {
+    "あお": {
+      "meaning": "blue"
+    },
+    "あか": {
+      "meaning": "red"
+    },
+    "あく": {
+      "meaning": "to open"
+    },
+    "あたり": {
+      "meaning": "around here"
+    },
+    "あたる": {
+      "meaning": "to hit"
+    },
+    "あと": {
+      "meaning": "later"
+    },
+    "あなた": {
+      "meaning": "you"
+    },
+    "あまり": {
+      "meaning": "not very"
+    },
+    "あわせる": {
+      "meaning": "to put together"
+    },
+    "いけない": {
+      "meaning": "not allowed"
+    },
+    "いったい": {
+      "meaning": "what on earth"
+    },
+    "えき": {
+      "meaning": "station"
+    },
+    "おい": {
+      "meaning": "hey!"
+    },
+    "おこす": {
+      "meaning": "to wake (someone) up"
+    },
+    "おでかけ": {
+      "meaning": "going out"
+    },
+    "おれ": {
+      "meaning": "I (boys' word)"
+    },
+    "かかる": {
+      "meaning": "to take (time)"
+    },
+    "かじ": {
+      "meaning": "fire (a blaze)"
+    },
+    "かなう": {
+      "meaning": "to come true"
+    },
+    "かわる": {
+      "meaning": "to change"
+    },
+    "がんばる": {
+      "meaning": "to do your best"
+    },
+    "くださる": {
+      "meaning": "to give (polite)"
+    },
+    "くむ": {
+      "meaning": "to cross (arms)"
+    },
+    "こと": {
+      "meaning": "thing"
+    },
+    "ころ": {
+      "meaning": "around (a time)"
+    },
+    "さいご": {
+      "meaning": "the last"
+    },
+    "さき": {
+      "meaning": "ahead"
+    },
+    "さす": {
+      "meaning": "to point"
+    },
+    "したく": {
+      "meaning": "getting ready"
+    },
+    "しま": {
+      "meaning": "island"
+    },
+    "じぶん": {
+      "meaning": "oneself"
+    },
+    "じゃま": {
+      "meaning": "in the way"
+    },
+    "すく": {
+      "meaning": "to get hungry"
+    },
+    "すむ": {
+      "meaning": "to live (somewhere)"
+    },
+    "ずっと": {
+      "meaning": "all the time"
+    },
+    "せい": {
+      "meaning": "because of"
+    },
+    "ぜんぜん": {
+      "meaning": "not at all"
+    },
+    "だいすき": {
+      "meaning": "love (it)"
+    },
+    "ちゃんと": {
+      "meaning": "properly"
+    },
+    "つかう": {
+      "meaning": "to use"
+    },
+    "てつだい": {
+      "meaning": "helping"
+    },
+    "とおる": {
+      "meaning": "to pass"
+    },
+    "どんどん": {
+      "meaning": "more and more"
+    },
+    "なかなか": {
+      "meaning": "quite"
+    },
+    "なくなる": {
+      "meaning": "to be gone"
+    },
+    "なんじ": {
+      "meaning": "what time"
+    },
+    "なんでも": {
+      "meaning": "anything"
+    },
+    "なんにも": {
+      "meaning": "nothing"
+    },
+    "にる": {
+      "meaning": "to boil"
+    },
+    "ぬける": {
+      "meaning": "to come out"
+    },
+    "ねらう": {
+      "meaning": "to aim"
+    },
+    "のぞく": {
+      "meaning": "to peek"
+    },
+    "はえ": {
+      "meaning": "fly (insect)"
+    },
+    "はなす": {
+      "meaning": "to talk"
+    },
+    "はる": {
+      "meaning": "spring"
+    },
+    "ばん": {
+      "meaning": "turn"
+    },
+    "ふう": {
+      "meaning": "way (of doing)"
+    },
+    "ふとい": {
+      "meaning": "thick"
+    },
+    "ほか": {
+      "meaning": "other"
+    },
+    "まいる": {
+      "meaning": "to give up"
+    },
+    "まね": {
+      "meaning": "copying"
+    },
+    "まわす": {
+      "meaning": "to turn"
+    },
+    "もどる": {
+      "meaning": "to go back"
+    },
+    "やあ": {
+      "meaning": "hi!"
+    },
+    "やすむ": {
+      "meaning": "to rest"
+    },
+    "やられる": {
+      "meaning": "to get beaten"
+    },
+    "ようい": {
+      "meaning": "getting ready"
+    },
+    "よく": {
+      "meaning": "well"
+    },
+    "りこう": {
+      "meaning": "clever"
+    },
+    "りっぱ": {
+      "meaning": "splendid"
+    },
+    "わかれる": {
+      "meaning": "to part"
+    },
+    "トランプ": {
+      "meaning": "playing cards"
+    }
+  },
+  "ninjalExclude": [
+    "おっぱい",
+    "ちんちん",
+    "ばか",
+    "あほ",
+    "くそ",
+    "しね",
+    "ころす",
+    "たばこ",
+    "いえすさま",
+    "かみさま"
+  ]
 }

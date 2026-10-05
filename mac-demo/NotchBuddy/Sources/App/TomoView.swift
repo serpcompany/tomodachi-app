@@ -84,7 +84,8 @@ struct TomoView: View {
                 Group {
                     if game.phase == .grew {
                         banner(title: lang.target.lines.grew,
-                               subtitle: lang.learner(game.stage >= TomoGame.chatStage ? "grewTalking" : "grewPhrases",
+                               subtitle: lang.learner(game.stage > TomoGame.chatStage ? "grewOlder"
+                                                      : game.stage == TomoGame.chatStage ? "grewTalking" : "grewPhrases",
                                                       ["age": game.age]))
                     } else if game.phase == .leveledUp {
                         banner(title: lang.target.lines.levelUp,

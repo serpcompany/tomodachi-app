@@ -258,7 +258,7 @@ private struct TomoGrowthPane: View {
                     Text(lang.target.ageLabel(a.age)).font(.headline)
                     Text(levels).font(.caption).foregroundStyle(.secondary)
                 }
-                Text(lang.learner("growth.age.\(min(a.age, 3))")).font(.callout).foregroundStyle(.secondary)
+                Text(lang.learner("growth.age.\(min(a.age, 6))")).font(.callout).foregroundStyle(.secondary)
             }
             Spacer()
             Text(lang.learner("growth.state.\(state)")).font(.caption).foregroundStyle(.secondary)

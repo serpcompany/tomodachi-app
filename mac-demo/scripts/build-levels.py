@@ -15,6 +15,11 @@ How a word gets its age:
   1さい = understood by half of children by 19 months, or said before 24 months · 2さい = said at 24–35 months ·
   3さい = later, or never by half of the children. Each age's words, earliest first, become levels of LEVEL_SIZE words.
 
+Japanese goes past 3 with NINJAL's preschool words (幼児語彙: how many of 4 preschoolers used each word) and picture-book
+words (絵本語彙: in how many books), CC BY 4.0, with readings and English meanings from JMdict (the snapshot the Zenbu
+apps use). Used by all 4 children or in 20+ books → 3さい; 3 children or 10+ books → 4さい; 2 or 5+ → 5さい; 1 or 3+ → 6さい
+(common JMdict words only at 6). An assumption to tune: the data has no per-age norms past 3.
+
 English is for learners who speak Japanese: each word's Japanese meaning comes from the Japanese CDI word for the same
 concept (Wordbank's uni_lemma, after the Japanese curation), or from "ja" in en-curation.json.
 """
@@ -108,6 +113,119 @@ def half_month(datasets, files, items, value):
                 out[i] = m
                 break
     return out
+
+# ---------- Japanese ages 3–6: NINJAL preschool and picture-book words, with JMdict meanings
+
+def fetch_ninjal():
+    import zipfile
+    src = json.loads((ROOT / "scripts/sources/ninjal-bev.source.json").read_text())
+    cache = ROOT / "build/data-cache/ninjal"
+    cache.mkdir(parents=True, exist_ok=True)
+    out = {}
+    for name, sha in src["files"].items():
+        dest = cache / name
+        if not dest.exists() or hashlib.sha256(dest.read_bytes()).hexdigest() != sha:
+            dest.write_bytes(urllib.request.urlopen(src["base_url"] + name).read())
+        if hashlib.sha256(dest.read_bytes()).hexdigest() != sha:
+            sys.exit(f"SHA-256 mismatch for {name}")
+        with zipfile.ZipFile(dest) as z:
+            txt = next(n for n in z.namelist() if n.endswith(name.replace(".zip", ".txt")))
+            out[name.replace(".zip", "")] = z.read(txt).decode("utf-8-sig").splitlines()
+    return out
+
+def load_jmdict():
+    import gzip, os
+    src = json.loads((ROOT / "scripts/sources/jmdict.source.json").read_text())
+    path = Path(os.environ["ZENBU_MONOREPO"]) / src["path"].split("zenbujapanese-monorepo/", 1)[1] \
+        if "ZENBU_MONOREPO" in os.environ else (ROOT.parent / src["path"])
+    raw = path.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != src["sha256"]:
+        sys.exit(f"JMdict at {path} isn't the pinned snapshot")
+    cached = ROOT / f"build/data-cache/jmdict-{src['sha256'][:12]}.json"
+    if cached.exists():
+        return json.loads(cached.read_text())
+    xml = gzip.decompress(raw).decode("utf-8")
+    ents, idx = [], {}
+    for e in re.findall(r"<entry>(.*?)</entry>", xml, re.S):
+        keb, reb = re.findall(r"<keb>(.*?)</keb>", e), re.findall(r"<reb>(.*?)</reb>", e)
+        pris = re.findall(r"<(?:ke|re)_pri>(.*?)</", e)
+        nf = min([int(p[2:]) for p in pris if p.startswith("nf")] or [99])
+        glosses, pos, misc = [], [], []
+        for sense in re.findall(r"<sense>(.*?)</sense>", e, re.S)[:2]:
+            gl = re.findall(r"<gloss>(.*?)</gloss>", sense)
+            if gl: glosses.append(gl[0])
+            pos += re.findall(r"<pos>&(.*?);</pos>", sense)
+            misc += re.findall(r"<misc>&(.*?);</misc>", sense)
+        ents.append({"seq": re.search(r"<ent_seq>(\d+)", e).group(1), "keb": keb, "reb": reb, "pri": bool(pris),
+                     "score": [0 if {"news1", "ichi1", "spec1"} & set(pris) else 1, nf], "gloss": glosses,
+                     "pos": pos, "misc": misc})
+        for f in reb + keb: idx.setdefault(f, []).append(len(ents) - 1)
+    data = {"ents": ents, "idx": idx}
+    cached.write_text(json.dumps(data, ensure_ascii=False))
+    return data
+
+NINJAL_POS = {"名": ("n",), "動": ("v",), "形": ("adj-i",), "形動": ("adj-na",), "副": ("adv",), "感": ("int",), "代": ("pn",)}
+NINJAL_CATEGORY = {"名": "nouns", "動": "verbs", "形": "adjectives", "形動": "adjectives", "副": "adverbs", "感": "interjections",
+                   "代": "pronouns"}
+JMDICT_SKIP = {"vulg", "derog", "X", "arch", "obs", "rare", "sens"}
+
+def build_items_ninjal(cdi_items, cur):
+    lists, jm = fetch_ninjal(), load_jmdict()
+    ents, idx = jm["ents"], jm["idx"]
+    cdi = {to_hiragana(it["kana"]) for it in cdi_items}
+    fixes, block = cur.get("ninjal", {}), set(cur.get("ninjalExclude", []))
+
+    def split(word):
+        w = unicodedata.normalize("NFKC", word)
+        k = re.search(r"\(([^)]*)\)", w)
+        return to_hiragana(re.split(r"\(", w)[0].strip()), (k.group(1) if k else None), w
+    kids, books, kanji = {}, {}, {}
+    for row in csv.reader(lists["yojigoi"]):
+        if len(row) < 6 or row[1] not in NINJAL_POS: continue
+        h, k, _ = split(row[0])
+        kids[(h, row[1])] = max(kids.get((h, row[1]), 0), sum(1 for x in row[2:6] if x.strip()))
+        if k: kanji[(h, row[1])] = k
+    for row in csv.reader(lists["ehongoi"]):
+        if len(row) < 5 or row[1] not in NINJAL_POS: continue
+        h, k, raw = split(row[0])
+        if "人名" in raw or "地名" in raw or not row[4].strip().isdigit(): continue
+        books[(h, row[1])] = books.get((h, row[1]), 0) + int(row[4])
+
+    def age(key):
+        n, b = kids.get(key, 0), books.get(key, 0)
+        return min({4: 3, 3: 4, 2: 5, 1: 6}.get(n, 99), 3 if b >= 20 else 4 if b >= 10 else 5 if b >= 5 else 6 if b >= 3 else 99)
+
+    def match(h, k, pos):
+        kat = "".join(chr(ord(c) + 0x60) if "ぁ" <= c <= "ゖ" else c for c in h)
+        cands = [ents[i] for i in set(idx.get(h, []) + idx.get(kat, []))]
+        cands = [e for e in cands if e["gloss"] and not set(e["misc"]) & JMDICT_SKIP
+                 and any(p.startswith(w) for p in e["pos"] for w in NINJAL_POS[pos])]
+        if k:
+            withk = [e for e in cands if any(k in kb or kb in k for kb in e["keb"])]
+            if withk: return min(withk, key=lambda e: e["score"])
+        exact = [e for e in cands if h in e["reb"]]           # a native word over a katakana loanword with the same sound
+        pool = exact or cands
+        return min(pool, key=lambda e: e["score"]) if pool else None
+
+    items, seqs = [], set()
+    for key in sorted(set(kids) | set(books), key=lambda k: (age(k), -kids.get(k, 0), -books.get(k, 0), k[0])):
+        h, pos = key
+        a = age(key)
+        if a == 99 or h in cdi or h in block or len(h) < 2 or "," in h or (h.endswith("たち") and len(h) > 3):
+            continue
+        e = match(h, kanji.get(key), pos)
+        if not e or e["seq"] in seqs or (a == 6 and not e["pri"]):
+            continue
+        seqs.add(e["seq"])
+        kana = next((r for r in e["reb"] if to_hiragana(r) == h), e["reb"][0])
+        meaning = re.sub(r"\s*\([^)]*\)$", "", e["gloss"][0]).strip()
+        fix = fixes.get(kana) or fixes.get(h) or {}
+        if fix.get("exclude"): continue
+        items.append({"id": "ja:" + slug(kana_to_romaji(kana)), "category": NINJAL_CATEGORY[pos], "head": kana,
+                      "kana": kana, "note": None, "meaning": fix.get("meaning", meaning), "uni_lemma": "",
+                      "picture": fix.get("picture"), "say_mo": None, "und_mo": None, "band": a,
+                      "src": f"ninjal:{kids.get(key, 0)}kids/{books.get(key, 0)}books/jmdict{e['seq']}"})
+    return items
 
 # ---------- kana and romaji
 
@@ -286,6 +404,7 @@ def build_items_en(files, cur):
     return items
 
 def band(it):
+    if "band" in it: return it["band"]                      # NINJAL words come with their age
     u, s = it["und_mo"], it["say_mo"]
     if (u is not None and u <= 19) or (s is not None and s < 24): return 1
     if s is not None and s < 36: return 2
@@ -293,7 +412,7 @@ def band(it):
 
 # ---------- levels
 
-def rounds_for(lang, items, pictures_by_band):
+def rounds_for(lang, items, pictures_by_band, all_pictures=()):
     out = []
     for it in items:
         if lang == "ja":
@@ -308,12 +427,16 @@ def rounds_for(lang, items, pictures_by_band):
             r["need"] = it["need"]
         elif it.get("picture"):
             pool = [p for p in pictures_by_band if p["picture"] != it["picture"] and p["id"] != it["id"]]
-            other = [p for p in pool if p["category"] != it["category"]] or pool
+            if len({p["picture"] for p in pool}) < 2:             # an age with few pictures borrows from the others
+                pool += [p for p in all_pictures if p["picture"] != it["picture"] and p not in pool]
+            other = [p for p in pool if p["category"] != it["category"]]
             h = int(hashlib.sha256(it["id"].encode()).hexdigest(), 16)
             picks = []
-            for k in range(len(other)):
-                p = other[(h + k * 7919) % len(other)]
-                if p["picture"] not in picks: picks.append(p["picture"])
+            for group in (other, pool):                          # another category first, then anything
+                for k in range(len(group)):
+                    pic = group[(h + k) % len(group)]["picture"]
+                    if pic not in picks: picks.append(pic)
+                    if len(picks) == 2: break
                 if len(picks) == 2: break
             choices = picks + [it["picture"]]
             pos = h % 3
@@ -332,13 +455,24 @@ def main():
     order = lambda it: (it["band"], it["und_mo"] if it["und_mo"] is not None else 99,
                         it["say_mo"] if it["say_mo"] is not None else 99, it["id"])
     items.sort(key=order)
+    if lang == "ja":                                          # past 3: NINJAL words, already in order within each age
+        extra = build_items_ninjal(items, cur)
+        taken = {it["id"] for it in items}
+        for it in extra:
+            base, n = it["id"], 2
+            while it["id"] in taken: it["id"], n = f"{base}{n}", n + 1
+            taken.add(it["id"])
+        pictures = {it["meaning"].lower(): it["picture"] for it in items if it.get("picture") and not it.get("need")}
+        for it in extra:
+            it["picture"] = it.get("picture") or pictures.get(it["meaning"].lower())
+        items = items + extra
     pack = json.loads(P["pack"].read_text())
     talking = [l for l in pack["levels"] if l.get("starters")]
     levels = []
-    for age in (1, 2, 3):
+    for age in sorted({it["band"] for it in items}):
         group = [it for it in items if it["band"] == age]
         pics = [it for it in group if it.get("picture") and not it.get("need")]
-        rounds = rounds_for(lang, group, pics)
+        rounds = rounds_for(lang, group, pics, [it for it in items if it.get("picture") and not it.get("need")])
         if age == 3:
             levels += [dict(l, age=3) for l in talking]
         chunks = [rounds[i:i + LEVEL_SIZE] for i in range(0, len(rounds), LEVEL_SIZE)]
@@ -347,9 +481,9 @@ def main():
         levels += [{"age": age, "rounds": c} for c in chunks]
     pack["levels"] = levels
     P["pack"].write_text(json.dumps(pack, ensure_ascii=False, indent=2))
-    n = {a: sum(1 for it in items if it["band"] == a) for a in (1, 2, 3)}
+    n = {a: sum(1 for it in items if it["band"] == a) for a in sorted({it["band"] for it in items})}
     pics = sum(1 for it in items if it.get("picture") or it.get("need"))
-    print(f"{len(items)} words → {len(levels)} levels (1さい {n[1]}, 2さい {n[2]}, 3さい {n[3]}); "
+    print(f"{len(items)} words → {len(levels)} levels (" + ", ".join(f"age {a}: {c}" for a, c in n.items()) + "); "
           f"{pics} with a picture or action, {len(items) - pics} asked by meaning")
     if "--review" in sys.argv:
         path = P["cache"].parent / f"{lang}-review.tsv"

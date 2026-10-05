@@ -1,0 +1,9 @@
+{
+  "name": "JMdict (English), the snapshot the Zenbu apps use",
+  "use": "Readings and English meanings for the NINJAL words (scripts/build-levels.py ja)",
+  "license": "EDRDG licence, CC BY-SA 4.0 (https://www.edrdg.org/edrdg/licence.html)",
+  "attribution": "This product uses the JMdict dictionary file, the property of the Electronic Dictionary Research and Development Group, used in conformance with the Group's licence.",
+  "path": "../zenbujapanese-monorepo/apps/ios/LanguageData/Sources/JMdict_e-2026-08-10.gz",
+  "sha256": "54a6ecce385de30776e842b18ca62da7a60dfd923dc5b1f8101ce37f528e1d5e",
+  "note": "Path is relative to this repo's root (the monorepo sits next to it); ZENBU_MONOREPO=<monorepo path> overrides."
+}
