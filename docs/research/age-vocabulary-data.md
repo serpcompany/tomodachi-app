@@ -1,5 +1,7 @@
 # Age vocabulary data: what Tomo says and understands at each age
 
+> **Status: background only (2026-10-05).** We aren't building Tomo's content from this data. What Tomo asks and does will come from the Zenbu learning system later ([decisions.md](../decisions.md)), so the license requests below aren't needed.
+
 Research for the open question in [concepts.md](../concepts.md). Licenses were checked on official pages on 2026-10-03. Anything not checked is marked **unverified**.
 
 ## Answer

@@ -72,7 +72,7 @@ Change them in **Settings → General** (I speak / I'm learning). The menu and S
 
 - **Interface text:** move from JSON strings to Apple String Catalogs once the app has more screens.
 - **Translations from the dictionary:** for Japanese, JMdict has meanings in several languages (German, French, Spanish, Russian…), so learner-language translations could come from the Zenbu dictionary instead of hand-written pack text.
-- **Age data per language:** Wordbank has toddler vocabulary data for dozens of languages, so the age-vocabulary pipeline ([research/age-vocabulary-data.md](research/age-vocabulary-data.md)) should generalize. Ages 3–6 need per-language sources.
+- **Content per language:** what Tomo asks comes from the Zenbu learning system later (decision 2026-10-05). Child-age word lists ([research/age-vocabulary-data.md](research/age-vocabulary-data.md)) are background only.
 - **Harder cases:**
   - right-to-left scripts (Arabic, Hebrew): the island layout
   - tonal languages (Mandarin): pinyin with tone marks as the romanization

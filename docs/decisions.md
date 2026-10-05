@@ -2,6 +2,12 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
+### 2026-10-05: What Tomo asks and does comes later, from the Zenbu learning system
+The logic that picks Tomo's words, questions and activities is deferred. It won't be built only on "what children know at each age": it will tie into the other Zenbu Japanese apps (the dictionary, Language Reference IDs, what the learner already knows there). Until then, the hand-written pack content is a placeholder. The child-vocabulary research ([age-vocabulary-data.md](research/age-vocabulary-data.md)) is background only. We don't use that data, so no license requests are needed. **Why:** a richer, shared learner model beats a fixed age list, and it keeps Tomo in step with the other apps.
+
+### 2026-10-05: Replace Coucou's character instead of asking for permission
+Coucou's asset license reserves the Mochi character's design, look, expressions and animations, not just its look. Rather than ask the author, Tomo gets its own character: our own drawing, expressions and animations, in our own code, replacing `BotEngine`. The notch shell (MIT code) stays. **Why:** no dependency on someone else's permission, and a character we fully own.
+
 ### 2026-10-05: Tomo calls itself わたし
 In Japanese, Tomo says わたし, never ぼく, おれ or あたし. わたし is neutral, so Tomo has no set gender, and it's the word learners meet first. The rule is in `ja.json` (`ai.rules`); the Japanese translations in other packs use it too.
 

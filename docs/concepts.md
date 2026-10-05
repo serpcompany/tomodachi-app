@@ -16,7 +16,7 @@ See the root level README.md
 | Concept | How it works | Demo status |
 |---|---|---|
 | **Lives in the notch** | Tomo sits small beside the notch, opens into a card, and its eyes follow your cursor. Built on the [Coucou](https://github.com/Louis-CFM/coucou) notch app (MIT code). | Built (`mac-demo/`) |
-| **Own character** | A peach egg-shaped body with blush. It grows a sprout at 2さい and gets bigger at 3さい. Coucou's Mochi look, name and sounds aren't licensed for reuse, so we replace them. | First version built |
+| **Own character** | A peach egg-shaped body with blush. It grows a sprout at 2さい and gets bigger at 3さい. Coucou's Mochi character (look, expressions, animations), name and sounds aren't licensed for reuse. The look and sounds are replaced; the expressions and animations still come from Coucou's engine until we replace it with our own. | First version built |
 | **Ages are the levels** | 1さい: single baby words (ワンワン, まんま). 2さい: two-word phrases (ワンワン いた！). 3さい: real short conversations. | Built for ages 1–3 |
 | **Understanding before speaking** | 1–2さい: tap the right picture, or do what Tomo asks (feed / bed / hug). 3さい: answer in your own words by typing Japanese or speaking. | Built |
 | **Baby talk + grown-up word** | Tomo says ワンワン, and after you get it the card shows "grown-ups say: いぬ（犬）". | Built |
@@ -55,7 +55,7 @@ These numbers are for the demo only. See the open questions below.
 | How do we get a better, child-like Japanese voice, and can it mature as Tomo ages? | [research/voices.md](research/voices.md) |
 | Which learning modes should Tomo use, and when? | [research/learning-modes.md](research/learning-modes.md) |
 | What's the data model for the words a learner knows and has encountered? | [research/learner-data-schema.md](research/learner-data-schema.md) |
-| Where do we get the vocabulary and grammar for each age, so Tomo knows what it can say and understand? | [research/age-vocabulary-data.md](research/age-vocabulary-data.md) |
+| Where do we get the vocabulary and grammar for each age, so Tomo knows what it can say and understand? | Deferred: it will come from the Zenbu learning system. Background: [research/age-vocabulary-data.md](research/age-vocabulary-data.md) |
 | How do we check a learner's answer without AI, and when is AI worth calling? | [research/answer-evaluation.md](research/answer-evaluation.md) |
 | Which AI models are good at toddler Japanese, and what does a conversation cost? | [research/ai-models-and-costs.md](research/ai-models-and-costs.md) |
 
