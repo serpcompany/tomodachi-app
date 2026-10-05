@@ -2,6 +2,9 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
+### 2026-10-06: Playing by choice counts: early reviews at half the wait, and new words a day is a setting
+A word can be reviewed early once at least half its wait has passed, and the right answer moves it up like a due one. Free play brings due words, then new ones, then these early ones, and only then practice. New words a day is a setting (5, 10, 20 or 30; default 10). This loosens WaniKani's "only when due" rule. **Why:** opening Tomo by choice should feel worth it; answering the same word again within minutes still counts for nothing, so cramming still doesn't work.
+
 ### 2026-10-06: Japanese goes to 6さい with NINJAL's preschool and picture-book words
 The CDI stops at about 3, so Japanese ages 3–6 come from NINJAL's 幼児語彙 and 絵本語彙 (CC BY 4.0): about 2,000 more words, with readings and English meanings from JMdict. There are no per-age norms past 3, so the age comes from a rule: how many of the four preschoolers used a word, and in how many picture books it appears (more → earlier). It's an assumption to tune with real answers. JMdict senses are picked by frequency, and wrong ones are fixed by hand. Ages 4–6 keep the 3さい look for now ([#38](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/38)). **Why:** Tomo needs words past 3, and these are the openly licensed sources the research found.
 

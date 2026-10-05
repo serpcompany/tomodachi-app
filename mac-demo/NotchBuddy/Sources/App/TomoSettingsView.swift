@@ -274,6 +274,7 @@ private struct TomoGeneralSettings: View {
     @ObservedObject var lang = TomoLanguages.shared
     @ObservedObject var state = AppState.shared
     @State private var visitEvery = DropIn.every
+    @State private var newPerDay = TomoProgress.newPerDay
 
     var body: some View {
         Form {
@@ -300,6 +301,10 @@ private struct TomoGeneralSettings: View {
                     ForEach(DropIn.choices, id: \.seconds) { Text(lang.learner($0.key)).tag($0.seconds) }
                 }
                 .onChange(of: visitEvery) { _, v in DropIn.setEvery(v); TomoGame.shared.rescheduleVisits() }
+                Picker(lang.learner("settings.newPerDay"), selection: $newPerDay) {
+                    ForEach(TomoProgress.newPerDayChoices, id: \.self) { Text("\($0)").tag($0) }
+                }
+                .onChange(of: newPerDay) { _, v in UserDefaults.standard.set(v, forKey: "tomoNewPerDay") }
                 Toggle(lang.learner("settings.voice"), isOn: $state.soundEnabled)
             }
         }
