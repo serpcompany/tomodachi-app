@@ -19,13 +19,13 @@ xcrun simctl install tomodachi ios-demo/build/Build/Products/Debug-iphonesimulat
 xcrun simctl launch tomodachi com.zenbujapanese.tomodachi
 ```
 
-Signing is automatic with the Zenbu Japanese team (`847HR8U8D9`). The simulator needs nothing more. For a device, Xcode must be signed in to that team (Xcode → Settings → Accounts); the first device build with `-allowProvisioningUpdates` registers the App IDs and the App Group `group.com.zenbujapanese.tomodachi`. To try the widget: long-press the Home Screen → Edit → Add Widget → Tomodachi.
+Signing is automatic with team `W3GXL2NQQP` (the one Pedos ships with). The simulator needs nothing more. For a device, Xcode must be signed in to that team (Xcode → Settings → Accounts); the first device build with `-allowProvisioningUpdates` registers the App IDs and the App Group `group.com.zenbujapanese.tomodachi`. To try the widget: long-press the Home Screen → Edit → Add Widget → Tomodachi.
 
 `tomodachi` is a simulator made for this app (`xcrun simctl create tomodachi com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro com.apple.CoreSimulator.SimRuntime.iOS-27-0`), so test runs don't touch other projects' simulators. Its saved progress lives in the app's container on that simulator.
 
 ## TestFlight
 
-`ios-demo/scripts/testflight.sh` archives a Release build and uploads it (`scripts/ExportOptions.plist`: App Store Connect, automatic signing, Xcode picks the next build number). It needs Xcode signed in to team `847HR8U8D9` and the app record **Tomodachi** (bundle ID `com.zenbujapanese.tomodachi`) in App Store Connect. The app icon is a placeholder rendered from Tomo's code: `TOMO_RENDER_ICON=<dir>` on the Mac app writes `icon-ios-1024.png`, copied to `Tomodachi/Assets.xcassets/AppIcon.appiconset/icon-1024.png`.
+`ios-demo/scripts/testflight.sh` archives a Release build and uploads it (`scripts/ExportOptions.plist`: App Store Connect, automatic signing, Xcode picks the next build number). It needs Xcode signed in to team `W3GXL2NQQP` (the one Pedos ships with) and the app record **Tomodachi** (bundle ID `com.zenbujapanese.tomodachi`) in App Store Connect. The app icon is Tomo on a sky-blue gradient, rendered from Tomo's code: `TOMO_RENDER_ICON=<dir>` on the Mac app writes `icon-ios-1024.png`, copied to `Tomodachi/Assets.xcassets/AppIcon.appiconset/icon-1024.png`.
 
 ## Debug flags
 
