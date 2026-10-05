@@ -72,6 +72,7 @@ enum TomoWords {
             var lines = 1, x: CGFloat = 0
             for w in words {
                 let width = ceil((w as NSString).size(withAttributes: [.font: font]).width) + wordPadding * 2
+                if width > box.width { lines = .max / 2; break }      // one word wider than the box: smaller size
                 if x > 0 && x + width > box.width { lines += 1; x = 0 }
                 x += width + gap
             }

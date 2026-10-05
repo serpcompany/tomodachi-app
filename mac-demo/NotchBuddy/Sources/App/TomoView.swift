@@ -19,16 +19,22 @@ enum TomoGrid {
     static let inputRow: CGFloat = 34
     static let rowGap: CGFloat = 7
 
-    // Picture card: word 36 + prompt 32 + buttons 26 + 2 × 7 = 108
+    // Level bar: full width, between the header (which sits under the physical notch) and the card
+    static let levelBar: CGFloat = 5
+    static let levelBarGap: CGFloat = 7
+
+    // Picture card, two rows: the word with its replay and hint icons (44) · the prompt or result (40) + 8 = 92
     static let tile = CGSize(width: 76, height: 84)
     static let tileGap: CGFloat = 8
     static var tilesWidth: CGFloat { tile.width * 3 + tileGap * 2 }       // 244
     static var pictureColumn: CGFloat { column - tilesWidth - gap }       // 222
     static let pill = CGSize(width: 244, height: 30)    // "Pick the meaning": 3 × 30 + 2 × 8 = 106
     static let pillGap: CGFloat = 8
-    static let wordRow: CGFloat = 36
-    static let promptRow: CGFloat = 32
-    static let buttonRow: CGFloat = 26
+    static let wordRow: CGFloat = 44
+    static let promptRow: CGFloat = 40
+    static let iconButton: CGFloat = 26
+    static let iconGap: CGFloat = 6
+    static var wordWidth: CGFloat { pictureColumn - (iconButton + iconGap) * 2 }   // 158
 
     // Help panel under the card (the island grows by helpHeight while it's open)
     static let helpGap: CGFloat = 10
@@ -61,12 +67,20 @@ struct TomoView: View {
     }
 
     var body: some View {
-        VStack(spacing: TomoGrid.helpGap) {
-            card
-            if let help = game.help {
-                TomoHelpPanel(game: game, help: help)
-                    .frame(width: TomoGrid.content.width, height: TomoGrid.helpPanel)
-                    .transition(.opacity)
+        VStack(spacing: 0) {
+            // Progress to the next level, the whole width of the card (an RPG-style experience bar)
+            GrowthBar(progress: Double(game.levelKnown) / Double(max(game.levelNeeded, 1)))
+                .frame(width: TomoGrid.content.width - 28, height: TomoGrid.levelBar)
+                .padding(.bottom, TomoGrid.levelBarGap)
+                .help(lang.learner("words.toNext", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)",
+                                                    "next": "\(game.level + 1)"]))
+            VStack(spacing: TomoGrid.helpGap) {
+                card
+                if let help = game.help {
+                    TomoHelpPanel(game: game, help: help)
+                        .frame(width: TomoGrid.content.width, height: TomoGrid.helpPanel)
+                        .transition(.opacity)
+                }
             }
         }
         .frame(width: TomoGrid.content.width, alignment: .top)
@@ -106,52 +120,53 @@ struct TomoView: View {
         .frame(width: TomoGrid.content.width, height: TomoGrid.content.height)
     }
 
-    // Picture stage: the word · the prompt (2 lines) · buttons — fixed rows
+    // Picture stage, two fixed rows: the word with replay and hint icons · the prompt, or the result
     private var speech: some View {
         VStack(alignment: .leading, spacing: TomoGrid.rowGap) {
-            // Clickable like the talking stage: click the word → word card in the panel below
-            TomoLineView(game: game, selection: .constant(nil),
-                         size: CGSize(width: TomoGrid.pictureColumn, height: TomoGrid.wordRow),
-                         text: game.round.say, maxSize: 28, selectable: false, spacesOnly: true)
-                .frame(width: TomoGrid.pictureColumn, height: TomoGrid.wordRow, alignment: .leading)
-
-            HStack(alignment: .center, spacing: 6) {
-                if let o = game.outcome { OutcomeBadge(outcome: o) }
-                Group {
-                    if game.phase == .right {
-                        Text([game.round.romanization, game.round.meaning].compactMap { $0 }.joined(separator: " · "))
-                            .foregroundColor(Color(hex: "#D5D8DE"))
-                    } else {
-                        Text(lang.learner(game.round.kind == .need ? "pickNeed"
-                                          : game.round.kind == .meaning ? "pickMeaning" : "pickPicture"))
-                            .foregroundColor(Color(hex: "#9EA3AC"))
-                    }
+            HStack(spacing: TomoGrid.iconGap) {
+                // Clickable like the talking stage: click the word → word card in the panel below
+                TomoLineView(game: game, selection: .constant(nil),
+                             size: CGSize(width: TomoGrid.wordWidth, height: TomoGrid.wordRow),
+                             text: game.round.say, maxSize: 30, selectable: false, spacesOnly: true)
+                    .frame(width: TomoGrid.wordWidth, height: TomoGrid.wordRow, alignment: .leading)
+                IconButton(icon: "speaker.wave.2.fill", help: lang.target.labels.again) { game.replay() }
+                IconButton(icon: "lightbulb", help: lang.learner("hint"), on: game.help == .hint) {
+                    game.help == .hint ? (game.help = nil) : game.showHint()
                 }
-                .font(.system(size: 12))
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
             }
-            .frame(height: TomoGrid.promptRow, alignment: .leading)
+            .frame(height: TomoGrid.wordRow)
 
-            HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .center, spacing: 6) {
+                    if let o = game.outcome { OutcomeBadge(outcome: o) }
+                    Group {
+                        if game.phase == .right {
+                            Text([game.round.romanization, game.round.meaning].compactMap { $0 }.joined(separator: " · "))
+                                .foregroundColor(Color(hex: "#D5D8DE"))
+                        } else {
+                            Text(lang.learner(game.round.kind == .need ? "pickNeed"
+                                              : game.round.kind == .meaning ? "pickMeaning" : "pickPicture"))
+                                .foregroundColor(Color(hex: "#9EA3AC"))
+                        }
+                    }
+                    .font(.system(size: 12))
+                    .lineLimit(game.phase == .right && game.round.adult != nil ? 1 : 2)
+                    .minimumScaleFactor(0.85)
+                    .fixedSize(horizontal: false, vertical: true)
+                }
                 if game.phase == .right, let adult = game.round.adult {
                     Button { game.openWord(TomoWords.bare(adult)) } label: {
                         Text(lang.learner("grownUpsSay", ["x": adult]))
                             .font(.system(size: 11, weight: .medium))
                             .lineLimit(1).minimumScaleFactor(0.8)
-                            .padding(.horizontal, 8).padding(.vertical, 4)
+                            .padding(.horizontal, 8).padding(.vertical, 3)
                             .background(Color.white.opacity(0.1))
                             .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
-                } else {
-                    SmallPill(icon: "speaker.wave.2.fill", title: lang.target.labels.again) { game.replay() }
-                    SmallPill(icon: "lightbulb", title: lang.learner("hint"), on: game.help == .hint) {
-                        game.help == .hint ? (game.help = nil) : game.showHint()
-                    }
                 }
             }
-            .frame(height: TomoGrid.buttonRow, alignment: .leading)
+            .frame(height: TomoGrid.promptRow, alignment: .leading)
         }
         .transaction { $0.animation = nil }   // a new round replaces the old one; no cross-fade
     }
@@ -276,6 +291,25 @@ private struct MeaningPill: View {
     }
 }
 
+/// A round icon button (replay, hint) next to the word; its label is the tooltip.
+private struct IconButton: View {
+    let icon: String
+    let help: String
+    var on = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 11, weight: .bold))
+                .frame(width: TomoGrid.iconButton, height: TomoGrid.iconButton)
+                .background(Circle().fill(Color.white.opacity(on ? 0.22 : 0.09)))
+        }
+        .buttonStyle(.plain)
+        .help(help)
+    }
+}
+
 private struct SmallPill: View {
     let icon: String
     let title: String
@@ -298,7 +332,8 @@ private struct SmallPill: View {
     }
 }
 
-// MARK: - Header status (left: name, age, level, level bar · right: words known this level, start over, voice, close)
+// MARK: - Header status (left: name, age, level · right: words known this level, voice, close). Start over lives in
+// Settings and the menu only, never one click away here. The level bar sits under the header (TomoView).
 
 struct TomoHeaderLeft: View {
     @ObservedObject var game = TomoGame.shared
@@ -323,8 +358,6 @@ struct TomoHeaderLeft: View {
             }
             .buttonStyle(.plain)
             .help(lang.learner("settings.openTomo"))
-            GrowthBar(progress: Double(game.levelKnown) / Double(game.levelNeeded))
-                .frame(width: 70, height: 6)
         }
     }
 }
@@ -339,11 +372,6 @@ struct TomoHeaderRight: View {
             Text("\(game.levelIsTalk ? lang.target.labels.talk : lang.target.labels.words) \(game.levelKnown)/\(game.levelNeeded)")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(Color(hex: "#8E939C"))
-            Button(action: { TomoStartOver.confirm() }) {
-                Image(systemName: "arrow.counterclockwise").font(.system(size: 13))
-                    .foregroundColor(Color(hex: "#8E939C"))
-            }
-            .buttonStyle(.plain)
             Button(action: { state.soundEnabled.toggle() }) {
                 Image(systemName: state.soundEnabled ? "speaker.wave.2" : "speaker.slash")
                     .font(.system(size: 14))
