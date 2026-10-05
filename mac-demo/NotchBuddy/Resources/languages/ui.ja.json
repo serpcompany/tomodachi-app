@@ -2,8 +2,6 @@
   "id": "ja",
   "name": "日本語",
   "strings": {
-    "pickPicture": "Tomoはどれのことを言ってる？",
-    "pickNeed": "Tomoは何をしてほしい？",
     "grownUpsSay": "おとなはこう言う：{x}",
     "hint": "ヒント",
     "need.eat": "ごはん",
@@ -136,7 +134,6 @@
     "growth.ofMax": "{max}語中{n}語",
     "growth.answersToday": "答えた数",
     "growth.strongerToday": "強くなったことば",
-    "pickMeaning": "Tomoはなんて言ってる？",
     "growth.age.4": "ふだんの会話と絵本から、幼稚園ごろのことば。",
     "growth.age.5": "もっと幼稚園ごろのことば：気持ち、場所、ものごとの起こり方。",
     "growth.age.6": "小学校に入る前の子が知っていることば。",

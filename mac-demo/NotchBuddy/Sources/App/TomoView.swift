@@ -120,7 +120,7 @@ struct TomoView: View {
         .frame(width: TomoGrid.content.width, height: TomoGrid.content.height)
     }
 
-    // Picture stage, two fixed rows: the word with replay and hint icons · the prompt, or the result
+    // Picture stage, two fixed rows: the word with replay and hint icons · the result (empty while asking)
     private var speech: some View {
         VStack(alignment: .leading, spacing: TomoGrid.rowGap) {
             HStack(spacing: TomoGrid.iconGap) {
@@ -139,20 +139,15 @@ struct TomoView: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .center, spacing: 6) {
                     if let o = game.outcome { OutcomeBadge(outcome: o) }
-                    Group {
-                        if game.phase == .right {
-                            Text([game.round.romanization, game.round.meaning].compactMap { $0 }.joined(separator: " · "))
-                                .foregroundColor(Color(hex: "#D5D8DE"))
-                        } else {
-                            Text(lang.learner(game.round.kind == .need ? "pickNeed"
-                                              : game.round.kind == .meaning ? "pickMeaning" : "pickPicture"))
-                                .foregroundColor(Color(hex: "#9EA3AC"))
-                        }
+                    // While Tomo asks, this row stays free (the choices say what to do); after a win, the answer.
+                    if game.phase == .right {
+                        Text([game.round.romanization, game.round.meaning].compactMap { $0 }.joined(separator: " · "))
+                            .foregroundColor(Color(hex: "#D5D8DE"))
+                            .font(.system(size: 12))
+                            .lineLimit(game.round.adult != nil ? 1 : 2)
+                            .minimumScaleFactor(0.85)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-                    .font(.system(size: 12))
-                    .lineLimit(game.phase == .right && game.round.adult != nil ? 1 : 2)
-                    .minimumScaleFactor(0.85)
-                    .fixedSize(horizontal: false, vertical: true)
                 }
                 if game.phase == .right, let adult = game.round.adult {
                     Button { game.openWord(TomoWords.bare(adult)) } label: {
