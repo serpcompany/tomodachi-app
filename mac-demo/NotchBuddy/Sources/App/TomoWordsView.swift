@@ -17,7 +17,7 @@ struct TomoWordsPane: View {
         // Re-read every 30 s so "due in…" stays current; game.progressVersion re-renders after each answer.
         TimelineView(.periodic(from: .now, by: 30)) { _ in
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
+                LazyVStack(alignment: .leading, spacing: 18) {
                     summary
                     ForEach(Array(levels.enumerated()), id: \.offset) { i, level in
                         levelSection(number: i + 1, level: level)
@@ -88,7 +88,7 @@ struct TomoWordsPane: View {
         return HStack(alignment: .center, spacing: 10) {
             Group {
                 if let emoji = w.emoji { Text(emoji).font(.system(size: 22)) }
-                else { Image(systemName: "bubble.left.and.text.bubble.right").foregroundStyle(.secondary) }
+                else { Image(systemName: "text.bubble").foregroundStyle(.secondary) }   // asked by meaning
             }
             .frame(width: 30)
             VStack(alignment: .leading, spacing: 1) {

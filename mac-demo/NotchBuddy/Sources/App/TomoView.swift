@@ -24,6 +24,8 @@ enum TomoGrid {
     static let tileGap: CGFloat = 8
     static var tilesWidth: CGFloat { tile.width * 3 + tileGap * 2 }       // 244
     static var pictureColumn: CGFloat { column - tilesWidth - gap }       // 222
+    static let pill = CGSize(width: 244, height: 30)    // "Pick the meaning": 3 × 30 + 2 × 8 = 106
+    static let pillGap: CGFloat = 8
     static let wordRow: CGFloat = 36
     static let promptRow: CGFloat = 32
     static let buttonRow: CGFloat = 26
@@ -119,7 +121,8 @@ struct TomoView: View {
                         Text([game.round.romanization, game.round.meaning].compactMap { $0 }.joined(separator: " · "))
                             .foregroundColor(Color(hex: "#D5D8DE"))
                     } else {
-                        Text(lang.learner(game.round.need == nil ? "pickPicture" : "pickNeed"))
+                        Text(lang.learner(game.round.kind == .need ? "pickNeed"
+                                          : game.round.kind == .meaning ? "pickMeaning" : "pickPicture"))
                             .foregroundColor(Color(hex: "#9EA3AC"))
                     }
                 }
@@ -152,11 +155,19 @@ struct TomoView: View {
         .transaction { $0.animation = nil }   // a new round replaces the old one; no cross-fade
     }
 
-    private var choices: some View {
-        HStack(spacing: TomoGrid.tileGap) {
-            ForEach(game.round.choices) { c in
-                ChoiceTile(choice: c, phase: game.phase, isAnswer: c.emoji == game.round.answer) {
-                    game.pick(c)
+    @ViewBuilder private var choices: some View {
+        if game.round.kind == .meaning {
+            VStack(spacing: TomoGrid.pillGap) {
+                ForEach(game.round.choices) { c in
+                    MeaningPill(choice: c, phase: game.phase, isAnswer: c.id == game.round.answer) { game.pick(c) }
+                }
+            }
+        } else {
+            HStack(spacing: TomoGrid.tileGap) {
+                ForEach(game.round.choices) { c in
+                    ChoiceTile(choice: c, phase: game.phase, isAnswer: c.id == game.round.answer) {
+                        game.pick(c)
+                    }
                 }
             }
         }
@@ -185,7 +196,7 @@ private struct ChoiceTile: View {
     private var border: Color {
         switch phase {
         case .right where isAnswer: return Color(hex: "#34D399")
-        case .wrong(let e) where e == choice.emoji: return Color(hex: "#F4505E")
+        case .wrong(let e) where e == choice.id: return Color(hex: "#F4505E")
         default: return Color.white.opacity(hovered ? 0.22 : 0.06)
         }
     }
@@ -193,7 +204,7 @@ private struct ChoiceTile: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 2) {
-                Text(choice.emoji).font(.system(size: 36))
+                Text(choice.emoji ?? "").font(.system(size: 36))
                 if let label = choice.label {
                     Text(label).font(.system(size: 10, weight: .medium)).foregroundColor(Color(hex: "#9398A1"))
                         .lineLimit(1).minimumScaleFactor(0.8)
@@ -210,7 +221,52 @@ private struct ChoiceTile: View {
         .onHover { hovered = $0 }
         .animation(.spring(response: 0.25, dampingFraction: 0.7), value: hovered)
         .onChange(of: phase) { _, p in
-            guard case .wrong(let e) = p, e == choice.emoji else { return }
+            guard case .wrong(let e) = p, e == choice.id else { return }
+            withAnimation(.spring(response: 0.08, dampingFraction: 0.2)) { shake = 6 }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.4)) { shake = 0 }
+            }
+        }
+    }
+}
+
+// MARK: - Meaning pill ("Pick the meaning": a word with no picture or action)
+
+private struct MeaningPill: View {
+    let choice: TomoChoice
+    let phase: TomoPhase
+    let isAnswer: Bool
+    let action: () -> Void
+    @State private var hovered = false
+    @State private var shake: CGFloat = 0
+
+    private var border: Color {
+        switch phase {
+        case .right where isAnswer: return Color(hex: "#34D399")
+        case .wrong(let e) where e == choice.id: return Color(hex: "#F4505E")
+        default: return Color.white.opacity(hovered ? 0.22 : 0.06)
+        }
+    }
+
+    var body: some View {
+        Button(action: action) {
+            Text(choice.label ?? "")
+                .font(.system(size: 13.5, weight: .medium))
+                .foregroundColor(Color(hex: "#E6E8EC"))
+                .lineLimit(1).minimumScaleFactor(0.7)
+                .padding(.horizontal, 12)
+                .frame(width: TomoGrid.pill.width, height: TomoGrid.pill.height)
+                .background(Color.white.opacity(hovered ? 0.1 : 0.05))
+                .overlay(Capsule().stroke(border, lineWidth: 2))
+                .clipShape(Capsule())
+                .scaleEffect(hovered && phase == .asking ? 1.03 : 1)
+                .offset(x: shake)
+        }
+        .buttonStyle(.plain)
+        .onHover { hovered = $0 }
+        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: hovered)
+        .onChange(of: phase) { _, p in
+            guard case .wrong(let e) = p, e == choice.id else { return }
             withAnimation(.spring(response: 0.08, dampingFraction: 0.2)) { shake = 6 }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                 withAnimation(.spring(response: 0.25, dampingFraction: 0.4)) { shake = 0 }

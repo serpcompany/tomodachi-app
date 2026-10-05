@@ -55,7 +55,7 @@
     "about.version": "Version {v} (beta)",
     "about.tagline": "A little friend in your notch who only speaks the language you're learning, at its own age.",
     "about.feedback": "Beta: things will break. Tell us what felt fun, confusing, or annoying.",
-    "about.credits": "Tomodachi by Zenbu Japanese. Notch shell based on Coucou by Louis Raillé (MIT License).",
+    "about.credits": "Tomodachi by Zenbu Japanese. Notch shell based on Coucou by Louis Raillé (MIT License). Japanese word ages from Wordbank (CC BY 4.0): Frank et al. 2017; data by Tsuji, Hagihara and Minagawa; Japanese CDI by Ogura & Watamaki.",
     "ai.provider": "Provider",
     "ai.baseURL": "Base URL",
     "ai.key": "API key",
@@ -135,7 +135,8 @@
     "growth.newToday": "New words",
     "growth.ofMax": "{n} of {max}",
     "growth.answersToday": "Answers",
-    "growth.strongerToday": "Words that got stronger"
+    "growth.strongerToday": "Words that got stronger",
+    "pickMeaning": "What does Tomo mean?"
   },
   "helpPhrases": [
     "what",
