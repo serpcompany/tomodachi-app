@@ -220,6 +220,22 @@ final class TomoProgress {
     /// Not due yet, but far enough along that answering it now counts (an early review).
     func isEarlyOK(_ id: String) -> Bool { !isDue(id) && waitShare(id) >= Self.earlyShare }
 
+    /// Would a right answer to this item count now (new, due, or far enough along)?
+    func counts(_ id: String) -> Bool { items[id] == nil || isDue(id) || isEarlyOK(id) }
+
+    /// When something counts again, if nothing does now: the soonest a word reaches half its wait, or the next day's
+    /// new words (4 am) when today's are used up and the level still has some. Nil if something counts now.
+    var nextCountsAt: Date? {
+        if !dueItems.isEmpty || canTeachNew || unlocked.contains(where: isEarlyOK) { return nil }
+        let early = unlocked.compactMap { id -> Date? in
+            guard let i = items[id], let due = i.due,
+                  let wait = TomoSRS.wait(after: i.stage, level: levelOfItem[id] ?? level) else { return nil }
+            return due.addingTimeInterval(-wait * (1 - Self.earlyShare))
+        }.min()
+        let newWords = newItems.isEmpty ? nil : TomoClock.dayStart.addingTimeInterval(86400)
+        return [early, newWords].compactMap { $0 }.min()
+    }
+
     /// Free play, after a visit's items: a due item, else a new one (within the daily limit), else one that
     /// can be reviewed early. Each of these counts.
     func nextFreePlayItem() -> String? {
@@ -234,9 +250,11 @@ final class TomoProgress {
             guard let i = items[$0], i.stage < TomoSRS.forever, $0 != last else { return false }
             return isStarter($0) == talk
         }
-        return pool.max {
-            (waitShare($0), -(items[$0]?.stage ?? 0)) < (waitShare($1), -(items[$1]?.stage ?? 0))
+        // One of the few closest to due (weakest first on ties), so practice doesn't drill the same two words.
+        let ranked = pool.sorted {
+            (waitShare($0), -(items[$0]?.stage ?? 0)) > (waitShare($1), -(items[$1]?.stage ?? 0))
         }
+        return ranked.prefix(4).randomElement()
     }
 
     func round(_ id: String) -> TargetPack.Round? { roundIndex[id] }
@@ -382,6 +400,21 @@ final class TomoProgress {
         let reopened = TomoProgress(pack: pack, learner: "en", directory: dir)
         check(reopened.level == p.level && reopened.age == p.age && reopened.items.count == p.items.count,
               "progress survives reopening (\(reopened.items.count) items)")
+        // Free play after learning a whole level in one sitting: nothing counts for a while, it says when, and then
+        // free play earns experience again.
+        let sitting = TomoProgress(pack: pack, learner: "es", directory: dir)
+        for id in pack.levels[0].itemIDs { sitting.answeredRight(id, mode: "picture", wrongTries: 0, hint: false) }
+        let barBefore = sitting.levelProgress
+        check(sitting.nextFreePlayItem() == nil && !sitting.levelItems.contains(where: sitting.counts),
+              "right after learning a whole level, nothing counts")
+        let wait = sitting.nextCountsAt.map { $0.timeIntervalSince(TomoClock.now) } ?? -1
+        check(wait > 50 * 60 && wait < 70 * 60, "it says when answers count again: in \(Int(wait / 60)) min")
+        TomoClock.offset += wait + 60
+        if let id = sitting.nextFreePlayItem() {
+            check(sitting.answeredRight(id, mode: "picture", wrongTries: 0, hint: false) && sitting.levelProgress > barBefore,
+                  "an hour later, free play adds experience again")
+        } else { check(false, "an hour later, free play has something that counts") }
+
         let other = TomoProgress(pack: pack, learner: "ja", directory: dir)
         check(other.level == 1 && other.items.isEmpty, "another language pair is another Tomo")
 
