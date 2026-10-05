@@ -2,6 +2,9 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
+### 2026-10-05: The app is Tomodachi (by Zenbu Japanese); the character is Tomo
+The app's name (menu, island header, About, bundle) is **Tomodachi**, credited "by Zenbu Japanese". **Tomo** stays the character's name in sentences ("Tomo understood you"). The bundle ID is `com.zenbujapanese.tomodachi`, matching the Zenbu iPhone app's `com.zenbujapanese.dictionary`. It was changed before any tester build shipped. **Why:** the product is Tomodachi; Tomo is the friend inside it.
+
 ### 2026-10-03: Beta 0.0.1 ships as a signed, notarized zip
 Built by `mac-demo/scripts/release-beta.sh` with the team's Developer ID (847HR8U8D9): universal, hardened runtime, microphone permission only. Coucou's sounds and icons aren't bundled. The default visit frequency is 20 minutes, changeable in Settings. No AI key ships in the app: testers add their own or use offline replies. **Why:** testers can open it without macOS warnings, and nothing we can't legally or safely distribute is inside.
 

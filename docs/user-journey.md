@@ -6,10 +6,10 @@
 
 **Always there, if you want more:** between visits, Tomo hangs out small beside the notch. Click it any time to play for as long as you like, with no time limit. The visits exist because people get lazy about learning; they're a nudge, not the only way in.
 
-**Built in the demo (simple version):** visits come every 10 minutes and the first one is at launch. Tomo opens on its own. If you don't click, type, or hover for 10 seconds (20 seconds at the talking stage), it yawns and tucks back in. A visit is 3 answers, then バイバイ. Visits wait while you're typing and skip when nobody's at the Mac. There are no settings yet: the constants are in `DropIn` in `mac-demo/NotchBuddy/Sources/App/TomoGame.swift`.
+**Built in the demo (simple version):** visits come every 20 minutes by default (Settings → General: 10 min to 2 h, or only when you click) and the first one is at launch. Tomo opens on its own. If you don't click, type, or hover for 10 seconds (20 seconds at the talking stage), it yawns and tucks back in. A visit is 3 answers, then バイバイ. Visits wait while you're typing and skip when nobody's at the Mac. The other constants are in `DropIn` in `mac-demo/NotchBuddy/Sources/App/TomoGame.swift`.
 
 **Visit timing**
-- *Now (demo):* every 10 minutes plus one at launch. Waits while you're typing (retries in 20 s). Skips when you've been away 5+ minutes. The next visit is 10 minutes after the last one ended.
+- *Now (demo):* every 20 minutes (or the Settings choice) plus one at launch. Waits while you're typing (retries in 20 s). Skips when you've been away 5+ minutes. The next visit is one interval after the last one ended.
 - *Proposed, not built:*
   - The base interval comes from a setting: chatty 20 min, normal 45 min, quiet 2 h, with ±20% randomness.
   - Each ignored or closed visit doubles the wait (up to 4 h); an answered visit resets it.
@@ -66,7 +66,7 @@ Grade whether Tomo understood you, not your pronunciation. If it didn't catch wh
 
 Anything Tomo says (its line, hints, example answers) is shown as **linked words**, the same way the Zenbu iPhone app's Player shows captions. Words you don't know yet are lightly underlined; known words aren't, but can still be tapped.
 
-Tapping a word opens a small **word card** next to the island:
+Tapping a word opens a **word card** in the help panel that grows out of the notch under Tomo's card:
 - the word, with its reading (furigana for Japanese) and pitch accent
 - the meaning in your language, and a 🔊 button
 - for baby words, the grown-up word (ワンワン → 犬)

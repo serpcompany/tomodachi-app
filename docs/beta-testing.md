@@ -14,7 +14,7 @@ Tomo is a little friend who lives next to your MacBook's notch and only speaks t
 - **Close it when it's in your way** with **×** or Esc. Small Tomo waits beside the notch with a red dot until you click it.
 - **Play any time:** click small Tomo next to the notch.
 - **Talk with Tomo:** menu bar icon → **Skip to talking (3さい)**. Answer in Japanese, typed or with the 🎤 (allow Microphone and Speech Recognition when asked). Every answer shows **Win**, **Miss**, or **No score**. "what?" asks Tomo for help.
-- **Settings** (menu bar icon → Settings…): the language you learn (Japanese, or a Spanish draft), how often Tomo visits, Tomo's voice.
+- **Settings** (menu bar icon → Settings…): the language you speak (English or Japanese), the language you learn (Japanese, English, or a Spanish draft), how often Tomo visits, Tomo's voice.
 
 ## Good to know
 

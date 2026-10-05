@@ -29,7 +29,7 @@
     "outcome.why.loss": "Tomoには伝わらなかった。もう一回！",
     "outcome.why.language": "{language}じゃないよ：ノーカウント、ペナルティなし",
     "outcome.why.help": "ヘルプを使ったよ：ノーカウント、ペナルティなし",
-    "menu.open": "Tomoをひらく",
+    "menu.open": "Tomodachiをひらく",
     "menu.dropIn": "いま遊びに来てもらう",
     "menu.talk": "おしゃべりまでスキップ（{age}）",
     "menu.restart": "Tomoをリスタート",
@@ -55,7 +55,7 @@
     "about.version": "バージョン {v}（ベータ）",
     "about.tagline": "あなたが学んでいる言語だけを、その年齢なりに話す、ノッチに住む小さな友だち。",
     "about.feedback": "ベータ版なので不具合があるかも。楽しかったこと、わかりにくかったこと、うっとうしかったことを教えてね。",
-    "about.credits": "Zenbu Japaneseの実験プロジェクト。ノッチ部分はLouis RailléさんのCoucou（MITライセンス）がベースです。",
+    "about.credits": "Tomodachi by Zenbu Japanese。ノッチ部分はLouis RailléさんのCoucou（MITライセンス）がベースです。",
     "ai.provider": "プロバイダ",
     "ai.baseURL": "ベースURL",
     "ai.key": "APIキー",
@@ -83,7 +83,8 @@
     "word.openMac": "辞書アプリで開く",
     "word.open": "Zenbuで開く",
     "word.title": "ことば",
-    "hint.try": "こう答えてみよう"
+    "hint.try": "こう答えてみよう",
+    "about.by": "by Zenbu Japanese"
   },
   "helpPhrases": [
     "なに",

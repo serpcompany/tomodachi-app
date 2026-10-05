@@ -1,6 +1,6 @@
 name: NotchBuddy
 options:
-  bundleIdPrefix: co.zenbu
+  bundleIdPrefix: com.zenbujapanese
   deploymentTarget:
     macOS: "15.0"
   xcodeVersion: "27.0"
@@ -54,7 +54,8 @@ targets:
       properties:
         CFBundleName: Tomodachi
         CFBundleDisplayName: Tomodachi
-        CFBundleIdentifier: co.zenbu.TomodachiDemo
+        NSHumanReadableCopyright: "Tomodachi by Zenbu Japanese. © 2026 Zenbu Japanese."
+        CFBundleIdentifier: com.zenbujapanese.tomodachi
         CFBundleVersion: "1"
         CFBundleShortVersionString: "0.0.1"
         CFBundlePackageType: APPL
@@ -67,7 +68,7 @@ targets:
           NSAllowsLocalNetworking: true
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: co.zenbu.TomodachiDemo
+        PRODUCT_BUNDLE_IDENTIFIER: com.zenbujapanese.tomodachi
         PRODUCT_NAME: Tomodachi
         INFOPLIST_FILE: Resources/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon

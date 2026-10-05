@@ -9,18 +9,18 @@ Everything we want, with its status. When something moves, update it here in the
 | Feature | Notes |
 |---|---|
 | Tomo in the notch, small between visits, click for free play | Coucou island shell |
-| 1さい single words, 2さい two-word phrases: tap a picture or do the action | Content hard-coded in `TomoGame.swift` |
+| 1さい single words, 2さい two-word phrases: tap a picture or do the action | Content in the language packs (`Resources/languages/<id>.json`) |
 | Baby word + "grown-ups say" reveal (ワンワン → いぬ) | |
 | Growing up: sprout at 2さい, bigger at 3さい | Placeholder thresholds |
-| Drop-in visits: every 10 min, 3 answers, leave after 10 s ignored | No settings yet |
+| Drop-in visits: every 20 min by default, 3 answers, leave after 10 s ignored | Frequency in Settings → General (10 min to 2 h, or only when clicked) |
 | Talking stage works at any age (3, 5, 7, 10, 12…): reply length and style grow with age; packs can set rules and opening questions per age band (`rulesByAge`, `startersByAge`). English has a 7+ band. Settings → "Try another age (testing)" | Ages beyond 3 can't be earned yet; growth thresholds are a leveling-research item |
 | Settings window: languages, visit frequency (10 min to 2 h, or click-only), voice, AI provider, About | `TomoSettingsView` |
 | Own app and menu bar icon, drawn from the character code | `TomoIconRenderer`, `scripts/make-icons.py` |
 | Signed + notarized beta builds for testers (0.0.1) | `scripts/release-beta.sh`; tester guide in [beta-testing.md](beta-testing.md) |
 | Win / Miss / No score badge after every answer; help requests ("what?", なに？) repeat the question and open the hint | `TomoOutcome`, `OutcomeBadge`; phrases in the packs (`helpPhrases`) |
 | Dismiss with × or Esc; after an unfinished visit, a red dot and a bounce every 60 s until you check in | `DropIn.nudgeEvery` |
-| 3さい conversation: typed or spoken answers | 5 starter questions |
-| AI provider adapter (Anthropic + any OpenAI-compatible), AI provider window | Default OpenAI `gpt-5.4-mini` via `.env` |
+| Conversation: typed or spoken answers | Opening questions per age from the pack (`startersByAge`) |
+| AI provider adapter (Anthropic + any OpenAI-compatible), Settings → AI | Default OpenAI `gpt-5.4-mini` via `.env` |
 | Japanese voice out (Apple TTS) and voice in (Apple, on-device only) | The mic isn't tested by hand yet |
 | Language pairs: any learner language × any target language, via data files | Learn Japanese, English or Spanish (drafts); interface in English or Japanese. Japanese speakers can learn English. See [languages.md](languages.md) |
 

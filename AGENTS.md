@@ -1,6 +1,6 @@
 # AGENTS
 
-Tomodachi: a Japanese-learning pet (Tomo) that lives in the MacBook notch and speaks at its age level. Part of Zenbu Japanese.
+**Tomodachi** (by Zenbu Japanese): a language-learning app whose character, **Tomo**, lives in the MacBook notch and speaks at its age level. Use "Tomodachi" for the app and "Tomo" for the character. Bundle ID: `com.zenbujapanese.tomodachi`.
 
 Current goal: prove that each part works and map out clean extension points. Polish comes later.
 
@@ -33,7 +33,7 @@ The app is menu-bar only, so computer-use can't target it. Use the debug flags i
 
 - `TOMO_SNAPSHOT_DIR=<dir>` saves a PNG of the island every second.
 - `TOMO_AUTOPLAY=1`, `TOMO_STAGE=3` and `TOMO_AUTOCHAT="…|…"` drive it without clicks.
-- Mute Tomo for test runs with `defaults write co.zenbu.TomodachiDemo soundEnabled -bool false`, and run `defaults delete co.zenbu.TomodachiDemo soundEnabled` afterwards.
+- Mute Tomo for test runs with `defaults write com.zenbujapanese.tomodachi soundEnabled -bool false`, and run `defaults delete com.zenbujapanese.tomodachi soundEnabled` afterwards.
 - The user may be watching or clicking the live app. A click shows up in snapshots as unexpected answers or restarts.
 - After testing, relaunch the user's copy with `mac-demo/run.sh`.
 

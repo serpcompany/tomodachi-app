@@ -245,7 +245,7 @@ struct TomoHeaderLeft: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Text("Tomo").font(.system(size: 13, weight: .semibold))
+            Text("Tomodachi").font(.system(size: 13, weight: .semibold))   // the app; the character is Tomo
             Text(game.age)
                 .font(.system(size: 11, weight: .bold))
                 .padding(.horizontal, 7).padding(.vertical, 2)

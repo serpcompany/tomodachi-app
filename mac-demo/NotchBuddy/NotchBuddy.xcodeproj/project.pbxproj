@@ -300,7 +300,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = co.zenbu.TomodachiDemo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomodachi;
 				PRODUCT_NAME = Tomodachi;
 				SDKROOT = macosx;
 			};
@@ -318,7 +318,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = co.zenbu.TomodachiDemo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomodachi;
 				PRODUCT_NAME = Tomodachi;
 				SDKROOT = macosx;
 			};

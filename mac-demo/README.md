@@ -10,12 +10,12 @@ Forked from [Coucou](https://github.com/Louis-CFM/coucou) (MIT code). Coucou's c
 ./run.sh   # from mac-demo/
 ```
 
-`run.sh` loads `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` from the repo's `.env` (gitignored) and passes it to the app, so Tomo replies with AI at 3さい (OpenAI default: `gpt-5.4-mini`). A provider saved under menu → **AI provider…** takes precedence. Without either, Tomo uses offline replies. You can also run `open build/Build/Products/Debug/Tomodachi.app`, which skips the AI keys.
+`run.sh` loads `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` from the repo's `.env` (gitignored) and passes it to the app, so Tomo replies with AI at 3さい (OpenAI default: `gpt-5.4-mini`). A provider saved under Settings → **AI** takes precedence. Without either, Tomo uses offline replies. You can also run `open build/Build/Products/Debug/Tomodachi.app`, which skips the AI keys.
 
-Tomo opens on its own every 10 minutes for a 3-answer visit. If you ignore it for 10 seconds, it tucks back in. In between, it sits small beside the notch: click it to play any time, and press Esc to close.
+Tomo opens on its own every 20 minutes by default (Settings → General) for a 3-answer visit. If you ignore it for 10 seconds, it tucks back in. In between, it sits small beside the notch: click it to play any time, and press Esc to close.
 
 The menu bar icon has:
-- **Open Tomo**
+- **Open Tomodachi**
 - **Drop in now** (⌘D)
 - **Skip to talking (3さい)** (⌘3)
 - **Restart Tomo** (⌘R)
@@ -59,17 +59,22 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 
 | File | Change |
 |---|---|
-| `Sources/App/TomoGame.swift` | New. Word lists for stages 1–2, rounds, growth, and the Japanese voice (`AVSpeechSynthesizer`, ja-JP, raised pitch) |
-| `Sources/App/TomoView.swift` | New. Island card, picture/action tiles, header status |
-| `Sources/App/TomoChat.swift` | New. 3さい questions, replies (AI if configured, offline otherwise), on-device Japanese speech recognition |
-| `Sources/App/TomoLanguage.swift`, `Resources/languages/` | New. Language packs (`ja.json`, `es.json`), interface strings (`ui.en.json`), and the pair selection |
+| `Sources/App/TomoGame.swift` | New. Rounds, visits, growth, help state, and the voice (`AVSpeechSynthesizer`, the pack's locale, raised pitch) |
+| `Sources/App/TomoView.swift` | New. The fixed-grid card (`TomoGrid`), picture/action tiles, chat card, help panel, header status |
+| `Sources/App/TomoChat.swift` | New. Talking-stage replies (language check, then AI if configured, offline otherwise), explain, on-device speech recognition |
+| `Sources/App/TomoLanguage.swift`, `Resources/languages/` | New. Language packs (`ja.json`, `en.json`, `es.json`), interface strings (`ui.en.json`, `ui.ja.json`), and the pair selection |
 | `Sources/App/TomoSettingsView.swift` | New. Settings window (General, AI, About) |
 | `Sources/App/TomoIconRenderer.swift`, `scripts/make-icons.py` | New. App and menu bar icons drawn from the character code |
 | `scripts/release-beta.sh`, `Resources/Tomodachi.entitlements` | New. Signed, notarized beta builds |
+| `Sources/App/TomoWords.swift` | New. Clickable words (`TomoLineView`), the font fit, word-card lookup (AI meaning + the Mac dictionary) |
 | `Sources/App/TomoAI.swift` | New. Provider adapter (Anthropic API + any OpenAI-compatible endpoint) and the AI provider window |
 | `BotEngine.swift` | Peach egg-shaped body, a sprout when grown, a hop when talking, softer state tint |
 | `AppDelegate.swift`, `AppState.swift` | No hooks or pollers. A single "tomo" task. Launches straight into the game |
 | `IslandRootView.swift`, `IslandViewContent.swift`, `IslandTypes.swift` | The header and overview show Tomo. The island is taller |
+| `IslandWindowController.swift` | Taller window (560 pt) so the help panel fits; the island's frame includes the help panel |
+| `BotCanvasView.swift` | Listens for the nudge bounce |
+| `NotchBuddyApp.swift` | The Settings scene shows `TomoSettingsView` |
+| `ClaudeService.swift` | Keychain service renamed to `co.zenbu.tomodachi` (kept, so saved keys still load) |
 
 Debug only:
 - `TOMO_AUTOPLAY=1` plays stages 1–2 by itself.

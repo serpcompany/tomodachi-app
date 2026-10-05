@@ -20,7 +20,7 @@ See the root level README.md
 | **Ages are the levels** | 1さい: single baby words (ワンワン, まんま). 2さい: two-word phrases (ワンワン いた！). 3さい: real short conversations. | Built for ages 1–3 |
 | **Understanding before speaking** | 1–2さい: tap the right picture, or do what Tomo asks (feed / bed / hug). 3さい: answer in your own words by typing Japanese or speaking. | Built |
 | **Baby talk + grown-up word** | Tomo says ワンワン, and after you get it the card shows "grown-ups say: いぬ（犬）". | Built |
-| **Drop-in visits** | Tomo opens on its own every so often (10 min in the demo) for a 3-answer visit. Ignore it for 10 s (20 s at 3さい), or close it with ×/Esc, and it tucks back in with a red dot and an occasional bounce until you check in. Visits wait while you're typing and skip if you're away. | Built (simple, no settings) |
+| **Drop-in visits** | Tomo opens on its own every so often (20 min by default; set in Settings) for a 3-answer visit. Ignore it for 10 s (20 s at 3さい), or close it with ×/Esc, and it tucks back in with a red dot and an occasional bounce until you check in. Visits wait while you're typing and skip if you're away. | Built (simple timing) |
 | **Always there** | Between visits, click small Tomo any time for free play with no time limit. | Built |
 | **Child-like feedback** | Right: happy roll, sparkles, praise. Wrong: shake and ちがう〜. Not understood: head tilt and ん？ わかんない… Poked: いたい！ | Built |
 | **Help when you're stuck** | Help opens in a large-text panel that grows out of the notch under Tomo's card. Click a word for its card (meaning in your language, the Mac dictionary, Open in Zenbu). Drag across words → "I don't understand" → an explanation of just that part. **Hint** shows the meaning and example answers (click one to use it). **Explain** gives the key parts and a tip, and can ask Tomo to say it simpler | Built (prototype) |
@@ -29,7 +29,7 @@ See the root level README.md
 | **AI is optional** | Stages 1–2 are fully scripted. 3さい uses AI if configured. Otherwise it uses a placeholder keyword matcher, which will be replaced by the Zenbu offline dictionary system. | Built |
 | **Settings** | Menu → Settings…: languages, how often Tomo visits (or only when clicked), voice, AI provider, About | Built |
 | **Any language pair** | What you speak and what you learn are separate settings (Settings → General). Packs: Japanese, English, Spanish; interface in English or Japanese, so a Japanese speaker can learn English. | Built; see [languages.md](languages.md) |
-| **Any AI provider** | One adapter: Anthropic's own API, plus anything that speaks the OpenAI chat format (OpenAI, Gemini, OpenRouter, Groq, Ollama, custom). Pick it under menu → **AI provider…** (key in the Keychain), or put `OPENAI_API_KEY` in `.env` and launch with `mac-demo/run.sh`. | Built; tested with OpenAI `gpt-5.4-mini` (about 2 s per reply) and local Ollama |
+| **Any AI provider** | One adapter: Anthropic's own API, plus anything that speaks the OpenAI chat format (OpenAI, Gemini, OpenRouter, Groq, Ollama, custom). Pick it under Settings → **AI** (key in the Keychain), or put `OPENAI_API_KEY` in `.env` and launch with `mac-demo/run.sh`. | Built; tested with OpenAI `gpt-5.4-mini` (about 2 s per reply) and local Ollama |
 
 ## Rules we've settled on
 

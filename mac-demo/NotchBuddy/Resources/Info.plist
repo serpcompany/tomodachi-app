@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
-	<string>co.zenbu.TomodachiDemo</string>
+	<string>com.zenbujapanese.tomodachi</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -29,6 +29,8 @@
 	</dict>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+	<key>NSHumanReadableCopyright</key>
+	<string>Tomodachi by Zenbu Japanese. © 2026 Zenbu Japanese.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Tomo listens when you answer out loud.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>

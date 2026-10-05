@@ -29,7 +29,7 @@
     "outcome.why.loss": "Tomo didn't get it. Try again!",
     "outcome.why.language": "Not in {language}: no score, no penalty",
     "outcome.why.help": "You asked for help: no score, no penalty",
-    "menu.open": "Open Tomo",
+    "menu.open": "Open Tomodachi",
     "menu.dropIn": "Drop in now",
     "menu.talk": "Skip to talking ({age})",
     "menu.restart": "Restart Tomo",
@@ -55,7 +55,7 @@
     "about.version": "Version {v} (beta)",
     "about.tagline": "A little friend in your notch who only speaks the language you're learning, at its own age.",
     "about.feedback": "Beta: things will break. Tell us what felt fun, confusing, or annoying.",
-    "about.credits": "A Zenbu Japanese experiment. Notch shell based on Coucou by Louis Raillé (MIT License).",
+    "about.credits": "Tomodachi by Zenbu Japanese. Notch shell based on Coucou by Louis Raillé (MIT License).",
     "ai.provider": "Provider",
     "ai.baseURL": "Base URL",
     "ai.key": "API key",
@@ -83,7 +83,8 @@
     "word.openMac": "Open in Dictionary",
     "word.open": "Open in Zenbu",
     "word.title": "Word",
-    "hint.try": "TRY SAYING"
+    "hint.try": "TRY SAYING",
+    "about.by": "by Zenbu Japanese"
   },
   "helpPhrases": [
     "what",

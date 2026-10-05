@@ -78,6 +78,7 @@ private struct TomoAboutView: View {
         VStack(spacing: 10) {
             Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 96, height: 96)
             Text("Tomodachi").font(.title2.bold())
+            Text(lang.learner("about.by")).font(.callout.weight(.medium)).foregroundStyle(.secondary)
             Text(lang.learner("about.version", ["v": version])).foregroundStyle(.secondary)
             Text(lang.learner("about.tagline")).multilineTextAlignment(.center)
             Text(lang.learner("about.feedback")).font(.callout).foregroundStyle(.secondary)
