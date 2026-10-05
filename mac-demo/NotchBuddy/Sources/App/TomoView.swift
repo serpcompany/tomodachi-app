@@ -359,20 +359,6 @@ struct PracticeChip: View {
     }
 }
 
-/// "Nothing counts until 5:44 AM…" (`key`), or the `key.now` variant when there's no time to give.
-@MainActor func practiceText(_ key: String, until: Date?, _ lang: TomoLanguages) -> String {
-    guard let until else { return lang.learner("\(key).now") }
-    let f = DateFormatter()
-    f.locale = Locale(identifier: lang.learner.id)
-    f.timeStyle = .short
-    f.formattingContext = .middleOfSentence
-    if !Calendar.current.isDateInToday(wallClock(until)) { f.dateStyle = .short; f.doesRelativeDateFormatting = true }
-    return lang.learner(key, ["time": f.string(from: wallClock(until))])
-}
-
-/// A time on Tomo's clock (which testing can move ahead, TomoClock) on the Mac's clock.
-@MainActor private func wallClock(_ d: Date) -> Date { d.addingTimeInterval(Date().timeIntervalSince(TomoClock.now)) }
-
 /// A round icon button (replay) next to the word; its label is the tooltip.
 private struct IconButton: View {
     let icon: String

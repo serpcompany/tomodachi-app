@@ -16,6 +16,7 @@ Current goal: prove that each part works and map out clean extension points. Pol
 | Decisions made, and why | [docs/decisions.md](docs/decisions.md) |
 | Deep dives (levels, voices, data schema, age vocabulary, answer checking, AI cost) | [docs/research/](docs/research/) |
 | The demo app: run, rebuild, debug flags, beta builds, icons, files changed from Coucou | [mac-demo/README.md](mac-demo/README.md) |
+| The iPhone demo (#52): build, run in the simulator, debug flags | [ios-demo/README.md](ios-demo/README.md) |
 | What beta testers get told | [docs/beta-testing.md](docs/beta-testing.md) |
 | Dictionary, Language Reference IDs, word splitter (Sudachi) | `../zenbujapanese-monorepo` (read-only from here) |
 

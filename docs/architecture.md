@@ -6,7 +6,7 @@ Two places:
 - **`TomoCore/`** (Swift package, macOS and iOS): everything that isn't tied to one device. `TomoGame`, `TomoProgress`, `TomoStore`, `TomoLanguage` and the packs (`Sources/TomoCore/Resources/languages/`), `TomoChat` (`TomoBrain`, `TomoListener`), `TomoAI`, `TomoKeychain`, `TomoSounds`, `TomoCharacter` (`TomoChick`, `TomoChickView`), `TomoWords` (tokens, word-card lookup) and `TomoSignals` (`BotState`, `BotEmote`, the notification names).
 - **`mac-demo/NotchBuddy/Sources/App/`** (the Mac shell): Coucou's island, the card (`TomoView`), Settings, `TomoIslandCharacter` (Tomo in the island, gaze from the cursor), `TomoLineView` (clickable words, Dictionary.app), `TomoIconRenderer`.
 
-A shell drives `TomoGame` through closures it sets at launch (the Mac sets them in `AppDelegate`): `openIsland`, `closeIsland`, `isIslandOpen`, `focusInput`, `isPointerInside`, `onBotState`, `onHelpChange`, `onActivity`, `secondsSinceInput`. The iPhone app ([#52](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/52)) sets its own.
+A shell drives `TomoGame` through closures it sets at launch (the Mac sets them in `AppDelegate`): `openIsland`, `closeIsland`, `isIslandOpen`, `focusInput`, `isPointerInside`, `onBotState`, `onHelpChange`, `onActivity`, `secondsSinceInput`. The iPhone app (`ios-demo/`, `TomoPhoneShell` in `TomodachiApp.swift`; [#52](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/52)) sets its own: the app being on screen counts as open and as the pointer being inside, so Tomo never times out while you look at it.
 
 ## Layers
 
