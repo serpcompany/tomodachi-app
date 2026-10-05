@@ -11,6 +11,10 @@ import SwiftUI
 @MainActor
 enum TomoIconRenderer {
     static func renderIfRequested() {
+        if let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_SOUNDS"] {
+            TomoSounds.renderFiles(to: URL(fileURLWithPath: dir))
+            NSApp.terminate(nil)
+        }
         if let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_ANIM"] {
             renderAnimation(to: URL(fileURLWithPath: dir))
             NSApp.terminate(nil)

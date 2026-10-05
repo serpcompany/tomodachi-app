@@ -149,7 +149,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupIsland() {
         islandController = IslandWindowController()
         islandController?.showWindow(nil)
-        SoundEngine.shared.enabled = false   // Coucou's sounds aren't ours to ship; none are bundled
+        TomoSounds.shared.listen()           // Tomo's own synthesized sound effects
         // Tomo visits on its own (see DropIn); the first visit is right at launch.
         islandController?.fsm.homeToPetitDelay = 45
         // Between visits Tomo hangs out small beside the notch (click to play anytime): never auto-hide.

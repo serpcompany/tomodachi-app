@@ -39,6 +39,7 @@
 		C808B654C84D9F71DBF8493A /* GithubPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CB8B6E5E9DA6164F979E88F /* GithubPoller.swift */; };
 		C940B651C6CA952D99388E04 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 192844E7299DEED5C2372067 /* AppDelegate.swift */; };
 		CA3321C14A11FED94E48B3E3 /* IslandRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15A1A8206F73376F4CAF2057 /* IslandRootView.swift */; };
+		CD920806B2B75FFA98FEB23F /* TomoSounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92989BFEF48D9F2F10F086FB /* TomoSounds.swift */; };
 		D58B1E93AF65DE404C40E21E /* PillCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6A38B5686C4A1F15AB5D29 /* PillCatalog.swift */; };
 		DC71BBD15F2044AE17D7B17D /* TomoIconRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6DA49ECE3D13AC1934BC2AF /* TomoIconRenderer.swift */; };
 		DCAC390FF9EC65B945A15B24 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 506824380E9C80B9BC6DCE72 /* Assets.xcassets */; };
@@ -69,6 +70,7 @@
 		886D6B60DE52F5FB8265AEBD /* TomoAI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoAI.swift; sourceTree = "<group>"; };
 		8CB8B6E5E9DA6164F979E88F /* GithubPoller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GithubPoller.swift; sourceTree = "<group>"; };
 		8D3CE3617E9D336DDBA10F7A /* IslandTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandTypes.swift; sourceTree = "<group>"; };
+		92989BFEF48D9F2F10F086FB /* TomoSounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoSounds.swift; sourceTree = "<group>"; };
 		9F6D7015D6A77AA59323C0E7 /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
 		A14A61070D293AB4BBA303F7 /* NotchBuddy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NotchBuddy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A83D5410BD030B243ADDCFF4 /* ClaudeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeService.swift; sourceTree = "<group>"; };
@@ -121,6 +123,7 @@
 				C6DA49ECE3D13AC1934BC2AF /* TomoIconRenderer.swift */,
 				21AEA961CC80F2DC1D89C9D1 /* TomoLanguage.swift */,
 				C30A8885E67C6B32B824D468 /* TomoSettingsView.swift */,
+				92989BFEF48D9F2F10F086FB /* TomoSounds.swift */,
 				121E58044C07D5383C400BB8 /* TomoView.swift */,
 				395B40D67C6D2560409F6AC2 /* TomoWords.swift */,
 				6FD65943C32E150F1CD65C31 /* UploadSequenceEngine.swift */,
@@ -265,6 +268,7 @@
 				DC71BBD15F2044AE17D7B17D /* TomoIconRenderer.swift in Sources */,
 				A41CFE8F6CB52DD66B42AA23 /* TomoLanguage.swift in Sources */,
 				81A767370621AEE54113C92E /* TomoSettingsView.swift in Sources */,
+				CD920806B2B75FFA98FEB23F /* TomoSounds.swift in Sources */,
 				065E4D62682B27B2292C605D /* TomoView.swift in Sources */,
 				A1CC113B96317840941D4C43 /* TomoWords.swift in Sources */,
 				FAD78D74C6906D4EC8AA4101 /* UploadSequenceEngine.swift in Sources */,

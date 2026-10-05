@@ -49,7 +49,7 @@
     "settings.visits.45m": "45分ごと",
     "settings.visits.2h": "2時間ごと",
     "settings.visits.off": "クリックしたときだけ",
-    "settings.voice": "Tomoの声",
+    "settings.voice": "Tomoの声と音",
     "settings.restart": "Tomoをリスタート",
     "settings.restartNote": "Tomoは最初の年齢にもどります。",
     "about.version": "バージョン {v}（ベータ）",

@@ -21,6 +21,7 @@ Everything we want, with its status. When something moves, update it here in the
 | Dismiss with × or Esc; after an unfinished visit, a red dot and a bounce every 60 s until you check in | `DropIn.nudgeEvery` |
 | Conversation: typed or spoken answers | Opening questions per age from the pack (`startersByAge`) |
 | AI provider adapter (Anthropic + any OpenAI-compatible), Settings → AI | Default OpenAI `gpt-5.4-mini` via `.env` |
+| Sound effects synthesized in code (peeps, chirps, Win / Miss / No score, hatch, poke, love, yawn, island blips) | `TomoSounds.swift`; same switch as the voice |
 | Japanese voice out (Apple TTS) and voice in (Apple, on-device only) | The mic isn't tested by hand yet |
 | Language pairs: any learner language × any target language, via data files | Learn Japanese, English or Spanish (drafts); interface in English or Japanese. Japanese speakers can learn English. See [languages.md](languages.md) |
 
@@ -39,7 +40,7 @@ Everything we want, with its status. When something moves, update it here in the
 | 2さい reply bubbles + "say this word" (between tapping and free talk) | Next | The answer ladder in [user-journey.md](user-journey.md) §3 |
 | Native-speaker review of the language packs (ja, es) | Next | Both are drafts (`reviewedByNativeSpeaker: false`) |
 | Save progress per language pair; one Tomo per target language | Next | Key the learner store by (learner, target) |
-| Debrand: remove Coucou, Mochi and Grok Bot names, assets and leftovers | Next (character done: Tomo is our own chick; names, sounds and leftover features remain) | [serpcompany/zenbujapanese-tomo-app#1](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/1). Required before showing publicly (license). Keep the MIT notice and one credit line |
+| Debrand: remove Coucou, Mochi and Grok Bot names, assets and leftovers | Next (character and sounds done: Tomo is our own chick with its own synthesized sounds; names and leftover features remain) | [serpcompany/zenbujapanese-tomo-app#1](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/1). Required before showing publicly (license). Keep the MIT notice and one credit line |
 | Judge answers in layers, never by AI alone: (1) right language (built); (2) on-topic via the Zenbu dictionary + per-question expected answers; (3) AI fills yes/no verdict fields that code double-checks. Outcomes Win / Miss / No score are built and shown as badges | Next (layers 2–3) | Seen live: `gpt-5.4-mini` accepted "car" as understood. Layer 1 now blocks that |
 | Adapter: send a JSON schema and `reasoning_effort` per provider | Next | From ai-models-and-costs.md: guarantees Tomo's JSON shape; avoids paying for unneeded reasoning |
 | Speech recognition hints: pass the question's expected words as `contextualStrings` | Next | From voices.md / answer-evaluation.md |

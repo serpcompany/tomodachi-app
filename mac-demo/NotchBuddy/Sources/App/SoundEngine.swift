@@ -1,50 +1,22 @@
-import AVFoundation
-import AppKit
+import Foundation
 
-/// Preloaded WAV players with near-zero latency.
-/// Volume default 0.12 (matches prototype: gain ×6 then vol=0.12).
+/// Coucou's sound player, now a thin shim. Coucou's sound files are deleted; the island's open and
+/// close blips come from Tomo's own synthesized sounds (TomoSounds). Other names Coucou played
+/// (its coding-agent features, switched off) are silent.
 @MainActor
 final class SoundEngine {
     static let shared = SoundEngine()
 
-    var enabled: Bool = true
-    var volume: Float = 0.12 {
-        didSet { players.values.forEach { $0.forEach { $0.volume = volume } } }
-    }
-
-    // Pool of 3 players per sound to allow overlapping playback
-    private var players: [String: [AVAudioPlayer]] = [:]
-
-    private init() {
-        preload()
-    }
-
-    private func preload() {
-        let names = ["peek","open","close","hover","blip","slap","annoyed","dizzy","greet",
-                     "work","finish","error","approval","question","approve","gulp","tick",
-                     "send","love","pop","proud","wink","yawn","attach","think","search",
-                     "rate","sleep"]
-        for name in names {
-            guard let url = Bundle.main.url(forResource: name, withExtension: "wav", subdirectory: "sounds") else { continue }
-            var pool: [AVAudioPlayer] = []
-            for _ in 0..<3 {
-                if let p = try? AVAudioPlayer(contentsOf: url) {
-                    p.volume = volume
-                    p.prepareToPlay()
-                    pool.append(p)
-                }
-            }
-            if !pool.isEmpty { players[name] = pool }
-        }
-    }
+    var enabled = true
+    var volume: Float = 0.12
 
     func play(_ name: String) {
-        guard enabled && AppState.shared.soundEnabled else { return }
-        guard let pool = players[name] else { return }
-        // Find a player that is not currently playing
-        let player = pool.first { !$0.isPlaying } ?? pool[0]
-        player.currentTime = 0
-        player.volume = volume
-        player.play()
+        guard enabled else { return }
+        switch name {
+        case "open": TomoSounds.shared.play(.open)
+        case "close": TomoSounds.shared.play(.close)
+        case "peek": TomoSounds.shared.play(.tick)
+        default: break
+        }
     }
 }

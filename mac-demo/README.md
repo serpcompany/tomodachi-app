@@ -20,7 +20,7 @@ The menu bar icon has:
 - **Skip to talking (3さい)** (⌘3)
 - **Restart Tomo** (⌘R)
 - **Settings…** (⌘,):
-  - *General:* the language pair (I speak / I'm learning), how often Tomo visits (10 min to 2 h, or only when you click), Tomo's voice, restart
+  - *General:* the language pair (I speak / I'm learning), how often Tomo visits (10 min to 2 h, or only when you click), Tomo's voice and sounds, restart
   - *AI:* any provider (Anthropic, OpenAI, Gemini, OpenRouter, Groq, Ollama, or a custom OpenAI-compatible endpoint), key stored in the Keychain
   - *About*
 
@@ -68,6 +68,7 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 | `scripts/release-beta.sh`, `Resources/Tomodachi.entitlements` | New. Signed, notarized beta builds |
 | `Sources/App/TomoWords.swift` | New. Clickable words (`TomoLineView`), the font fit, word-card lookup (AI meaning + the Mac dictionary) |
 | `Sources/App/TomoCharacter.swift` | New. Tomo the chick (`TomoChick`): drawing, faces, moves, growth, particles; `TomoCharacterView` puts it in the island |
+| `Sources/App/TomoSounds.swift` | New. Tomo's sound effects, synthesized in code (no audio files) |
 | `Sources/App/TomoAI.swift` | New. Provider adapter (Anthropic API + any OpenAI-compatible endpoint) and the AI provider window |
 | `BotEngine.swift`, `BotCanvasView.swift`, `GreetingCanvasView.swift`, `UploadCanvasView.swift` | Deleted: Coucou's character and the canvases that drew it. The last versions are in git history (`git show 43a5ada:mac-demo/NotchBuddy/Sources/App/BotEngine.swift`) and in the upstream Coucou repo. Read them for technique only; Mochi's look, expressions and animations are reserved |
 | `AppDelegate.swift`, `AppState.swift` | No hooks or pollers. A single "tomo" task. Launches straight into the game |
@@ -75,6 +76,7 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 | `IslandWindowController.swift` | Taller window (560 pt) so the help panel fits; the island's frame includes the help panel. The drag ghost draws `TomoCharacterView` |
 | `NotchBuddyApp.swift` | The Settings scene shows `TomoSettingsView` |
 | `project.yml`, `Resources/Info.plist` | App name Tomodachi, bundle ID `com.zenbujapanese.tomodachi`, microphone and speech permission text (Coucou's French strings removed), Release signing for beta builds |
+| `SoundEngine.swift`, `Resources/sounds/` | `SoundEngine` is now a shim that sends the island's open/close/peek to `TomoSounds`; Coucou's 28 sound files are deleted |
 | `ClaudeService.swift` | Keychain service renamed to `co.zenbu.tomodachi` (kept, so saved keys still load) |
 
 Debug only:
@@ -85,12 +87,13 @@ Debug only:
 - `TOMO_SNAPSHOT_DIR=/path` saves a PNG of the island every second; with `TOMO_OPEN_SETTINGS=1` it also captures the Settings window.
 - `TOMO_RENDER_ICON=/path` renders the icon images and quits.
 - `TOMO_RENDER_SHEET=/path` renders `tomo-sheet.png` (every age and face of the character) and quits.
+- `TOMO_RENDER_SOUNDS=/path` writes every sound effect at every age as a WAV, plus `all-sounds.wav`, and quits.
 - `TOMO_RENDER_ANIM=/path` renders a scripted 16-second scene as `frame-0000.png`… (20 fps) and quits. Join the frames into a GIF to check motion.
 
 ## License note
 
 Coucou's **code** is MIT (see `LICENSE`). Its name, its Mochi character and its **sounds** are not (see `LICENSE-ASSETS.md`).
 
-- **Removed from builds:** Coucou's sounds (still in the repo until issue #1), and its icons (replaced by Tomo's).
+- **Replaced:** Coucou's sounds (deleted; Tomo's are synthesized in `TomoSounds.swift`) and its icons (drawn from Tomo's code).
 - **Replaced:** the character. Tomo is our own chick (`TomoCharacter.swift`); Coucou's character code is deleted, so no permission is needed.
 - **Still open (issue #1):** Coucou names in code and comments, the sound files, and leftover features.

@@ -122,7 +122,9 @@ final class TomoGame: ObservableObject {
     @Published private(set) var phase: TomoPhase = .asking
     @Published private(set) var known: Set<String> = []
     @Published var hintShown = false
-    @Published private(set) var outcome: TomoOutcome?
+    @Published private(set) var outcome: TomoOutcome? {
+        didSet { if let o = outcome { TomoSounds.shared.outcome(o) } }
+    }
     /// A visit ended unfinished: red dot on small Tomo + a bounce now and then, until you open it.
     @Published private(set) var pending = false
     private var nextNudge = Date.distantFuture
