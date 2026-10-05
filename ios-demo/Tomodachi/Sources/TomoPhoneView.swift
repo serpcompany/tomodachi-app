@@ -18,8 +18,8 @@ struct TomoPhoneView: View {
     private var growth: CGFloat { CGFloat(min(max(game.stage - 1, 0), 2)) }
     private var said: String { game.isChat ? game.line.say : game.round.say }
     /// Row sizes: full, or compact while the keyboard is up.
-    private var tomoSize: CGFloat { typing ? 120 : 230 }
-    private var speechHeight: CGFloat { typing ? 120 : 150 }
+    private var tomoSize: CGFloat { typing ? 110 : 220 }
+    private var speechHeight: CGFloat { typing ? 180 : 190 }   // two lines, the result, one line of why
 
     var body: some View {
         VStack(spacing: 0) {
@@ -127,6 +127,14 @@ struct TomoPhoneView: View {
                     .foregroundStyle(Color(hex: "#D5D8DE"))
                     .lineLimit(2).minimumScaleFactor(0.8)
             }
+        }
+        // Talking: why the answer got its result, and what Tomo read (romaji shows here as kana).
+        if game.isChat, game.help != .hint, let you = game.lastAnswer, let o = game.outcome, game.phase != .thinking {
+            Text("\(o.why(lang)) · \(lang.learner("you", ["x": you]))")
+                .font(.system(size: 14))
+                .foregroundStyle(Color(hex: "#9EA3AC"))
+                .multilineTextAlignment(.center)
+                .lineLimit(2).minimumScaleFactor(0.8)
         }
         if game.isChat, game.help == .hint, !game.line.examples.isEmpty {
             HStack(spacing: 6) {

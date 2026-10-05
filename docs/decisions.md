@@ -2,6 +2,9 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
+### 2026-10-06: Romaji answers count as Japanese
+An answer typed in romaji ("shigoto shiteru") is turned into hiragana before it's checked, and the card shows the kana Tomo read. It's converted only when every word is valid romaji, so English ("what are you doing") still gets No score. **Why:** a learner without a Japanese keyboard, or one who can't read kana yet, still knows the answer; typing it in romaji shouldn't be a dead end.
+
 ### 2026-10-06: Tomo's shared code is a Swift package, TomoCore
 Everything that isn't Mac-only (the game, growth and store, languages and packs, AI, voice, sounds, the chick's drawing) moved from the Mac app into a local Swift package, `TomoCore/`, that builds for macOS and iOS. The Mac app and the iPhone app are shells around it and talk to `TomoGame` through closures, not Coucou's `AppState`. It was done before any iPhone code ([#52](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/52)). **Why:** the iPhone app, its widgets and Live Activities need the same Tomo, and a package boundary keeps Mac-only code (the notch, AppKit, Dictionary.app) out of it. The cost: the API the shells use is marked `public`.
 

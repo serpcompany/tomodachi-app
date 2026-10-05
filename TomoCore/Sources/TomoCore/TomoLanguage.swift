@@ -135,6 +135,33 @@ public struct TargetPack: Codable, Sendable {
         (n == 1 ? age.one : age.other).replacingOccurrences(of: "{n}", with: "\(n)")
     }
 
+    /// An answer as Tomo should read it. Japanese typed in romaji ("shigoto shiteru") becomes hiragana
+    /// (しごと してる), but only when every word is valid romaji, so English stays English. Other scripts:
+    /// unchanged.
+    public func normalizedAnswer(_ text: String) -> String {
+        guard script == "Jpan", !looksLikeTarget(text, learner: ""), let kana = Self.hiragana(fromRomaji: text)
+        else { return text }
+        return kana
+    }
+
+    /// One romaji syllable, IME style: a vowel; a consonant (or digraph) and a vowel, maybe after a doubled
+    /// consonant (kitto, matcha); ん as n, nn or n'; a dash for a long vowel.
+    private static let romajiWord = try! NSRegularExpression(pattern:
+        "^(?:[aiueo]|(?:([bcdfghjkmprstvz])(?=\\1)|[tc](?=ch))?(?:ky|gy|sh|sy|zy|jy|ch|cy|ty|dy|ny|hy|by|py|my|ry|ts|th|dh|fy|[kgsztdnhbpmyrwfjv])[aiueo]|n'|nn(?![aiueoy])|n(?![aiueoy])|-)+$")
+
+    static func hiragana(fromRomaji text: String) -> String? {
+        let lower = text.lowercased()
+        let words = lower.split { $0.isWhitespace || ($0.isPunctuation && $0 != "'" && $0 != "-") }.map(String.init)
+        guard !words.isEmpty, words.allSatisfy({
+            romajiWord.firstMatch(in: $0, range: NSRange($0.startIndex..., in: $0)) != nil
+        }) else { return nil }
+        // Apple's transform reads "nni" as っに; an IME reads it as んに (konnichiwa). A lone "nn" is ん.
+        let fixed = lower.replacingOccurrences(of: "n{2,3}(?=[aiueoy])", with: "n'n", options: .regularExpression)
+            .replacingOccurrences(of: "nn", with: "n'")
+            .replacingOccurrences(of: "-", with: "\u{30FC}")
+        return fixed.applyingTransform(.latinToHiragana, reverse: false)
+    }
+
     /// Layer 1 of answer checking: is this text in the target language at all?
     public func looksLikeTarget(_ text: String, learner: String) -> Bool {
         switch script {

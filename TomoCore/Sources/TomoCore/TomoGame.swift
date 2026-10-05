@@ -78,6 +78,17 @@ public enum TomoOutcome: Equatable, Sendable {
     case neutral(String)        // "language" (not in the target language) or "help": no credit, no penalty
 }
 
+extension TomoOutcome {
+    /// Why an answer got this result, in the learner's language ("Not in Japanese: no score, no penalty").
+    @MainActor public func why(_ lang: TomoLanguages) -> String {
+        switch self {
+        case .win(let counted): lang.learner(counted ? "outcome.why.win" : "outcome.why.practice")
+        case .loss:            lang.learner("outcome.why.loss")
+        case .neutral(let r):  lang.learner("outcome.why.\(r)", ["language": lang.targetName])
+        }
+    }
+}
+
 /// What the help panel below Tomo's card shows (the island grows to fit it).
 public enum TomoHelp: Equatable, Sendable {
     case hint                // reading, meaning, example answers
@@ -809,7 +820,7 @@ public final class TomoGame: ObservableObject {
     }
 
     public func answer(_ text: String) {
-        let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let text = lang.target.normalizedAnswer(text.trimmingCharacters(in: .whitespacesAndNewlines))
         guard isChat, phase == .asking, !text.isEmpty else { return }
         if lang.isHelpRequest(text) {
             progress.logTry(itemCredited ? nil : currentItem, mode: "talk", result: "help")

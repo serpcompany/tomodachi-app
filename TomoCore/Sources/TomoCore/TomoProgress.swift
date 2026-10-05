@@ -429,6 +429,13 @@ public final class TomoProgress {
         reopened.startOver()
         let fresh = TomoProgress(pack: pack, learner: "en", directory: dir)
         check(fresh.level == 1 && fresh.age == 1 && fresh.items.isEmpty, "start over is saved")
+
+        // Answers typed in romaji (TargetPack.normalizedAnswer)
+        let romaji = ["shigoto shiteru", "konnichiwa", "matcha", "ra-men"].map { pack.normalizedAnswer($0) }
+        check(romaji.allSatisfy { pack.looksLikeTarget($0, learner: "en") }, "romaji answers become kana: \(romaji)")
+        check(!romaji[1].unicodeScalars.contains { $0.value == 0x3063 }, "konnichiwa has ん, not a small tsu")  // text-ok: self-test output
+        let english = ["what are you doing", "I'm working", "car", "yes"]
+        check(english.allSatisfy { pack.normalizedAnswer($0) == $0 }, "English answers stay English")
         return ok
     }
 }

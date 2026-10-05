@@ -797,13 +797,7 @@ struct OutcomeBadge: View {
         }
     }
 
-    static func why(_ o: TomoOutcome, _ lang: TomoLanguages) -> String {
-        switch o {
-        case .win(let counted): lang.learner(counted ? "outcome.why.win" : "outcome.why.practice")
-        case .loss:            lang.learner("outcome.why.loss")
-        case .neutral(let r):  lang.learner("outcome.why.\(r)", ["language": lang.targetName])
-        }
-    }
+    static func why(_ o: TomoOutcome, _ lang: TomoLanguages) -> String { o.why(lang) }
 
     var body: some View {
         HStack(spacing: 4) {
