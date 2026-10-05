@@ -1,6 +1,6 @@
 # AGENTS
 
-**Tomodachi** (by Zenbu Japanese): a language-learning app whose character, **Tomo**, lives in the MacBook notch and speaks at its age level. Use "Tomodachi" for the app and "Tomo" for the character. Bundle ID: `com.zenbujapanese.tomodachi`.
+**Tomodachi** (by Zenbu Japanese): a language-learning app whose character, **Tomo**, lives in the MacBook notch and speaks at its age level. Tomo comes to you through the day; what it teaches comes from a content source (the age track by default). Use "Tomodachi" for the app and "Tomo" for the character. Bundle ID: `com.zenbujapanese.tomodachi`.
 
 Current goal: prove that each part works and map out clean extension points. Polish comes later.
 
@@ -10,11 +10,10 @@ Current goal: prove that each part works and map out clean extension points. Pol
 |---|---|
 | The pitch and the original idea notes (user-owned; don't rewrite) | [README.md](README.md) |
 | What works today and the settled rules | [docs/concepts.md](docs/concepts.md) |
-| Systems, their seams, and what plugs in later (read before changing code) | [docs/architecture.md](docs/architecture.md) |
+| Systems, their seams, and links to planned work (read before changing code) | [docs/architecture.md](docs/architecture.md) |
 | Language pairs, packs, and adding a language | [docs/languages.md](docs/languages.md) |
-| Features and ideas, with their status | [docs/backlog.md](docs/backlog.md) |
+| Plans, ideas and open questions (one issue each; labels `next`, `idea`, `researched`, `question`) | [GitHub issues](https://github.com/serpcompany/zenbujapanese-tomo-app/issues) |
 | Decisions made, and why | [docs/decisions.md](docs/decisions.md) |
-| User-journey feature ideas | [docs/user-journey.md](docs/user-journey.md) |
 | Deep dives (levels, voices, data schema, age vocabulary, answer checking, AI cost) | [docs/research/](docs/research/) |
 | The demo app: run, rebuild, debug flags, beta builds, icons, files changed from Coucou | [mac-demo/README.md](mac-demo/README.md) |
 | What beta testers get told | [docs/beta-testing.md](docs/beta-testing.md) |
@@ -40,9 +39,10 @@ The app is menu-bar only, so computer-use can't target it. Use the debug flags i
 
 ## Rules
 
+- **Docs describe what's real:** what's built and what's decided. Plans, proposals, ideas and open questions go in GitHub issues, and docs link to them. Research write-ups stay in `docs/research/` as evidence for the issues.
 - **Keep the docs current in the same change:**
   - a seam moved → `architecture.md`
-  - a feature changed status → `backlog.md`
+  - a planned feature or idea moved → its GitHub issue (close it when it's built)
   - a decision was made → `decisions.md`
   - something new works → `concepts.md`
   - run/debug steps or Coucou files touched → `mac-demo/README.md`
