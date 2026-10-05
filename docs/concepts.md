@@ -1,15 +1,16 @@
 # Tomodachi: working concepts
 
 Where the idea stands, what the demo already proves, and what is still open. Related docs:
-- feature ideas: [user-journey.md](user-journey.md)
 - systems and extension points: [architecture.md](architecture.md)
-- status of everything we want: [backlog.md](backlog.md)
+- plans, ideas and open questions: [GitHub issues](https://github.com/serpcompany/zenbujapanese-tomo-app/issues)
 - decisions: [decisions.md](decisions.md)
 - deep dives: [research/](research/)
 
 ## The pitch
 
 See the root level README.md
+
+**The core: Tomo comes to you.** You never have to find the discipline to open a learning app every day. Tomo drops in through the day for a 10–30 second moment, then leaves. What it brings comes from a **content source**. Today the only source is the age track (the README's idea). Other sources, like an Anki deck, are ideas ([#11](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/11), [#12](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/12)).
 
 ## Concepts that work (tried in the demo)
 
@@ -20,10 +21,10 @@ See the root level README.md
 | **Ages are the levels** | 1さい: single baby words (ワンワン, まんま). 2さい: two-word phrases (ワンワン いた！). 3さい: real short conversations. | Built for ages 1–3 |
 | **Understanding before speaking** | 1–2さい: tap the right picture, or do what Tomo asks (feed / bed / hug). 3さい: answer in your own words by typing Japanese or speaking. | Built |
 | **Baby talk + grown-up word** | Tomo says ワンワン, and after you get it the card shows "grown-ups say: いぬ（犬）". | Built |
-| **Drop-in visits** | Tomo opens on its own every so often (20 min by default; set in Settings) for a 3-answer visit. Ignore it for 10 s (20 s at 3さい), or close it with ×/Esc, and it tucks back in with a red dot and an occasional bounce until you check in. Visits wait while you're typing and skip if you're away. | Built (simple timing) |
+| **Drop-in visits** | Tomo opens on its own every so often (20 min by default; 10 min to 2 h, or only when clicked, in Settings), starting at launch, for a 3-answer visit. Ignore it for 10 s (20 s at 3さい), or close it with ×/Esc, and it tucks back in with a red dot and an occasional bounce until you check in. Visits wait while you're typing and skip if you're away. | Built (simple timing) |
 | **Always there** | Between visits, click small Tomo any time for free play with no time limit. | Built |
 | **Child-like feedback** | Right: hop, wing flap, sparkles, praise. Wrong: shake, > < eyes and ちがう〜. Not understood: head tilt, a "?" and ん？ わかんない… Poked: a squish and いたい！ (three pokes make it dizzy) | Built |
-| **Help when you're stuck** | Help opens in a large-text panel that grows out of the notch under Tomo's card. Click a word for its card (meaning in your language, the Mac dictionary, Open in Zenbu). Drag across words → "I don't understand" → an explanation of just that part. **Hint** shows the meaning and example answers (click one to use it). **Explain** gives the key parts and a tip, and can ask Tomo to say it simpler | Built (prototype) |
+| **Help when you're stuck** | Help opens in a large-text panel that grows out of the notch under Tomo's card. Click a word for its card (meaning in your language, the Mac dictionary, Open in Zenbu). Drag across words → "I don't understand" → an explanation of just that part. **Hint** shows the meaning and example answers (click one to use it). **Explain** gives the key parts and a tip, and can ask Tomo to say it simpler. Tomo doesn't leave while help is open | Built (prototype) |
 | **Every answer has an obvious result** | **✓ Win +1** (green): understood or right picture; counts toward growth. **✗ Miss** (red): tried, Tomo didn't get it, or wrong picture. **– No score** (grey): wrong language, or a help request ("what?", なに？); no credit, no penalty. Help requests repeat the question slowly and open the hint. | Built |
 | **Sound effects** | Tomo peeps and chirps: a "piyo piyo" when a visit starts, happy chirps for a Win, a soft boo-oop for a Miss, a questioning "hm?" for No score, a pop and fanfare when it hatches or grows, a boing when poked, a trill for love, a yawn. The island blips when it opens and closes. All synthesized in code; the peeps get lower as Tomo grows. One switch with the voice. | Built |
 | **Voice in and out** | Tomo speaks with macOS's Japanese voice at a raised pitch. You answer through Apple's on-device Japanese speech recognition. Both are free and offline. | Built (the mic is untested by hand) |
@@ -34,6 +35,7 @@ See the root level README.md
 
 ## Rules we've settled on
 
+- **Tomo comes to you.** The visits are the product; the material is a content source that can be swapped.
 - **No study sessions.** Learning happens in short visits. Free play is always available but never required.
 - **No guilt.** No streak shaming. Tomo is happy to see you, never disappointed in you.
 - **Grade whether you were understood, not your pronunciation.** If Tomo doesn't get it, it reacts like a child (ん？), not like a teacher.
@@ -48,17 +50,17 @@ See the root level README.md
 
 These numbers are for the demo only. See the open questions below.
 
-## Open questions (research done; decisions tracked in [backlog.md](backlog.md))
+## Open questions (research done; each has a GitHub issue)
 
-| Question | Research file |
-|---|---|
-| How should points and levels work so growth feels earned and can't be crammed? | [research/leveling-points.md](research/leveling-points.md) |
-| How do we get a better, child-like Japanese voice, and can it mature as Tomo ages? | [research/voices.md](research/voices.md) |
-| Which learning modes should Tomo use, and when? | [research/learning-modes.md](research/learning-modes.md) |
-| What's the data model for the words a learner knows and has encountered? | [research/learner-data-schema.md](research/learner-data-schema.md) |
-| Where do we get the vocabulary and grammar for each age, so Tomo knows what it can say and understand? | Deferred: it will come from the Zenbu learning system. Background: [research/age-vocabulary-data.md](research/age-vocabulary-data.md) |
-| How do we check a learner's answer without AI, and when is AI worth calling? | [research/answer-evaluation.md](research/answer-evaluation.md) |
-| Which AI models are good at toddler Japanese, and what does a conversation cost? | [research/ai-models-and-costs.md](research/ai-models-and-costs.md) |
+| Question | Issue | Research file |
+|---|---|---|
+| How should points and levels work so growth feels earned and can't be crammed? | [#3](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/3) | [research/leveling-points.md](research/leveling-points.md) |
+| How do we get a better, child-like Japanese voice, and can it mature as Tomo ages? | [#5](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/5) | [research/voices.md](research/voices.md) |
+| Which learning modes should Tomo use, and when? | [#14](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/14) | [research/learning-modes.md](research/learning-modes.md) |
+| What's the data model for the words a learner knows and has encountered? | [#4](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/4) | [research/learner-data-schema.md](research/learner-data-schema.md) |
+| Where do we get the vocabulary and grammar for each age, so Tomo knows what it can say and understand? | [#13](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/13) | Deferred: it will come from the Zenbu learning system. Background: [research/age-vocabulary-data.md](research/age-vocabulary-data.md) |
+| How do we check a learner's answer without AI, and when is AI worth calling? | [#6](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/6) | [research/answer-evaluation.md](research/answer-evaluation.md) |
+| Which AI models are good at toddler Japanese, and what does a conversation cost? | [#7](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/7) | [research/ai-models-and-costs.md](research/ai-models-and-costs.md) |
 
 ## Related
 

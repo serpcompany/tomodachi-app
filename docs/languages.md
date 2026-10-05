@@ -10,7 +10,7 @@ Japanese-for-English-speakers is just the first pair. No Swift code contains tex
 
 | | Learner language (you speak) | Target language (you learn) |
 |---|---|---|
-| Decides | The interface text, hints, translations, and the "need" labels (feed / bed / hug) | Tomo's words and lines, voice, speech recognition, the "is this the right language?" check, the AI's character rules, age labels (1さい / 1 año), and later the age vocabulary data |
+| Decides | The interface text, hints, translations, and the "need" labels (feed / bed / hug) | Tomo's words and lines, voice, speech recognition, the "is this the right language?" check, the AI's character rules, age labels (1さい / 1 año) |
 | File | `Resources/languages/ui.<id>.json` | `Resources/languages/<id>.json` (a **language pack**) |
 | Today | `en`, `ja` | `ja`, `en`, `es` (all drafts until a native speaker reviews them) |
 
@@ -70,12 +70,4 @@ Change them in **Settings → General** (I speak / I'm learning). The menu and S
 
 ## Open questions
 
-- **Interface text:** move from JSON strings to Apple String Catalogs once the app has more screens.
-- **Translations from the dictionary:** for Japanese, JMdict has meanings in several languages (German, French, Spanish, Russian…), so learner-language translations could come from the Zenbu dictionary instead of hand-written pack text.
-- **Content per language:** what Tomo asks comes from the Zenbu learning system later (decision 2026-10-05). Child-age word lists ([research/age-vocabulary-data.md](research/age-vocabulary-data.md)) are background only.
-- **Harder cases:**
-  - right-to-left scripts (Arabic, Hebrew): the island layout
-  - tonal languages (Mandarin): pinyin with tone marks as the romanization
-  - languages with no Apple voice or on-device recognition: cloud fallback, which conflicts with the on-device-only decision
-- **Same-script language check:** one-word answers are hard for Apple's language identifier (is "no" English or Spanish?). The dictionary system should decide instead.
-- **Regional variants and culture:** es-ES vs es-MX words (coche vs carro). Should Tomo's persona or name change per culture?
+Tracked in GitHub issues: more packs, interface text and harder cases ([#34](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/34)), dictionaries for non-Japanese targets ([#31](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/31)), and what Tomo asks per language ([#13](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/13)).

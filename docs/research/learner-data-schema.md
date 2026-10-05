@@ -385,7 +385,7 @@ GROUP BY item_id;
 Two separate notions:
 
 - **`known_since` sticks.** Once set, it's never cleared. Growth counts it, so a bad day never takes progress away (the "no guilt" rule). The displayed level can drop back to `met`, which just brings the word back for review.
-- **Recall probability is live.** FSRS computes it from stability and time since the last review. It picks what Tomo brings up: due items first, then at most one new word per visit (user-journey.md).
+- **Recall probability is live.** FSRS computes it from stability and time since the last review. It picks what Tomo brings up: due items first, then at most one new word per visit ([leveling-points.md](leveling-points.md)).
 
 **FSRS mapping.** One review per item, per skill, per visit, rated from that visit's evidence: any `wrong`/`unclear` → Again; right only after a hint or replay → Hard; right → Good; used in conversation → Easy. Exposures aren't reviews, and a retry after ちがう〜 doesn't earn a second review. FSRS's default same-day learning steps (1 and 10 minutes) don't fit "days, not minutes". py-fsrs accepts empty `learning_steps`, which sends a new card straight to Review. An official [swift-fsrs](https://github.com/open-spaced-repetition/swift-fsrs) exists.
 
@@ -511,7 +511,7 @@ Sync transports: **CloudKit/SwiftData** is Apple-only and can't reach the websit
 
 **This prototype**
 
-- [docs/concepts.md](../concepts.md), [docs/user-journey.md](../user-journey.md)
+- [docs/concepts.md](../concepts.md)
 - [TomoGame.swift](../../mac-demo/NotchBuddy/Sources/App/TomoGame.swift) (`known`, `stageGoal`, `start()`), [TomoChat.swift](../../mac-demo/NotchBuddy/Sources/App/TomoChat.swift) (`TomoReply.understood`, `requiresOnDeviceRecognition`)
 
 **Zenbu monorepo** (read-only, commit `738a7231`, 2026-09-30)

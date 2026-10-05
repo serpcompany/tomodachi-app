@@ -2,6 +2,9 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
+### 2026-10-05: Tomo comes to you; what it teaches is a pluggable content source
+Tomodachi's core is delivery. Tomo drops in through the day for a short moment, so learning doesn't depend on the discipline to open an app every day. What Tomo brings comes from a **content source**. The age track (what a child knows at each age, the original idea) is the first and default source. Other sources can plug in later (ideas: an Anki deck, [#11](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/11); Zenbu words, word lists and more, [#12](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/12)). Visits, the character, the help panel, voice and answer checking are shared by every source. This widens the entry below: the Zenbu learning system feeds the age track, and can also be a source of its own. The seam is [#10](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/10). **Why:** the habit, not the material, is what learners lose. Many already have material they care about (Anki decks), and Tomo can bring it to them.
+
 ### 2026-10-05: What Tomo asks and does comes later, from the Zenbu learning system
 The logic that picks Tomo's words, questions and activities is deferred. It won't be built only on "what children know at each age": it will tie into the other Zenbu Japanese apps (the dictionary, Language Reference IDs, what the learner already knows there). Until then, the hand-written pack content is a placeholder. The child-vocabulary research ([age-vocabulary-data.md](research/age-vocabulary-data.md)) is background only. We don't use that data, so no license requests are needed. **Why:** a richer, shared learner model beats a fixed age list, and it keeps Tomo in step with the other apps.
 
