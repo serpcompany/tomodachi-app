@@ -138,7 +138,9 @@
     "growth.age.5": "More preschool words: feelings, places, how things happen.",
     "growth.age.6": "Words children know before starting school.",
     "grewOlder": "Tomo grew up → {age}. New words to learn!",
-    "settings.newPerDay": "New words a day"
+    "settings.newPerDay": "New words a day",
+    "practice.now": "Practice: doesn't count right now.",
+    "practice.until": "Practice · counts again {when}"
   },
   "helpPhrases": [
     "what",

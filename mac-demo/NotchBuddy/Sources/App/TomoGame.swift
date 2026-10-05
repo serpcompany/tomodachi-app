@@ -164,6 +164,10 @@ final class TomoGame: ObservableObject {
     @Published private(set) var pending = false
     private var nextNudge = Date.distantFuture
 
+    /// This round is practice (nothing counts right now); set to when answers count again, for the card's note.
+    @Published private(set) var practiceUntil: Date?
+    @Published private(set) var isPracticeRound = false
+
     // Talking stage (age 3+)
     @Published private(set) var line: TomoLine = .empty
     @Published private(set) var lastAnswer: String?
@@ -368,6 +372,8 @@ final class TomoGame: ObservableObject {
     }
 
     private func ask(_ id: String, delay: Double) {
+        isPracticeRound = !progress.counts(id)
+        practiceUntil = isPracticeRound ? progress.nextCountsAt : nil
         if progress.items[id] == nil { taughtNew = true }
         currentItem = id
         wrongTries = 0

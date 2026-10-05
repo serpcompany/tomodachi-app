@@ -138,7 +138,9 @@
     "growth.age.5": "もっと幼稚園ごろのことば：気持ち、場所、ものごとの起こり方。",
     "growth.age.6": "小学校に入る前の子が知っていることば。",
     "grewOlder": "Tomoが{age}になった！ 新しいことばが増えたよ。",
-    "settings.newPerDay": "1日の新しいことば"
+    "settings.newPerDay": "1日の新しいことば",
+    "practice.now": "練習中：いまはカウントされません。",
+    "practice.until": "練習中・{when}からまたカウント"
   },
   "helpPhrases": [
     "なに",
