@@ -101,6 +101,7 @@ enum TomoPhase: Equatable {
     case wrong(String)       // id of the choice picked
     case leveledUp
     case grew                // a new level that's also a birthday
+    case practiceIntro       // nothing counts right now: Tomo offers practice, and the card says it won't count
 }
 
 // MARK: - Drop-ins: Tomo visits now and then instead of asking for study sessions
@@ -164,9 +165,12 @@ final class TomoGame: ObservableObject {
     @Published private(set) var pending = false
     private var nextNudge = Date.distantFuture
 
-    /// This round is practice (nothing counts right now); set to when answers count again, for the card's note.
+    /// This round is practice (nothing counts right now), and when answers count again: the header says so.
     @Published private(set) var practiceUntil: Date?
     @Published private(set) var isPracticeRound = false
+    /// Practice is a mode you pick, like WaniKani's Extra Study: the first practice round waits for "Practice".
+    private var practiceAccepted = false
+    private var practiceNext: String?
 
     // Talking stage (age 3+)
     @Published private(set) var line: TomoLine = .empty
@@ -298,6 +302,10 @@ final class TomoGame: ObservableObject {
         lastAnswer = nil
         outcome = nil
         help = nil
+        isPracticeRound = false
+        practiceUntil = nil
+        practiceAccepted = false
+        practiceNext = nil
     }
 
     private func syncProgress() {
@@ -374,6 +382,8 @@ final class TomoGame: ObservableObject {
     private func ask(_ id: String, delay: Double) {
         isPracticeRound = !progress.counts(id)
         practiceUntil = isPracticeRound ? progress.nextCountsAt : nil
+        if !isPracticeRound { practiceAccepted = false }
+        else if !practiceAccepted { offerPractice(id, delay: delay); return }
         if progress.items[id] == nil { taughtNew = true }
         currentItem = id
         wrongTries = 0
@@ -389,7 +399,43 @@ final class TomoGame: ObservableObject {
         }
     }
 
-    /// Nothing due or new: something Tomo already heard. It doesn't count, and the badge says so.
+    /// Nothing counts right now. Before the first practice round Tomo says so and waits for "Practice" or "Later",
+    /// like WaniKani's "0 reviews": practice is a mode you choose, never something that looks like progress.
+    private func offerPractice(_ id: String, delay: Double) {
+        practiceNext = id
+        let tok = bump()
+        after(delay, tok) { [weak self] in
+            guard let self else { return }
+            self.help = nil
+            self.outcome = nil
+            self.phase = .practiceIntro
+            self.setBot(.idle)
+            self.emote(.happy)
+            self.speak(self.lang.target.lines.practice, slow: false)
+            self.visitDeadline = Date().addingTimeInterval(self.ignoreAfter)
+            if Self.autoplay { self.after(2.5, tok) { [weak self] in self?.startPractice() } }
+        }
+    }
+
+    /// "Practice": practice rounds until something counts again.
+    func startPractice() {
+        guard phase == .practiceIntro, let id = practiceNext else { return }
+        touch()
+        practiceAccepted = true
+        practiceNext = nil
+        ask(id, delay: 0.2)
+    }
+
+    /// "Later" (or the offer was ignored): Tomo goes back. Nothing is waiting, so no red dot.
+    func skipPractice() {
+        guard phase == .practiceIntro else { return }
+        endVisit()
+        pending = false
+        closeIsland?()
+        wasOpen = false
+    }
+
+    /// Nothing due or new: something Tomo already heard. It doesn't count, and the card says so.
     private func practice(delay: Double) {
         let talk = stage >= Self.chatStage
         // Ages past the levels (testing): the age's own openers, as conversation.
@@ -434,16 +480,20 @@ final class TomoGame: ObservableObject {
             visitDeadline = now.addingTimeInterval(ignoreAfter)
         } else if now > visitDeadline && phase == .asking {
             leave(ignored: true)
+        } else if now > visitDeadline && phase == .practiceIntro {
+            skipPractice()
         }
     }
 
     private func resumeFreePlay() {
         let asked = talking ? line.say : round.say
+        // Left on practice, and now something counts (or the offer is stale): pick again.
+        let stale = isPracticeRound && progress.somethingCounts
         switch phase {
-        case .asking where !asked.isEmpty:
+        case .asking where !asked.isEmpty && !stale:
             if !talking { setBot(.question) }
             speak(asked, slow: false)
-        case .asking, .right:
+        case .asking, .right, .practiceIntro:
             nextItem(delay: 0.3)
         default:
             break

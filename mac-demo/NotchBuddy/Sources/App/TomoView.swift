@@ -53,7 +53,7 @@ struct TomoView: View {
     private var wash: CardBackground<EmptyView>.Wash {
         if game.isChat, let o = game.outcome, game.phase != .thinking {
             switch o {
-            case .win:     return .green
+            case .win(let counted): return counted ? .green : .soft
             case .loss:    return .red
             case .neutral: return .soft
             }
@@ -61,20 +61,23 @@ struct TomoView: View {
         switch game.phase {
         case .asking:   return .cyan
         case .thinking: return .indigo
+        case .right where game.outcome == .win(counted: false): return .soft
         case .right:    return game.round.need == .sleep ? .indigo : .green
         case .wrong:    return .red
         case .leveledUp, .grew: return .amber
+        case .practiceIntro: return .soft
         }
     }
 
     var body: some View {
         VStack(spacing: 0) {
             // Progress to the next level, the whole width of the card (an RPG-style experience bar)
-            GrowthBar(progress: game.levelProgress)
+            GrowthBar(progress: game.levelProgress, dimmed: game.isPracticeRound)
                 .frame(width: TomoGrid.content.width - 28, height: TomoGrid.levelBar)
                 .padding(.bottom, TomoGrid.levelBarGap)
-                .help(lang.learner("words.toNext", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)",
-                                                    "next": "\(game.level + 1)"]))
+                .help(game.isPracticeRound ? practiceText("practice.offer", until: game.practiceUntil, lang)
+                      : lang.learner("words.toNext", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)",
+                                                      "next": "\(game.level + 1)"]))
             VStack(spacing: TomoGrid.helpGap) {
                 card
                 if let help = game.help {
@@ -97,7 +100,9 @@ struct TomoView: View {
                 Color.clear.frame(width: TomoGrid.tomoColumn)    // Tomo sits here
 
                 Group {
-                    if game.phase == .grew {
+                    if game.phase == .practiceIntro {
+                        practiceOffer
+                    } else if game.phase == .grew {
                         banner(title: lang.target.lines.grew,
                                subtitle: lang.learner(game.stage > TomoGame.chatStage ? "grewOlder"
                                                       : game.stage == TomoGame.chatStage ? "grewTalking" : "grewPhrases",
@@ -136,7 +141,6 @@ struct TomoView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 // While Tomo asks, this row stays free (the choices say what to do); after a win, the answer.
-                // A practice round says so on its own line, under the badge.
                 if game.outcome != nil || game.phase == .right {
                     HStack(alignment: .center, spacing: 6) {
                         if let o = game.outcome { OutcomeBadge(outcome: o) }
@@ -150,7 +154,6 @@ struct TomoView: View {
                         }
                     }
                 }
-                if game.phase != .right && game.isPracticeRound { PracticeNote(until: game.practiceUntil) }
                 if game.phase == .right, let adult = game.round.adult {
                     Button { game.openWord(TomoWords.bare(adult)) } label: {
                         Text(lang.learner("grownUpsSay", ["x": adult]))
@@ -183,6 +186,21 @@ struct TomoView: View {
                     }
                 }
             }
+        }
+    }
+
+    // Nothing counts right now: Tomo asks to play anyway; the card says it's practice and won't move the bar
+    // (like WaniKani's "0 reviews" before its Extra Study). Practice starts only on "Practice".
+    private var practiceOffer: some View {
+        HStack(alignment: .center, spacing: TomoGrid.gap) {
+            banner(title: lang.target.lines.practice,
+                   subtitle: practiceText("practice.offer", until: game.practiceUntil, lang))
+                .frame(width: TomoGrid.pictureColumn, alignment: .leading)
+            VStack(spacing: TomoGrid.pillGap) {
+                OfferButton(title: lang.learner("practice.start"), primary: true) { game.startPractice() }
+                OfferButton(title: lang.learner("practice.later")) { game.skipPractice() }
+            }
+            .frame(width: TomoGrid.tilesWidth)
         }
     }
 
@@ -288,29 +306,71 @@ private struct MeaningPill: View {
     }
 }
 
-/// Practice rounds say so, and when answers count again, so a "Win" without +1 isn't a mystery.
-private struct PracticeNote: View {
+/// "Practice" / "Later" on the practice offer, the size of a meaning pill.
+private struct OfferButton: View {
+    let title: String
+    var primary = false
+    let action: () -> Void
+    @State private var hovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 13.5, weight: primary ? .semibold : .medium))
+                .foregroundColor(Color(hex: primary ? "#F5F6F8" : "#C9CDD4"))
+                .lineLimit(1).minimumScaleFactor(0.7)
+                .frame(width: TomoGrid.pill.width, height: TomoGrid.pill.height)
+                .background(primary ? Color(hex: PracticeChip.tint).opacity(hovered ? 0.4 : 0.28)
+                                    : Color.white.opacity(hovered ? 0.1 : 0.05))
+                .overlay(Capsule().stroke(Color.white.opacity(hovered ? 0.22 : 0.06), lineWidth: 2))
+                .clipShape(Capsule())
+                .scaleEffect(hovered ? 1.03 : 1)
+        }
+        .buttonStyle(.plain)
+        .onHover { hovered = $0 }
+        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: hovered)
+    }
+}
+
+/// Header chip while practicing: "Practice until 5:44 AM". Practice never looks like progress.
+struct PracticeChip: View {
+    static let tint = "#8FB8DE"
     let until: Date?
     @ObservedObject var lang = TomoLanguages.shared
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 30)) { _ in
-            Text(text)
-                .font(.system(size: 12))
-                .foregroundColor(Color(hex: "#9EA3AC"))
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
-                .help(lang.learner("outcome.why.practice"))
+        HStack(spacing: 4) {
+            Image(systemName: "arrow.triangle.2.circlepath").font(.system(size: 9, weight: .bold))
+            Text(text).font(.system(size: 10.5, weight: .bold)).lineLimit(1).minimumScaleFactor(0.8)
         }
+        .foregroundColor(Color(hex: Self.tint))
+        .padding(.horizontal, 7).padding(.vertical, 3)
+        .background(Color(hex: Self.tint).opacity(0.16))
+        .clipShape(Capsule())
+        .frame(maxWidth: 130, alignment: .trailing)   // stays clear of the physical notch
+        .help(practiceText("practice.offer", until: until, lang))
     }
 
+    /// The time only when it's today; a later day is in the tooltip and the offer.
     private var text: String {
-        guard let until else { return lang.learner("practice.now") }
-        let f = RelativeDateTimeFormatter()
-        f.locale = Locale(identifier: lang.learner.id)
-        return lang.learner("practice.until", ["when": f.localizedString(for: until, relativeTo: TomoClock.now)])
+        guard let until, Calendar.current.isDateInToday(wallClock(until)) else { return lang.learner("practice.chip.now") }
+        return practiceText("practice.chip", until: until, lang)
     }
 }
+
+/// "Nothing counts until 5:44 AM…" (`key`), or the `key.now` variant when there's no time to give.
+@MainActor func practiceText(_ key: String, until: Date?, _ lang: TomoLanguages) -> String {
+    guard let until else { return lang.learner("\(key).now") }
+    let f = DateFormatter()
+    f.locale = Locale(identifier: lang.learner.id)
+    f.timeStyle = .short
+    f.formattingContext = .middleOfSentence
+    if !Calendar.current.isDateInToday(wallClock(until)) { f.dateStyle = .short; f.doesRelativeDateFormatting = true }
+    return lang.learner(key, ["time": f.string(from: wallClock(until))])
+}
+
+/// A time on Tomo's clock (which testing can move ahead, TomoClock) on the Mac's clock.
+@MainActor private func wallClock(_ d: Date) -> Date { d.addingTimeInterval(Date().timeIntervalSince(TomoClock.now)) }
 
 /// A round icon button (replay) next to the word; its label is the tooltip.
 private struct IconButton: View {
@@ -390,6 +450,7 @@ struct TomoHeaderRight: View {
 
     var body: some View {
         HStack(spacing: 14) {
+            if game.isPracticeRound { PracticeChip(until: game.practiceUntil) }
             Button(action: { state.soundEnabled.toggle() }) {
                 Image(systemName: state.soundEnabled ? "speaker.wave.2" : "speaker.slash")
                     .font(.system(size: 14))
@@ -412,6 +473,8 @@ struct TomoHeaderRight: View {
 
 private struct GrowthBar: View {
     let progress: Double
+    /// Practice: the bar fades back, since nothing done now moves it.
+    var dimmed = false
 
     var body: some View {
         GeometryReader { g in
@@ -421,9 +484,11 @@ private struct GrowthBar: View {
                     .fill(LinearGradient(colors: [Color(hex: "#FFD3BD"), Color(hex: "#7BD389")],
                                          startPoint: .leading, endPoint: .trailing))
                     .frame(width: g.size.width * min(1, max(0, progress)))
+                    .opacity(dimmed ? 0.3 : 1)
             }
         }
         .animation(.spring(response: 0.5, dampingFraction: 0.7), value: progress)
+        .animation(.easeInOut(duration: 0.4), value: dimmed)
     }
 }
 
@@ -738,7 +803,8 @@ struct OutcomeBadge: View {
 
     private var style: (icon: String, key: String, color: Color) {
         switch outcome {
-        case .win(let counted): ("checkmark.circle.fill", counted ? "outcome.win" : "outcome.practice", Color(hex: "#34D399"))
+        case .win(true):  ("checkmark.circle.fill", "outcome.win", Color(hex: "#34D399"))
+        case .win(false): ("checkmark.circle.fill", "outcome.practice", Color(hex: PracticeChip.tint))   // not progress
         case .loss:    ("xmark.circle.fill", "outcome.loss", Color(hex: "#F4505E"))
         case .neutral: ("minus.circle.fill", "outcome.neutral", Color(hex: "#B0B5BE"))
         }

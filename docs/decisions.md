@@ -2,6 +2,9 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
+### 2026-10-06: Practice is a mode you choose, like WaniKani's Extra Study
+When nothing would count, Tomo doesn't slip into practice rounds that look like progress. It says so first (nothing counts until a time; practice won't move the bar) and waits for **Practice** or **Later**. While practicing, the header says "Practice until …", the bar dims, and a right answer gets a blue **Practice** badge, not the green Win. **Why:** a tester played for minutes, saw "Win" every time and a bar that didn't move, and missed the small note saying it was practice. WaniKani avoids this by keeping the two apart: reviews only when due (its dashboard says "0 reviews" and when the next ones come) and a separate Extra Study that never touches progress. Practice still isn't counted, so the spacing stays honest.
+
 ### 2026-10-06: Playing by choice counts: early reviews at half the wait, and new words a day is a setting
 A word can be reviewed early once at least half its wait has passed, and the right answer moves it up like a due one. Free play brings due words, then new ones, then these early ones, and only then practice. New words a day is a setting (5, 10, 20 or 30; default 10). This loosens WaniKani's "only when due" rule. **Why:** opening Tomo by choice should feel worth it; answering the same word again within minutes still counts for nothing, so cramming still doesn't work.
 

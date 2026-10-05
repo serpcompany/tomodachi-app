@@ -225,8 +225,10 @@ final class TomoProgress {
 
     /// When something counts again, if nothing does now: the soonest a word reaches half its wait, or the next day's
     /// new words (4 am) when today's are used up and the level still has some. Nil if something counts now.
+    /// Is there anything a right answer would count for now (due, new, or far enough along)?
+    var somethingCounts: Bool { !dueItems.isEmpty || canTeachNew || unlocked.contains(where: isEarlyOK) }
     var nextCountsAt: Date? {
-        if !dueItems.isEmpty || canTeachNew || unlocked.contains(where: isEarlyOK) { return nil }
+        if somethingCounts { return nil }
         let early = unlocked.compactMap { id -> Date? in
             guard let i = items[id], let due = i.due,
                   let wait = TomoSRS.wait(after: i.stage, level: levelOfItem[id] ?? level) else { return nil }
@@ -405,11 +407,13 @@ final class TomoProgress {
         let sitting = TomoProgress(pack: pack, learner: "es", directory: dir)
         for id in pack.levels[0].itemIDs { sitting.answeredRight(id, mode: "picture", wrongTries: 0, hint: false) }
         let barBefore = sitting.levelProgress
-        check(sitting.nextFreePlayItem() == nil && !sitting.levelItems.contains(where: sitting.counts),
+        check(sitting.nextFreePlayItem() == nil && !sitting.somethingCounts
+              && !sitting.levelItems.contains(where: sitting.counts),
               "right after learning a whole level, nothing counts")
         let wait = sitting.nextCountsAt.map { $0.timeIntervalSince(TomoClock.now) } ?? -1
         check(wait > 50 * 60 && wait < 70 * 60, "it says when answers count again: in \(Int(wait / 60)) min")
         TomoClock.offset += wait + 60
+        check(sitting.somethingCounts && sitting.nextCountsAt == nil, "then something counts again")
         if let id = sitting.nextFreePlayItem() {
             check(sitting.answeredRight(id, mode: "picture", wrongTries: 0, hint: false) && sitting.levelProgress > barBefore,
                   "an hour later, free play adds experience again")
