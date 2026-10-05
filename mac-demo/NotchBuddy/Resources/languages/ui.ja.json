@@ -55,7 +55,7 @@
     "about.version": "バージョン {v}（ベータ）",
     "about.tagline": "あなたが学んでいる言語だけを、その年齢なりに話す、ノッチに住む小さな友だち。",
     "about.feedback": "ベータ版なので不具合があるかも。楽しかったこと、わかりにくかったこと、うっとうしかったことを教えてね。",
-    "about.credits": "Tomodachi by Zenbu Japanese。ノッチ部分はLouis RailléさんのCoucou（MITライセンス）がベースです。 日本語の語彙の年齢データ：Wordbank（CC BY 4.0、Frank et al. 2017。データ：Tsuji、Hagihara、Minagawa。日本語版CDI：小椋・綿巻）。",
+    "about.credits": "Tomodachi by Zenbu Japanese。ノッチ部分はLouis RailléさんのCoucou（MITライセンス）がベースです。 語彙の年齢データ：Wordbank（CC BY 4.0、Frank et al. 2017）。日本語：Tsuji、Hagihara、Minagawa（日本語版CDI、小椋・綿巻）。英語：MacArthur-Bates CDI 標準化データ（Fenson、Marchman ほか）。",
     "ai.provider": "プロバイダ",
     "ai.baseURL": "ベースURL",
     "ai.key": "APIキー",

@@ -50,9 +50,11 @@ Change them in **Settings → General** (I speak / I'm learning). The menu and S
 | AI | Persona and rules from the pack; `say` must be in the target language | `translation` comes back in the learner language |
 | Growth | Levels and their ages; item ids are namespaced per language (`ja:…`, `es:…`) | — |
 
-## Japanese levels are generated
+## Japanese and English levels are generated
 
-`mac-demo/scripts/build-ja-levels.py` rebuilds `ja.json`'s levels from Wordbank's Japanese CDI data. The source is pinned (commit and SHA-256 per file) in `mac-demo/scripts/sources/wordbank-japanese.source.json`; downloads are cached in `mac-demo/build/data-cache/`. Hand fixes live in `mac-demo/scripts/data/ja-curation.json`: a picture (emoji) or an action per word, meaning and reading fixes, grown-up words for baby talk, and words to leave out. The talking level is kept as it is. Run it with `--review` to get a table of every word for checking. The same approach works for English and Spanish, which Wordbank also has.
+`mac-demo/scripts/build-levels.py ja|en` rebuilds a pack's levels from Wordbank's CDI data (Japanese; American English norming samples). Sources are pinned (commit and SHA-256 per file) in `mac-demo/scripts/sources/wordbank-<language>.source.json`; downloads are cached in `mac-demo/build/data-cache/`. Hand fixes live in `mac-demo/scripts/data/<id>-curation.json`: a picture (emoji) or an action per word, meaning and reading fixes, grown-up words for baby talk, and words to leave out. The talking level and `startersByAge` are kept as they are. `--review` writes a table of every word for checking.
+
+English is for learners who speak Japanese, so every English word needs a Japanese meaning. Words that match a Japanese CDI word for the same concept (Wordbank's `uni_lemma`, after the Japanese curation) get it automatically; the rest are written in `en-curation.json` (`ja`). English-only grammar words (helping verbs, a/an/the, of, to, at, by, for, about) are left out. Spanish can follow the same way.
 
 ## Adding a language
 

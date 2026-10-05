@@ -1,0 +1,23 @@
+{
+  "name": "Wordbank: American English CDI (Words & Gestures, Words & Sentences), Marchman norming samples",
+  "use": "The age when half of children understand or say each word; Tomo's English levels (scripts/build-levels.py en)",
+  "license": "CC BY 4.0 (Wordbank data, https://langcog.github.io/wordbank-datapage/faq.html)",
+  "attribution": "Frank, Braginsky, Yurovsky & Marchman (2017), Wordbank, J. Child Language 44(3). Data: Marchman norming samples (Fenson et al. 2007, MacArthur-Bates CDI norms). Instrument: MacArthur-Bates CDI (Fenson et al.).",
+  "note": "The MacArthur-Bates CDI word list is copyrighted by the MB-CDI Advisory Board (Brookes Publishing). Ask before shipping a beta that contains this word list (issue #40).",
+  "repository": "https://github.com/langcog/wordbank",
+  "commit": "7f397f0f776aa3efe2cc2ab5b87bf83b29bc2e84",
+  "retrieved": "2026-10-06",
+  "files": {
+    "raw_data/English_American_WS/[English_WS].csv": "552a85d85a4d5be86820fba8eb1302d161a4e13f63cb4e57a47db927bb64a161",
+    "raw_data/English_American_WG/[English_WG].csv": "4a1bcabc9d99245c957d9255173a124318d5469145e704594242b4773c607de5",
+    "raw_data/English_American_WS/EnglishWS_Marchman_Norming_data.csv": "f6b3580f971054d52900d9b79f7425c2ed129b40020e8efe11d89640ebcf4ce6",
+    "raw_data/English_American_WS/EnglishWS_Marchman_Norming_fields.csv": "6fa28cf0aaec7fd83af36920b777387c781fbc637f17a1cb8f07c23b701c80d2",
+    "raw_data/English_American_WS/EnglishWS_Marchman_Norming_values.csv": "e664cd9acba670e8821c73bcaece235fb4b0b758374a3485e69a3a847ddeb1d0",
+    "raw_data/English_American_WS/EnglishWS_Marchman_Norming2_data.csv": "2a59f1cfa9d526631dd36cab375ea4132ae282e8c735520c344926c822afe8a9",
+    "raw_data/English_American_WS/EnglishWS_Marchman_Norming2_fields.csv": "ad47900067c791e533597603b4eebbf3ce9d839cbb4c0eda3cb4cb6e75057873",
+    "raw_data/English_American_WS/EnglishWS_Marchman_Norming2_values.csv": "d6d76a22b2628ab2c6b60512606831e9426b2b73222c502a3b2edac0d098b076",
+    "raw_data/English_American_WG/EnglishWG_Marchman_Norming2_data.csv": "d27575910c99311c47e04c0b1102c4454baece1345a4867579d6097db22153fb",
+    "raw_data/English_American_WG/EnglishWG_Marchman_Norming2_fields.csv": "a7bc10967410343b96de404302ce3583674209ab2e157b2021124825f1833198",
+    "raw_data/English_American_WG/EnglishWG_Marchman_Norming2_values.csv": "c48e71784d41a79b038a64675ae9b82b500c3d05db1425d0fa273d33d160bb55"
+  }
+}
