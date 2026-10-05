@@ -56,6 +56,7 @@ struct TomoPhoneView: View {
         HStack(spacing: 8) {
             Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "")
                 .font(.system(size: 20, weight: .bold, design: .rounded))
+                .lineLimit(1).fixedSize()
             Text(game.age)
                 .font(.system(size: 14, weight: .bold, design: .rounded))
                 .foregroundStyle(Color(hex: "#FFD9A8"))
@@ -176,7 +177,7 @@ struct TomoPhoneView: View {
             EmptyView()
         default:
             if game.isChat { chatInput }
-            else if game.round.kind == .meaning {
+            else if game.round.kind == .meaning || game.round.kind == .reply {
                 VStack(spacing: 10) {
                     ForEach(game.round.choices) { c in
                         PhonePill(title: c.label ?? "", border: border(c)) { game.pick(c) }

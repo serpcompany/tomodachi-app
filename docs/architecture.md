@@ -54,7 +54,7 @@ learner pack (interface text) for the current pair, `TomoLanguages.shared`; back
 Planned: [#34](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/34).
 
 **Content source.** What Tomo brings. Today there's one source, the age track: the pack's `levels`,
-turned into `TomoRound` (a picture, need or meaning round) and `TomoLine` (talking). Planned: a
+turned into `TomoRound` (a picture, need or meaning round; a talking question as a meaning or reply round) and `TomoLine` (typed conversation, switched off by `TomoGame.talkAsChoices`). Planned: a
 `TomoContentSource` seam ([#10](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/10)), Anki
 and other sources ([#11](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/11),
 [#12](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/12)), and age-track content from the

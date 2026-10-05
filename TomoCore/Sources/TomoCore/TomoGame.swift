@@ -18,7 +18,8 @@ public struct TomoChoice: Identifiable, Hashable, Sendable {
 
 /// How a round is asked (issue #14): pick the picture, do what Tomo says, or pick the meaning.
 /// A word without a picture or an action is asked by its meaning, so every word can be asked.
-public enum TomoRoundKind: Sendable { case picture, need, meaning }
+/// Talking questions (3さい) are asked by meaning or by `reply`: pick an answer that fits.
+public enum TomoRoundKind: Sendable { case picture, need, meaning, reply }
 
 public enum TomoNeed: String, CaseIterable, Sendable {
     case eat, sleep, hug
@@ -68,6 +69,26 @@ extension TomoRound {
         }
         self.init(say: r.say, romanization: r.romanization, meaning: meaning, adult: r.grownUp, word: r.id,
                   answer: answer, choices: choices, kind: kind, need: need, praise: r.praise)
+    }
+}
+
+extension TomoRound {
+    /// A talking question asked with choices: what Tomo's line means (`.meaning`), or a reply that fits
+    /// (`.reply`). The wrong choices come from the pack's other questions, never one of this question's own
+    /// replies. Falls back to the meaning when there aren't enough replies to choose from.
+    public init(_ s: TargetPack.Starter, kind: TomoRoundKind, others: [TargetPack.Starter], learner: LearnerPack,
+                praise: String) {
+        let meaning = s.translation(learner.id)
+        let pool = others.filter { $0.say != s.say }
+        let own = Set(s.examples.map(\.say))
+        let replies = Array(Set(pool.flatMap { $0.examples.map(\.say) }).subtracting(own)).shuffled()
+        let asReply = kind == .reply && !s.examples.isEmpty && replies.count >= 2
+        let answer = asReply ? s.examples.randomElement()!.say : meaning
+        let wrong = asReply ? Array(replies.prefix(2))
+            : Array(Set(pool.map { $0.translation(learner.id) }).subtracting([meaning]).shuffled().prefix(2))
+        self.init(say: s.say, romanization: s.romanization, meaning: meaning, adult: nil, word: s.id ?? "",
+                  answer: answer, choices: ([answer] + wrong).shuffled().map { TomoChoice(id: $0, emoji: nil, label: $0) },
+                  kind: asReply ? .reply : .meaning, need: nil, praise: praise)
     }
 }
 
@@ -143,6 +164,9 @@ public final class TomoGame: ObservableObject {
     public static let shared = TomoGame()
 
     public static let chatStage = 3
+    /// Talking questions are asked with choices (pick the meaning, pick the reply), not typed answers
+    /// (decisions.md, 2026-10-06). The typed conversation below stays, switched off, for when it returns.
+    public static let talkAsChoices = true
 
     /// Tomo's age (TomoProgress keeps it; it never goes down).
     @Published public private(set) var stage = 1
@@ -313,7 +337,7 @@ public final class TomoGame: ObservableObject {
         itemCredited = false
         round = .empty
         line = .empty
-        talking = stage >= Self.chatStage
+        talking = !Self.talkAsChoices && stage >= Self.chatStage
         phase = .asking
         transcript = []
         lastAnswer = nil
@@ -411,8 +435,15 @@ public final class TomoGame: ObservableObject {
             present(TomoRound(r, learner: lang.learner,
                               otherMeanings: progress.otherMeanings(for: id, learner: lang.learner.id)), delay: delay)
         } else if let s = progress.starter(id) {
-            talking = true
-            say(TomoLine(s, learner: lang.learner), delay: delay)
+            if Self.talkAsChoices {
+                talking = false
+                // New: what it means first (understanding before answering); then it alternates with replies.
+                let kind: TomoRoundKind = (progress.items[id]?.stage ?? 0) % 2 == 0 ? .meaning : .reply
+                present(starterRound(s, kind: kind), delay: delay)
+            } else {
+                talking = true
+                say(TomoLine(s, learner: lang.learner), delay: delay)
+            }
         }
     }
 
@@ -693,12 +724,21 @@ public final class TomoGame: ObservableObject {
     private func presentStarter(delay: Double) {
         let starters = lang.target.starters(age: stage)
         guard !starters.isEmpty else { return }
-        let starter = TomoLine(starters[starterIndex % starters.count], learner: lang.learner)
+        let s = starters[starterIndex % starters.count]
         starterIndex += 1
         currentItem = nil
         itemCredited = false
+        if Self.talkAsChoices {
+            talking = false
+            present(starterRound(s, kind: starterIndex % 2 == 0 ? .reply : .meaning), delay: delay)
+            return
+        }
         talking = true
-        say(starter, delay: delay)
+        say(TomoLine(s, learner: lang.learner), delay: delay)
+    }
+
+    private func starterRound(_ s: TargetPack.Starter, kind: TomoRoundKind) -> TomoRound {
+        TomoRound(s, kind: kind, others: lang.target.allStarters, learner: lang.learner, praise: lang.target.lines.levelUp)
     }
 
     private func say(_ l: TomoLine, delay: Double) {

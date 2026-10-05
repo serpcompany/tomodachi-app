@@ -123,6 +123,11 @@ public struct TargetPack: Codable, Sendable {
     }
     /// Every opener in the levels (the talking stage's items).
     public var starters: [Starter] { levels.flatMap { $0.starters ?? [] } }
+    /// Every opener in the pack (levels and older ages), once: the wrong choices for a talking question.
+    public var allStarters: [Starter] {
+        var seen = Set<String>()
+        return (starters + (startersByAge ?? []).flatMap(\.starters)).filter { seen.insert($0.say).inserted }
+    }
     public func starters(age: Int) -> [Starter] {
         (startersByAge ?? []).filter { $0.fromAge <= age }.max { $0.fromAge < $1.fromAge }?.starters ?? starters
     }

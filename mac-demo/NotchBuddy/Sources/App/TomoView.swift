@@ -173,7 +173,7 @@ struct TomoView: View {
     }
 
     @ViewBuilder private var choices: some View {
-        if game.round.kind == .meaning {
+        if game.round.kind == .meaning || game.round.kind == .reply {
             VStack(spacing: TomoGrid.pillGap) {
                 ForEach(game.round.choices) { c in
                     MeaningPill(choice: c, phase: game.phase, isAnswer: c.id == game.round.answer) { game.pick(c) }

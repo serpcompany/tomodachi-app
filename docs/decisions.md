@@ -2,6 +2,9 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
+### 2026-10-06: 3さい questions are multiple choice for now
+Tomo's talking questions are asked with three choices: what the line means (new questions), or a reply that fits (reviews, alternating with the meaning). Wrong replies come from other questions, never this question's own answers. Typing or saying an answer is switched off (`TomoGame.talkAsChoices`), not deleted. **Why:** the owner tried typing at 3さい and translated the question into English, which scored nothing; free answers need clear instructions, a Japanese keyboard and AI to judge them. Choices work offline and still check understanding.
+
 ### 2026-10-06: Romaji answers count as Japanese
 An answer typed in romaji ("shigoto shiteru") is turned into hiragana before it's checked, and the card shows the kana Tomo read. It's converted only when every word is valid romaji, so English ("what are you doing") still gets No score. **Why:** a learner without a Japanese keyboard, or one who can't read kana yet, still knows the answer; typing it in romaji shouldn't be a dead end.
 
