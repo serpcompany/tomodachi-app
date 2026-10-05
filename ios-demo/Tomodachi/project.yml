@@ -35,6 +35,8 @@ targets:
     sources:
       - path: Sources
         type: group
+      - path: Shared
+        type: group
     dependencies:
       - package: TomoCore
       - target: TomoWidgets
@@ -49,6 +51,7 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIUserInterfaceStyle: Dark
+        NSSupportsLiveActivities: true
         NSMicrophoneUsageDescription: "Tomo listens when you answer out loud."
         NSSpeechRecognitionUsageDescription: "Tomo turns what you say into text to understand you."
     settings:
@@ -65,6 +68,8 @@ targets:
     platform: iOS
     sources:
       - path: Widgets
+        type: group
+      - path: Shared
         type: group
     dependencies:
       - package: TomoCore
