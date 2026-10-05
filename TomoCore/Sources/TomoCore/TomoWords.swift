@@ -67,3 +67,37 @@ extension TomoBrain {
     }
 }
 
+// MARK: - Flow layout (words wrap like text)
+
+public struct FlowLayout: Layout {
+    var spacing: CGFloat = 6
+    var lineSpacing: CGFloat = 2
+
+    public init(spacing: CGFloat = 6, lineSpacing: CGFloat = 2) {
+        self.spacing = spacing
+        self.lineSpacing = lineSpacing
+    }
+
+    public func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        arrange(subviews, width: proposal.width ?? .infinity).size
+    }
+
+    public func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        for (i, p) in arrange(subviews, width: bounds.width).points.enumerated() {
+            subviews[i].place(at: CGPoint(x: bounds.minX + p.x, y: bounds.minY + p.y), proposal: .unspecified)
+        }
+    }
+
+    private func arrange(_ subviews: Subviews, width: CGFloat) -> (points: [CGPoint], size: CGSize) {
+        var points: [CGPoint] = [], x: CGFloat = 0, y: CGFloat = 0, rowH: CGFloat = 0, maxW: CGFloat = 0
+        for v in subviews {
+            let s = v.sizeThatFits(.unspecified)
+            if x > 0 && x + s.width > width { x = 0; y += rowH + lineSpacing; rowH = 0 }
+            points.append(CGPoint(x: x, y: y))
+            x += s.width + spacing
+            rowH = max(rowH, s.height)
+            maxW = max(maxW, x - spacing)
+        }
+        return (points, CGSize(width: maxW, height: y + rowH))
+    }
+}

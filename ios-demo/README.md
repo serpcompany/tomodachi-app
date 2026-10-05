@@ -6,6 +6,7 @@ Tomodachi on the iPhone ([#52](https://github.com/serpcompany/zenbujapanese-tomo
 |---|---|
 | `Tomodachi/Sources/TomodachiApp.swift` | The app, and `TomoPhoneShell`: sets `TomoGame`'s closures (open = the app is active; `onBotState` → the chick) |
 | `Tomodachi/Sources/TomoPhoneView.swift` | The screen: header and level bar, `TomoChickView`, what Tomo says, the result, the answers |
+| `Tomodachi/Sources/TomoWordSheet.swift` | Tap a word in Tomo's line: its word card, with Open in Zenbu and the iPhone's dictionary (`UIReferenceLibraryViewController`) |
 | `Tomodachi/Widgets/TomoWidgets.swift` | The Home Screen widget (small, medium): reads the `TomoGlance` the shell writes to the App Group, draws Tomo with `TomoChickStill` |
 | `Tomodachi/Sources/TomoLiveVisit.swift`, `Shared/TomoVisitActivity.swift`, `Widgets/TomoVisitLiveActivity.swift` | Tomo's Lock Screen card and Dynamic Island (a Live Activity): "あそぼ！ · 3 words waiting", or asleep beside a live countdown to the next words |
 | `Tomodachi/project.yml` | XcodeGen spec. iOS 18+, iPhone only, bundle ID `com.zenbujapanese.tomodachi` (same as the Mac app) |
@@ -18,7 +19,7 @@ xcrun simctl install tomodachi ios-demo/build/Build/Products/Debug-iphonesimulat
 xcrun simctl launch tomodachi com.zenbujapanese.tomodachi
 ```
 
-Debug builds are signed to run locally (`CODE_SIGN_IDENTITY: "-"`), so the App Group the app and widget share works in the simulator without a team. To try the widget: long-press the Home Screen → Edit → Add Widget → Tomodachi.
+Signing is automatic with the Zenbu Japanese team (`847HR8U8D9`). The simulator needs nothing more. For a device, Xcode must be signed in to that team (Xcode → Settings → Accounts); the first device build with `-allowProvisioningUpdates` registers the App IDs and the App Group `group.com.zenbujapanese.tomodachi`. To try the widget: long-press the Home Screen → Edit → Add Widget → Tomodachi.
 
 `tomodachi` is a simulator made for this app (`xcrun simctl create tomodachi com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro com.apple.CoreSimulator.SimRuntime.iOS-27-0`), so test runs don't touch other projects' simulators. Its saved progress lives in the app's container on that simulator.
 

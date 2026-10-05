@@ -48,6 +48,15 @@ struct TomoPhoneView: View {
         .background(background.ignoresSafeArea().onTapGesture { typing = false })
         .animation(.easeInOut(duration: 0.35), value: game.phase)
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: typing)
+        .sheet(isPresented: wordCardShown) {
+            if case .word(let w) = game.help { TomoWordSheet(word: w) }
+        }
+    }
+
+    /// The word card is open: the game's help is a word (TomoGame.openWord).
+    private var wordCardShown: Binding<Bool> {
+        Binding(get: { if case .word = game.help { true } else { false } },
+                set: { if !$0 { game.help = nil } })
     }
 
     // MARK: Header
@@ -98,10 +107,9 @@ struct TomoPhoneView: View {
                 banner(lang.target.lines.practice, practiceText("practice.offer", until: game.practiceUntil, lang))
             default:
                 HStack(alignment: .center, spacing: 10) {
-                    Text(said)
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .multilineTextAlignment(.center)
-                        .lineLimit(2).minimumScaleFactor(0.5)
+                    // Tap a word for its word card (TomoWordSheet)
+                    TomoTappableLine(text: said, spacesOnly: !game.isChat)
+                        .frame(maxHeight: 90)
                     if !said.isEmpty {
                         Button { game.replay() } label: {
                             Image(systemName: "speaker.wave.2.fill")

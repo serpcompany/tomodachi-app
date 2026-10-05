@@ -2,6 +2,9 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
+### 2026-10-06: Looking up a word while it's asked counts as the hint
+Opening a word card (Mac or iPhone) while Tomo is asking that word shows its meaning, so a right answer after it doesn't move the word up, like after the hint. **Why:** otherwise the word card is a free answer key.
+
 ### 2026-10-06: Widgets and Live Activities show Tomo still, posed by each update
 Inside the apps Tomo is always alive. On the Home Screen and the Lock Screen it's a `TomoChickStill`: the same drawing, held in one pose that changes with each update (asking, happy, in its shell or hatched). **Why:** iOS widgets and Live Activities can't run their own animation; they only animate a change, for up to two seconds. The owner accepted this exception to "Tomo is always alive" for those surfaces only.
 
