@@ -130,7 +130,7 @@ final class TomoProgress {
         items = [:]
         for id in pack.levels.prefix(level - 1).flatMap(\.itemIDs) {
             items[id] = Item(id: id, stage: TomoSRS.knows, due: now.addingTimeInterval(7 * 86400),
-                             introduced: weekAgo, answered: weekAgo, right: 4, wrong: 0)
+                             introduced: weekAgo, answered: weekAgo, right: 4, wrong: 0, peak: TomoSRS.knows)
         }
     }
 
@@ -153,6 +153,13 @@ final class TomoProgress {
     /// 90% of the level's items, rounded up.
     var levelNeeded: Int { max(1, (levelItems.count * 9 + 9) / 10) }
     var isLastLevel: Bool { level >= pack.levels.count }
+    /// The experience bar: every stage a word of this level reaches counts (up to "knows it"), so each answer that
+    /// counts nudges it. It uses the best stage reached, so a slip never moves it back. Full when the level is done.
+    var levelProgress: Double {
+        let steps = levelItems.reduce(0) { $0 + min(items[$1]?.peak ?? 0, TomoSRS.knows) }
+        let full = Double(levelNeeded * TomoSRS.knows)
+        return levelKnown >= levelNeeded ? 1 : min(Double(steps) / full, 0.97)
+    }
     var isTalkLevel: Bool { !(current?.starters ?? []).isEmpty }
 
     /// Level up when this level is done. Returns the new level and whether it was a birthday.
@@ -252,6 +259,7 @@ final class TomoProgress {
             row.stage = TomoSRS.next(after: row.stage, wrongTries: wrongTries, hint: hint)
             row.due = TomoSRS.wait(after: row.stage, level: levelOfItem[id] ?? level).map { now.addingTimeInterval($0) }
         }
+        row.peak = max(row.peak, row.stage)
         row.answered = now
         row.right += 1
         row.wrong += wrongTries
@@ -305,11 +313,17 @@ final class TomoProgress {
         check(p.visitItems(limit: 3) == [first], "the first visit teaches one new item: \(first)")
         check(p.answeredRight(first, mode: "picture", wrongTries: 1, hint: false) && p.items[first]?.stage == 1,
               "teaching it → stage 1 (wrong tries don't matter the first time)")
+        check(p.levelProgress > 0 && p.levelProgress < 0.1, "one counted answer moves the experience bar a little")
+        let bar = p.levelProgress
         check(!p.answeredRight(first, mode: "picture", wrongTries: 0, hint: false) && p.items[first]?.stage == 1,
               "answering again before it's due is practice: no change")
         check(p.visitItems(limit: 3).count == 1, "a visit brings at most one new item")
         TomoClock.offset += 2 * 3600 + 60
         check(p.isDue(first) && p.visitItems(limit: 3).first == first, "two hours later it's due and comes first")
+        p.answeredRight(first, mode: "picture", wrongTries: 0, hint: false)          // → stage 2
+        TomoClock.offset += 4 * 3600 + 60
+        p.answeredRight(first, mode: "picture", wrongTries: 2, hint: false)          // a slip: back to 1
+        check(p.items[first]?.stage == 1 && p.levelProgress > bar, "a slip moves the word back, never the bar")
 
         /// Teach every item of the current level and bring it to "knows it", a long wait between answers.
         func finishLevel() {

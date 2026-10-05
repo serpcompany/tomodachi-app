@@ -19,7 +19,7 @@ Tomo is a baby chick who lives next to your MacBook's notch and only speaks the 
 
 ## Good to know
 
-- **Progress is saved on this Mac** (from the build after 0.0.1). Tomo grows over days, not minutes: a word only counts again when it's due (hours at first, then days), so a few short visits a day is the right pace. **Lv** in the header goes up when most of a level's words are known; some levels are birthdays. The bar under the header fills toward the next level. To start over: menu bar icon → **Start Tomo over…**
+- **Progress is saved on this Mac** (from the build after 0.0.1). Tomo grows over days, not minutes: a word only counts again when it's due (hours at first, then days), so a few short visits a day is the right pace. **Lv** in the header goes up when most of a level's words are known; some levels are birthdays. The bar under the header moves a little with every answer that counts. To start over: menu bar icon → **Start Tomo over…**
 - **The voice is the Mac's built-in Japanese voice at a higher pitch.** Better voices come later.
 - **Talking uses simple built-in replies** unless you add an AI key in Settings → AI (OpenAI, Anthropic, Gemini, OpenRouter, Groq, or a local Ollama). The key stays in your Keychain. Real AI replies cost a fraction of a cent each, on your account.
 - **The mic needs Japanese dictation installed on your Mac** (System Settings → Keyboard → Dictation). Audio never leaves your Mac.
