@@ -2,8 +2,6 @@
   "id": "en",
   "name": "English",
   "strings": {
-    "pickPicture": "Which one is Tomo talking about?",
-    "pickNeed": "What does Tomo want?",
     "grownUpsSay": "grown-ups say: {x}",
     "hint": "hint",
     "need.eat": "feed",
@@ -136,7 +134,6 @@
     "growth.ofMax": "{n} of {max}",
     "growth.answersToday": "Answers",
     "growth.strongerToday": "Words that got stronger",
-    "pickMeaning": "What does Tomo mean?",
     "growth.age.4": "Preschool words from everyday talk and picture books.",
     "growth.age.5": "More preschool words: feelings, places, how things happen.",
     "growth.age.6": "Words children know before starting school.",
