@@ -2,6 +2,9 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
+### 2026-10-05: Tomo calls itself わたし
+In Japanese, Tomo says わたし, never ぼく, おれ or あたし. わたし is neutral, so Tomo has no set gender, and it's the word learners meet first. The rule is in `ja.json` (`ai.rules`); the Japanese translations in other packs use it too.
+
 ### 2026-10-05: The app is Tomodachi (by Zenbu Japanese); the character is Tomo
 The app's name (menu, island header, About, bundle) is **Tomodachi**, credited "by Zenbu Japanese". **Tomo** stays the character's name in sentences ("Tomo understood you"). The bundle ID is `com.zenbujapanese.tomodachi`, matching the Zenbu iPhone app's `com.zenbujapanese.dictionary`. It was changed before any tester build shipped. **Why:** the product is Tomodachi; Tomo is the friend inside it.
 

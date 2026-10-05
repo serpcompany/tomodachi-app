@@ -82,7 +82,6 @@ Everything we want, with its status. When something moves, update it here in the
 - From leveling-points.md: switch to half-year ages (1さい半, 2さい半)? Move reply bubbles from 2さい to 1さい半?
 - Licensing for age data: CHILDES (non-commercial, no LLM use) is out. Mochizuki & Ota's age ratings are CC BY-NC (needed for 4–6, so ask them or run our own small study). Ask the J-CDI developers whether a word list derived from Wordbank needs their permission.
 
-- Tomo's gender and self-reference: the AI currently uses ぼく (boy). Decide, and put it in the prompt.
 - Does Tomo open on its own (it does now), or peek and wait for a click?
 - Default visit frequency for a new user.
 - Transcripts: off, kept on this Mac, or synced?
