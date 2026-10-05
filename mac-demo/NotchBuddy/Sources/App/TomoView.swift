@@ -250,16 +250,22 @@ struct TomoHeaderLeft: View {
     var body: some View {
         HStack(spacing: 8) {
             Text("Tomodachi").font(.system(size: 13, weight: .semibold))   // the app; the character is Tomo
-            Text(game.age)
-                .font(.system(size: 11, weight: .bold))
-                .padding(.horizontal, 7).padding(.vertical, 2)
-                .background(Color(hex: "#F6B99A").opacity(0.25))
-                .foregroundColor(Color(hex: "#FFD3BD"))
-                .clipShape(Capsule())
-            Text(lang.learner("level", ["n": "\(game.level)"]))
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(Color(hex: "#C9CDD4"))
-                .fixedSize()
+            Button { TomoWordsWindow.show() } label: {     // Tomo's words: every level and word
+                HStack(spacing: 8) {
+                    Text(game.age)
+                        .font(.system(size: 11, weight: .bold))
+                        .padding(.horizontal, 7).padding(.vertical, 2)
+                        .background(Color(hex: "#F6B99A").opacity(0.25))
+                        .foregroundColor(Color(hex: "#FFD3BD"))
+                        .clipShape(Capsule())
+                    Text(lang.learner("level", ["n": "\(game.level)"]))
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(Color(hex: "#C9CDD4"))
+                        .fixedSize()
+                }
+            }
+            .buttonStyle(.plain)
+            .help(lang.learner("words.open"))
             GrowthBar(progress: Double(game.levelKnown) / Double(game.levelNeeded))
                 .frame(width: 70, height: 6)
         }

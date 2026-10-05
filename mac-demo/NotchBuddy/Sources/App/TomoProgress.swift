@@ -25,6 +25,18 @@ enum TomoSRS {
         return h.map { $0 * 3600 }
     }
 
+    /// The stage's group, for display: new · heard (1–4) · knows (5–6) · good (7) · loves (8) · forever (9).
+    static func group(_ stage: Int) -> String {
+        switch stage {
+        case ...0:  return "new"
+        case 1...4: return "heard"
+        case 5...6: return "knows"
+        case 7:     return "good"
+        case 8:     return "loves"
+        default:    return "forever"
+        }
+    }
+
     /// The stage after a new or due item is answered right. `wrongTries`: wrong answers earlier in the round.
     static func next(after stage: Int, wrongTries: Int, hint: Bool) -> Int {
         if stage == 0 { return 1 }                                    // first right answer: just heard it
