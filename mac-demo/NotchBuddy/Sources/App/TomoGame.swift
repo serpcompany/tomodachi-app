@@ -130,6 +130,8 @@ final class TomoGame: ObservableObject {
     @Published private(set) var levelIsTalk = false
     /// Testing ages run on an in-memory Tomo (Settings → Try another age).
     @Published private(set) var isScratch = false
+    /// Bumped whenever saved progress changes, so views reading `progress` (Tomo's words) refresh.
+    @Published private(set) var progressVersion = 0
     /// The card's layout: talking (a starter or chat) or a picture round. Older Tomos still review baby words.
     @Published private(set) var talking = false
     @Published private(set) var round: TomoRound = .empty
@@ -167,7 +169,7 @@ final class TomoGame: ObservableObject {
     private var starterIndex = 0
 
     // What Tomo is asking (TomoProgress.swift)
-    private let progress = TomoProgress(pack: TomoLanguages.shared.target, learner: TomoLanguages.shared.learner.id)
+    let progress = TomoProgress(pack: TomoLanguages.shared.target, learner: TomoLanguages.shared.learner.id)
     private var queue: [String] = []        // this visit's items, still to ask
     private var currentItem: String?        // the item being asked; nil = chat follow-up or testing-age opener
     private var lastItem: String?
@@ -280,6 +282,7 @@ final class TomoGame: ObservableObject {
         levelNeeded = progress.levelNeeded
         levelIsTalk = progress.isTalkLevel
         isScratch = progress.isScratch
+        progressVersion += 1
     }
 
     /// The visit frequency changed in Settings.
