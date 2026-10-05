@@ -32,7 +32,7 @@ See the root level README.md
 | **Sound effects** | Tomo peeps and chirps: a "piyo piyo" when a visit starts, happy chirps for a Win, a soft boo-oop for a Miss, a questioning "hm?" for No score, a pop and fanfare when it hatches or grows, a boing when poked, a trill for love, a yawn. The island blips when it opens and closes. All synthesized in code; the peeps get lower as Tomo grows. One switch with the voice. | Built |
 | **Voice in and out** | Tomo speaks with macOS's Japanese voice at a raised pitch. You answer through Apple's on-device Japanese speech recognition. Both are free and offline. | Built (the mic is untested by hand) |
 | **AI is optional** | Stages 1–2 are fully scripted. 3さい uses AI if configured. Otherwise it uses a placeholder keyword matcher, which will be replaced by the Zenbu offline dictionary system. | Built |
-| **Settings** | Laid out like the Mac's System Settings: a sidebar (Tomo, Words, General, AI, Testing, About) and the selected page. General: languages, how often Tomo visits (or only when clicked), voice. Testing: try another age, skip ahead a day. Start over is on the Tomo page | Built |
+| **Settings** | Laid out like the Mac's System Settings: a sidebar (Tomo, Words, General, AI, Testing, About) and the selected page. General: languages, how often Tomo visits (or only when clicked), new words a day, voice. Testing: try another age, skip ahead a day. Start over is on the Tomo page | Built |
 | **Any language pair** | What you speak and what you learn are separate settings (Settings → General). Packs: Japanese, English, Spanish; interface in English or Japanese, so a Japanese speaker can learn English. | Built; see [languages.md](languages.md) |
 | **Any AI provider** | One adapter: Anthropic's own API, plus anything that speaks the OpenAI chat format (OpenAI, Gemini, OpenRouter, Groq, Ollama, custom). Pick it under Settings → **AI** (key in the Keychain), or put `OPENAI_API_KEY` in `.env` and launch with `mac-demo/run.sh`. | Built; tested with OpenAI `gpt-5.4-mini` (about 2 s per reply) and local Ollama |
 
@@ -42,7 +42,7 @@ See the root level README.md
 - **No study sessions.** Learning happens in short visits. Free play is always available but never required.
 - **No guilt.** No streak shaming. Tomo is happy to see you, never disappointed in you.
 - **Grade whether you were understood, not your pronunciation.** If Tomo doesn't get it, it reacts like a child (ん？), not like a teacher.
-- **Grows over days, not minutes.** A word only moves up when it's due, so knowing it takes several visits over days. You can't cram.
+- **Grows over days, not minutes.** A word only moves up when it's due (or at least halfway there), so knowing it takes several visits over days. You can't cram; practice in between is welcome but doesn't count.
 - **Check offline first, call AI only for leftovers** (planned). Most toddler questions have expected answers that can be checked without AI (yes/no, pick an animal or a food). AI handles the long tail.
 
 ## How Tomo grows
@@ -53,13 +53,13 @@ The rules are in `TomoProgress.swift`; the levels come from the language pack, b
 
 | Question | Issue | Research file |
 |---|---|---|
-| How should points and levels work so growth feels earned and can't be crammed? Built; follow-ups in [#38](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/38) | [#3](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/3) | [research/leveling-points.md](research/leveling-points.md) |
 | How do we get a better, child-like Japanese voice, and can it mature as Tomo ages? | [#5](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/5) | [research/voices.md](research/voices.md) |
 | Which learning modes should Tomo use, and when? | [#14](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/14) | [research/learning-modes.md](research/learning-modes.md) |
-| What's the data model for the words a learner knows and has encountered? | [#4](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/4) | [research/learner-data-schema.md](research/learner-data-schema.md) |
 | Where do we get the vocabulary and grammar for each age, so Tomo knows what it can say and understand? | [#13](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/13) | Japanese words: Wordbank (built). Grammar per age and other languages: still open. [research/age-vocabulary-data.md](research/age-vocabulary-data.md) |
 | How do we check a learner's answer without AI, and when is AI worth calling? | [#6](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/6) | [research/answer-evaluation.md](research/answer-evaluation.md) |
 | Which AI models are good at toddler Japanese, and what does a conversation cost? | [#7](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/7) | [research/ai-models-and-costs.md](research/ai-models-and-costs.md) |
+
+Built from research, issues closed: word stages and levels ([#3](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/3), [research/leveling-points.md](research/leveling-points.md); follow-ups in [#38](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/38)) and saved progress ([#4](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/4), [research/learner-data-schema.md](research/learner-data-schema.md)).
 
 ## Related
 

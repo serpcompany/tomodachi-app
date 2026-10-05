@@ -1,6 +1,6 @@
 # Tomodachi notch demo (macOS)
 
-A click-through demo of the Tomodachi idea: Tomo lives in the MacBook notch and talks like a 1-year-old Japanese child. You show you understood by picking the right picture or by doing what it asks (feed, bed, hug). Tomo is a baby chick: it starts in its eggshell, and after 5 words it hatches into 2さい and starts using two-word phrases.
+A click-through demo of the Tomodachi idea: Tomo lives in the MacBook notch and talks at its own age in the language you're learning (Japanese by default). You show you understood by picking the right picture or meaning, or by doing what it asks (feed, bed, hug). Tomo is a baby chick: it starts in its eggshell and grows level by level as its words reach "knows it". Some levels are birthdays: it hatches at 2さい (two-word phrases) and starts talking at 3さい.
 
 Forked from [Coucou](https://github.com/Louis-CFM/coucou) (MIT code). Coucou's coding-agent hooks and integrations are switched off, not deleted.
 
@@ -12,16 +12,20 @@ Forked from [Coucou](https://github.com/Louis-CFM/coucou) (MIT code). Coucou's c
 
 `run.sh` loads `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` from the repo's `.env` (gitignored) and passes it to the app, so Tomo replies with AI at 3さい (OpenAI default: `gpt-5.4-mini`). A provider saved under Settings → **AI** takes precedence. Without either, Tomo uses offline replies. You can also run `open build/Build/Products/Debug/Tomodachi.app`, which skips the AI keys.
 
-Tomo opens on its own every 20 minutes by default (Settings → General) for a 3-answer visit. If you ignore it for 10 seconds, it tucks back in. In between, it sits small beside the notch: click it to play any time, and press Esc to close.
+Tomo opens on its own every 20 minutes by default (Settings → General) when it has words due or a new one to teach, for up to 3 answers. If you ignore it for 10 seconds, it tucks back in. In between, it sits small beside the notch: click it to play any time, and press Esc to close. Progress is saved (see `TOMO_DATA_DIR` below for test runs).
 
 The menu bar icon has:
 - **Open Tomodachi**
 - **Drop in now** (⌘D)
-- **Skip to talking (3さい)** (⌘3)
-- **Restart Tomo** (⌘R)
+- **Skip to talking (3さい)** (⌘3): a testing Tomo in memory; the saved one waits
+- **Tomo's words…** (⌘W): Settings → Words
+- **Start Tomo over…** (⌘R): asks first
 - **Settings…** (⌘,):
-  - *General:* the language pair (I speak / I'm learning), how often Tomo visits (10 min to 2 h, or only when you click), Tomo's voice and sounds, restart
+  - *Tomo:* a live Tomo, its age, level and bar, each age with its levels, today's numbers, start over
+  - *Words:* every level and word, locked ones too, with its stage and when it's due
+  - *General:* the language pair (I speak / I'm learning), how often Tomo visits (10 min to 2 h, or only when you click), new words a day, Tomo's voice and sounds
   - *AI:* any provider (Anthropic, OpenAI, Gemini, OpenRouter, Groq, Ollama, or a custom OpenAI-compatible endpoint), key stored in the Keychain
+  - *Testing:* try another age, back to my Tomo, skip ahead a day
   - *About*
 
 ## Beta builds for testers
@@ -102,4 +106,4 @@ Coucou's **code** is MIT (see `LICENSE`). Its name, its Mochi character and its 
 
 - **Replaced:** Coucou's sounds (deleted; Tomo's are synthesized in `TomoSounds.swift`) and its icons (drawn from Tomo's code).
 - **Replaced:** the character. Tomo is our own chick (`TomoCharacter.swift`); Coucou's character code is deleted, so no permission is needed.
-- **Still open (issue #1):** Coucou names in code and comments, the sound files, and leftover features.
+- **Still open (issue #1):** Coucou names in code and comments, leftover files (`Coucou.entitlements`, `CoucouAppStore.entitlements`, `InfoAppStore.plist`), and the switched-off agent features.
