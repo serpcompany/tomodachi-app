@@ -11,12 +11,12 @@ Japanese-for-English-speakers is just the first pair. No Swift code contains tex
 | | Learner language (you speak) | Target language (you learn) |
 |---|---|---|
 | Decides | The interface text, hints, translations, and the "need" labels (feed / bed / hug) | Tomo's words and lines, voice, speech recognition, the "is this the right language?" check, the AI's character rules, age labels (1さい / 1 año) |
-| File | `Resources/languages/ui.<id>.json` | `Resources/languages/<id>.json` (a **language pack**) |
+| File | `TomoCore/Sources/TomoCore/Resources/languages/ui.<id>.json` | `TomoCore/Sources/TomoCore/Resources/languages/<id>.json` (a **language pack**) |
 | Today | `en`, `ja` | `ja`, `en`, `es` (all drafts until a native speaker reviews them) |
 
 Translations live inside each pack, keyed by learner language: `"meaning": {"en": "doggy", "es": "perrito"}`. If a translation is missing, English is used.
 
-Code: `mac-demo/NotchBuddy/Sources/App/TomoLanguage.swift` holds:
+Code: `TomoCore/Sources/TomoCore/TomoLanguage.swift` holds:
 - `TargetPack` and `LearnerPack` (the file formats)
 - `LanguageContext` (the pair, passed to background work)
 - `TomoLanguages` (the current selection)

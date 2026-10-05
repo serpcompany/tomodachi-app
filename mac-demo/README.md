@@ -63,20 +63,20 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 
 | File | Change |
 |---|---|
-| `Sources/App/TomoGame.swift` | New. Rounds, visits, level-ups and birthdays, help state, and the voice (`AVSpeechSynthesizer`, the pack's locale, raised pitch) |
-| `Sources/App/TomoProgress.swift`, `Sources/App/TomoStore.swift` | New. Word stages, levels and ages; saved progress in SQLite |
+| `TomoCore/Sources/TomoCore/TomoGame.swift` | New. Rounds, visits, level-ups and birthdays, help state, and the voice (`AVSpeechSynthesizer`, the pack's locale, raised pitch) |
+| `TomoCore/Sources/TomoCore/TomoProgress.swift`, `TomoStore.swift` | New. Word stages, levels and ages; saved progress in SQLite |
 | `scripts/build-levels.py`, `scripts/sources/`, `scripts/data/*-curation.json` | New. Builds the Japanese and English levels from pinned Wordbank data (Japanese 3–6: NINJAL lists with JMdict meanings) plus hand curation (`python3 scripts/build-levels.py ja` or `en`; `--review` for a table of every word) |
 | `Sources/App/TomoWordsView.swift` | New. Settings → Words: every level and word, with its stage and when it's due |
 | `Sources/App/TomoView.swift` | New. The fixed-grid card (`TomoGrid`), picture/action tiles, chat card, help panel, header status |
-| `Sources/App/TomoChat.swift` | New. Talking-stage replies (language check, then AI if configured, offline otherwise), explain, on-device speech recognition |
-| `Sources/App/TomoLanguage.swift`, `Resources/languages/` | New. Language packs (`ja.json`, `en.json`, `es.json`), interface strings (`ui.en.json`, `ui.ja.json`), and the pair selection |
+| `TomoCore/Sources/TomoCore/TomoChat.swift` | New. Talking-stage replies (language check, then AI if configured, offline otherwise), explain, on-device speech recognition |
+| `TomoCore/Sources/TomoCore/TomoLanguage.swift`, `TomoCore/Sources/TomoCore/Resources/languages/` | New. Language packs (`ja.json`, `en.json`, `es.json`), interface strings (`ui.en.json`, `ui.ja.json`), and the pair selection |
 | `Sources/App/TomoSettingsView.swift` | New. Settings, laid out like System Settings: sidebar and pages (Tomo, Words, General, AI, Testing, About) |
 | `Sources/App/TomoIconRenderer.swift`, `scripts/make-icons.py` | New. App and menu bar icons drawn from the character code |
 | `scripts/release-beta.sh`, `Resources/Tomodachi.entitlements` | New. Signed, notarized beta builds |
-| `Sources/App/TomoWords.swift` | New. Clickable words (`TomoLineView`), the font fit, word-card lookup (AI meaning + the Mac dictionary) |
-| `Sources/App/TomoCharacter.swift` | New. Tomo the chick (`TomoChick`): drawing, faces, moves, growth, particles; `TomoCharacterView` puts it in the island |
-| `Sources/App/TomoSounds.swift` | New. Tomo's sound effects, synthesized in code (no audio files) |
-| `Sources/App/TomoAI.swift` | New. Provider adapter (Anthropic API + any OpenAI-compatible endpoint) and the AI provider window |
+| `TomoCore/Sources/TomoCore/TomoWords.swift`, `Sources/App/TomoLineView.swift` | New. Word tokens and word-card lookup (AI meaning) in TomoCore; clickable words (`TomoLineView`), the font fit and the Mac dictionary in the app |
+| `TomoCore/Sources/TomoCore/TomoCharacter.swift`, `Sources/App/TomoIslandCharacter.swift` | New. Tomo the chick (`TomoChick`): drawing, faces, moves, growth, particles; `TomoCharacterView` puts it in the island |
+| `TomoCore/Sources/TomoCore/TomoSounds.swift` | New. Tomo's sound effects, synthesized in code (no audio files) |
+| `TomoCore/Sources/TomoCore/TomoAI.swift` | New. Provider adapter (Anthropic API + any OpenAI-compatible endpoint) and the AI provider window |
 | `BotEngine.swift`, `BotCanvasView.swift`, `GreetingCanvasView.swift`, `UploadCanvasView.swift` | Deleted: Coucou's character and the canvases that drew it. The last versions are in git history (`git show 43a5ada:mac-demo/NotchBuddy/Sources/App/BotEngine.swift`) and in the upstream Coucou repo. Read them for technique only; Mochi's look, expressions and animations are reserved |
 | `AppDelegate.swift`, `AppState.swift` | No hooks or pollers. A single "tomo" task. Launches straight into the game. "Start Tomo over…" asks first. Menu item "Tomo's words…" opens Settings → Words. The Settings window is resizable with a full-size content view, like System Settings |
 | `IslandRootView.swift`, `IslandViewContent.swift`, `IslandTypes.swift` | The header and overview show Tomo. The island is taller (overview +12 pt for Tomo's level bar). Draws `TomoCharacterView`; no greeting or upload canvas |
@@ -84,7 +84,10 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 | `NotchBuddyApp.swift` | The Settings scene shows `TomoSettingsView` |
 | `project.yml`, `Resources/Info.plist` | App name Tomodachi, bundle ID `com.zenbujapanese.tomodachi`, microphone and speech permission text (Coucou's French strings removed), Release signing for beta builds |
 | `SoundEngine.swift`, `Resources/sounds/` | `SoundEngine` is now a shim that sends the island's open/close/peek to `TomoSounds`; Coucou's 28 sound files are deleted |
-| `ClaudeService.swift` | Keychain service renamed to `co.zenbu.tomodachi` (kept, so saved keys still load) |
+| `ClaudeService.swift` | Keychain service renamed to `co.zenbu.tomodachi` (kept, so saved keys still load). The `Keychain` helper moved to `TomoCore/Sources/TomoCore/TomoKeychain.swift` |
+| `IslandTypes.swift`, `IslandWindowController.swift` | `BotState`, `BotEmote` and Tomo's notification names moved to `TomoCore/Sources/TomoCore/TomoSignals.swift` |
+| `AppState.swift` | `soundEnabled` forwards to `TomoGame.soundEnabled` (same `soundEnabled` default) |
+| `project.yml` | Depends on the local `TomoCore` package (`../../TomoCore`); the language packs come from its bundle |
 
 Debug only:
 - `TOMO_AUTOPLAY=1` answers picture rounds by itself (one miss, then right).

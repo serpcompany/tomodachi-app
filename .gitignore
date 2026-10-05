@@ -20,3 +20,7 @@ __pycache__/
 .env
 .env.*
 .claude/settings.local.json
+
+# Swift packages (TomoCore)
+.build/
+.swiftpm/

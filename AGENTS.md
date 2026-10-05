@@ -22,6 +22,7 @@ Current goal: prove that each part works and map out clean extension points. Pol
 ## Build and run
 
 ```bash
+cd TomoCore && swift build    # the shared package alone (Mac); iOS: xcodebuild -scheme TomoCore -destination 'generic/platform=iOS Simulator' build
 cd mac-demo/NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug -derivedDataPath ../build build
 mac-demo/run.sh    # relaunches the app with AI keys from .env
 ```
@@ -47,11 +48,11 @@ The app is menu-bar only, so computer-use can't target it. Use the debug flags i
   - a decision was made → `decisions.md`
   - something new works → `concepts.md`
   - run/debug steps or Coucou files touched → `mac-demo/README.md`
-- **Add Tomo code behind the seams** in `architecture.md` (`Tomo*.swift`), not inside Coucou files. If you must touch a Coucou file, add it to the table in `mac-demo/README.md`.
+- **Add Tomo code behind the seams** in `architecture.md` (`Tomo*.swift`), not inside Coucou files. Anything that isn't Mac-only goes in the `TomoCore` package, so the iPhone app gets it too. If you must touch a Coucou file, add it to the table in `mac-demo/README.md`.
 - **Secrets** live in `.env` (gitignored) or the Keychain. Never commit, print or log a key.
 - **Never commit** `mac-demo/build/`.
 - **Coucou's code is MIT; its assets are not.** The name, the Mochi character and the sounds are reserved (`mac-demo/LICENSE-ASSETS.md`). Don't ship them. Tomo is our own chick (`TomoCharacter.swift`) with its own synthesized sounds (`TomoSounds.swift`); keep it that way.
 - **Tomo is always alive.** It's drawn and animated live in code: no static images or sprite sheets. Every new look, state or reaction needs motion, and Tomo must never sit frozen (idle life: breathing, blinks, gaze, fidgets).
 - **Tomo's card is a fixed grid** (`TomoGrid` in `TomoView.swift`): Tomo's column plus fixed-height rows that add up to the card. Put new UI into a slot. Never let a row size itself. Text that can grow must be capped (line limits, or a font fitted the way it's drawn). Help content (hints, explanations, word cards) goes in the help panel the notch grows underneath the card, never squeezed into the card. Before handing over a UI change, snapshot the matrix and look at it: picture and talking stages, English and Japanese interface, a short and a long Tomo line, hint shown, Win / Miss / No score.
-- **No language-specific text in Swift.** Tomo's words go in the target pack (`Resources/languages/<id>.json`); interface text goes in `ui.<id>.json`. See `docs/languages.md`.
+- **No language-specific text in Swift.** Tomo's words go in the target pack (`TomoCore/Sources/TomoCore/Resources/languages/<id>.json`); interface text goes in `ui.<id>.json`. See `docs/languages.md`.
 - **Don't invest in the offline keyword matcher** (`TomoBrain.offlineReply`, the packs' `offlineReplies`). The Zenbu dictionary system replaces it.

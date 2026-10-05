@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import SwiftUI
+import TomoCore
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -170,6 +171,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         game.closeIsland = { [weak self] in self?.islandController?.collapse() }
         game.isIslandOpen = { AppState.shared.mode == .expanded }
         game.focusInput = { [weak self] in self?.islandController?.window?.makeKey() }
+        game.isPointerInside = { AppState.shared.mouseInIsland }
+        game.onBotState = { AppState.shared.updateTask(id: "tomo", state: $0) }
+        game.onHelpChange = { AppState.shared.helpPanelHeight = $0 == nil ? 0 : TomoGrid.helpHeight }
+        game.onActivity = { AppState.shared.lastActivity = .now }
+        game.secondsSinceInput = { typing in
+            let src = CGEventSourceStateID.combinedSessionState
+            if typing { return CGEventSource.secondsSinceLastEventType(src, eventType: .keyDown) }
+            let types: [CGEventType] = [.keyDown, .mouseMoved, .leftMouseDown, .scrollWheel]
+            return types.map { CGEventSource.secondsSinceLastEventType(src, eventType: $0) }.min() ?? 0
+        }
         game.start()
         game.dropIn(force: true)
         startDebugSnapshots()

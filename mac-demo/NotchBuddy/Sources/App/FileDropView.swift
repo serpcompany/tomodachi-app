@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import TomoCore
 
 // MARK: - NSView drag destination
 // Wired at the AppKit level in IslandWindowController (not via SwiftUI NSViewRepresentable)

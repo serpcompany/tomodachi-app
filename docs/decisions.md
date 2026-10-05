@@ -2,6 +2,9 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
+### 2026-10-06: Tomo's shared code is a Swift package, TomoCore
+Everything that isn't Mac-only (the game, progress and store, languages and packs, AI, chat, sounds, the chick's drawing) moved from the Mac app into a local Swift package, `TomoCore/`, that builds for macOS and iOS. The Mac app is a shell around it, and talks to `TomoGame` through closures instead of Coucou's `AppState`. It was done before any iPhone code ([#52](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/52)). **Why:** the iPhone app, its widgets and Live Activities need the same Tomo, and a package boundary keeps Mac-only code (the notch, AppKit, Dictionary.app) from leaking into it. The cost: the API the shells use is marked `public`.
+
 ### 2026-10-06: Practice is a mode you choose, like WaniKani's Extra Study
 When nothing would count, Tomo doesn't slip into practice rounds that look like progress. It says so first (nothing counts until a time; practice won't move the bar) and waits for **Practice** or **Later**. While practicing, the header says "Practice until …", the bar dims, and a right answer gets a blue **Practice** badge, not the green Win. **Why:** a tester played for minutes, saw "Win" every time and a bar that didn't move, and missed the small note saying it was practice. WaniKani avoids this by keeping the two apart: reviews only when due (its dashboard says "0 reviews" and when the next ones come) and a separate Extra Study that never touches progress. Practice still isn't counted, so the spacing stays honest.
 

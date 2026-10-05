@@ -9,29 +9,20 @@ import SwiftUI
 // What Tomo asks, and how it grows (word stages, levels, ages), comes from TomoProgress.swift: a visit
 // brings the items that are due, then at most one new one. All words and lines come from the language pack.
 
-extension Notification.Name {
-    static let botTalk = Notification.Name("tomo.botTalk")
-    static let botGrow = Notification.Name("tomo.botGrow")
-    static let botNudge = Notification.Name("tomo.botNudge")
-    static let botLevelUp = Notification.Name("tomo.botLevelUp")
-    /// Set Tomo's age step without the growing-up animation (launch, switching language pairs).
-    static let botSetGrowth = Notification.Name("tomo.botSetGrowth")
-}
-
 /// One answer to pick: a picture (emoji), an action (emoji + label), or a meaning (label only).
-struct TomoChoice: Identifiable, Hashable {
-    let id: String
-    let emoji: String?
-    let label: String?
+public struct TomoChoice: Identifiable, Hashable, Sendable {
+    public let id: String
+    public let emoji: String?
+    public let label: String?
 }
 
 /// How a round is asked (issue #14): pick the picture, do what Tomo says, or pick the meaning.
 /// A word without a picture or an action is asked by its meaning, so every word can be asked.
-enum TomoRoundKind { case picture, need, meaning }
+public enum TomoRoundKind: Sendable { case picture, need, meaning }
 
-enum TomoNeed: String, CaseIterable {
+public enum TomoNeed: String, CaseIterable, Sendable {
     case eat, sleep, hug
-    var emoji: String {
+    public var emoji: String {
         switch self {
         case .eat:   "🍙"
         case .sleep: "😴"
@@ -40,25 +31,25 @@ enum TomoNeed: String, CaseIterable {
     }
 }
 
-struct TomoRound {
-    let say: String          // what Tomo says (target language)
-    let romanization: String?
-    let meaning: String      // in the learner's language
-    let adult: String?       // what grown-ups say instead (target language)
-    let word: String         // item id counted toward growth ("ja:wanwan")
-    let answer: String       // id of the right choice
-    let choices: [TomoChoice]
-    let kind: TomoRoundKind
-    let need: TomoNeed?      // non-nil when the round is a need (feed / sleep / hug)
-    let praise: String       // what Tomo says when you get it
+public struct TomoRound: Sendable {
+    public let say: String          // what Tomo says (target language)
+    public let romanization: String?
+    public let meaning: String      // in the learner's language
+    public let adult: String?       // what grown-ups say instead (target language)
+    public let word: String         // item id counted toward growth ("ja:wanwan")
+    public let answer: String       // id of the right choice
+    public let choices: [TomoChoice]
+    public let kind: TomoRoundKind
+    public let need: TomoNeed?      // non-nil when the round is a need (feed / sleep / hug)
+    public let praise: String       // what Tomo says when you get it
 
-    static let empty = TomoRound(say: "", romanization: nil, meaning: "", adult: nil, word: "",
+    public static let empty = TomoRound(say: "", romanization: nil, meaning: "", adult: nil, word: "",
                                  answer: "", choices: [], kind: .picture, need: nil, praise: "")
 }
 
 extension TomoRound {
     /// `otherMeanings`: two wrong meanings, for a round asked by meaning (TomoProgress.otherMeanings).
-    init(_ r: TargetPack.Round, learner: LearnerPack, otherMeanings: [String] = []) {
+    public init(_ r: TargetPack.Round, learner: LearnerPack, otherMeanings: [String] = []) {
         let need = r.need.flatMap(TomoNeed.init(rawValue:))
         let meaning = r.meaning(learner.id)
         let kind: TomoRoundKind, answer: String, choices: [TomoChoice]
@@ -81,20 +72,20 @@ extension TomoRound {
 }
 
 /// What an answer earned. Shown as a badge so it's always obvious (docs/concepts.md).
-enum TomoOutcome: Equatable {
+public enum TomoOutcome: Equatable, Sendable {
     case win(counted: Bool)     // understood / right picture. Not counted = practice (the item wasn't due)
     case loss                   // tried, Tomo didn't get it / wrong picture: no credit
     case neutral(String)        // "language" (not in the target language) or "help": no credit, no penalty
 }
 
 /// What the help panel below Tomo's card shows (the island grows to fit it).
-enum TomoHelp: Equatable {
+public enum TomoHelp: Equatable, Sendable {
     case hint                // reading, meaning, example answers
     case explain             // meaning, key parts, tip, ask about a part, say it simpler
     case word(String)        // word card for a clicked word
 }
 
-enum TomoPhase: Equatable {
+public enum TomoPhase: Equatable, Sendable {
     case asking
     case thinking            // talking stage: waiting for Tomo's reply
     case right
@@ -106,98 +97,98 @@ enum TomoPhase: Equatable {
 
 // MARK: - Drop-ins: Tomo visits now and then instead of asking for study sessions
 
-enum DropIn {
+public enum DropIn {
     /// Time between visits (Settings → General). 0 = only when you click Tomo.
     /// TOMO_DROPIN_EVERY (seconds) overrides it for testing.
-    static var every: TimeInterval {
+    public static var every: TimeInterval {
         if let e = ProcessInfo.processInfo.environment["TOMO_DROPIN_EVERY"].flatMap(TimeInterval.init) { return e }
         return UserDefaults.standard.object(forKey: "tomoVisitEvery") as? Double ?? 20 * 60
     }
-    static func setEvery(_ seconds: TimeInterval) { UserDefaults.standard.set(seconds, forKey: "tomoVisitEvery") }
-    static let choices: [(seconds: TimeInterval, key: String)] = [
+    public static func setEvery(_ seconds: TimeInterval) { UserDefaults.standard.set(seconds, forKey: "tomoVisitEvery") }
+    public static let choices: [(seconds: TimeInterval, key: String)] = [
         (10 * 60, "settings.visits.10m"), (20 * 60, "settings.visits.20m"), (45 * 60, "settings.visits.45m"),
         (2 * 3600, "settings.visits.2h"), (0, "settings.visits.off"),
     ]
     /// When the next visit is due, counting from now.
-    static func nextVisit() -> Date { every > 0 ? Date().addingTimeInterval(every) : .distantFuture }
+    public static func nextVisit() -> Date { every > 0 ? Date().addingTimeInterval(every) : .distantFuture }
     /// Tomo leaves when you haven't touched or hovered the island for this long.
-    static let ignoreAfter: TimeInterval = 10
+    public static let ignoreAfter: TimeInterval = 10
     /// Answering in your own words takes longer than tapping a picture.
-    static let ignoreAfterChat: TimeInterval = 20
+    public static let ignoreAfterChat: TimeInterval = 20
     /// Answers per visit before Tomo says bye.
-    static let roundsPerVisit = 3
+    public static let roundsPerVisit = 3
     /// A scheduled visit with nothing due or new is skipped; Tomo checks again this often.
-    static let recheck: TimeInterval = 5 * 60
+    public static let recheck: TimeInterval = 5 * 60
     /// After an unfinished visit (closed or ignored), small Tomo bounces this often until you check in.
     /// TOMO_NUDGE_EVERY (seconds) overrides it for testing.
-    static let nudgeEvery: TimeInterval = ProcessInfo.processInfo.environment["TOMO_NUDGE_EVERY"]
+    public static let nudgeEvery: TimeInterval = ProcessInfo.processInfo.environment["TOMO_NUDGE_EVERY"]
         .flatMap(TimeInterval.init) ?? 60
 }
 
 // MARK: - Game
 
 @MainActor
-final class TomoGame: ObservableObject {
-    static let shared = TomoGame()
+public final class TomoGame: ObservableObject {
+    public static let shared = TomoGame()
 
-    static let chatStage = 3
+    public static let chatStage = 3
 
     /// Tomo's age (TomoProgress keeps it; it never goes down).
-    @Published private(set) var stage = 1
-    @Published private(set) var level = 1
-    @Published private(set) var levelKnown = 0
-    @Published private(set) var levelNeeded = 1
-    @Published private(set) var levelProgress = 0.0     // the experience bar (TomoProgress.levelProgress)
-    @Published private(set) var levelIsTalk = false
+    @Published public private(set) var stage = 1
+    @Published public private(set) var level = 1
+    @Published public private(set) var levelKnown = 0
+    @Published public private(set) var levelNeeded = 1
+    @Published public private(set) var levelProgress = 0.0     // the experience bar (TomoProgress.levelProgress)
+    @Published public private(set) var levelIsTalk = false
     /// Testing ages run on an in-memory Tomo (Settings → Try another age).
-    @Published private(set) var isScratch = false
+    @Published public private(set) var isScratch = false
     /// Bumped whenever saved progress changes, so views reading `progress` (Tomo's words) refresh.
-    @Published private(set) var progressVersion = 0
+    @Published public private(set) var progressVersion = 0
     /// The card's layout: talking (a starter or chat) or a picture round. Older Tomos still review baby words.
-    @Published private(set) var talking = false
-    @Published private(set) var round: TomoRound = .empty
-    @Published private(set) var phase: TomoPhase = .asking
-    @Published var hintShown = false
-    @Published private(set) var outcome: TomoOutcome? {
+    @Published public private(set) var talking = false
+    @Published public private(set) var round: TomoRound = .empty
+    @Published public private(set) var phase: TomoPhase = .asking
+    @Published public var hintShown = false
+    @Published public private(set) var outcome: TomoOutcome? {
         didSet { if let o = outcome { TomoSounds.shared.outcome(o) } }
     }
     /// A visit ended unfinished: red dot on small Tomo + a bounce now and then, until you open it.
-    @Published private(set) var pending = false
+    @Published public private(set) var pending = false
     private var nextNudge = Date.distantFuture
 
     /// This round is practice (nothing counts right now), and when answers count again: the header says so.
-    @Published private(set) var practiceUntil: Date?
-    @Published private(set) var isPracticeRound = false
+    @Published public private(set) var practiceUntil: Date?
+    @Published public private(set) var isPracticeRound = false
     /// Practice is a mode you pick, like WaniKani's Extra Study: the first practice round waits for "Practice".
     private var practiceAccepted = false
     private var practiceNext: String?
 
     // Talking stage (age 3+)
-    @Published private(set) var line: TomoLine = .empty
-    @Published private(set) var lastAnswer: String?
-    @Published private(set) var aiLabel: String?   // nil = offline replies
-    @Published var draft = "" { didSet { if draft != oldValue { touch() } } }
-    // Help panel below the card: one at a time; the island grows by TomoGrid.helpHeight
-    @Published var help: TomoHelp? {
+    @Published public private(set) var line: TomoLine = .empty
+    @Published public private(set) var lastAnswer: String?
+    @Published public private(set) var aiLabel: String?   // nil = offline replies
+    @Published public var draft = "" { didSet { if draft != oldValue { touch() } } }
+    // Help panel below the card: one at a time; the shell makes room for it (`onHelpChange`)
+    @Published public var help: TomoHelp? {
         didSet {
-            AppState.shared.helpPanelHeight = help == nil ? 0 : TomoGrid.helpHeight
+            onHelpChange?(help)
             if help != nil { touch() }
         }
     }
-    @Published private(set) var explanation: TomoExplanation?
-    @Published private(set) var explaining = false
-    @Published private(set) var simplifying = false
+    @Published public private(set) var explanation: TomoExplanation?
+    @Published public private(set) var explaining = false
+    @Published public private(set) var simplifying = false
     // Word card (click a word in Tomo's line)
-    @Published private(set) var wordCard: TomoWordCard?
-    @Published private(set) var lookingUp = false
+    @Published public private(set) var wordCard: TomoWordCard?
+    @Published public private(set) var lookingUp = false
     /// Debug (TOMO_AUTOLOOKUP=<word index>): "click" a word in Tomo's line.
-    @Published var cardRequest: Int?
-    let listener = TomoListener()
+    @Published public var cardRequest: Int?
+    public let listener = TomoListener()
     private var transcript: [String] = []
     private var starterIndex = 0
 
     // What Tomo is asking (TomoProgress.swift)
-    let progress = TomoProgress(pack: TomoLanguages.shared.target, learner: TomoLanguages.shared.learner.id)
+    public let progress = TomoProgress(pack: TomoLanguages.shared.target, learner: TomoLanguages.shared.learner.id)
     private var queue: [String] = []        // this visit's items, still to ask
     private var currentItem: String?        // the item being asked; nil = chat follow-up or testing-age opener
     private var lastItem: String?
@@ -207,11 +198,26 @@ final class TomoGame: ObservableObject {
     private var taughtNew = false           // this visit already brought its one new item
     private var token = 0
 
-    // Island hooks, set by AppDelegate
-    var openIsland: (@MainActor () -> Void)?
-    var closeIsland: (@MainActor () -> Void)?
-    var isIslandOpen: (@MainActor () -> Bool)?
-    var focusInput: (@MainActor () -> Void)?
+    /// Tomo's voice and sound effects (the speaker button, Settings → General).
+    @Published public var soundEnabled = UserDefaults.standard.object(forKey: "soundEnabled") as? Bool ?? true {
+        didSet { UserDefaults.standard.set(soundEnabled, forKey: "soundEnabled") }
+    }
+
+    // Shell hooks: the Mac island sets them in AppDelegate; the iPhone app sets its own (issue #52)
+    public var openIsland: (@MainActor () -> Void)?
+    public var closeIsland: (@MainActor () -> Void)?
+    public var isIslandOpen: (@MainActor () -> Bool)?
+    public var focusInput: (@MainActor () -> Void)?
+    /// The pointer is over Tomo's card: a visit doesn't time out while you're there.
+    public var isPointerInside: (@MainActor () -> Bool)?
+    /// Tomo's state changed (asking, thinking, right, wrong…): the shell passes it to its TomoChick.
+    public var onBotState: (@MainActor (BotState) -> Void)?
+    /// The help panel opened or closed: the shell makes room for it.
+    public var onHelpChange: (@MainActor (TomoHelp?) -> Void)?
+    /// The learner did something in Tomo's card.
+    public var onActivity: (@MainActor () -> Void)?
+    /// Seconds since the last key press (`typing`) or any input. Without it, a visit never waits.
+    public var secondsSinceInput: (@MainActor (_ typing: Bool) -> TimeInterval)?
 
     // Visit state: nil = no visit (island closed, or opened by the user for free play)
     private var visitRoundsLeft: Int?
@@ -235,8 +241,8 @@ final class TomoGame: ObservableObject {
     }
 
     private var lang: TomoLanguages { .shared }
-    var isChat: Bool { talking }
-    var age: String { lang.target.ageLabel(stage) }
+    public var isChat: Bool { talking }
+    public var age: String { lang.target.ageLabel(stage) }
     private var growthStep: CGFloat { CGFloat(min(max(stage - 1, 0), 2)) }
     private var ignoreAfter: TimeInterval { isChat ? DropIn.ignoreAfterChat : DropIn.ignoreAfter }
 
@@ -250,7 +256,7 @@ final class TomoGame: ObservableObject {
 
     /// Loads the saved Tomo for the current language pair and starts the visit clock.
     /// Call `dropIn(force: true)` to open right away.
-    func start() {
+    public func start() {
         bump()
         progress.load(pack: lang.target, learner: lang.learner.id)
         syncProgress()
@@ -269,19 +275,19 @@ final class TomoGame: ObservableObject {
     }
 
     /// The language pair changed (or testing ended): bring that pair's saved Tomo.
-    func reload() {
+    public func reload() {
         start()
         dropIn(force: true)
     }
 
     /// A new Tomo for this language pair. Ask first (TomoStartOver.confirm()).
-    func startOver() {
+    public func startOver() {
         progress.startOver()
         reload()
     }
 
     /// Testing: move Tomo's clock ahead, so due words come back without waiting.
-    func skipAhead(days: Double) {
+    public func skipAhead(days: Double) {
         TomoClock.offset += days * 86400
         syncProgress()
         nextDropIn = Date()
@@ -320,13 +326,13 @@ final class TomoGame: ObservableObject {
     }
 
     /// The visit frequency changed in Settings.
-    func rescheduleVisits() { nextDropIn = DropIn.nextVisit() }
+    public func rescheduleVisits() { nextDropIn = DropIn.nextVisit() }
 
     /// Demo shortcut: skip ahead to the talking stage.
-    func jumpToChat(open: Bool = true) { jump(toAge: Self.chatStage, open: open) }
+    public func jumpToChat(open: Bool = true) { jump(toAge: Self.chatStage, open: open) }
 
     /// Testing: make Tomo any age (1–2 picture rounds, 3+ talking) on an in-memory Tomo; the saved one waits.
-    func jump(toAge age: Int, open: Bool = true) {
+    public func jump(toAge age: Int, open: Bool = true) {
         bump()
         progress.scratch(age: age)
         syncProgress()
@@ -336,15 +342,15 @@ final class TomoGame: ObservableObject {
     }
 
     /// Tomo pops open for a short visit. Without `force`, it waits for a natural break.
-    func dropIn(force: Bool) {
+    public func dropIn(force: Bool) {
         if !force {
             if isIslandOpen?() == true || visitRoundsLeft != nil {   // already together
                 nextDropIn = DropIn.nextVisit(); return
             }
-            if Self.secondsSinceInput(typing: true) < 3 {            // mid-typing: try again soon
+            if secondsSinceInput?(true) ?? .infinity < 3 {            // mid-typing: try again soon
                 nextDropIn = Date().addingTimeInterval(20); return
             }
-            if Self.secondsSinceInput(typing: false) > 5 * 60 {      // nobody at the Mac
+            if secondsSinceInput?(false) ?? 0 > 5 * 60 {      // nobody at the Mac
                 nextDropIn = Date().addingTimeInterval(60); return
             }
         }
@@ -418,7 +424,7 @@ final class TomoGame: ObservableObject {
     }
 
     /// "Practice": practice rounds until something counts again.
-    func startPractice() {
+    public func startPractice() {
         guard phase == .practiceIntro, let id = practiceNext else { return }
         touch()
         practiceAccepted = true
@@ -427,7 +433,7 @@ final class TomoGame: ObservableObject {
     }
 
     /// "Later" (or the offer was ignored): Tomo goes back. Nothing is waiting, so no red dot.
-    func skipPractice() {
+    public func skipPractice() {
         guard phase == .practiceIntro else { return }
         endVisit()
         pending = false
@@ -476,7 +482,7 @@ final class TomoGame: ObservableObject {
             if now.timeIntervalSince(visitStarted) > 2 { markPending(); endVisit() }
             return
         }
-        if AppState.shared.mouseInIsland || listener.isListening || help != nil {
+        if isPointerInside?() == true || listener.isListening || help != nil {
             visitDeadline = now.addingTimeInterval(ignoreAfter)
         } else if now > visitDeadline && phase == .asking {
             leave(ignored: true)
@@ -522,7 +528,7 @@ final class TomoGame: ObservableObject {
     }
 
     /// × button: put Tomo away. Mid-visit, it waits beside the notch with a red dot.
-    func dismiss() {
+    public func dismiss() {
         guard isIslandOpen?() == true else { return }
         if visitRoundsLeft != nil { markPending() }
         endVisit()
@@ -553,19 +559,12 @@ final class TomoGame: ObservableObject {
         return left - 1 <= 0
     }
 
-    private static func secondsSinceInput(typing: Bool) -> TimeInterval {
-        let src = CGEventSourceStateID.combinedSessionState
-        if typing { return CGEventSource.secondsSinceLastEventType(src, eventType: .keyDown) }
-        let types: [CGEventType] = [.keyDown, .mouseMoved, .leftMouseDown, .scrollWheel]
-        return types.map { CGEventSource.secondsSinceLastEventType(src, eventType: $0) }.min() ?? 0
-    }
-
-    func replay() {
+    public func replay() {
         touch()
         speak(isChat ? line.say : round.say, slow: hintShown)
     }
 
-    func showHint() {
+    public func showHint() {
         touch()
         hintShown = true
         if currentItem != nil && !itemCredited { hintUsed = true }
@@ -575,7 +574,7 @@ final class TomoGame: ObservableObject {
 
     // MARK: Ages 1–2: pick the picture / do what Tomo asks
 
-    func pick(_ choice: TomoChoice) {
+    public func pick(_ choice: TomoChoice) {
         guard phase == .asking else { return }
         touch()
         help = nil
@@ -727,10 +726,10 @@ final class TomoGame: ObservableObject {
         }
     }
 
-    func submitDraft() { answer(draft) }
+    public func submitDraft() { answer(draft) }
 
     /// Explain the current line in the learner's language; `focus` is the part they're stuck on.
-    func explain(focus: String? = nil) {
+    public func explain(focus: String? = nil) {
         guard isChat, !explaining else { return }
         touch()
         explaining = true
@@ -746,25 +745,25 @@ final class TomoGame: ObservableObject {
     }
 
     /// Click a word in Tomo's line: open its word card in the help panel.
-    func openWord(_ word: String) {
+    public func openWord(_ word: String) {
         guard !word.isEmpty else { return }
         help = .word(word)
         lookUp(word)
     }
 
     /// Open the explanation, optionally about one part ("I don't understand …").
-    func openExplain(focus: String? = nil) {
+    public func openExplain(focus: String? = nil) {
         help = .explain
         if focus != nil || explanation == nil { explain(focus: focus) }
     }
 
     /// Click an example answer in the hint: put it in the answer box.
-    func useExample(_ example: String) {
+    public func useExample(_ example: String) {
         draft = example.components(separatedBy: " (").first ?? example
     }
 
     /// Look a word up (AI meaning in context; the Mac Dictionary shows in the card).
-    func lookUp(_ word: String) {
+    public func lookUp(_ word: String) {
         guard !word.isEmpty else { return }
         touch()
         lookingUp = true
@@ -779,7 +778,7 @@ final class TomoGame: ObservableObject {
     }
 
     /// Tomo says the current line again in easier words (target language).
-    func sayItSimpler() {
+    public func sayItSimpler() {
         guard isChat, phase == .asking, !simplifying else { return }
         touch()
         simplifying = true
@@ -803,13 +802,13 @@ final class TomoGame: ObservableObject {
         }
     }
 
-    func toggleMic() {
+    public func toggleMic() {
         touch()
         listener.toggle(onPartial: { [weak self] in self?.draft = $0 },
                         onDone: { [weak self] in self?.answer($0) })
     }
 
-    func answer(_ text: String) {
+    public func answer(_ text: String) {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard isChat, phase == .asking, !text.isEmpty else { return }
         if lang.isHelpRequest(text) {
@@ -913,8 +912,8 @@ final class TomoGame: ObservableObject {
 
     // MARK: Helpers
 
-    func speak(_ text: String, slow: Bool) {
-        guard AppState.shared.soundEnabled else { return }
+    public func speak(_ text: String, slow: Bool) {
+        guard soundEnabled else { return }
         speech.stopSpeaking(at: .immediate)
         let u = AVSpeechUtterance(string: text)
         u.voice = voice
@@ -925,7 +924,7 @@ final class TomoGame: ObservableObject {
     }
 
     private func setBot(_ s: BotState) {
-        AppState.shared.updateTask(id: "tomo", state: s)
+        onBotState?(s)
     }
 
     private func emote(_ e: BotEmote) {
@@ -933,7 +932,7 @@ final class TomoGame: ObservableObject {
     }
 
     private func touch() {
-        AppState.shared.lastActivity = .now
+        onActivity?()
         visitDeadline = Date().addingTimeInterval(ignoreAfter)
     }
 

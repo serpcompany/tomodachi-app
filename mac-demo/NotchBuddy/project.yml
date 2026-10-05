@@ -6,6 +6,10 @@ options:
   xcodeVersion: "27.0"
   createIntermediateGroups: true
 
+packages:
+  TomoCore:
+    path: ../../TomoCore
+
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -46,9 +50,8 @@ targets:
         type: group
       - path: Assets.xcassets
         buildPhase: resources
-      - path: Resources/languages
-        buildPhase: resources
-        type: folder
+    dependencies:
+      - package: TomoCore
     info:
       path: Resources/Info.plist
       properties:

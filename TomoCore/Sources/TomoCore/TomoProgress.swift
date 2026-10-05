@@ -10,23 +10,23 @@ import Foundation
 // up is Tomo's birthday. New items: at most one per visit and ten a day. Level and age never go down.
 // Saved through TomoStore (one Tomo per learner × target pair).
 
-enum TomoSRS {
-    static let knows = 5            // "knows it": counts toward the next level
-    static let forever = 9          // never asked again
+public enum TomoSRS {
+    public static let knows = 5            // "knows it": counts toward the next level
+    public static let forever = 9          // never asked again
 
     /// Hours until the next review after reaching a stage. Day-sized waits are an hour short, so a word
     /// answered at 9 am is due again by 9 am. The first two levels start faster.
     private static let hours: [Int: Double] = [1: 4, 2: 8, 3: 23, 4: 47, 5: 167, 6: 335, 7: 719, 8: 2879]
     private static let fastHours: [Int: Double] = [1: 2, 2: 4, 3: 8, 4: 23]
-    static let fastLevels = 1...2
+    public static let fastLevels = 1...2
 
-    static func wait(after stage: Int, level: Int) -> TimeInterval? {
+    public static func wait(after stage: Int, level: Int) -> TimeInterval? {
         let h = (fastLevels.contains(level) ? fastHours[stage] : nil) ?? hours[stage]
         return h.map { $0 * 3600 }
     }
 
     /// The stage's group, for display: new · heard (1–4) · knows (5–6) · good (7) · loves (8) · forever (9).
-    static func group(_ stage: Int) -> String {
+    public static func group(_ stage: Int) -> String {
         switch stage {
         case ...0:  return "new"
         case 1...4: return "heard"
@@ -38,7 +38,7 @@ enum TomoSRS {
     }
 
     /// The stage after a new or due item is answered right. `wrongTries`: wrong answers earlier in the round.
-    static func next(after stage: Int, wrongTries: Int, hint: Bool) -> Int {
+    public static func next(after stage: Int, wrongTries: Int, hint: Bool) -> Int {
         if stage == 0 { return 1 }                                    // first right answer: just heard it
         if wrongTries > 0 {
             let drop = (wrongTries + 1) / 2 * (stage >= knows ? 2 : 1) // ceil(tries / 2), doubled from "knows it"
@@ -50,13 +50,13 @@ enum TomoSRS {
 
 /// Tomo's clock. Testing can move it ahead: TOMO_TIME_TRAVEL=<hours>, or Settings → "Skip ahead a day".
 @MainActor
-enum TomoClock {
-    static var offset: TimeInterval =
+public enum TomoClock {
+    public static var offset: TimeInterval =
         (ProcessInfo.processInfo.environment["TOMO_TIME_TRAVEL"].flatMap(Double.init) ?? 0) * 3600
-    static var now: Date { Date().addingTimeInterval(offset) }
+    public static var now: Date { Date().addingTimeInterval(offset) }
 
     /// The daily new-word limit resets at 4 am, like Anki.
-    static var dayStart: Date {
+    public static var dayStart: Date {
         let cal = Calendar.current
         let start = cal.date(bySettingHour: 4, minute: 0, second: 0, of: now) ?? now
         return start > now ? start.addingTimeInterval(-86400) : start
@@ -64,31 +64,31 @@ enum TomoClock {
 }
 
 @MainActor
-final class TomoProgress {
-    typealias Item = TomoStore.ItemRow
+public final class TomoProgress {
+    public typealias Item = TomoStore.ItemRow
 
     /// New words a day (Settings → General): 5, 10, 20 or 30.
-    static var newPerDay: Int { UserDefaults.standard.object(forKey: "tomoNewPerDay") as? Int ?? 10 }
-    static let newPerDayChoices = [5, 10, 20, 30]
-    static let newPerVisit = 1
+    public static var newPerDay: Int { UserDefaults.standard.object(forKey: "tomoNewPerDay") as? Int ?? 10 }
+    public static let newPerDayChoices = [5, 10, 20, 30]
+    public static let newPerVisit = 1
     /// An early review counts once this share of the word's wait has passed.
-    static let earlyShare = 0.5
+    public static let earlyShare = 0.5
 
-    private(set) var pack: TargetPack
-    private(set) var learner: String
-    private(set) var level = 1
-    private(set) var age = 1
-    private(set) var metAt = Date()
-    private(set) var items: [String: Item] = [:]
+    public private(set) var pack: TargetPack
+    public private(set) var learner: String
+    public private(set) var level = 1
+    public private(set) var age = 1
+    public private(set) var metAt = Date()
+    public private(set) var items: [String: Item] = [:]
     /// Testing ages run on an in-memory Tomo; the saved one isn't touched.
-    private(set) var isScratch = false
+    public private(set) var isScratch = false
     private var store: TomoStore?
     private var directory: URL
     private var levelOfItem: [String: Int] = [:]
     private var roundIndex: [String: TargetPack.Round] = [:]
     private var starterIndex: [String: TargetPack.Starter] = [:]
 
-    init(pack: TargetPack, learner: String, directory: URL = TomoStore.directory) {
+    public init(pack: TargetPack, learner: String, directory: URL = TomoStore.directory) {
         self.pack = pack
         self.learner = learner
         self.directory = directory
@@ -96,7 +96,7 @@ final class TomoProgress {
     }
 
     /// The saved Tomo for this language pair (a new one hatches if there's none yet).
-    func load(pack: TargetPack, learner: String) {
+    public func load(pack: TargetPack, learner: String) {
         self.pack = pack
         self.learner = learner
         isScratch = false
@@ -117,7 +117,7 @@ final class TomoProgress {
     }
 
     /// Start over: a new Tomo for this pair. The answer log stays.
-    func startOver() {
+    public func startOver() {
         if isScratch { load(pack: pack, learner: learner) }
         store?.clear(at: TomoClock.now)
         items = [:]
@@ -125,7 +125,7 @@ final class TomoProgress {
     }
 
     /// Testing: an in-memory Tomo at this age, with the earlier levels known.
-    func scratch(age: Int) {
+    public func scratch(age: Int) {
         isScratch = true
         store = nil
         level = pack.firstLevel(age: age)
@@ -151,23 +151,23 @@ final class TomoProgress {
 
     // MARK: Levels
 
-    var current: TargetPack.Level? { pack.levels.indices.contains(level - 1) ? pack.levels[level - 1] : nil }
-    var levelItems: [String] { current?.itemIDs ?? [] }
-    var levelKnown: Int { levelItems.filter { (items[$0]?.stage ?? 0) >= TomoSRS.knows }.count }
+    public var current: TargetPack.Level? { pack.levels.indices.contains(level - 1) ? pack.levels[level - 1] : nil }
+    public var levelItems: [String] { current?.itemIDs ?? [] }
+    public var levelKnown: Int { levelItems.filter { (items[$0]?.stage ?? 0) >= TomoSRS.knows }.count }
     /// 90% of the level's items, rounded up.
-    var levelNeeded: Int { max(1, (levelItems.count * 9 + 9) / 10) }
-    var isLastLevel: Bool { level >= pack.levels.count }
+    public var levelNeeded: Int { max(1, (levelItems.count * 9 + 9) / 10) }
+    public var isLastLevel: Bool { level >= pack.levels.count }
     /// The experience bar: every stage a word of this level reaches counts (up to "knows it"), so each answer that
     /// counts nudges it. It uses the best stage reached, so a slip never moves it back. Full when the level is done.
-    var levelProgress: Double {
+    public var levelProgress: Double {
         let steps = levelItems.reduce(0) { $0 + min(items[$1]?.peak ?? 0, TomoSRS.knows) }
         let full = Double(levelNeeded * TomoSRS.knows)
         return levelKnown >= levelNeeded ? 1 : min(Double(steps) / full, 0.97)
     }
-    var isTalkLevel: Bool { !(current?.starters ?? []).isEmpty }
+    public var isTalkLevel: Bool { !(current?.starters ?? []).isEmpty }
 
     /// Level up when this level is done. Returns the new level and whether it was a birthday.
-    func levelUpIfReady() -> (level: Int, birthday: Bool)? {
+    public func levelUpIfReady() -> (level: Int, birthday: Bool)? {
         guard !isLastLevel, levelKnown >= levelNeeded else { return nil }
         level += 1
         let newAge = max(age, pack.levels[level - 1].age)
@@ -185,49 +185,49 @@ final class TomoProgress {
     /// Items of this level and the ones before it.
     private var unlocked: [String] { pack.levels.prefix(level).flatMap(\.itemIDs) }
 
-    func isDue(_ id: String) -> Bool {
+    public func isDue(_ id: String) -> Bool {
         guard let due = items[id]?.due else { return false }
         return due <= TomoClock.now
     }
 
-    var dueItems: [String] {
+    public var dueItems: [String] {
         unlocked.filter(isDue).sorted { (items[$0]?.due ?? .distantPast) < (items[$1]?.due ?? .distantPast) }
     }
-    var newItems: [String] { unlocked.filter { items[$0] == nil } }
-    var newToday: Int { items.values.filter { $0.introduced >= TomoClock.dayStart }.count }
-    var canTeachNew: Bool { newToday < Self.newPerDay && !newItems.isEmpty }
+    public var newItems: [String] { unlocked.filter { items[$0] == nil } }
+    public var newToday: Int { items.values.filter { $0.introduced >= TomoClock.dayStart }.count }
+    public var canTeachNew: Bool { newToday < Self.newPerDay && !newItems.isEmpty }
 
     /// Today (since 4 am): new words, answers, and answers that moved a word up. A testing Tomo has no log.
-    func today() -> (newWords: Int, answers: Int, stronger: Int) {
+    public func today() -> (newWords: Int, answers: Int, stronger: Int) {
         let counts = store?.answerCounts(since: TomoClock.dayStart) ?? (answers: 0, stronger: 0)
         return (newToday, counts.answers, counts.stronger)
     }
 
     /// A visit: due items first (the longest-waiting first), then at most one new one. Empty = nothing to do.
-    func visitItems(limit: Int) -> [String] {
+    public func visitItems(limit: Int) -> [String] {
         var q = Array(dueItems.prefix(limit))
         if q.count < limit, canTeachNew, let n = newItems.first { q.append(n) }
         return q
     }
 
     /// How much of an item's wait has passed: 0 right after it was answered, 1 when it's due.
-    func waitShare(_ id: String) -> Double {
+    public func waitShare(_ id: String) -> Double {
         guard let i = items[id], let due = i.due,
               let wait = TomoSRS.wait(after: i.stage, level: levelOfItem[id] ?? level) else { return 0 }
         return max(0, 1 - due.timeIntervalSince(TomoClock.now) / wait)
     }
 
     /// Not due yet, but far enough along that answering it now counts (an early review).
-    func isEarlyOK(_ id: String) -> Bool { !isDue(id) && waitShare(id) >= Self.earlyShare }
+    public func isEarlyOK(_ id: String) -> Bool { !isDue(id) && waitShare(id) >= Self.earlyShare }
 
     /// Would a right answer to this item count now (new, due, or far enough along)?
-    func counts(_ id: String) -> Bool { items[id] == nil || isDue(id) || isEarlyOK(id) }
+    public func counts(_ id: String) -> Bool { items[id] == nil || isDue(id) || isEarlyOK(id) }
 
     /// When something counts again, if nothing does now: the soonest a word reaches half its wait, or the next day's
     /// new words (4 am) when today's are used up and the level still has some. Nil if something counts now.
     /// Is there anything a right answer would count for now (due, new, or far enough along)?
-    var somethingCounts: Bool { !dueItems.isEmpty || canTeachNew || unlocked.contains(where: isEarlyOK) }
-    var nextCountsAt: Date? {
+    public var somethingCounts: Bool { !dueItems.isEmpty || canTeachNew || unlocked.contains(where: isEarlyOK) }
+    public var nextCountsAt: Date? {
         if somethingCounts { return nil }
         let early = unlocked.compactMap { id -> Date? in
             guard let i = items[id], let due = i.due,
@@ -240,14 +240,14 @@ final class TomoProgress {
 
     /// Free play, after a visit's items: a due item, else a new one (within the daily limit), else one that
     /// can be reviewed early. Each of these counts.
-    func nextFreePlayItem() -> String? {
+    public func nextFreePlayItem() -> String? {
         dueItems.first ?? (canTeachNew ? newItems.first : nil)
             ?? unlocked.filter(isEarlyOK).max { waitShare($0) < waitShare($1) }
     }
 
     /// Practice when nothing counts right now: something Tomo already heard, the closest to due first (then the
     /// weakest), not the last one asked.
-    func practiceItem(after last: String?, talk: Bool) -> String? {
+    public func practiceItem(after last: String?, talk: Bool) -> String? {
         let pool = unlocked.filter {
             guard let i = items[$0], i.stage < TomoSRS.forever, $0 != last else { return false }
             return isStarter($0) == talk
@@ -259,13 +259,13 @@ final class TomoProgress {
         return ranked.prefix(4).randomElement()
     }
 
-    func round(_ id: String) -> TargetPack.Round? { roundIndex[id] }
-    func starter(_ id: String) -> TargetPack.Starter? { starterIndex[id] }
-    func isStarter(_ id: String) -> Bool { starterIndex[id] != nil }
+    public func round(_ id: String) -> TargetPack.Round? { roundIndex[id] }
+    public func starter(_ id: String) -> TargetPack.Starter? { starterIndex[id] }
+    public func isStarter(_ id: String) -> Bool { starterIndex[id] != nil }
 
     /// Two wrong meanings for "Pick the meaning": other words' meanings, another category first. Never the
     /// same meaning, and never a word that sounds the same (きる "cut" for きる "put on").
-    func otherMeanings(for id: String, learner: String) -> [String] {
+    public func otherMeanings(for id: String, learner: String) -> [String] {
         guard let r = roundIndex[id] else { return [] }
         let meaning = r.meaning(learner).lowercased()
         let near = levelOfItem[id] ?? level                     // words from around the same level, not the 6さい list
@@ -288,7 +288,7 @@ final class TomoProgress {
 
     /// The round ended with a right answer. Moves the item if it was new or due; returns whether it counted.
     @discardableResult
-    func answeredRight(_ id: String, mode: String, wrongTries: Int, hint: Bool) -> Bool {
+    public func answeredRight(_ id: String, mode: String, wrongTries: Int, hint: Bool) -> Bool {
         let now = TomoClock.now
         let before = items[id]
         let counted = before == nil || isDue(id) || isEarlyOK(id)
@@ -310,7 +310,7 @@ final class TomoProgress {
 
     /// A try that didn't land (wrong, help, language), or a chat reply that isn't about an item. Logged only:
     /// the round's right answer applies the wrong tries.
-    func logTry(_ id: String?, mode: String, result: String) {
+    public func logTry(_ id: String?, mode: String, result: String) {
         let stage = id.flatMap { items[$0]?.stage }
         store?.logAnswer(at: TomoClock.now, item: id, level: level, mode: mode, result: result, wrongTries: 0,
                          hint: false, counted: false, before: stage, after: stage)
@@ -319,7 +319,7 @@ final class TomoProgress {
     // MARK: Self-test (TOMO_SELFTEST=1)
 
     /// Checks the rules and the store in a temporary folder, prints each result, returns false on a failure.
-    static func selfTest() -> Bool {
+    public static func selfTest() -> Bool {
         var ok = true
         func check(_ c: Bool, _ what: String) {
             print((c ? "ok    " : "FAIL  ") + what)

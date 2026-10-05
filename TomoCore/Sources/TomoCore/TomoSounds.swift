@@ -4,14 +4,14 @@ import AVFoundation
 //
 // Synthesized in code when first needed (no audio files): chick peeps and chirps for Tomo, soft
 // blips for the island. Tomo's peeps drop in pitch a little as it grows up. Effects follow the
-// same switch as Tomo's voice (`AppState.soundEnabled`). Triggers live in one place,
+// same switch as Tomo's voice (`TomoGame.soundEnabled`). Triggers live in one place,
 // `TomoSounds.listen()`: game outcomes, the character notifications, and the island opening.
 
 @MainActor
-final class TomoSounds {
-    static let shared = TomoSounds()
+public final class TomoSounds {
+    public static let shared = TomoSounds()
 
-    enum Effect: String, CaseIterable {
+    public enum Effect: String, CaseIterable, Sendable {
         case greet      // "piyo piyo": a visit starts
         case win        // happy rising chirps: Win
         case miss       // soft falling boo-oop: Miss
@@ -26,7 +26,7 @@ final class TomoSounds {
         case open, close, tick   // island
     }
 
-    var volume: Float = 0.6
+    public var volume: Float = 0.6
 
     private let engine = AVAudioEngine()
     private let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1)!
@@ -47,8 +47,8 @@ final class TomoSounds {
         }
     }
 
-    func play(_ effect: Effect, force: Bool = false) {
-        guard force || AppState.shared.soundEnabled else { return }
+    public func play(_ effect: Effect, force: Bool = false) {
+        guard force || TomoGame.shared.soundEnabled else { return }
         let now = CACurrentMediaTime()
         if let last = lastPlayed[effect], now - last < 0.3 { return }   // two triggers for one moment
         lastPlayed[effect] = now
@@ -69,7 +69,7 @@ final class TomoSounds {
     }
 
     /// Wires the effects to the moments they belong to. Called once at launch.
-    func listen() {
+    public func listen() {
         guard !listening else { return }
         listening = true
         let nc = NotificationCenter.default
@@ -108,7 +108,7 @@ final class TomoSounds {
     }
 
     /// Every answer's result has a sound, like it has a badge.
-    func outcome(_ o: TomoOutcome) {
+    public func outcome(_ o: TomoOutcome) {
         switch o {
         case .win: play(.win)
         case .loss: play(.miss)
@@ -120,14 +120,14 @@ final class TomoSounds {
 
     /// One tone: an exponential pitch sweep with a quick attack and a decaying tail.
     private struct Note {
-        var start: Double
-        var length: Double
-        var from: Double            // Hz
-        var to: Double
-        var gain: Double = 1
-        var vibrato: Double = 0     // depth, as a fraction of the pitch
-        var noise: Double = 0       // breath / crunch
-        var overtone: Double = 0.25 // second harmonic, for a chick-like edge
+        public var start: Double
+        public var length: Double
+        public var from: Double            // Hz
+        public var to: Double
+        public var gain: Double = 1
+        public var vibrato: Double = 0     // depth, as a fraction of the pitch
+        public var noise: Double = 0       // breath / crunch
+        public var overtone: Double = 0.25 // second harmonic, for a chick-like edge
     }
 
     private func buffer(_ e: Effect, age: Int) -> AVAudioPCMBuffer {
@@ -218,7 +218,7 @@ final class TomoSounds {
 
     /// TOMO_RENDER_SOUNDS=<dir>: writes every effect at every age as a WAV, plus all-sounds.wav
     /// (each effect in order with a gap), so they can be listened to without the app.
-    static func renderFiles(to dir: URL) {
+    public static func renderFiles(to dir: URL) {
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1)!
         var all: [Float] = []
