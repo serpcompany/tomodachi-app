@@ -881,7 +881,7 @@ public final class TomoGame: ObservableObject {
         syncProgress()
         if spendVisitRound() {
             after(2.6, tok) { [weak self] in self?.leave(ignored: false) }
-        } else if !(r.say.contains("？") || r.say.contains("?")) {
+        } else if !(r.say.contains("？") || r.say.contains("?")) {  // text-ok: matches a full-width question mark
             nextItem(delay: 2.8)        // Tomo reacted without asking anything: ask the next thing
         } else {
             setBot(.question)
