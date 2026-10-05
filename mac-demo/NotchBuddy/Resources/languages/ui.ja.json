@@ -55,7 +55,7 @@
     "about.version": "バージョン {v}（ベータ）",
     "about.tagline": "あなたが学んでいる言語だけを、その年齢なりに話す、ノッチに住む小さな友だち。",
     "about.feedback": "ベータ版なので不具合があるかも。楽しかったこと、わかりにくかったこと、うっとうしかったことを教えてね。",
-    "about.credits": "Tomodachi by Zenbu Japanese。ノッチ部分はLouis RailléさんのCoucou（MITライセンス）がベースです。 語彙の年齢データ：Wordbank（CC BY 4.0、Frank et al. 2017）。日本語：Tsuji、Hagihara、Minagawa（日本語版CDI、小椋・綿巻）。英語：MacArthur-Bates CDI 標準化データ（Fenson、Marchman ほか）。",
+    "about.credits": "Tomodachi by Zenbu Japanese。ノッチ部分はLouis RailléさんのCoucou（MITライセンス）がベースです。 語彙の年齢データ：Wordbank（CC BY 4.0、Frank et al. 2017）。日本語：Tsuji、Hagihara、Minagawa（日本語版CDI、小椋・綿巻）。英語：MacArthur-Bates CDI 標準化データ（Fenson、Marchman ほか）。 日本語の3〜6さい：国立国語研究所「幼児語彙」「絵本語彙」（CC BY 4.0）。英語の意味の一部：JMdict（EDRDG、CC BY-SA 4.0）。",
     "ai.provider": "プロバイダ",
     "ai.baseURL": "ベースURL",
     "ai.key": "APIキー",
@@ -136,7 +136,11 @@
     "growth.ofMax": "{max}語中{n}語",
     "growth.answersToday": "答えた数",
     "growth.strongerToday": "強くなったことば",
-    "pickMeaning": "Tomoはなんて言ってる？"
+    "pickMeaning": "Tomoはなんて言ってる？",
+    "growth.age.4": "ふだんの会話と絵本から、幼稚園ごろのことば。",
+    "growth.age.5": "もっと幼稚園ごろのことば：気持ち、場所、ものごとの起こり方。",
+    "growth.age.6": "小学校に入る前の子が知っていることば。",
+    "grewOlder": "Tomoが{age}になった！ 新しいことばが増えたよ。"
   },
   "helpPhrases": [
     "なに",

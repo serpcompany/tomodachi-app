@@ -61,7 +61,7 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 |---|---|
 | `Sources/App/TomoGame.swift` | New. Rounds, visits, level-ups and birthdays, help state, and the voice (`AVSpeechSynthesizer`, the pack's locale, raised pitch) |
 | `Sources/App/TomoProgress.swift`, `Sources/App/TomoStore.swift` | New. Word stages, levels and ages; saved progress in SQLite |
-| `scripts/build-levels.py`, `scripts/sources/`, `scripts/data/*-curation.json` | New. Builds the Japanese and English levels from pinned Wordbank data plus hand curation (`python3 scripts/build-levels.py ja` or `en`; `--review` for a table of every word) |
+| `scripts/build-levels.py`, `scripts/sources/`, `scripts/data/*-curation.json` | New. Builds the Japanese and English levels from pinned Wordbank data (Japanese 3–6: NINJAL lists with JMdict meanings) plus hand curation (`python3 scripts/build-levels.py ja` or `en`; `--review` for a table of every word) |
 | `Sources/App/TomoWordsView.swift` | New. Settings → Words: every level and word, with its stage and when it's due |
 | `Sources/App/TomoView.swift` | New. The fixed-grid card (`TomoGrid`), picture/action tiles, chat card, help panel, header status |
 | `Sources/App/TomoChat.swift` | New. Talking-stage replies (language check, then AI if configured, offline otherwise), explain, on-device speech recognition |

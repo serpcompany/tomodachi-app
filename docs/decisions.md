@@ -2,6 +2,9 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
+### 2026-10-06: Japanese goes to 6さい with NINJAL's preschool and picture-book words
+The CDI stops at about 3, so Japanese ages 3–6 come from NINJAL's 幼児語彙 and 絵本語彙 (CC BY 4.0): about 2,000 more words, with readings and English meanings from JMdict. There are no per-age norms past 3, so the age comes from a rule: how many of the four preschoolers used a word, and in how many picture books it appears (more → earlier). It's an assumption to tune with real answers. JMdict senses are picked by frequency, and wrong ones are fixed by hand. Ages 4–6 keep the 3さい look for now ([#38](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/38)). **Why:** Tomo needs words past 3, and these are the openly licensed sources the research found.
+
 ### 2026-10-06: English levels from Wordbank too, for Japanese speakers
 English uses the same pipeline on Wordbank's American English norming data (647 words, 66 levels). Every English word carries a Japanese meaning: matched by concept to the Japanese CDI word where possible, written by hand otherwise. English-only grammar words are left out. The English list is the MacArthur-Bates CDI, which its publisher holds the copyright to, so the same ask-before-a-beta rule applies ([#40](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/40)). **Why:** Japanese speakers learning English are the second pair we support, and the data and script were already there.
 
