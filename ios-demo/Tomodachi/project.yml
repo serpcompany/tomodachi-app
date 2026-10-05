@@ -14,11 +14,11 @@ settings:
   base:
     SWIFT_VERSION: "6.0"
     OTHER_SWIFT_FLAGS: "-strict-concurrency=complete"
-    # The Zenbu Japanese team (as the Mac app's beta builds). Xcode signs automatically: simulator builds run
+    # The team Pedos ships with (W3GXL2NQQP). Xcode signs automatically: simulator builds run
     # locally, device builds get a development profile (xcodebuild -allowProvisioningUpdates registers the
     # App IDs and the App Group the first time).
     CODE_SIGN_STYLE: Automatic
-    DEVELOPMENT_TEAM: 847HR8U8D9
+    DEVELOPMENT_TEAM: W3GXL2NQQP
 
 schemes:
   Tomodachi:
@@ -64,7 +64,7 @@ targets:
         INFOPLIST_FILE: Resources/Info.plist
         TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_ENTITLEMENTS: Resources/Tomodachi.entitlements
-        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon   # placeholder drawn from Tomo's code (TOMO_RENDER_ICON)
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon   # Tomo on sky blue, drawn from its code (TOMO_RENDER_ICON)
 
   # Home Screen widgets (issue #52). Reads TomoGlance from the App Group; draws Tomo with TomoChickStill.
   TomoWidgets:
