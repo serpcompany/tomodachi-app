@@ -145,7 +145,13 @@
     "practice.offer.now": "Nothing counts right now. You can practice, but it won't move the bar.",
     "practice.chip": "Practice until {time}",
     "practice.chip.now": "Practice",
-    "dizzy": "Too many pokes. Tomo is dizzy; back in three seconds."
+    "dizzy": "Too many pokes. Tomo is dizzy; back in three seconds.",
+    "glance.due": "{n} words waiting",
+    "glance.due.one": "1 word waiting",
+    "glance.new": "A new word to learn",
+    "glance.done": "All done for now",
+    "glance.waiting": "Tomo is waiting for you",
+    "glance.about": "Tomo, and whether anything is waiting."
   },
   "helpPhrases": [
     "what",

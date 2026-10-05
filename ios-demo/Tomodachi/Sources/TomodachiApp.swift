@@ -1,11 +1,14 @@
+import Combine
 import SwiftUI
 import TomoCore
+import WidgetKit
 
 // MARK: - Tomodachi on the iPhone (issue #52)
 //
 // A shell around TomoCore, like the Mac island: it sets TomoGame's closures and draws Tomo. On the iPhone
 // the app itself is Tomo's place: opening it is free play, and Tomo never leaves while you're looking.
-// Lock Screen visits (Live Activities) and widgets come next.
+// The Home Screen widget reads a TomoGlance the shell writes whenever progress changes.
+// Lock Screen visits (Live Activities) come next.
 
 @main
 struct TomodachiApp: App {
@@ -17,7 +20,10 @@ struct TomodachiApp: App {
             TomoPhoneView(shell: shell)
                 .onAppear { shell.start() }
         }
-        .onChange(of: scenePhase) { _, phase in shell.isActive = phase == .active }
+        .onChange(of: scenePhase) { _, phase in
+            shell.isActive = phase == .active
+            if phase == .background { shell.updateWidgets() }
+        }
     }
 }
 
@@ -30,6 +36,8 @@ final class TomoPhoneShell: ObservableObject {
     /// The app is on screen: Tomo is "open", and a visit doesn't time out (you're looking at it).
     var isActive = false
     private var started = false
+    private var watch: AnyCancellable?
+    private var lastGlance: TomoGlance?
 
     func start() {
         guard !started else { return }
@@ -42,5 +50,19 @@ final class TomoPhoneShell: ObservableObject {
         game.onBotState = { [weak self] in self?.botState = $0 }
         TomoSounds.shared.listen()
         game.start()                                // free play starts when the app becomes active
+        watch = game.$progressVersion.sink { [weak self] _ in
+            DispatchQueue.main.async { self?.updateWidgets() }   // after the change has landed
+        }
+    }
+
+    /// Writes Tomo's glance for the widget and reloads it, when anything it shows changed.
+    func updateWidgets() {
+        var glance = TomoGame.shared.glance
+        glance.updated = lastGlance?.updated ?? glance.updated
+        guard glance != lastGlance else { return }
+        glance.updated = Date()
+        glance.save()
+        lastGlance = glance
+        WidgetCenter.shared.reloadTimelines(ofKind: "TomoWidget")
     }
 }
