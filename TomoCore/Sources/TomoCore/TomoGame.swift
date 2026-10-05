@@ -798,6 +798,8 @@ public final class TomoGame: ObservableObject {
     /// Click a word in Tomo's line: open its word card in the help panel.
     public func openWord(_ word: String) {
         guard !word.isEmpty else { return }
+        // Looking a word up while it's asked shows its meaning: it counts like the hint (no step up).
+        if phase == .asking, currentItem != nil, !itemCredited { hintUsed = true }
         help = .word(word)
         lookUp(word)
     }
