@@ -88,7 +88,7 @@
     "level": "Lv {n}",
     "levelUp": "Level {level}! New words for Tomo to learn.",
     "outcome.practice": "Win",
-    "outcome.why.practice": "Practice: Tomo isn't asking for this one yet, so it doesn't count. It comes back when it's due.",
+    "outcome.why.practice": "Practice: it's too soon after the last time to count. Come back later and it counts again.",
     "startOver.title": "Start Tomo over?",
     "startOver.body": "Your {language} Tomo goes back to level 1, and the words it learned from you are cleared. This can't be undone.",
     "startOver.confirm": "Start over",
@@ -140,7 +140,8 @@
     "growth.age.4": "Preschool words from everyday talk and picture books.",
     "growth.age.5": "More preschool words: feelings, places, how things happen.",
     "growth.age.6": "Words children know before starting school.",
-    "grewOlder": "Tomo grew up → {age}. New words to learn!"
+    "grewOlder": "Tomo grew up → {age}. New words to learn!",
+    "settings.newPerDay": "New words a day"
   },
   "helpPhrases": [
     "what",

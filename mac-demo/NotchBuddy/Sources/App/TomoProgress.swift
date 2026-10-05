@@ -4,8 +4,8 @@ import Foundation
 //
 // Word stages follow WaniKani's published rules, written as our own code with our own names:
 //   0 new · 1–4 just heard · 5–6 knows it · 7 good at it · 8 loves it · 9 forever (never asked again)
-// An item only moves when it's due. Answers on items that aren't due are practice and change nothing,
-// so Tomo can't be crammed. Levels are the pack's `levels`: Tomo levels up when 90% of a level's items
+// An item moves when it's due, or early once at least half its wait has passed (so choosing to play counts).
+// Answering again sooner is practice and changes nothing, so Tomo can't be crammed. Levels are the pack's `levels`: Tomo levels up when 90% of a level's items
 // reach "knows it", which unlocks the next level. Each level has an age, so the level where the age goes
 // up is Tomo's birthday. New items: at most one per visit and ten a day. Level and age never go down.
 // Saved through TomoStore (one Tomo per learner × target pair).
@@ -67,8 +67,12 @@ enum TomoClock {
 final class TomoProgress {
     typealias Item = TomoStore.ItemRow
 
-    static let newPerDay = 10
+    /// New words a day (Settings → General): 5, 10, 20 or 30.
+    static var newPerDay: Int { UserDefaults.standard.object(forKey: "tomoNewPerDay") as? Int ?? 10 }
+    static let newPerDayChoices = [5, 10, 20, 30]
     static let newPerVisit = 1
+    /// An early review counts once this share of the word's wait has passed.
+    static let earlyShare = 0.5
 
     private(set) var pack: TargetPack
     private(set) var learner: String
@@ -206,19 +210,33 @@ final class TomoProgress {
         return q
     }
 
-    /// Free play, after a visit's items: the next due item, else a new one (within the daily limit).
-    func nextFreePlayItem() -> String? {
-        dueItems.first ?? (canTeachNew ? newItems.first : nil)
+    /// How much of an item's wait has passed: 0 right after it was answered, 1 when it's due.
+    func waitShare(_ id: String) -> Double {
+        guard let i = items[id], let due = i.due,
+              let wait = TomoSRS.wait(after: i.stage, level: levelOfItem[id] ?? level) else { return 0 }
+        return max(0, 1 - due.timeIntervalSince(TomoClock.now) / wait)
     }
 
-    /// Practice when nothing is due or new: something Tomo already heard, the weakest first, not the last one.
+    /// Not due yet, but far enough along that answering it now counts (an early review).
+    func isEarlyOK(_ id: String) -> Bool { !isDue(id) && waitShare(id) >= Self.earlyShare }
+
+    /// Free play, after a visit's items: a due item, else a new one (within the daily limit), else one that
+    /// can be reviewed early. Each of these counts.
+    func nextFreePlayItem() -> String? {
+        dueItems.first ?? (canTeachNew ? newItems.first : nil)
+            ?? unlocked.filter(isEarlyOK).max { waitShare($0) < waitShare($1) }
+    }
+
+    /// Practice when nothing counts right now: something Tomo already heard, the closest to due first (then the
+    /// weakest), not the last one asked.
     func practiceItem(after last: String?, talk: Bool) -> String? {
         let pool = unlocked.filter {
             guard let i = items[$0], i.stage < TomoSRS.forever, $0 != last else { return false }
             return isStarter($0) == talk
         }
-        let low = pool.map { items[$0]?.stage ?? 0 }.min()
-        return pool.filter { items[$0]?.stage == low }.randomElement()
+        return pool.max {
+            (waitShare($0), -(items[$0]?.stage ?? 0)) < (waitShare($1), -(items[$1]?.stage ?? 0))
+        }
     }
 
     func round(_ id: String) -> TargetPack.Round? { roundIndex[id] }
@@ -253,7 +271,7 @@ final class TomoProgress {
     func answeredRight(_ id: String, mode: String, wrongTries: Int, hint: Bool) -> Bool {
         let now = TomoClock.now
         let before = items[id]
-        let counted = before == nil || isDue(id)
+        let counted = before == nil || isDue(id) || isEarlyOK(id)
         var row = before ?? Item(id: id, stage: 0, due: nil, introduced: now, answered: now, right: 0, wrong: 0)
         if counted {
             row.stage = TomoSRS.next(after: row.stage, wrongTries: wrongTries, hint: hint)
@@ -316,7 +334,11 @@ final class TomoProgress {
         check(p.levelProgress > 0 && p.levelProgress < 0.1, "one counted answer moves the experience bar a little")
         let bar = p.levelProgress
         check(!p.answeredRight(first, mode: "picture", wrongTries: 0, hint: false) && p.items[first]?.stage == 1,
-              "answering again before it's due is practice: no change")
+              "answering again right away is practice: no change")
+        TomoClock.offset += 3600 + 60                                               // half of the 2 h wait
+        check(p.isEarlyOK(first) && !p.isDue(first) && p.nextFreePlayItem() != nil,
+              "after half the wait, free play can review it early")
+        TomoClock.offset -= 3600 + 60
         check(p.visitItems(limit: 3).count == 1, "a visit brings at most one new item")
         TomoClock.offset += 2 * 3600 + 60
         check(p.isDue(first) && p.visitItems(limit: 3).first == first, "two hours later it's due and comes first")
