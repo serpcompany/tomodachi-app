@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1206AFF78F3F05233AF98D62 /* TomodachiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040E64E13B16E7A347446C38 /* TomodachiApp.swift */; };
 		17268293140381667D3693BB /* TomoCore in Frameworks */ = {isa = PBXBuildFile; productRef = D7DDDC272F7133197F0D59BB /* TomoCore */; };
+		1C30573A4EFCEC1784E40BAD /* TomoWordSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE15650199C378342BFCA096 /* TomoWordSheet.swift */; };
 		1F7D3B14990380320D4BB1C3 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C3C4C2027DB8873CC0A1EC01 /* SwiftUI.framework */; };
 		43C83B710033B8A4E45A3326 /* TomoLiveVisit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DD481FC31C8E38E2AB4F657 /* TomoLiveVisit.swift */; };
 		55B668E3CF5DF92A2428F6DE /* TomoWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = E56A0CD36F22076E120230DE /* TomoWidgets.swift */; };
@@ -56,6 +57,7 @@
 		AD651B7836EDDD8F2EC6F351 /* Widgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Widgets.entitlements; sourceTree = "<group>"; };
 		AFE384C3477C520E3B46DF8E /* TomoWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = TomoWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B44A800E230C1B199FCC12C2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		BE15650199C378342BFCA096 /* TomoWordSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoWordSheet.swift; sourceTree = "<group>"; };
 		C3C4C2027DB8873CC0A1EC01 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		D7EBDB597D2052726D407A36 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		E56A0CD36F22076E120230DE /* TomoWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoWidgets.swift; sourceTree = "<group>"; };
@@ -89,6 +91,7 @@
 				040E64E13B16E7A347446C38 /* TomodachiApp.swift */,
 				5DD481FC31C8E38E2AB4F657 /* TomoLiveVisit.swift */,
 				946EAB4DCF25D24015CABDF5 /* TomoPhoneView.swift */,
+				BE15650199C378342BFCA096 /* TomoWordSheet.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -201,6 +204,16 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					5CAF3C2F15CD2B9C51E2615B = {
+						DevelopmentTeam = 847HR8U8D9;
+						ProvisioningStyle = Automatic;
+					};
+					E6F7A89F9C9FF369E1EA5B01 = {
+						DevelopmentTeam = 847HR8U8D9;
+						ProvisioningStyle = Automatic;
+					};
+				};
 			};
 			buildConfigurationList = 660B5F35D84EDAB98A448F81 /* Build configuration list for PBXProject "Tomodachi" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -233,6 +246,7 @@
 				43C83B710033B8A4E45A3326 /* TomoLiveVisit.swift in Sources */,
 				EDC97339274AD5D9DE559C33 /* TomoPhoneView.swift in Sources */,
 				65D3A2DECEF7CDCB4AC5EA6E /* TomoVisitActivity.swift in Sources */,
+				1C30573A4EFCEC1784E40BAD /* TomoWordSheet.swift in Sources */,
 				1206AFF78F3F05233AF98D62 /* TomodachiApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -291,10 +305,10 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 847HR8U8D9;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -411,8 +425,10 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 847HR8U8D9;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
