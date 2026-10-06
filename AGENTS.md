@@ -28,7 +28,7 @@ the [SERP engineering standards](https://github.com/serpcompany/serp/tree/main/d
 - **Checking a change:** [docs/verification.md](docs/verification.md) covers the debug flags, the snapshot
   matrix, the self-test and seeded progress. Read it before you build or test.
 - **Running the demo app:** [mac-demo/README.md](mac-demo/README.md) covers running, rebuilding, beta
-  builds and icons. The iPhone app ([#52](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/52)):
+  builds and icons. The iPhone app ([#52](https://github.com/serpcompany/tomodachi-app/issues/52)):
   [ios-demo/README.md](ios-demo/README.md).
 - **The Coucou fork:** [docs/coucou-fork.md](docs/coucou-fork.md) says what we may ship, which Coucou
   files we changed, and what's switched off.
@@ -37,7 +37,7 @@ the [SERP engineering standards](https://github.com/serpcompany/serp/tree/main/d
 - **Beta testers:** [docs/beta-testing.md](docs/beta-testing.md) is what testers are told. Update it when
   something they see changes.
 - **Plans, ideas and open questions:**
-  [GitHub issues](https://github.com/serpcompany/zenbujapanese-tomo-app/issues), one each, labeled
+  [GitHub issues](https://github.com/serpcompany/tomodachi-app/issues), one each, labeled
   `next`, `idea`, `researched` or `question`.
 - **The dictionary, Language Reference IDs and the word splitter (Sudachi):**
   `../zenbujapanese-monorepo`, read-only from here.

@@ -38,6 +38,6 @@ These are the Coucou files we had to touch; add a file here when a change has to
 `SettingsView` and `WindowContextCapture` compile but never start. So do the leftover
 `Coucou.entitlements`, `CoucouAppStore.entitlements` and `InfoAppStore.plist`. Removing them, and the
 Coucou names left in code and comments, is
-[#1](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/1). `WindowContextCapture` may be
-worth keeping for [#24](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/24) (Tomo names
+[#1](https://github.com/serpcompany/tomodachi-app/issues/1). `WindowContextCapture` may be
+worth keeping for [#24](https://github.com/serpcompany/tomodachi-app/issues/24) (Tomo names
 what's on your screen).

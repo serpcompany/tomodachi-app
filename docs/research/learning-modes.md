@@ -1,6 +1,6 @@
 # Learning modes: the ways Tomo plays with you
 
-Researched 2026-10-03. Answers the idea "More learning modes", now tracked in [#14](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/14).
+Researched 2026-10-03. Answers the idea "More learning modes", now tracked in [#14](https://github.com/serpcompany/tomodachi-app/issues/14).
 
 ## Answer
 

@@ -1,6 +1,6 @@
 # iPhone demo
 
-Tomodachi on the iPhone ([#52](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/52)): a shell around the `TomoCore` package, like the Mac app. Today it's one screen: Tomo, big and alive, with the same rounds as the notch card (pictures, needs, meanings, and answering in your own words at 3さい). Opening the app is free play; Tomo never times out while it's on screen. A Home Screen widget shows Tomo, its age and level, and what's waiting; a Live Activity puts Tomo on the Lock Screen and in the Dynamic Island.
+Tomodachi on the iPhone ([#52](https://github.com/serpcompany/tomodachi-app/issues/52)): a shell around the `TomoCore` package, like the Mac app. Today it's one screen: Tomo, big and alive, with the same rounds as the notch card (pictures, needs, meanings, and answering in your own words at 3さい). Opening the app is free play; Tomo never times out while it's on screen. A Home Screen widget shows Tomo, its age and level, and what's waiting; a Live Activity puts Tomo on the Lock Screen and in the Dynamic Island.
 
 | File | What |
 |---|---|
