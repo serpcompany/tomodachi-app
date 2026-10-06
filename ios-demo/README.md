@@ -8,7 +8,7 @@ Tomodachi on the iPhone ([#52](https://github.com/serpcompany/zenbujapanese-tomo
 | `Tomodachi/Sources/TomoPhoneView.swift` | The screen: header and level bar, `TomoChickView`, what Tomo says, the result, the answers |
 | `Tomodachi/Sources/TomoWordSheet.swift` | Tap a word in Tomo's line: its word card, with Open in Zenbu and the iPhone's dictionary (`UIReferenceLibraryViewController`) |
 | `Tomodachi/Widgets/TomoWidgets.swift` | The Home Screen widget (small, medium): reads the `TomoGlance` the shell writes to the App Group, draws Tomo with `TomoChickStill` |
-| `Tomodachi/Sources/TomoLiveVisit.swift`, `Shared/TomoVisitActivity.swift`, `Widgets/TomoVisitLiveActivity.swift` | Tomo's Lock Screen card and Dynamic Island (a Live Activity): "あそぼ！ · 3 words waiting", or asleep beside a live countdown to the next words |
+| `Tomodachi/Sources/TomoLiveVisit.swift`, `Shared/TomoVisitActivity.swift`, `Widgets/TomoVisitLiveActivity.swift` | Tomo's Lock Screen card and Dynamic Island (a Live Activity): "A new word is ready to learn" with the experience bar, or asleep beside a live countdown to the next words |
 | `Tomodachi/project.yml` | XcodeGen spec. iOS 18+, iPhone only, bundle ID `com.zenbujapanese.tomodachi` (same as the Mac app) |
 
 ## Build and run (simulator)
