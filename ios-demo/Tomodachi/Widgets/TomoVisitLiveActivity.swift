@@ -128,3 +128,44 @@ struct TomoCountdown: View {
         }
     }
 }
+
+// MARK: - Xcode canvas previews: the Lock Screen card and each Dynamic Island shape, ready and waiting
+
+#if DEBUG
+@MainActor
+private func previewGlance(waiting: Bool) -> TomoGlance {
+    let ui = TomoLanguages.shared.learner, target = TomoLanguages.shared.target
+    return TomoGlance(growth: 1, age: target.ageLabel(3), level: ui("level", ["n": "12"]), progress: 0.4,
+                      waiting: waiting, status: waiting ? ui("glance.due", ["n": "3"]) : ui("glance.done"),
+                      nextDue: waiting ? nil : .now.addingTimeInterval(95 * 60), statusLater: ui("glance.waiting"),
+                      about: ui("glance.about"), invite: target.lines.invite ?? target.lines.practice,
+                      nextLabel: ui("glance.next"), updated: .now.addingTimeInterval(-30 * 60))
+}
+
+#Preview("Lock Screen", as: .content, using: TomoVisitAttributes()) {
+    TomoVisitLiveActivity()
+} contentStates: {
+    TomoVisitAttributes.ContentState(glance: previewGlance(waiting: true))
+    TomoVisitAttributes.ContentState(glance: previewGlance(waiting: false))
+}
+
+#Preview("Island, expanded", as: .dynamicIsland(.expanded), using: TomoVisitAttributes()) {
+    TomoVisitLiveActivity()
+} contentStates: {
+    TomoVisitAttributes.ContentState(glance: previewGlance(waiting: true))
+    TomoVisitAttributes.ContentState(glance: previewGlance(waiting: false))
+}
+
+#Preview("Island, compact", as: .dynamicIsland(.compact), using: TomoVisitAttributes()) {
+    TomoVisitLiveActivity()
+} contentStates: {
+    TomoVisitAttributes.ContentState(glance: previewGlance(waiting: true))
+    TomoVisitAttributes.ContentState(glance: previewGlance(waiting: false))
+}
+
+#Preview("Island, minimal", as: .dynamicIsland(.minimal), using: TomoVisitAttributes()) {
+    TomoVisitLiveActivity()
+} contentStates: {
+    TomoVisitAttributes.ContentState(glance: previewGlance(waiting: true))
+}
+#endif

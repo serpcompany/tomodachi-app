@@ -19,6 +19,13 @@ public struct TomoGlance: Codable, Sendable, Hashable {
     public var nextLabel: String        // before the countdown to `nextDue` ("New words in")
     public var updated: Date
 
+    public init(growth: Double, age: String, level: String, progress: Double, waiting: Bool, status: String,
+                nextDue: Date?, statusLater: String, about: String, invite: String, nextLabel: String, updated: Date) {
+        self.growth = growth; self.age = age; self.level = level; self.progress = progress; self.waiting = waiting
+        self.status = status; self.nextDue = nextDue; self.statusLater = statusLater; self.about = about
+        self.invite = invite; self.nextLabel = nextLabel; self.updated = updated
+    }
+
     public static let placeholder = TomoGlance(growth: 0, age: "", level: "", progress: 0, waiting: false,
                                                status: "", nextDue: nil, statusLater: "", about: "",
                                                invite: "", nextLabel: "", updated: .distantPast)
