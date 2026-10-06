@@ -5,9 +5,10 @@ import WidgetKit
 
 // MARK: - Tomo on the Lock Screen and in the Dynamic Island (issue #52)
 //
-// Ready: Tomo asks over with its line in a bubble ("あそぼ！") and what's waiting. Not yet: Tomo sleeps, and a
-// countdown and a bar run live to the next words. Those timers are the motion iOS keeps running here; each
-// update also swaps Tomo's pose with a short transition (decisions.md, 2026-10-06). Tapping opens the app.
+// Ready: Tomo asks over, with what's waiting ("A new word is ready to learn") and its experience bar. Not
+// yet: Tomo sleeps, and a countdown and a bar run live to the next words. Those timers are the only motion
+// iOS keeps running here; each update also swaps Tomo's pose with a short transition (decisions.md,
+// 2026-10-06). The compact Dynamic Island keeps Tomo's call ("あそぼ！"). Tapping opens the app.
 
 struct TomoVisitLiveActivity: Widget {
     var body: some WidgetConfiguration {
@@ -78,31 +79,30 @@ struct TomoCardChick: View {
     }
 }
 
-/// Tomo's call in a speech bubble, and what's waiting.
+/// What's waiting, then Tomo's age, level and experience bar.
 struct TomoCardText: View {
     let glance: TomoGlance
     let ready: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 5) {
+        VStack(alignment: .leading, spacing: 7) {
+            Text(glance.waiting ? glance.status : ready ? glance.statusLater : glance.status)
+                .font(.system(size: 17, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.white.opacity(ready ? 1 : 0.75))
+                .lineLimit(1).minimumScaleFactor(0.7)
+                .contentTransition(.opacity)
             HStack(spacing: 8) {
-                if ready {
-                    Text(glance.invite)
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
-                        .padding(.horizontal, 12).padding(.vertical, 5)
-                        .background(Color.white.opacity(0.14), in: Capsule())
-                        .transition(.push(from: .bottom))
-                }
                 Text(glance.age)
                     .font(.system(size: 12, weight: .bold, design: .rounded))
                     .foregroundStyle(Color(red: 1, green: 0.85, blue: 0.66))
                     .padding(.horizontal, 7).padding(.vertical, 2)
                     .background(Color(red: 0.29, green: 0.2, blue: 0.14), in: Capsule())
+                Text(glance.level)
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(Color.white.opacity(0.7))
+                ProgressView(value: min(max(glance.progress, 0), 1))
+                    .tint(Color(red: 0.55, green: 0.85, blue: 0.45))
             }
-            Text(glance.waiting ? glance.status : ready ? glance.statusLater : glance.status)
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
-                .foregroundStyle(Color.white.opacity(ready ? 1 : 0.75))
-                .lineLimit(1).minimumScaleFactor(0.7)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
