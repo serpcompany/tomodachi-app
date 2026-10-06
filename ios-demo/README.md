@@ -33,6 +33,6 @@ The listing lives in `ios-demo/metadata/`: `app-info/en-US.json` (name, subtitle
 
 ## Debug flags
 
-The Mac's `TOMO_*` flags work when passed through `simctl` with a `SIMCTL_CHILD_` prefix, e.g. `SIMCTL_CHILD_TOMO_STAGE=3 xcrun simctl launch tomodachi com.zenbujapanese.tomodachi`. `TOMO_CARD_COUNTDOWN=<seconds>` fakes "nothing waiting, next words in that many seconds" for the Lock Screen card and the widget. Mute Tomo with `xcrun simctl spawn tomodachi defaults write com.zenbujapanese.tomodachi soundEnabled -bool false`.
+The Mac's `TOMO_*` flags work when passed through `simctl` with a `SIMCTL_CHILD_` prefix, e.g. `SIMCTL_CHILD_TOMO_STAGE=3 xcrun simctl launch tomodachi com.zenbujapanese.tomodachi`. `TOMO_CARD_COUNTDOWN=<seconds>` fakes "nothing waiting, next words in that many seconds" for the Lock Screen card and the widget. To see the card without running the app, open `Widgets/TomoVisitLiveActivity.swift` in Xcode and show the canvas (⌥⌘↩): its previews show the Lock Screen card and the expanded, compact and minimal Dynamic Island, ready and waiting. On a simulator or phone, play a round, then go Home to see the Dynamic Island (long-press it to expand) or lock the device (⌘L in Simulator) to see the card. Mute Tomo with `xcrun simctl spawn tomodachi defaults write com.zenbujapanese.tomodachi soundEnabled -bool false`.
 
 Not yet on the iPhone: the mic (typing only), word cards, Explain, Settings, AI provider setup (keys from the environment only).
