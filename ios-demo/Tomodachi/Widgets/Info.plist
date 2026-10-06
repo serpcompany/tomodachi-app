@@ -25,5 +25,14 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.widgetkit-extension</string>
 	</dict>
+	<key>UIAppFonts</key>
+	<array>
+		<string>TomoReady0.ttf</string>
+		<string>TomoReady1.ttf</string>
+		<string>TomoReady2.ttf</string>
+		<string>TomoSleep0.ttf</string>
+		<string>TomoSleep1.ttf</string>
+		<string>TomoSleep2.ttf</string>
+	</array>
 </dict>
 </plist>

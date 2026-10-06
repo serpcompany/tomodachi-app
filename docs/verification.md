@@ -50,7 +50,7 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
 - `TOMO_TIME_TRAVEL=<hours>`: Tomo's clock starts that far ahead, so due words come back. Answers given
   while ahead are saved with those dates. Settings → Testing → "Skip ahead a day" does the same live.
 - `TOMO_DROPIN_EVERY=8`, `TOMO_NUDGE_EVERY=5`: seconds between visits and between nudge bounces.
-- `TOMO_RENDER_ICON`, `TOMO_RENDER_SHEET`, `TOMO_RENDER_SOUNDS`, `TOMO_RENDER_ANIM` (`=<dir>`): render
+- `TOMO_RENDER_ICON`, `TOMO_RENDER_SHEET`, `TOMO_RENDER_SOUNDS`, `TOMO_RENDER_ANIM`, `TOMO_RENDER_CARD_FRAMES` (`=<dir>`): render
   the icons, every age and face, every sound (WAV), or a 16-second scene (20 fps frames), then quit.
 
 ## Starting from a known state

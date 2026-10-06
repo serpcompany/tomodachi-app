@@ -7,7 +7,8 @@ import WidgetKit
 // Small: Tomo, its age, and a red dot when something is waiting. Medium: the same plus the level and its
 // experience bar. The app writes a TomoGlance to the App Group whenever progress changes and asks WidgetKit
 // to reload; when nothing is waiting, a second entry turns the red dot on at the next due time.
-// Widgets can't animate continuously: Tomo is a TomoChickStill whose pose changes with each entry.
+// Tomo moves the way it does on the Lock Screen (TomoMovingChick): asking when something waits, asleep until
+// the next words otherwise.
 
 @main
 struct TomoWidgetBundle: WidgetBundle {
@@ -73,10 +74,8 @@ struct TomoWidgetView: View {
         }
     }
 
-    /// Waiting: Tomo has something to ask. Nothing waiting: content.
-    private var tomo: some View {
-        TomoChickStill(state: glance.waiting ? .question : .idle, emote: glance.waiting ? nil : .happy,
-                       growth: glance.growth)
+    private func tomo(_ size: CGFloat) -> some View {
+        TomoMovingChick(glance: glance, ready: glance.waiting, size: size)
     }
 
     private var small: some View {
@@ -86,7 +85,7 @@ struct TomoWidgetView: View {
                 Spacer()
                 if glance.waiting { redDot }
             }
-            tomo.frame(maxWidth: .infinity, maxHeight: .infinity)
+            tomo(100).frame(maxWidth: .infinity, maxHeight: .infinity)
             Text(glance.status)
                 .font(.system(size: 12, weight: .semibold, design: .rounded))
                 .foregroundStyle(Color.white.opacity(0.75))
@@ -96,7 +95,7 @@ struct TomoWidgetView: View {
 
     private var medium: some View {
         HStack(spacing: 14) {
-            tomo.frame(width: 120, height: 120)
+            tomo(120)
                 .overlay(alignment: .topTrailing) { if glance.waiting { redDot } }
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 6) {

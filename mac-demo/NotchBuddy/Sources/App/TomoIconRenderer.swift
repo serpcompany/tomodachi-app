@@ -24,6 +24,10 @@ enum TomoIconRenderer {
             renderAnimation(to: URL(fileURLWithPath: dir))
             NSApp.terminate(nil)
         }
+        if let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_CARD_FRAMES"] {
+            renderCardFrames(to: URL(fileURLWithPath: dir))
+            NSApp.terminate(nil)
+        }
         if let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_SHEET"] {
             try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
             write(sheet, to: URL(fileURLWithPath: dir).appendingPathComponent("tomo-sheet.png"))
@@ -81,6 +85,59 @@ enum TomoIconRenderer {
                 .frame(width: 240, height: 280)
                 .background(Color.black)
             write(frame, to: out.appendingPathComponent(String(format: "frame-%04d.png", i)))
+        }
+    }
+
+    /// TOMO_RENDER_CARD_FRAMES=<dir>: the ten frames of Tomo's loop on the iPhone's Lock Screen card, for each
+    /// age and both moods: <dir>/<ready|sleep>-<0|1|2>/frame-0.png … frame-9.png (240 px, transparent).
+    /// One frame shows per second (ios-demo/scripts/make-frame-font.py), so each is a distinct pose and
+    /// frame 9 leads back into frame 0.
+    private static func renderCardFrames(to out: URL) {
+        typealias Beat = (lead: Double, run: (TomoChick) -> Void)
+        let look: (CGFloat, CGFloat) -> (TomoChick) -> Void = { x, y in { $0.lookX = x; $0.lookY = y } }
+        // Per frame: what happens, and how long before the frame is drawn.
+        let ready: [[Beat]] = [
+            [(0.6, look(0, 0))],
+            [(0.6, look(-0.8, 0.2))],
+            [(0.09, { $0.blink() })],                                   // eyes shut, still looking left
+            [(0.6, look(0, 0)), (0.22, { $0.nudge() })],                // mid-hop
+            [(0.5, { $0.emote(.happy) })],
+            [(0.6, look(0, 0)), (0.12, { $0.talk() })],                 // a peep
+            [(0.6, look(0.8, 0.4))],
+            [(0.3, { $0.emote(.wink) })],
+            [(0.6, look(0, 0)), (0.45, { $0.setState(.question, force: true) })],
+            [(0.09, { $0.blink() })],
+        ]
+        let sleep: [[Beat]] = Array(repeating: [], count: 10)            // breathing and drifting z's
+        for (name, mood, beats) in [("ready", BotState.question, ready), ("sleep", BotState.sleeping, sleep)] {
+            for growth in 0...2 {
+                let dir = out.appendingPathComponent("\(name)-\(growth)")
+                try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+                var t = 100.0
+                let chick = TomoChick()
+                chick.clock = { t }
+                chick.setGrowth(CGFloat(growth))
+                chick.step()
+                chick.setState(mood, force: true)
+                // Run a few seconds first so the z's are already drifting, then one frame per second.
+                var events = beats.enumerated().flatMap { k, list in list.map { (at: 104 + Double(k) - $0.lead, run: $0.run) } }
+                    .sorted { $0.at < $1.at }
+                for k in 0..<10 {
+                    let shot = 104 + Double(k)
+                    while t < shot {
+                        t = min(shot, t + 1.0 / 60)
+                        while let e = events.first, e.at <= t { e.run(chick); events.removeFirst() }
+                        chick.step()
+                    }
+                    // Tomo a little smaller and lower than the frame, so hops and the "?" stay inside it.
+                    let frame = Canvas { ctx, _ in
+                        var c = ctx
+                        c.translateBy(x: 24, y: 40)
+                        chick.draw(c, size: CGSize(width: 192, height: 192))
+                    }.frame(width: 240, height: 240)
+                    write(frame, to: dir.appendingPathComponent("frame-\(k).png"))
+                }
+            }
         }
     }
 
