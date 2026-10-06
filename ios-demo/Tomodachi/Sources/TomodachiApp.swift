@@ -15,6 +15,9 @@ struct TomodachiApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var shell = TomoPhoneShell.shared
 
+    init() {
+        TomoLiveVisit.shared.install()      // before anything else: a tap on the card can be why we launched
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -27,7 +30,7 @@ struct TomodachiApp: App {
         }
         .onChange(of: scenePhase) { _, phase in
             shell.isActive = phase == .active
-            if phase != .active { shell.updateWidgets() }
+            if phase == .active { TomoLiveVisit.shared.endRound() } else { shell.updateWidgets() }
         }
     }
 }
@@ -50,8 +53,9 @@ final class TomoPhoneShell: ObservableObject {
         let game = TomoGame.shared
         game.openIsland = {}                        // the app is Tomo's screen: nothing to open or close
         game.closeIsland = {}
-        game.isIslandOpen = { [weak self] in self?.isActive ?? false }
-        game.isPointerInside = { [weak self] in self?.isActive ?? false }
+        // On screen, or playing a round on the Lock Screen card (TomoLiveVisit).
+        game.isIslandOpen = { [weak self] in self?.isActive == true || TomoLiveVisit.shared.isPlaying }
+        game.isPointerInside = { [weak self] in self?.isActive == true || TomoLiveVisit.shared.isPlaying }
         game.onBotState = { [weak self] in self?.botState = $0 }
         TomoSounds.shared.listen()
         game.start()                                // free play starts when the app becomes active
@@ -60,8 +64,8 @@ final class TomoPhoneShell: ObservableObject {
         }
     }
 
-    /// Writes Tomo's glance for the widget and reloads it, when anything it shows changed.
-    func updateWidgets() {
+    /// Tomo right now, for the widgets and the Lock Screen card.
+    func currentGlance() -> TomoGlance {
         var glance = TomoGame.shared.glance
         // Testing (TOMO_CARD_COUNTDOWN=<seconds>): nothing waiting, next words in that many seconds.
         if let secs = ProcessInfo.processInfo.environment["TOMO_CARD_COUNTDOWN"].flatMap(Double.init) {
@@ -70,6 +74,12 @@ final class TomoPhoneShell: ObservableObject {
             glance.nextDue = (lastGlance?.nextDue).map { $0 } ?? Date().addingTimeInterval(secs)
         }
         glance.updated = lastGlance?.updated ?? glance.updated
+        return glance
+    }
+
+    /// Writes Tomo's glance for the widget and reloads it, when anything it shows changed.
+    func updateWidgets() {
+        var glance = currentGlance()
         guard glance != lastGlance else { return }
         glance.updated = Date()
         glance.save()
