@@ -27,6 +27,8 @@ working on:
   [#8](https://github.com/serpcompany/tomodachi-app/issues/8)).
 - **[Voices](voices.md):** a child-like Japanese voice that can age with Tomo
   ([#5](https://github.com/serpcompany/tomodachi-app/issues/5)).
+- **[Blobatar](blobatar.md):** whether blobatar.dev can give each learner a one-of-a-kind Tomo, and what
+  to borrow from it instead ([#84](https://github.com/serpcompany/tomodachi-app/issues/84)).
 
 Four of these predate the size budget and have an allowance in `.github/scripts/check-docs.mjs`: they
 may shrink but not grow. New findings on one of those topics go in a new leaf, linked here.
