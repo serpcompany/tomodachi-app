@@ -20,7 +20,7 @@ xcrun simctl install tomodachi ios-demo/build/Build/Products/Debug-iphonesimulat
 xcrun simctl launch tomodachi com.zenbujapanese.tomodachi
 ```
 
-Signing is automatic with team `W3GXL2NQQP` (the one Pedos ships with). The simulator needs nothing more. For a device, Xcode must be signed in to that team (Xcode → Settings → Accounts); the first device build with `-allowProvisioningUpdates` registers the App IDs and the App Group `group.com.zenbujapanese.tomodachi`. To try the widget: long-press the Home Screen → Edit → Add Widget → Tomodachi.
+Signing is automatic with team `W3GXL2NQQP` (the one Pedos ships with). The simulator needs nothing more. For a device, Xcode must be signed in to that team (Xcode → Settings → Accounts); the first device build with `-allowProvisioningUpdates` registers the App IDs, the App Group `group.com.zenbujapanese.tomodachi` and the iCloud container `iCloud.com.zenbujapanese.tomodachi` (sync with the Mac, `TomoSync`). Debug builds sync in CloudKit's Development environment, TestFlight and the App Store in Production; Xcode switches iCloud and push to Production when it exports. On the simulator, sync needs it signed in to an iCloud account (Settings). To try the widget: long-press the Home Screen → Edit → Add Widget → Tomodachi.
 
 `tomodachi` is a simulator made for this app (`xcrun simctl create tomodachi com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro com.apple.CoreSimulator.SimRuntime.iOS-27-0`), so test runs don't touch other projects' simulators. Its saved progress lives in the app's container on that simulator.
 

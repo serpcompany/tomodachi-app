@@ -30,7 +30,12 @@ struct TomodachiApp: App {
         }
         .onChange(of: scenePhase) { _, phase in
             shell.isActive = phase == .active
-            if phase == .active { TomoLiveVisit.shared.endRound() } else { shell.updateWidgets() }
+            if phase == .active {
+                TomoLiveVisit.shared.endRound()
+                TomoSync.shared.fetchSoon()          // the Mac may have played since (#62)
+            } else {
+                shell.updateWidgets()
+            }
         }
     }
 }
@@ -58,6 +63,7 @@ final class TomoPhoneShell: ObservableObject {
         game.isPointerInside = { [weak self] in self?.isActive == true || TomoLiveVisit.shared.isPlaying }
         game.onBotState = { [weak self] in self?.botState = $0 }
         TomoSounds.shared.listen()
+        TomoSync.shared.registerForPushes = { UIApplication.shared.registerForRemoteNotifications() }
         game.start()                                // free play starts when the app becomes active
         watch = game.$progressVersion.sink { [weak self] _ in
             DispatchQueue.main.async { self?.updateWidgets() }   // after the change has landed
