@@ -5,5 +5,19 @@
     <!-- Hardened runtime: answer Tomo out loud (on-device speech recognition) -->
     <key>com.apple.security.device.audio-input</key>
     <true/>
+    <!-- One Tomo across Mac and iPhone: the learner's own iCloud (TomoSync, #62) -->
+    <key>com.apple.developer.icloud-container-identifiers</key>
+    <array>
+        <string>iCloud.com.zenbujapanese.tomodachi</string>
+    </array>
+    <key>com.apple.developer.icloud-services</key>
+    <array>
+        <string>CloudKit</string>
+    </array>
+    <key>com.apple.developer.icloud-container-environment</key>
+    <string>$(TOMO_ICLOUD_ENV)</string>
+    <!-- CloudKit tells the other devices about a change with a push; CKSyncEngine fetches when one arrives -->
+    <key>com.apple.developer.aps-environment</key>
+    <string>$(TOMO_ICLOUD_ENV:lower)</string>
 </dict>
 </plist>

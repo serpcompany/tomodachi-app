@@ -1,11 +1,11 @@
-# Tomodachi beta (0.0.1): tester guide
+# Tomodachi beta (0.0.2): tester guide
 
 Tomo is a baby chick who lives next to your MacBook's notch and only speaks the language you're learning, at its own age. It starts at age 1, still in its eggshell (single baby words), and grows up as you understand it.
 
 ## Install
 
 1. You need **macOS 15 or later** (Apple Silicon or Intel).
-2. Unzip `Tomodachi-0.0.1-beta.zip` and move **Tomodachi.app** to Applications.
+2. Unzip `Tomodachi-0.0.2-beta.zip` and move **Tomodachi.app** to Applications.
 3. Open it. Tomo pops out of the notch and waves. A small Tomo icon appears in the menu bar.
 
 ## What to try
@@ -26,7 +26,7 @@ Tomo is a baby chick who lives next to your MacBook's notch and only speaks the 
 
 ## On the iPhone (TestFlight)
 
-Install **TestFlight** from the App Store, then open the invite link we send you. The iPhone Tomo is a separate copy for now: its progress doesn't sync with the Mac's.
+Install **TestFlight** from the App Store, then open the invite link we send you. Signed in to the same iCloud account on both, the iPhone and the Mac share one Tomo: play on either and the other catches up (iPhone 1.1 and Mac beta 0.0.2 or later; macOS treats 0.0.2 as a new app, so it asks for the microphone again). If both already had a Tomo, they merge.
 
 - **Play in the app:** the same rounds as on the Mac. Tap a word in Tomo's line to look it up.
 - **Add the widget:** long-press the Home Screen → **+** → Tomodachi (small or medium). It shows Tomo and how many words are waiting.

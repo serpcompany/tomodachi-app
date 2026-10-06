@@ -45,8 +45,8 @@ the [SERP engineering standards](https://github.com/serpcompany/serp/tree/main/d
 ## Build and check
 
 ```bash
-cd mac-demo/NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug -derivedDataPath ../build build
-mac-demo/run.sh    # relaunches the owner's copy, with AI keys from .env
+cd mac-demo/NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug -derivedDataPath ../build -allowProvisioningUpdates build
+mac-demo/scripts/release-beta.sh --owner && mac-demo/run.sh    # rebuilds and relaunches the owner's copy
 cd TomoCore && swift build    # the shared package alone; the iPhone build is in ios-demo/README.md
 node .github/scripts/check-docs.mjs && node .github/scripts/check-swift-text.mjs
 ```

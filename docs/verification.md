@@ -12,9 +12,9 @@ macOS CI yet: CI runs only the repo checks, so the build, the self-test and the 
 | **Push** | `node .github/scripts/check-docs.mjs` and `node .github/scripts/check-swift-text.mjs` (CI runs both, plus the link check) | Before each push |
 | **Finish gate** | Build, self-test, repo checks, and the evidence below | Once, when the branch is done |
 
-The self-test: `TOMO_SELFTEST=1 TOMO_DATA_DIR=$(mktemp -d) <app binary>` checks the word-stage, level and
-store rules, prints each check and quits (exit code 1 on a failure). A new growth rule gets a new check
-in `TomoProgress.selfTest`.
+The self-test: `TOMO_SELFTEST=1 TOMO_DATA_DIR=$(mktemp -d) <app binary>` checks the word-stage, level,
+store and sync-merge rules, prints each check and quits (exit code 1 on a failure). A new growth rule gets
+a new check in `TomoProgress.selfTest`, a new merge rule one in `TomoSync.selfTest`.
 
 ## Evidence a change needs
 
@@ -25,6 +25,19 @@ in `TomoProgress.selfTest`.
 - **Settings:** a snapshot of the page (`TOMO_OPEN_SETTINGS=<page>`).
 - **Tomo's look or motion:** `TOMO_RENDER_SHEET` and `TOMO_RENDER_ANIM` frames.
 - **Sounds:** `TOMO_RENDER_SOUNDS`, and listen.
+- **Sync:** the self-test, and `TOMO_SYNC_CHECK` runs for the case it changes (below).
+
+## Sync (iCloud)
+
+Debug builds sync in CloudKit's Development environment, never with a learner's real Tomo, and a test
+run (`TOMO_DATA_DIR`) syncs only with `TOMO_SYNC=1`. `TOMO_SYNC_CHECK=<step>` with both syncs that
+folder and quits: `play:N` answers N new words, `blind:N` does too without fetching first (its saves
+conflict), `reset` starts over, `show` only fetches; each prints the Tomo. Folders act as devices, but
+CloudKit doesn't send a device its own changes: a folder sees the others' only on its first fetch, so
+look with a new folder each time. Changes arriving later, and pushes, need a second device: the iPhone
+simulator signed in to iCloud, or the owner's phone on TestFlight (Production). Production gets new record
+types and fields only when they're deployed (CloudKit Console → Deploy Schema Changes), after a
+Development run created them; until then its saves fail and are retried.
 
 ## Keep the owner's Tomo safe
 

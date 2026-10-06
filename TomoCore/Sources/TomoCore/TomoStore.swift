@@ -7,12 +7,14 @@ import SQLite3
 // so test runs never touch the learner's own Tomo). Keyed by (learner language, target language): one Tomo
 // per pair. `tomo` and `item` hold the current state; `answer` and `growth` are append-only logs, kept to tune
 // the rules later and to sync with the Zenbu apps one day (docs/research/learner-data-schema.md).
-// The rules that fill it are in TomoProgress.swift.
+// The rules that fill it are in TomoProgress.swift. Saving a Tomo or a word reports it through `didChange`, so
+// TomoSync can send it to the learner's other devices; the `Sync` methods below write what arrives without
+// reporting it back.
 
 @MainActor
 public final class TomoStore {
     public struct TomoRow: Sendable { public let metAt: Date; public let level: Int; public let age: Int }
-    public struct ItemRow: Sendable {
+    public struct ItemRow: Sendable, Equatable {
         public let id: String
         public var stage: Int
         public var due: Date?              // nil once burned
@@ -23,9 +25,21 @@ public final class TomoStore {
         public var peak = 0                // the highest stage it ever reached: the experience bar never goes back
     }
 
+    /// What a save changed, for TomoSync. `cleared`: start over removed these words.
+    public struct Change: Sendable {
+        public enum Kind: Sendable { case tomo, item(String), cleared([String]) }
+        public let directory: URL
+        public let learner: String
+        public let target: String
+        public let kind: Kind
+    }
+    /// Called after each save of a Tomo or a word (TomoSync listens).
+    public static var didChange: ((Change) -> Void)?
+
     nonisolated(unsafe) private var db: OpaquePointer?
     private let learner: String
     private let target: String
+    private let directory: URL
 
     public static var directory: URL {
         if let d = ProcessInfo.processInfo.environment["TOMO_DATA_DIR"] { return URL(fileURLWithPath: d) }
@@ -36,6 +50,7 @@ public final class TomoStore {
     public init?(learner: String, target: String, directory: URL = TomoStore.directory) {
         self.learner = learner
         self.target = target
+        self.directory = directory
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let path = directory.appendingPathComponent("learner.sqlite").path
         guard sqlite3_open(path, &db) == SQLITE_OK else {
@@ -62,9 +77,12 @@ public final class TomoStore {
             CREATE TABLE IF NOT EXISTS growth (
               at REAL NOT NULL, learner TEXT NOT NULL, target TEXT NOT NULL,
               kind TEXT NOT NULL, value INTEGER NOT NULL);
+            CREATE TABLE IF NOT EXISTS cloud (record TEXT PRIMARY KEY, fields BLOB NOT NULL);
             """)
-        // Added after the first saved Tomos: fails harmlessly once the column exists.
+        // Added after the first saved Tomos: each fails harmlessly once the column exists.
         sqlite3_exec(db, "ALTER TABLE item ADD COLUMN peak INTEGER NOT NULL DEFAULT 0", nil, nil, nil)
+        // When this pair last started over (0: never), so an older Tomo from another device can't come back.
+        sqlite3_exec(db, "ALTER TABLE tomo ADD COLUMN reset_at REAL NOT NULL DEFAULT 0", nil, nil, nil)
     }
 
     deinit { sqlite3_close(db) }
@@ -79,8 +97,17 @@ public final class TomoStore {
     }
 
     public func saveTomo(_ t: TomoRow) {
-        run("INSERT OR REPLACE INTO tomo (learner, target, met_at, level, age) VALUES (?, ?, ?, ?, ?)",
-            [learner, target, t.metAt.timeIntervalSince1970, t.level, t.age])
+        writeTomo(t)
+        announce(.tomo)
+    }
+
+    private func writeTomo(_ t: TomoRow, resetAt: Date? = nil) {
+        run("""
+            INSERT INTO tomo (learner, target, met_at, level, age, reset_at) VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT (learner, target) DO UPDATE SET met_at = excluded.met_at, level = excluded.level,
+              age = excluded.age, reset_at = COALESCE(?, reset_at)
+            """, [learner, target, t.metAt.timeIntervalSince1970, t.level, t.age,
+                  resetAt?.timeIntervalSince1970 ?? 0, resetAt?.timeIntervalSince1970])
     }
 
     // MARK: Items
@@ -103,6 +130,11 @@ public final class TomoStore {
     }
 
     public func saveItem(_ i: ItemRow) {
+        writeItem(i)
+        announce(.item(i.id))
+    }
+
+    private func writeItem(_ i: ItemRow) {
         run("""
             INSERT OR REPLACE INTO item
               (learner, target, item_id, stage, due_at, introduced_at, answered_at, right_count, wrong_count, peak)
@@ -141,12 +173,63 @@ public final class TomoStore {
             [at.timeIntervalSince1970, learner, target, kind, value])
     }
 
-    /// Start over: this pair's Tomo and words are cleared; the logs stay.
+    /// Start over: this pair's words are cleared and the time noted; the Tomo row waits for the new Tomo
+    /// (TomoProgress hatches it). The logs stay.
     public func clear(at: Date) {
-        run("DELETE FROM item WHERE learner = ? AND target = ?", [learner, target])
-        run("DELETE FROM tomo WHERE learner = ? AND target = ?", [learner, target])
-        logGrowth(at: at, kind: "reset", value: 0)
+        let words = loadItems().keys.sorted()
+        clearWords(resetAt: at)
+        announce(.cleared(words))
     }
+
+    private func clearWords(resetAt: Date) {
+        run("DELETE FROM item WHERE learner = ? AND target = ?", [learner, target])
+        run("""
+            INSERT INTO tomo (learner, target, met_at, level, age, reset_at) VALUES (?, ?, ?, 1, 1, ?)
+            ON CONFLICT (learner, target) DO UPDATE SET reset_at = excluded.reset_at
+            """, [learner, target, resetAt.timeIntervalSince1970, resetAt.timeIntervalSince1970])
+        logGrowth(at: resetAt, kind: "reset", value: 0)
+    }
+
+    private func announce(_ kind: Change.Kind) {
+        Self.didChange?(Change(directory: directory, learner: learner, target: target, kind: kind))
+    }
+
+    // MARK: Sync (TomoSync): writes what another device sent, without reporting it back
+
+    /// This pair's Tomo and when it last started over (0: never).
+    func syncTomo() -> (row: TomoRow, resetAt: Date)? {
+        query("SELECT met_at, level, age, reset_at FROM tomo WHERE learner = ? AND target = ?", [learner, target]) {
+            (TomoRow(metAt: Date(timeIntervalSince1970: sqlite3_column_double($0, 0)),
+                     level: Int(sqlite3_column_int64($0, 1)), age: Int(sqlite3_column_int64($0, 2))),
+             Date(timeIntervalSince1970: sqlite3_column_double($0, 3)))
+        }.first
+    }
+
+    func syncWriteTomo(_ t: TomoRow, resetAt: Date) { writeTomo(t, resetAt: resetAt) }
+    func syncWriteItem(_ i: ItemRow) { writeItem(i) }
+    /// Another device started over: this one's words go too.
+    func syncClear(resetAt: Date) { clearWords(resetAt: resetAt) }
+
+    /// Every language pair with a saved Tomo, in this file.
+    func syncPairs() -> [(learner: String, target: String)] {
+        query("SELECT learner, target FROM tomo", []) {
+            (String(cString: sqlite3_column_text($0, 0)), String(cString: sqlite3_column_text($0, 1)))
+        }
+    }
+
+    /// CloudKit's own fields of a record we last saw (its change tag), so the next save isn't a conflict.
+    func cloudFields(_ record: String) -> Data? {
+        query("SELECT fields FROM cloud WHERE record = ?", [record]) { s in
+            Data(bytes: sqlite3_column_blob(s, 0), count: Int(sqlite3_column_bytes(s, 0)))
+        }.first
+    }
+
+    func setCloudFields(_ record: String, _ fields: Data?) {
+        if let fields { run("INSERT OR REPLACE INTO cloud (record, fields) VALUES (?, ?)", [record, fields]) }
+        else { run("DELETE FROM cloud WHERE record = ?", [record]) }
+    }
+
+    func clearCloudFields() { run("DELETE FROM cloud", []) }
 
     // MARK: SQLite
 
@@ -179,6 +262,7 @@ public final class TomoStore {
             case let v as Int:    sqlite3_bind_int64(s, n, Int64(v))
             case let v as Double: sqlite3_bind_double(s, n, v)
             case let v as String: sqlite3_bind_text(s, n, v, -1, Self.transient)
+            case let v as Data:   _ = v.withUnsafeBytes { sqlite3_bind_blob(s, n, $0.baseAddress, Int32(v.count), Self.transient) }
             default:              sqlite3_bind_null(s, n)
             }
         }
