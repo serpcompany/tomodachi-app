@@ -1,33 +1,45 @@
 import ActivityKit
+import AppIntents
 import SwiftUI
 import TomoCore
 import WidgetKit
 
 // MARK: - Tomo on the Lock Screen and in the Dynamic Island (issue #52)
 //
-// Ready: Tomo asks over, with what's waiting ("A new word is ready to learn") and its experience bar. Not
-// yet: Tomo sleeps, and a countdown and a bar run live to the next words. Tomo moves everywhere here
-// (TomoMovingChick); each update also swaps its pose with a short transition. The compact Dynamic Island
-// keeps Tomo's call ("あそぼ！"). Tapping opens the app.
+// Ready: Tomo asks over, with what's waiting ("A new word is ready to learn"), its experience bar and a Play
+// button. Play opens one round right on the card: Tomo's word and its choices (TomoVisitActivity.swift);
+// Tomo reacts, and a few seconds after a right answer the card invites again. Not yet: Tomo sleeps, and a
+// countdown and a bar run live to the next words. Tomo moves everywhere here (TomoMovingChick); each update
+// also swaps its pose with a short transition. The compact Dynamic Island keeps Tomo's call ("あそぼ！").
+// Tapping anywhere else opens the app.
 
 struct TomoVisitLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: TomoVisitAttributes.self) { context in
-            TomoCardView(glance: context.state.glance, ready: isReady(context))
-                .padding(14)
-                .activityBackgroundTint(Color(red: 0.06, green: 0.09, blue: 0.11))
-                .activitySystemActionForegroundColor(.white)
+            Group {
+                if let round = shownRound(context) {
+                    TomoRoundCard(glance: context.state.glance, round: round)
+                } else {
+                    TomoCardView(glance: context.state.glance, ready: isReady(context))
+                }
+            }
+            .padding(14)
+            .activityBackgroundTint(Color(red: 0.06, green: 0.09, blue: 0.11))
+            .activitySystemActionForegroundColor(.white)
         } dynamicIsland: { context in
-            let g = context.state.glance, ready = isReady(context)
+            let g = context.state.glance, ready = isReady(context), round = shownRound(context)
             return DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    TomoMovingChick(glance: g, ready: ready, size: 64)
+                    if let round { TomoRoundChick(glance: g, round: round, size: 64) }
+                    else { TomoMovingChick(glance: g, ready: ready, size: 64) }
                 }
                 DynamicIslandExpandedRegion(.center) {
-                    TomoCardText(glance: g, ready: ready)
+                    if let round { TomoRoundLine(round: round) } else { TomoCardText(glance: g, ready: ready) }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    if !ready { TomoCountdown(glance: g) }
+                    if let round { TomoRoundChoices(round: round) }
+                    else if ready { TomoPlayButton(glance: g) }
+                    else { TomoCountdown(glance: g) }
                 }
             } compactLeading: {
                 TomoMovingChick(glance: g, ready: ready, size: 26)
@@ -45,9 +57,15 @@ struct TomoVisitLiveActivity: Widget {
         }
     }
 
+    /// The round on the card, until its stale date: a few seconds after a right answer, or an abandoned round.
+    private func shownRound(_ context: ActivityViewContext<TomoVisitAttributes>) -> TomoVisitAttributes.CardRound? {
+        context.isStale ? nil : context.state.round
+    }
+
     /// Something is waiting, or the next words have come due since the last update.
     private func isReady(_ context: ActivityViewContext<TomoVisitAttributes>) -> Bool {
-        context.state.glance.waiting || context.isStale
+        let g = context.state.glance
+        return g.waiting || (context.isStale && context.state.round == nil) || (g.nextDue.map { $0 <= .now } ?? false)
     }
 }
 
@@ -60,10 +78,121 @@ struct TomoCardView: View {
             TomoMovingChick(glance: glance, ready: ready, size: 84)
             VStack(alignment: .leading, spacing: 8) {
                 TomoCardText(glance: glance, ready: ready)
-                if !ready { TomoCountdown(glance: glance) }
+                if ready { TomoPlayButton(glance: glance) } else { TomoCountdown(glance: glance) }
             }
         }
         .foregroundStyle(.white)
+    }
+}
+
+/// Opens one round on the card (TomoPlayIntent, run by the app).
+struct TomoPlayButton: View {
+    let glance: TomoGlance
+
+    var body: some View {
+        Button(intent: TomoPlayIntent()) {
+            Label(glance.play, systemImage: "play.fill")
+                .font(.system(size: 15, weight: .bold, design: .rounded))
+                .foregroundStyle(Color(red: 0.12, green: 0.09, blue: 0.02))
+                .padding(.horizontal, 16).frame(height: 34)
+                .background(Color(red: 1, green: 0.8, blue: 0.3), in: Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+/// A round on the card: Tomo, what it says, and the choices (or, after a right answer, what it meant).
+struct TomoRoundCard: View {
+    let glance: TomoGlance
+    let round: TomoVisitAttributes.CardRound
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            TomoRoundChick(glance: glance, round: round, size: 72)
+            VStack(alignment: .leading, spacing: 8) {
+                TomoRoundLine(round: round)
+                TomoRoundChoices(round: round)
+            }
+        }
+        .foregroundStyle(.white)
+    }
+}
+
+/// Tomo asking (moving), or reacting to the answer: a hop for a right one, a shake-off for a miss.
+struct TomoRoundChick: View {
+    let glance: TomoGlance
+    let round: TomoVisitAttributes.CardRound
+    let size: CGFloat
+
+    var body: some View {
+        Group {
+            if let right = round.right {
+                TomoChickStill(state: right ? .finished : .error, emote: right ? .happy : nil,
+                               growth: CGFloat(glance.growth))
+                    .frame(width: size, height: size)
+            } else {
+                TomoMovingChick(glance: glance, ready: true, size: size)
+            }
+        }
+        .id(round.right)
+        .transition(.scale(scale: 0.8).combined(with: .opacity))
+    }
+}
+
+/// What Tomo says, and the result once answered ("Win +1", "Miss").
+struct TomoRoundLine: View {
+    let round: TomoVisitAttributes.CardRound
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(round.say)
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .lineLimit(1).minimumScaleFactor(0.6)
+            Spacer(minLength: 0)
+            if let result = round.result {
+                Text(result)
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .padding(.horizontal, 8).padding(.vertical, 3)
+                    .background((round.right == true ? Color.green : Color.red).opacity(0.35), in: Capsule())
+                    .transition(.scale.combined(with: .opacity))
+            }
+        }
+    }
+}
+
+/// The choices as buttons (TomoAnswerIntent); after a right answer, the reading and meaning instead.
+struct TomoRoundChoices: View {
+    let round: TomoVisitAttributes.CardRound
+
+    var body: some View {
+        if round.right == true, let note = round.note {
+            Text(note)
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .foregroundStyle(Color.white.opacity(0.8))
+                .lineLimit(2).minimumScaleFactor(0.7)
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+        } else {
+            HStack(spacing: 8) {
+                ForEach(round.choices, id: \.id) { choice in
+                    Button(intent: TomoAnswerIntent(choice: choice.id)) {
+                        Group {
+                            if let emoji = choice.emoji {
+                                Text(emoji).font(.system(size: 26))
+                            } else {
+                                Text(choice.label ?? "")
+                                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                    .lineLimit(2).minimumScaleFactor(0.6)
+                                    .multilineTextAlignment(.center)
+                            }
+                        }
+                        .frame(maxWidth: .infinity).frame(height: 44)
+                        .background(choice.id == round.picked ? Color.red.opacity(0.35) : Color.white.opacity(0.1),
+                                    in: RoundedRectangle(cornerRadius: 12))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
     }
 }
 
@@ -127,7 +256,15 @@ private func previewGlance(waiting: Bool) -> TomoGlance {
                       waiting: waiting, status: waiting ? ui("glance.due", ["n": "3"]) : ui("glance.done"),
                       nextDue: waiting ? nil : .now.addingTimeInterval(95 * 60), statusLater: ui("glance.waiting"),
                       about: ui("glance.about"), invite: target.lines.invite ?? target.lines.practice,
-                      nextLabel: ui("glance.next"), updated: .now.addingTimeInterval(-30 * 60))
+                      nextLabel: ui("glance.next"), play: ui("glance.play"), updated: .now.addingTimeInterval(-30 * 60))
+}
+
+/// The first picture round in the pack.
+@MainActor
+private var previewRound: TomoVisitAttributes.CardRound? {
+    let rounds = TomoLanguages.shared.target.levels.flatMap { $0.rounds ?? [] }
+    guard let r = rounds.first(where: { $0.choices != nil }), let choices = r.choices else { return nil }
+    return .init(say: r.say, choices: choices.map { .init(id: $0, emoji: $0, label: nil) })
 }
 
 #Preview("Lock Screen", as: .content, using: TomoVisitAttributes()) {
@@ -135,6 +272,7 @@ private func previewGlance(waiting: Bool) -> TomoGlance {
 } contentStates: {
     TomoVisitAttributes.ContentState(glance: previewGlance(waiting: true))
     TomoVisitAttributes.ContentState(glance: previewGlance(waiting: false))
+    TomoVisitAttributes.ContentState(glance: previewGlance(waiting: true), round: previewRound)
 }
 
 #Preview("Island, expanded", as: .dynamicIsland(.expanded), using: TomoVisitAttributes()) {
