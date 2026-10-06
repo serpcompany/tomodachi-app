@@ -263,16 +263,30 @@ public final class TomoGame: ObservableObject {
     private var ticker: Timer?
 
     private let speech = AVSpeechSynthesizer()
-    private var voices: [String: AVSpeechSynthesisVoice] = [:]
+    private var voices: [String: VoiceBox] = [:]
+    private var voicesLoading: Set<String> = []
 
-    /// Best installed voice for the target language.
+    /// Best installed voice for the target language, once `loadVoice` has found it (nil until then).
     private var voice: AVSpeechSynthesisVoice? {
         let locale = lang.target.speechLocale
-        if let v = voices[locale] { return v }
-        let v = AVSpeechSynthesisVoice.speechVoices().filter { $0.language == locale }
-            .max { $0.quality.rawValue < $1.quality.rawValue } ?? AVSpeechSynthesisVoice(language: locale)
-        voices[locale] = v
-        return v
+        if let box = voices[locale] { return box.voice }
+        loadVoice(locale)
+        return nil
+    }
+
+    /// Finds the best installed voice off the main thread: on iOS 27, `speechVoices()` on the main thread can
+    /// wait forever on the speech service, freezing the app the first time Tomo speaks.
+    private func loadVoice(_ locale: String) {
+        guard voices[locale] == nil, voicesLoading.insert(locale).inserted else { return }
+        Task.detached(priority: .userInitiated) {
+            let found = AVSpeechSynthesisVoice.speechVoices().filter { $0.language == locale }
+                .max { $0.quality.rawValue < $1.quality.rawValue } ?? AVSpeechSynthesisVoice(language: locale)
+            let box = VoiceBox(found)
+            await MainActor.run { [weak self] in
+                self?.voices[locale] = box
+                self?.voicesLoading.remove(locale)
+            }
+        }
     }
 
     private var lang: TomoLanguages { .shared }
@@ -293,6 +307,7 @@ public final class TomoGame: ObservableObject {
     /// Call `dropIn(force: true)` to open right away.
     public func start() {
         bump()
+        loadVoice(lang.target.speechLocale)        // ready before Tomo's first line
         progress.load(pack: lang.target, learner: lang.learner.id)
         syncProgress()
         resetRound()
@@ -967,6 +982,7 @@ public final class TomoGame: ObservableObject {
 
     public func speak(_ text: String, slow: Bool) {
         guard soundEnabled else { return }
+        guard let voice else { return }            // still being found (loadVoice): stay quiet, never guess a voice
         speech.stopSpeaking(at: .immediate)
         let u = AVSpeechUtterance(string: text)
         u.voice = voice
@@ -1017,3 +1033,10 @@ public final class TomoGame: ObservableObject {
 
 /// A time on Tomo's clock (which testing can move ahead, TomoClock) on the device's clock.
 @MainActor public func wallClock(_ d: Date) -> Date { d.addingTimeInterval(Date().timeIntervalSince(TomoClock.now)) }
+
+/// A voice handed from the background lookup to the main actor (AVSpeechSynthesisVoice isn't marked Sendable;
+/// it's read-only once found).
+private final class VoiceBox: @unchecked Sendable {
+    let voice: AVSpeechSynthesisVoice?
+    init(_ voice: AVSpeechSynthesisVoice?) { self.voice = voice }
+}
