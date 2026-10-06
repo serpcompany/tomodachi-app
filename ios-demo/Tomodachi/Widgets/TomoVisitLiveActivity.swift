@@ -6,9 +6,9 @@ import WidgetKit
 // MARK: - Tomo on the Lock Screen and in the Dynamic Island (issue #52)
 //
 // Ready: Tomo asks over, with what's waiting ("A new word is ready to learn") and its experience bar. Not
-// yet: Tomo sleeps, and a countdown and a bar run live to the next words. Those timers are the only motion
-// iOS keeps running here; each update also swaps Tomo's pose with a short transition (decisions.md,
-// 2026-10-06). The compact Dynamic Island keeps Tomo's call ("あそぼ！"). Tapping opens the app.
+// yet: Tomo sleeps, and a countdown and a bar run live to the next words. Tomo moves everywhere here
+// (TomoMovingChick); each update also swaps its pose with a short transition. The compact Dynamic Island
+// keeps Tomo's call ("あそぼ！"). Tapping opens the app.
 
 struct TomoVisitLiveActivity: Widget {
     var body: some WidgetConfiguration {
@@ -21,7 +21,7 @@ struct TomoVisitLiveActivity: Widget {
             let g = context.state.glance, ready = isReady(context)
             return DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    TomoCardChick(glance: g, ready: ready).frame(width: 64, height: 64)
+                    TomoMovingChick(glance: g, ready: ready, size: 64)
                 }
                 DynamicIslandExpandedRegion(.center) {
                     TomoCardText(glance: g, ready: ready)
@@ -30,7 +30,7 @@ struct TomoVisitLiveActivity: Widget {
                     if !ready { TomoCountdown(glance: g) }
                 }
             } compactLeading: {
-                TomoCardChick(glance: g, ready: ready).frame(width: 26, height: 26)
+                TomoMovingChick(glance: g, ready: ready, size: 26)
             } compactTrailing: {
                 if ready {
                     Text(g.invite).font(.system(size: 13, weight: .bold, design: .rounded)).lineLimit(1)
@@ -40,7 +40,7 @@ struct TomoVisitLiveActivity: Widget {
                         .frame(maxWidth: 56)
                 }
             } minimal: {
-                TomoCardChick(glance: g, ready: ready).frame(width: 24, height: 24)
+                TomoMovingChick(glance: g, ready: ready, size: 24)
             }
         }
     }
@@ -57,25 +57,13 @@ struct TomoCardView: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            TomoCardChick(glance: glance, ready: ready).frame(width: 84, height: 84)
+            TomoMovingChick(glance: glance, ready: ready, size: 84)
             VStack(alignment: .leading, spacing: 8) {
                 TomoCardText(glance: glance, ready: ready)
                 if !ready { TomoCountdown(glance: glance) }
             }
         }
         .foregroundStyle(.white)
-    }
-}
-
-/// Tomo held in the pose of the moment: asking when something's ready, asleep while it waits.
-struct TomoCardChick: View {
-    let glance: TomoGlance
-    let ready: Bool
-
-    var body: some View {
-        TomoChickStill(state: ready ? .question : .sleeping, growth: glance.growth)
-            .id(ready)
-            .transition(.scale(scale: 0.8).combined(with: .opacity))
     }
 }
 

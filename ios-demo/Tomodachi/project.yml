@@ -66,7 +66,7 @@ targets:
         CODE_SIGN_ENTITLEMENTS: Resources/Tomodachi.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon   # Tomo on sky blue, drawn from its code (TOMO_RENDER_ICON)
 
-  # Home Screen widgets (issue #52). Reads TomoGlance from the App Group; draws Tomo with TomoChickStill.
+  # Home Screen widgets (issue #52). Reads TomoGlance from the App Group; draws Tomo with TomoMovingChick.
   TomoWidgets:
     type: app-extension
     platform: iOS
@@ -85,6 +85,7 @@ targets:
         CFBundleDisplayName: Tomodachi
         CFBundleShortVersionString: "1.0"
         CFBundleVersion: "1"
+        UIAppFonts: [TomoReady0.ttf, TomoReady1.ttf, TomoReady2.ttf, TomoSleep0.ttf, TomoSleep1.ttf, TomoSleep2.ttf]
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
