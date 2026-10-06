@@ -16,7 +16,7 @@ public struct TomoGlance: Codable, Sendable, Hashable {
     public var statusLater: String      // the status from `nextDue` on ("Tomo is waiting for you")
     public var about: String            // the widget's description in the widget gallery
     public var invite: String           // what Tomo calls out when something is waiting ("あそぼ！")
-    public var nextLabel: String        // before the countdown to `nextDue` ("New words in")
+    public var nextLabel: String        // when the next words come ("New words at {time}"; the reader fills in `nextDue`)
     public var play: String             // the Lock Screen card's button that opens a round there ("Play")
     public var updated: Date
 
