@@ -6,12 +6,13 @@ import WidgetKit
 
 // MARK: - Tomo on the Lock Screen and in the Dynamic Island (issue #52)
 //
-// Ready: Tomo asks over, with what's waiting ("A new word is ready to learn"), its experience bar and a Play
-// button. Play opens one round right on the card: Tomo's word and its choices (TomoVisitActivity.swift);
-// Tomo reacts, and a few seconds after a right answer the card invites again. Not yet: Tomo sleeps, and a
-// countdown and a bar run live to the next words. Tomo moves everywhere here (TomoMovingChick); each update
-// also swaps its pose with a short transition. The compact Dynamic Island keeps Tomo's call ("あそぼ！").
-// Tapping anywhere else opens the app.
+// Two rows beside Tomo. Ready: what's waiting ("A new word is ready to learn") over its age, level and
+// experience bar, and a round Play button at the edge. Play opens one round right on the card: Tomo's word
+// and its choices (TomoVisitActivity.swift); Tomo reacts, and a few seconds after a right answer the card
+// invites again. Not yet: Tomo sleeps, and the first row says when the next words come ("New words at 10:12";
+// a ticking countdown loses its seconds on the Lock Screen, which shows "9:--"). Tomo moves
+// everywhere here (TomoMovingChick); each update also swaps its pose with a short transition. The compact
+// Dynamic Island keeps Tomo's call ("あそぼ！"). Tapping anywhere else opens the app.
 
 struct TomoVisitLiveActivity: Widget {
     var body: some WidgetConfiguration {
@@ -36,10 +37,11 @@ struct TomoVisitLiveActivity: Widget {
                 DynamicIslandExpandedRegion(.center) {
                     if let round { TomoRoundLine(round: round) } else { TomoCardText(glance: g, ready: ready) }
                 }
+                DynamicIslandExpandedRegion(.trailing) {
+                    if round == nil && ready { TomoPlayButton(glance: g, size: 44) }
+                }
                 DynamicIslandExpandedRegion(.bottom) {
                     if let round { TomoRoundChoices(round: round) }
-                    else if ready { TomoPlayButton(glance: g) }
-                    else { TomoCountdown(glance: g) }
                 }
             } compactLeading: {
                 TomoMovingChick(glance: g, ready: ready, size: 26)
@@ -76,28 +78,29 @@ struct TomoCardView: View {
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             TomoMovingChick(glance: glance, ready: ready, size: 84)
-            VStack(alignment: .leading, spacing: 8) {
-                TomoCardText(glance: glance, ready: ready)
-                if ready { TomoPlayButton(glance: glance) } else { TomoCountdown(glance: glance) }
-            }
+            TomoCardText(glance: glance, ready: ready)
+            if ready { TomoPlayButton(glance: glance, size: 52) }
         }
         .foregroundStyle(.white)
     }
 }
 
-/// Opens one round on the card (TomoPlayIntent, run by the app).
+/// Opens one round on the card (TomoPlayIntent, run by the app): a round play button at the card's edge.
 struct TomoPlayButton: View {
     let glance: TomoGlance
+    let size: CGFloat
 
     var body: some View {
         Button(intent: TomoPlayIntent()) {
-            Label(glance.play, systemImage: "play.fill")
-                .font(.system(size: 15, weight: .bold, design: .rounded))
+            Image(systemName: "play.fill")
+                .font(.system(size: size * 0.4, weight: .bold))
                 .foregroundStyle(Color(red: 0.12, green: 0.09, blue: 0.02))
-                .padding(.horizontal, 16).frame(height: 34)
-                .background(Color(red: 1, green: 0.8, blue: 0.3), in: Capsule())
+                .offset(x: size * 0.04)                      // the triangle looks centered a little right
+                .frame(width: size, height: size)
+                .background(Color(red: 1, green: 0.8, blue: 0.3), in: Circle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(glance.play)
     }
 }
 
@@ -196,18 +199,26 @@ struct TomoRoundChoices: View {
     }
 }
 
-/// What's waiting, then Tomo's age, level and experience bar.
+/// Two rows: what's waiting (or, until the next words, "New words at 10:12"), then Tomo's age, level and
+/// experience bar.
 struct TomoCardText: View {
     let glance: TomoGlance
     let ready: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Text(glance.waiting ? glance.status : ready ? glance.statusLater : glance.status)
-                .font(.system(size: 17, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.white.opacity(ready ? 1 : 0.75))
-                .lineLimit(1).minimumScaleFactor(0.7)
-                .contentTransition(.opacity)
+        VStack(alignment: .leading, spacing: 8) {
+            Group {
+                if !ready, let next = glance.nextDue, next > .now {
+                    let parts = glance.nextLabel.components(separatedBy: "{time}")
+                    (Text(parts[0]) + Text(next, style: .time) + Text(parts.count > 1 ? parts[1] : ""))
+                        .foregroundStyle(Color.white.opacity(0.8))
+                } else {
+                    Text(glance.waiting ? glance.status : glance.statusLater)
+                        .contentTransition(.opacity)
+                }
+            }
+            .font(.system(size: 17, weight: .bold, design: .rounded))
+            .lineLimit(1).minimumScaleFactor(0.7)
             HStack(spacing: 8) {
                 Text(glance.age)
                     .font(.system(size: 12, weight: .bold, design: .rounded))
@@ -222,27 +233,6 @@ struct TomoCardText: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
-/// "New words in 1:42:10" and a bar, both running live until the next words come due.
-struct TomoCountdown: View {
-    let glance: TomoGlance
-
-    var body: some View {
-        if let next = glance.nextDue, next > .now {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 4) {
-                    Text(glance.nextLabel)
-                    Text(timerInterval: Date.now...next, countsDown: true).monospacedDigit()
-                }
-                .font(.system(size: 12, weight: .medium, design: .rounded))
-                .foregroundStyle(Color.white.opacity(0.7))
-                ProgressView(timerInterval: min(glance.updated, next)...next, countsDown: false) { EmptyView() }
-                    currentValueLabel: { EmptyView() }
-                    .tint(Color(red: 1, green: 0.85, blue: 0.4))
-            }
-        }
     }
 }
 
