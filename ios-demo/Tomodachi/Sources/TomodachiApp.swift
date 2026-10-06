@@ -19,7 +19,11 @@ struct TomodachiApp: App {
     var body: some Scene {
         WindowGroup {
             TomoPhoneView(shell: shell)
-                .onAppear { shell.start() }
+                .onAppear {
+                    // onChange below only reports changes: on a fresh launch the app can already be active.
+                    shell.isActive = scenePhase == .active
+                    shell.start()
+                }
         }
         .onChange(of: scenePhase) { _, phase in
             shell.isActive = phase == .active

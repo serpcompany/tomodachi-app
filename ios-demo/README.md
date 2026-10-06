@@ -27,6 +27,10 @@ Signing is automatic with team `W3GXL2NQQP` (the one Pedos ships with). The simu
 
 `ios-demo/scripts/testflight.sh` archives a Release build and uploads it (`scripts/ExportOptions.plist`: App Store Connect, automatic signing, Xcode picks the next build number). It needs Xcode signed in to team `W3GXL2NQQP` (the one Pedos ships with) and the app record **Tomodachi: Learn Japanese** ("Tomodachi" was taken; bundle ID `com.zenbujapanese.tomodachi`) in App Store Connect, and at least one device registered on the team (automatic signing archives with a development profile first). The script puts Apple's tools first in `PATH`: Homebrew's `rsync` breaks Xcode's packaging ("Copy failed"). The app icon is Tomo on a sky-blue gradient, rendered from Tomo's code: `TOMO_RENDER_ICON=<dir>` on the Mac app writes `icon-ios-1024.png`, copied to `Tomodachi/Assets.xcassets/AppIcon.appiconset/icon-1024.png`.
 
+## App Store
+
+The listing lives in `ios-demo/metadata/`: `app-info/en-US.json` (name, subtitle, category, privacy) and `version/1.0/en-US.json` (description, keywords, promotional text, URLs, review notes), in the same shape as the Zenbu iOS app's. Screenshots are 6.9" (1320×2868): capture raw screens on a `tomodachi-max` simulator (iPhone 17 Pro Max, status bar set with `xcrun simctl status_bar … override --time 9:41`), then `python3 ios-demo/scripts/make-screenshots.py <raw dir> ios-demo/metadata/screenshots/6.9` puts each under its headline on the icon's sky blue; `6.3/` holds the same images at 1206×2622, the size App Store Connect asks for first ("iPhone with Dynamic Island, medium display").
+
 ## Debug flags
 
 The Mac's `TOMO_*` flags work when passed through `simctl` with a `SIMCTL_CHILD_` prefix, e.g. `SIMCTL_CHILD_TOMO_STAGE=3 xcrun simctl launch tomodachi com.zenbujapanese.tomodachi`. `TOMO_CARD_COUNTDOWN=<seconds>` fakes "nothing waiting, next words in that many seconds" for the Lock Screen card and the widget. Mute Tomo with `xcrun simctl spawn tomodachi defaults write com.zenbujapanese.tomodachi soundEnabled -bool false`.
