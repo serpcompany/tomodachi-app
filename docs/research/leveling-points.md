@@ -22,7 +22,7 @@ Don't use XP. Give every word a hidden **memory strength** from a simplified FSR
 | ん？ (not understood, possibly a speech-recognition miss) | production | none | — | no change |
 | Visit ignored, or the same word answered again the same day | any | none | — | 0 (Tomo still reacts) |
 
-The boosts follow the difficulty order Laufer & Goldstein confirmed with 435 learners: passive recognition < active recognition < passive recall < active recall. The one exception is conversation credit, which is kept low because it covers every word in Tomo's line, and context can carry the meaning. This proposal moves reply bubbles from 2さい ([#15](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/15)) to 1さい半, so each half-year adds something new.
+The boosts follow the difficulty order Laufer & Goldstein confirmed with 435 learners: passive recognition < active recognition < passive recall < active recall. The one exception is conversation credit, which is kept low because it covers every word in Tomo's line, and context can carry the meaning. This proposal moves reply bubbles from 2さい ([#15](https://github.com/serpcompany/tomodachi-app/issues/15)) to 1さい半, so each half-year adds something new.
 
 ### Formulas
 

@@ -78,4 +78,4 @@ English is for learners who speak Japanese, so every English word needs a Japane
 
 ## Open questions
 
-Tracked in GitHub issues: more packs, interface text and harder cases ([#34](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/34)), dictionaries for non-Japanese targets ([#31](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/31)), and what Tomo asks per language ([#13](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/13)).
+Tracked in GitHub issues: more packs, interface text and harder cases ([#34](https://github.com/serpcompany/tomodachi-app/issues/34)), dictionaries for non-Japanese targets ([#31](https://github.com/serpcompany/tomodachi-app/issues/31)), and what Tomo asks per language ([#13](https://github.com/serpcompany/tomodachi-app/issues/13)).

@@ -1,6 +1,6 @@
 # Learner data schema: what Tomo remembers about you
 
-Researched 2026-10-03. Answers the question in [#4](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/4) (closed; built as the learner store).
+Researched 2026-10-03. Answers the question in [#4](https://github.com/serpcompany/tomodachi-app/issues/4) (closed; built as the learner store).
 
 ## The answer
 
