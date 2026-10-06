@@ -35,9 +35,14 @@ folder and quits: `play:N` answers N new words, `blind:N` does too without fetch
 conflict), `reset` starts over, `show` only fetches; each prints the Tomo. Folders act as devices, but
 CloudKit doesn't send a device its own changes: a folder sees the others' only on its first fetch, so
 look with a new folder each time. Changes arriving later, and pushes, need a second device: the iPhone
-simulator signed in to iCloud, or the owner's phone on TestFlight (Production). Production gets new record
-types and fields only when they're deployed (CloudKit Console → Deploy Schema Changes), after a
-Development run created them; until then its saves fail and are retried.
+simulator signed in to iCloud, or the owner's phone on TestFlight (Production).
+
+Production gets new record types and fields (today `Tomo` and `Item`) only when they're deployed, after a
+Development run created them. The owner does it: in CloudKit Console, open the container with the
+Development environment selected, then click Deploy Schema Changes, which copies Development's schema to
+Production. Until then Production saves fail and are retried, and the app marks the `cloud-resend` file in
+its data folder again every 5 minutes. When saves go through, the marking stops. The `cloud` table in
+`learner.sqlite` has a row for each record iCloud has accepted (read it with `sqlite3 -readonly`).
 
 ## Keep the owner's Tomo safe
 
