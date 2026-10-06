@@ -12,9 +12,17 @@ import TomoCore
 
 @MainActor
 enum TomoIconRenderer {
+    private static var checkResult: Bool?
+
     static func renderIfRequested() {
-        if ProcessInfo.processInfo.environment["TOMO_SELFTEST"] != nil {   // TomoProgress rules + store
-            exit(TomoProgress.selfTest() ? 0 : 1)
+        if ProcessInfo.processInfo.environment["TOMO_SELFTEST"] != nil {   // TomoProgress rules + store, sync merges
+            let growth = TomoProgress.selfTest(), sync = TomoSync.selfTest()
+            exit(growth && sync ? 0 : 1)
+        }
+        if let step = ProcessInfo.processInfo.environment["TOMO_SYNC_CHECK"] {   // TomoSync between data folders
+            Task { checkResult = await TomoSync.check(step) }
+            while checkResult == nil { RunLoop.main.run(mode: .default, before: Date().addingTimeInterval(0.1)) }
+            exit(checkResult == true ? 0 : 1)
         }
         if let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_SOUNDS"] {
             TomoSounds.renderFiles(to: URL(fileURLWithPath: dir))

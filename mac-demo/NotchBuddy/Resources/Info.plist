@@ -17,7 +17,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.0.1</string>
+	<string>0.0.2</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>LSUIElement</key>
@@ -37,5 +37,7 @@
 	<string>Tomo turns what you say into Japanese text to understand you.</string>
 	<key>NSSupportsAutomaticGraphicsSwitching</key>
 	<true/>
+	<key>TomoICloudEnvironment</key>
+	<string>$(TOMO_ICLOUD_ENV)</string>
 </dict>
 </plist>

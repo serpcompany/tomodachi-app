@@ -181,6 +181,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let types: [CGEventType] = [.keyDown, .mouseMoved, .leftMouseDown, .scrollWheel]
             return types.map { CGEventSource.secondsSinceLastEventType(src, eventType: $0) }.min() ?? 0
         }
+        TomoSync.shared.registerForPushes = { NSApplication.shared.registerForRemoteNotifications() }
         game.start()
         game.dropIn(force: true)
         startDebugSnapshots()

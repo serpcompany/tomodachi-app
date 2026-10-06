@@ -1,9 +1,11 @@
 #!/bin/zsh
-# Launch the Tomodachi demo with AI keys from the repo's .env (never committed).
+# Launch the owner's copy of Tomodachi with AI keys from the repo's .env (never committed).
 # Keys are passed to the app's environment only; nothing is written to disk or the Keychain.
+# The owner's copy is a Developer ID build (scripts/release-beta.sh --owner), so it syncs with the iPhone
+# through iCloud; Debug builds use CloudKit's Development environment and are for test runs.
 cd "${0:A:h}"
-app="build/Build/Products/Debug/Tomodachi.app"
-[[ -d "$app" ]] || { echo "Build first: see README.md"; exit 1; }
+app="build/owner/Tomodachi.app"
+[[ -d "$app" ]] || { echo "Build the owner's copy first: scripts/release-beta.sh --owner"; exit 1; }
 
 envargs=()
 if [[ -f ../.env ]]; then

@@ -23,7 +23,7 @@ These are the Coucou files we had to touch; add a file here when a change has to
 
 | File | Change |
 |---|---|
-| `AppDelegate.swift`, `AppState.swift` | No hooks or pollers. A single "tomo" task. Launches straight into the game. `AppDelegate` sets `TomoGame`'s shell closures; `AppState.soundEnabled` forwards to `TomoGame.soundEnabled`. The menu: Tomo's words…, Start Tomo over… (asks first). The Settings window is resizable with a full-size content view |
+| `AppDelegate.swift`, `AppState.swift` | No hooks or pollers. A single "tomo" task. Launches straight into the game. `AppDelegate` sets `TomoGame`'s shell closures and `TomoSync.registerForPushes`; `AppState.soundEnabled` forwards to `TomoGame.soundEnabled`. The menu: Tomo's words…, Start Tomo over… (asks first). The Settings window is resizable with a full-size content view |
 | `IslandRootView.swift`, `IslandViewContent.swift`, `IslandTypes.swift` | The header and overview show Tomo, with room for the level bar. Draws `TomoCharacterView`. The dizzy card's text comes from the language files. `BotState` and `BotEmote` moved to TomoCore (`TomoSignals.swift`) |
 | `IslandWindowController.swift` | A taller window (560 pt) so the help panel fits; the drag ghost draws Tomo. Tomo's notification names moved to TomoCore (`TomoSignals.swift`) |
 | `NotchBuddyApp.swift` | The Settings scene shows `TomoSettingsView` |

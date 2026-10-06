@@ -6,5 +6,17 @@
 	<array>
 		<string>group.com.zenbujapanese.tomodachi</string>
 	</array>
+	<!-- One Tomo across Mac and iPhone: the learner's own iCloud (TomoSync, #62). Xcode switches both to
+	     Production when it exports for TestFlight and the App Store. -->
+	<key>com.apple.developer.icloud-container-identifiers</key>
+	<array>
+		<string>iCloud.com.zenbujapanese.tomodachi</string>
+	</array>
+	<key>com.apple.developer.icloud-services</key>
+	<array>
+		<string>CloudKit</string>
+	</array>
+	<key>aps-environment</key>
+	<string>development</string>
 </dict>
 </plist>

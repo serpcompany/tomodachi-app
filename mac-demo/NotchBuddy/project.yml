@@ -14,20 +14,21 @@ settings:
   base:
     SWIFT_VERSION: "6.0"
     ENABLE_HARDENED_RUNTIME: YES
-    CODE_SIGN_STYLE: Manual
     OTHER_SWIFT_FLAGS: "-strict-concurrency=complete"
+    # The team the iPhone app ships with (decisions.md): iCloud sync (#62) needs both apps on one team.
+    # Xcode signs automatically: Debug with an Apple Development profile, the owner's copy and beta builds with
+    # a Developer ID profile at export (scripts/release-beta.sh). -allowProvisioningUpdates registers this Mac
+    # and the profiles the first time.
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: W3GXL2NQQP
+    CODE_SIGN_ENTITLEMENTS: Resources/Tomodachi.entitlements
   configs:
+    # iCloud sync (TomoSync) and its push notifications: Debug builds use CloudKit's Development environment,
+    # so tests never touch a learner's real Tomo; Developer ID builds use Production, like the iPhone app.
     Debug:
-      CODE_SIGNING_REQUIRED: NO
-      CODE_SIGNING_ALLOWED: NO
+      TOMO_ICLOUD_ENV: Development
     Release:
-      # Developer ID build for testers (mac-demo/scripts/release-beta.sh picks the exact certificate)
-      CODE_SIGN_STYLE: Manual
-      CODE_SIGNING_REQUIRED: YES
-      CODE_SIGNING_ALLOWED: YES
-      CODE_SIGN_IDENTITY: "Developer ID Application"
-      DEVELOPMENT_TEAM: 847HR8U8D9
-      CODE_SIGN_ENTITLEMENTS: Resources/Tomodachi.entitlements
+      TOMO_ICLOUD_ENV: Production
       CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
       OTHER_CODE_SIGN_FLAGS: "--timestamp"
 
@@ -60,7 +61,7 @@ targets:
         NSHumanReadableCopyright: "Tomodachi by Zenbu Japanese. © 2026 Zenbu Japanese."
         CFBundleIdentifier: com.zenbujapanese.tomodachi
         CFBundleVersion: "1"
-        CFBundleShortVersionString: "0.0.1"
+        CFBundleShortVersionString: "0.0.2"
         CFBundlePackageType: APPL
         LSUIElement: YES
         NSHighResolutionCapable: YES
@@ -69,6 +70,7 @@ targets:
         NSSpeechRecognitionUsageDescription: "Tomo turns what you say into Japanese text to understand you."
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
+        TomoICloudEnvironment: $(TOMO_ICLOUD_ENV)   # this build has iCloud (TomoSync)
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.zenbujapanese.tomodachi

@@ -310,6 +310,8 @@ public final class TomoGame: ObservableObject {
         loadVoice(lang.target.speechLocale)        // ready before Tomo's first line
         progress.load(pack: lang.target, learner: lang.learner.id)
         syncProgress()
+        TomoSync.shared.onArrived = { [weak self] pairs in self?.progressArrived(pairs) }
+        TomoSync.shared.start()
         resetRound()
         visitRoundsLeft = nil
         NotificationCenter.default.post(name: .botSetGrowth, object: growthStep)
@@ -322,6 +324,13 @@ public final class TomoGame: ObservableObject {
         if let s = ProcessInfo.processInfo.environment["TOMO_STAGE"].flatMap(Int.init), s > 1 {
             jump(toAge: s, open: false)
         }
+    }
+
+    /// Progress from another device was merged into the store (TomoSync): show it. A testing Tomo stays.
+    private func progressArrived(_ pairs: Set<TomoSync.Pair>) {
+        guard !progress.isScratch, pairs.contains(.init(learner: lang.learner.id, target: lang.target.id)) else { return }
+        progress.load(pack: lang.target, learner: lang.learner.id)
+        syncProgress()
     }
 
     /// The language pair changed (or testing ended): bring that pair's saved Tomo.

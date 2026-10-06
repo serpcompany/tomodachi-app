@@ -17,7 +17,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>1.1</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
@@ -28,6 +28,12 @@
 	<string>Tomo turns what you say into text to understand you.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
+	<key>TomoICloudEnvironment</key>
+	<string>$(TOMO_ICLOUD_ENV)</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

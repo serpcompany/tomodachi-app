@@ -14,13 +14,17 @@ we changed, is in [docs/coucou-fork.md](../docs/coucou-fork.md).
 ./run.sh   # from mac-demo/
 ```
 
-`run.sh` quits the running copy, then opens the built app with `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`
-from the repo's `.env` (gitignored), so Tomo replies with AI at 3さい. A provider saved under
-Settings → AI takes precedence; with neither, Tomo uses offline replies.
+`run.sh` quits the running copy, then opens the owner's copy with `OPENAI_API_KEY` or
+`ANTHROPIC_API_KEY` from the repo's `.env` (gitignored), so Tomo replies with AI at 3さい. A provider
+saved under Settings → AI takes precedence; with neither, Tomo uses offline replies. The owner's copy is a
+Developer ID build in `build/owner/` (`scripts/release-beta.sh --owner`), so it syncs with the iPhone
+through iCloud: a development-signed build gets only development push notifications, which never come
+for CloudKit's Production environment. Debug builds sync in Development, for tests
+([docs/verification.md](../docs/verification.md)).
 
 Tomo drops in on its own (every 20 minutes by default) when it has words due or a new one to teach. In
 between it sits small beside the notch: click it to play any time, and press Esc to close. Progress is
-saved on this Mac; test runs use their own folder ([docs/verification.md](../docs/verification.md)).
+saved on this Mac and synced through iCloud; test runs use their own folder.
 
 The menu bar icon has **Open Tomodachi**, **Drop in now** (⌘D), **Skip to talking (3さい)** (⌘3, a
 testing Tomo in memory), **Tomo's words…** (⌘W), **Start Tomo over…** (⌘R, asks first) and
@@ -29,8 +33,12 @@ testing Tomo in memory), **Tomo's words…** (⌘W), **Start Tomo over…** (⌘
 ## Rebuild
 
 ```bash
-cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug -derivedDataPath ../build build
+cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug -derivedDataPath ../build -allowProvisioningUpdates build
 ```
+
+Signing is automatic with team `W3GXL2NQQP`, the iPhone app's (iCloud sync needs one team), so Xcode
+must be signed in to it. `-allowProvisioningUpdates` lets Xcode make the profiles; the first build on a
+new Mac also needs `-allowProvisioningDeviceRegistration` to register it.
 
 `xcodegen` regenerates the project from `NotchBuddy/project.yml`; it's needed only when files are added
 or removed. Debug flags, the self-test and the snapshot matrix are in
@@ -40,8 +48,9 @@ or removed. Debug flags, the self-test and the snapshot matrix are in
 ## Beta builds for testers
 
 ```bash
-mac-demo/scripts/release-beta.sh                 # build, sign (Developer ID), notarize, staple, zip
-mac-demo/scripts/release-beta.sh --no-notarize   # build and sign only
+mac-demo/scripts/release-beta.sh                 # archive, sign (Developer ID), notarize, staple, zip
+mac-demo/scripts/release-beta.sh --no-notarize   # archive and sign only
+mac-demo/scripts/release-beta.sh --owner         # the owner's copy in build/owner (run.sh opens it)
 ```
 
 - **One-time setup:** store notarization credentials. You type an app-specific password from
@@ -49,13 +58,15 @@ mac-demo/scripts/release-beta.sh --no-notarize   # build and sign only
   ```bash
   xcrun notarytool store-credentials tomodachi-notary --apple-id "you@example.com" --team-id <team>
   ```
-- **Team:** `DEVELOPMENT_TEAM` in `NotchBuddy/project.yml` (currently 847HR8U8D9), or `TOMO_TEAM=…` for
-  one build. You need a Developer ID Application certificate for that team, and the notary profile must
-  use the same team.
+- **Team:** `DEVELOPMENT_TEAM` in `NotchBuddy/project.yml` (`W3GXL2NQQP` since October 6, 2026; earlier
+  betas were `847HR8U8D9`). The export makes the Developer ID profile with iCloud and push
+  (`scripts/ExportOptions.plist`). You need a Developer ID Application certificate for that team, and the
+  notary profile must use the same team.
 - **Output:** `mac-demo/build/release/Tomodachi-<version>-beta.zip`: universal (Apple Silicon and Intel),
   macOS 15+. The version is `CFBundleShortVersionString` in `NotchBuddy/project.yml`.
 - **What the script checks:** your Developer ID team, the hardened runtime, the microphone permission,
-  and that no Coucou sounds are bundled.
+  iCloud on CloudKit's Production environment with production push, and that no Coucou sounds are
+  bundled.
 - **What to send testers:** the zip, plus [docs/beta-testing.md](../docs/beta-testing.md).
 
 ## App icon

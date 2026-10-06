@@ -2,6 +2,9 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
+### 2026-10-06: One Tomo across Mac and iPhone, through the learner's iCloud
+`TomoSync` syncs each Tomo and its words through the learner's own iCloud (CloudKit private database, `CKSyncEngine`); there's no server of ours, so "Data Not Collected" stays true. Merges never move progress back: the higher level and age, each word's latest answer and its best stage. A start over wins over older progress, but a device meeting the iCloud Tomo for the first time joins it. The answer and growth logs and the settings stay on each device for now. The Mac app moved to team `W3GXL2NQQP` (Mac beta 0.0.2), and the owner's copy is now a Developer ID build (`release-beta.sh --owner`); Debug builds sync in CloudKit's Development environment. **Why:** an iCloud container belongs to one team; CKSyncEngine learns about other devices' changes from push notifications, and a development-signed build only gets development pushes, which never come for Production; Development keeps test data away from real Tomos. Merging, not replacing, keeps what the learner did on each device.
+
 ### 2026-10-06: The iPhone app ships on the team Pedos uses
 The iPhone app signs with team `W3GXL2NQQP` and is on App Store Connect as **Tomodachi: Language Companion** (bundle ID `com.zenbujapanese.tomodachi`; plain "Tomodachi" was taken). The Mac beta is still Developer ID–signed on team `847HR8U8D9`. **Why:** the owner chose the team that already ships Pedos, and it's the one Xcode is signed in to. Syncing Mac and iPhone through iCloud (#62) needs both apps on one team, so the Mac app will have to move to `W3GXL2NQQP` first.
 

@@ -19,6 +19,13 @@ settings:
     # App IDs and the App Group the first time).
     CODE_SIGN_STYLE: Automatic
     DEVELOPMENT_TEAM: W3GXL2NQQP
+  configs:
+    # iCloud sync (TomoSync): Debug builds use CloudKit's Development environment, TestFlight and the App Store
+    # Production. Xcode sets the iCloud and push environments in the entitlements when it exports.
+    Debug:
+      TOMO_ICLOUD_ENV: Development
+    Release:
+      TOMO_ICLOUD_ENV: Production
 
 schemes:
   Tomodachi:
@@ -49,11 +56,13 @@ targets:
         CFBundleDisplayName: Tomodachi
         CFBundleIdentifier: com.zenbujapanese.tomodachi
         CFBundleVersion: "1"
-        CFBundleShortVersionString: "1.0"
+        CFBundleShortVersionString: "1.1"
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIUserInterfaceStyle: Dark
         NSSupportsLiveActivities: true
+        UIBackgroundModes: [remote-notification]   # CloudKit's push when the Mac changed Tomo (TomoSync)
+        TomoICloudEnvironment: $(TOMO_ICLOUD_ENV)   # this build has iCloud (TomoSync)
         ITSAppUsesNonExemptEncryption: false   # only Apple's own encryption (HTTPS): no export paperwork
         NSMicrophoneUsageDescription: "Tomo listens when you answer out loud."
         NSSpeechRecognitionUsageDescription: "Tomo turns what you say into text to understand you."
@@ -83,7 +92,7 @@ targets:
       path: Widgets/Info.plist
       properties:
         CFBundleDisplayName: Tomodachi
-        CFBundleShortVersionString: "1.0"
+        CFBundleShortVersionString: "1.1"
         CFBundleVersion: "1"
         UIAppFonts: [TomoReady0.ttf, TomoReady1.ttf, TomoReady2.ttf, TomoSleep0.ttf, TomoSleep1.ttf, TomoSleep2.ttf]
         NSExtension:
