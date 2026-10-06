@@ -24,6 +24,14 @@ Tomo is a baby chick who lives next to your MacBook's notch and only speaks the 
 - **Word cards and explanations use AI** if you add a key in Settings → AI (OpenAI, Anthropic, Gemini, OpenRouter, Groq, or a local Ollama). The key stays in your Keychain. Each AI call costs a fraction of a cent, on your account.
 - **The mic needs Japanese dictation installed on your Mac** (System Settings → Keyboard → Dictation). Audio never leaves your Mac.
 
+## On the iPhone (TestFlight)
+
+Install **TestFlight** from the App Store, then open the invite link we send you. The iPhone Tomo is a separate copy for now: its progress doesn't sync with the Mac's.
+
+- **Play in the app:** the same rounds as on the Mac. Tap a word in Tomo's line to look it up.
+- **Add the widget:** long-press the Home Screen → **+** → Tomodachi (small or medium). It shows Tomo and how many words are waiting.
+- **Lock your phone:** Tomo's card is on the Lock Screen (allow Live Activities when asked). Tap the yellow **▶** to play one round right there, or tap the card to open the app. On iPhones with a Dynamic Island, Tomo sits there too.
+
 ## Feedback we want
 
 - Did visits feel like a nice nudge, or annoying? Was the frequency right?
