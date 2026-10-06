@@ -3,7 +3,7 @@
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
 
 ### 2026-10-06: The iPhone app ships on the team Pedos uses
-The iPhone app signs with team `W3GXL2NQQP` and is on App Store Connect as **Tomodachi: Learn Japanese** (bundle ID `com.zenbujapanese.tomodachi`; plain "Tomodachi" was taken). The Mac beta is still Developer ID–signed on team `847HR8U8D9`. **Why:** the owner chose the team that already ships Pedos, and it's the one Xcode is signed in to. Syncing Mac and iPhone through iCloud (#62) needs both apps on one team, so the Mac app will have to move to `W3GXL2NQQP` first.
+The iPhone app signs with team `W3GXL2NQQP` and is on App Store Connect as **Tomodachi: Language Companion** (bundle ID `com.zenbujapanese.tomodachi`; plain "Tomodachi" was taken). The Mac beta is still Developer ID–signed on team `847HR8U8D9`. **Why:** the owner chose the team that already ships Pedos, and it's the one Xcode is signed in to. Syncing Mac and iPhone through iCloud (#62) needs both apps on one team, so the Mac app will have to move to `W3GXL2NQQP` first.
 
 ### 2026-10-06: Looking up a word while it's asked counts as the hint
 Opening a word card (Mac or iPhone) while Tomo is asking that word shows its meaning, so a right answer after it doesn't move the word up, like after the hint. **Why:** otherwise the word card is a free answer key.
