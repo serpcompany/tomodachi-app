@@ -35,8 +35,10 @@ Island shell (Coucou)       notch window, open/close state machine, click-throug
 (`openIsland`, `closeIsland`, `isIslandOpen`, `focusInput`, plus `isPointerInside`, `onBotState`,
 `onHelpChange`, `onActivity` and `secondsSinceInput`), set in `AppDelegate`. Another shell sets the same
 closures: the iPhone app's `TomoPhoneShell` treats the app being on screen as open, so Tomo never times
-out while you look at it; widgets and a Live Activity are next
-([#52](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/52)).
+out while you look at it, and so is a round open on the Lock Screen card (`TomoLiveVisit.isPlaying`). The
+card's Play and choice buttons are `LiveActivityIntent`s (`TomoPlayIntent`, `TomoAnswerIntent`) that iOS
+runs in the app's process, launching it in the background if needed; they reach the game through
+`TomoVisitHook`, set in the app's `init` ([#52](https://github.com/serpcompany/zenbujapanese-tomo-app/issues/52)).
 
 **Character.** `TomoChick` in `TomoCharacter.swift`: our chick, drawn every frame in code, with three
 looks (in its shell, hatched, bigger). It's driven by notifications (`.botGrow`, `.botLevelUp`,

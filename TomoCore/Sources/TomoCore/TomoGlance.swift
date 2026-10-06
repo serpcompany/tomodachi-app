@@ -17,18 +17,20 @@ public struct TomoGlance: Codable, Sendable, Hashable {
     public var about: String            // the widget's description in the widget gallery
     public var invite: String           // what Tomo calls out when something is waiting ("あそぼ！")
     public var nextLabel: String        // before the countdown to `nextDue` ("New words in")
+    public var play: String             // the Lock Screen card's button that opens a round there ("Play")
     public var updated: Date
 
     public init(growth: Double, age: String, level: String, progress: Double, waiting: Bool, status: String,
-                nextDue: Date?, statusLater: String, about: String, invite: String, nextLabel: String, updated: Date) {
+                nextDue: Date?, statusLater: String, about: String, invite: String, nextLabel: String, play: String,
+                updated: Date) {
         self.growth = growth; self.age = age; self.level = level; self.progress = progress; self.waiting = waiting
         self.status = status; self.nextDue = nextDue; self.statusLater = statusLater; self.about = about
-        self.invite = invite; self.nextLabel = nextLabel; self.updated = updated
+        self.invite = invite; self.nextLabel = nextLabel; self.play = play; self.updated = updated
     }
 
     public static let placeholder = TomoGlance(growth: 0, age: "", level: "", progress: 0, waiting: false,
                                                status: "", nextDue: nil, statusLater: "", about: "",
-                                               invite: "", nextLabel: "", updated: .distantPast)
+                                               invite: "", nextLabel: "", play: "", updated: .distantPast)
 
     // Shared between the app and its widgets through an App Group.
     public static let appGroup = "group.com.zenbujapanese.tomodachi"
@@ -58,6 +60,6 @@ extension TomoGame {
                           progress: levelProgress, waiting: waiting, status: status,
                           nextDue: nextDue.map(wallClock), statusLater: ui("glance.waiting"), about: ui("glance.about"),
                           invite: TomoLanguages.shared.target.lines.invite ?? TomoLanguages.shared.target.lines.practice,
-                          nextLabel: ui("glance.next"), updated: Date())
+                          nextLabel: ui("glance.next"), play: ui("glance.play"), updated: Date())
     }
 }
