@@ -12,10 +12,10 @@ W, H = 1320, 2868
 TOP, BOTTOM = (0x8F, 0xD3, 0xFF), (0x3E, 0x9B, 0xEA)
 FONT = "/System/Library/Fonts/Supplemental/Arial Rounded Bold.ttf"
 SHOTS = [
-    ("1-ask.png",   "Learn Japanese\nwith a baby chick",   "Tomo talks like a real 1-year-old"),
+    ("1-ask.png",   "Learn a language\nwith a baby chick",   "Tomo talks like a real 1-year-old"),
     ("2-win.png",   "Get it right,\nwatch Tomo grow",       "Every answer counts toward its next birthday"),
     ("3-talk.png",  "From baby words\nto real questions",   "At 3, Tomo starts asking you things"),
-    ("4-word.png",  "Tap any word\nto look it up",          "Readings, meanings and the iPhone dictionary"),
+    ("4-word.png",  "Tap any word\nto look it up",          "See what it means, or open the dictionary"),
     ("5-home.png",  "Tomo waits on your\nHome Screen",      "Widgets show when new words are ready"),
 ]
 
