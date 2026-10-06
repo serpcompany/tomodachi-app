@@ -53,20 +53,18 @@ mac-demo/scripts/release-beta.sh --no-notarize   # archive and sign only
 mac-demo/scripts/release-beta.sh --owner         # the owner's copy in build/owner (run.sh opens it)
 ```
 
-- **One-time setup:** store notarization credentials. You type an app-specific password from
-  appleid.apple.com, and it goes to your Keychain:
-  ```bash
-  xcrun notarytool store-credentials tomodachi-notary --apple-id "you@example.com" --team-id <team>
-  ```
 - **Team:** `DEVELOPMENT_TEAM` in `NotchBuddy/project.yml` (`W3GXL2NQQP` since October 6, 2026; earlier
   betas were `847HR8U8D9`). The export makes the Developer ID profile with iCloud and push
-  (`scripts/ExportOptions.plist`). You need a Developer ID Application certificate for that team, and the
-  notary profile must use the same team.
+  (`scripts/ExportOptions.plist`). You need a Developer ID Application certificate for that team, and Xcode
+  signed in to it (Xcode → Settings → Accounts).
+- **Notarizing** uses that same Xcode account, as Organizer's "Distribute App" does, so there are no notary
+  credentials to store. The script uploads the archive, waits for Apple (usually a few minutes, at most 30),
+  then staples the ticket.
 - **Output:** `mac-demo/build/release/Tomodachi-<version>-beta.zip`: universal (Apple Silicon and Intel),
   macOS 15+. The version is `CFBundleShortVersionString` in `NotchBuddy/project.yml`.
 - **What the script checks:** your Developer ID team, the hardened runtime, the microphone permission,
   iCloud on CloudKit's Production environment with production push, and that no Coucou sounds are
-  bundled.
+  bundled. It checks again after notarizing, along with the stapled ticket and Gatekeeper.
 - **What to send testers:** the zip, plus [docs/beta-testing.md](../docs/beta-testing.md).
 
 ## App icon
