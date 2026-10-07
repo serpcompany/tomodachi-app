@@ -31,10 +31,6 @@
 	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>Tomodachi by Zenbu Japanese. © 2026 Zenbu Japanese.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Tomo listens when you answer out loud.</string>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Tomo turns what you say into Japanese text to understand you.</string>
 	<key>NSSupportsAutomaticGraphicsSwitching</key>
 	<true/>
 	<key>TomoICloudEnvironment</key>

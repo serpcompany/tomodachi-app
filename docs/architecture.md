@@ -33,7 +33,8 @@ Island shell (Coucou)       notch window, open/close state machine, click-throug
 ## Systems
 
 **Island shell.** Coucou's notch window and state machine (`IslandWindowController`,
-`IslandStateMachine`, `IslandRootView`). Tomo reaches it only through four closures on `TomoGame`
+`IslandStateMachine`, `IslandRootView`), cut down to what Tomo uses: it shows Tomo's card or the dizzy
+card, and nothing of Coucou's agent features is left ([coucou-fork.md](coucou-fork.md)). Tomo reaches it only through four closures on `TomoGame`
 (`openIsland`, `closeIsland`, `isIslandOpen`, `focusInput`, plus `isPointerInside`, `onBotState`,
 `onHelpChange`, `onActivity` and `secondsSinceInput`), set in `AppDelegate`. Another shell sets the same
 closures: the iPhone app's `TomoPhoneShell` treats the app being on screen as open, so Tomo never times
@@ -41,6 +42,9 @@ out while you look at it, and so is a round open on the Lock Screen card (`TomoL
 card's Play and choice buttons are `LiveActivityIntent`s (`TomoPlayIntent`, `TomoAnswerIntent`) that iOS
 runs in the app's process, launching it in the background if needed; they reach the game through
 `TomoVisitHook`, set in the app's `init` ([#52](https://github.com/serpcompany/tomodachi-app/issues/52)).
+Invariants on the Mac: the island sits on the notch screen (else the main display) and moves when displays
+change; it needs no permission; it takes the keyboard only when the learner opens it (a click, the menu),
+so Esc works then and a visit never takes a keystroke (decisions.md).
 
 **Character.** `TomoBlob` in `TomoCharacter.swift`: a blob drawn every frame in code. Its look is a
 `TomoLook` (`TomoLook.swift`) hashed from a seed: a colour and eyes for life, and a form for each age
@@ -73,6 +77,9 @@ birthdays, what to ask next, and whether a right answer counts. `TomoGame` asks;
 decides. Invariants:
 - An answer counts only when the word is due, or at least halfway through its wait.
 - Level and age never go down, and the experience bar never moves back (it uses each word's best stage).
+- The bar counts the level's best `levelNeeded` words, and its goal (`goalShare`, the last tenth) fills only
+  when the level is done. Every surface draws the same number (`TomoGrowthBar` on the card, the iPhone and
+  Settings; the glance for widgets).
 - Practice is a mode the learner picks, and it never moves the bar.
 
 `TomoClock` moves time for testing, and `TOMO_SELFTEST=1` checks the rules. Planned:
@@ -99,7 +106,9 @@ Production. The logs and settings stay on each device for now
 
 **Visits.** `TomoGame.tick()` with the `DropIn` constants. Tomo opens on its own when it has something
 that counts and you're at a natural break (not typing, not away). It tucks back in when ignored, leaving
-a red dot. Opening it yourself is free play, with no time limit. Planned: chattiness and back-off
+a red dot. Opening it yourself is free play, with no time limit. When nothing counts, Tomo rests
+(`TomoPhase.resting`, `TomoGame.rest`) in every shell until something counts, which the tick notices, or the
+learner picks Practice; opening Tomo again shows the rest, never a new offer. Planned: chattiness and back-off
 ([#19](https://github.com/serpcompany/tomodachi-app/issues/19)), busy detection
 ([#20](https://github.com/serpcompany/tomodachi-app/issues/20)).
 
@@ -143,6 +152,8 @@ synthesized in `TomoSounds.swift`, with no audio files, and all triggered in one
 ([#21](https://github.com/serpcompany/tomodachi-app/issues/21)).
 
 **Settings.** `TomoSettingsView.swift`: a System Settings–style window with one `TomoSettingsPane` case
-per page, and `TomoSettingsNav.open(_:)` to jump to a page. Pages read `TomoGame.progress`.
+per page, and `TomoSettingsNav.open(_:)` to jump to a page. Pages read `TomoGame.progress`. Testing shows
+only after a deliberate step (`TomoTestingTools`), and testing never touches the saved Tomo. Opening at
+login is `TomoLoginItem`, off until the learner turns it on.
 
 The research behind these systems is mapped in [research/README.md](research/README.md).

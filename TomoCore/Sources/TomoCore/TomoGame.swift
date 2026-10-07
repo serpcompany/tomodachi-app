@@ -124,7 +124,9 @@ public enum TomoPhase: Equatable, Sendable {
     case wrong(String)       // id of the choice picked
     case leveledUp
     case grew                // a new level that's also a birthday
-    case practiceIntro       // nothing counts right now: Tomo offers practice, and the card says it won't count
+    /// Nothing counts right now: Tomo rests, and the card says when it's back and what's left to grow, with Practice
+    /// as a button. It holds until something counts or the learner picks Practice (TomoGame.rest).
+    case resting
 }
 
 // MARK: - Drop-ins: Tomo visits now and then instead of asking for study sessions
@@ -174,6 +176,10 @@ public final class TomoGame: ObservableObject {
     @Published public private(set) var levelKnown = 0
     @Published public private(set) var levelNeeded = 1
     @Published public private(set) var levelProgress = 0.0     // the experience bar (TomoProgress.levelProgress)
+    @Published public private(set) var levelStanding = 0.0     // where its words stand now (TomoProgress.levelStanding)
+    /// What's left before the next level (`whatsLeft()` says it in words).
+    @Published public private(set) var levelLeft = TomoProgress.Left(words: 0, nextAt: nil)
+    @Published public private(set) var levelIsLast = false
     @Published public private(set) var levelIsTalk = false
     /// Testing ages run on an in-memory Tomo (Settings → Try another age).
     @Published public private(set) var isScratch = false
@@ -191,12 +197,11 @@ public final class TomoGame: ObservableObject {
     @Published public private(set) var pending = false
     private var nextNudge = Date.distantFuture
 
-    /// This round is practice (nothing counts right now), and when answers count again: the header says so.
-    @Published public private(set) var practiceUntil: Date?
+    /// Nothing counts right now (Tomo rests, or this round is practice): when answers count again. The card says so.
+    @Published public private(set) var countsAgainAt: Date?
     @Published public private(set) var isPracticeRound = false
-    /// Practice is a mode you pick, like WaniKani's Extra Study: the first practice round waits for "Practice".
+    /// Practice is a mode you pick, like WaniKani's Extra Study: until "Practice", Tomo rests instead of asking.
     private var practiceAccepted = false
-    private var practiceNext: String?
 
     // Talking stage (age 3+)
     @Published public private(set) var line: TomoLine = .empty
@@ -311,6 +316,7 @@ public final class TomoGame: ObservableObject {
     public func start() {
         bump()
         loadVoice(lang.target.speechLocale)        // ready before Tomo's first line
+        TomoClock.offset = TomoClock.start         // the saved Tomo runs on real time (skipAhead moved a copy)
         progress.load(pack: lang.target, learner: lang.learner.id)
         syncProgress()
         TomoSync.shared.onArrived = { [weak self] pairs in self?.progressArrived(pairs) }
@@ -348,8 +354,11 @@ public final class TomoGame: ObservableObject {
         reload()
     }
 
-    /// Testing: move Tomo's clock ahead, so due words come back without waiting.
+    /// Testing: move Tomo's clock ahead, so due words come back without waiting. It only ever moves a testing
+    /// Tomo: the saved one carries on as a copy in memory first, so no answer dated in the future is saved or
+    /// synced. Back to my Tomo (`reload`) puts the clock back.
     public func skipAhead(days: Double) {
+        if !progress.isScratch { progress.detach() }
         TomoClock.offset += days * 86400
         syncProgress()
         nextDropIn = Date()
@@ -371,9 +380,8 @@ public final class TomoGame: ObservableObject {
         outcome = nil
         help = nil
         isPracticeRound = false
-        practiceUntil = nil
+        countsAgainAt = nil
         practiceAccepted = false
-        practiceNext = nil
     }
 
     private func syncProgress() {
@@ -384,6 +392,9 @@ public final class TomoGame: ObservableObject {
         levelKnown = progress.levelKnown
         levelNeeded = progress.levelNeeded
         levelProgress = progress.levelProgress
+        levelStanding = progress.levelStanding
+        levelLeft = progress.levelLeft
+        levelIsLast = progress.isLastLevel
         levelIsTalk = progress.isTalkLevel
         isScratch = progress.isScratch
         progressVersion += 1
@@ -441,6 +452,8 @@ public final class TomoGame: ObservableObject {
 
     /// What to ask next: this visit's items, then (free play) due or new ones, then practice.
     private func nextItem(delay: Double) {
+        // The level was finished without a level up yet (say, its last word came from another device): celebrate first.
+        if let up = progress.levelUpIfReady() { celebrate(up); return }
         if !queue.isEmpty { ask(queue.removeFirst(), delay: delay); return }
         let freePlay = visitRoundsLeft == nil
         if freePlay, let id = progress.nextFreePlayItem() { ask(id, delay: delay); return }
@@ -450,10 +463,12 @@ public final class TomoGame: ObservableObject {
     }
 
     private func ask(_ id: String, delay: Double) {
-        isPracticeRound = !progress.counts(id)
-        practiceUntil = isPracticeRound ? progress.nextCountsAt : nil
-        if !isPracticeRound { practiceAccepted = false }
-        else if !practiceAccepted { offerPractice(id, delay: delay); return }
+        let practice = !progress.counts(id)
+        // Nothing counts, and the learner hasn't picked Practice: Tomo rests instead of asking.
+        if practice && !practiceAccepted { rest(delay: delay); return }
+        if !practice { practiceAccepted = false }
+        isPracticeRound = practice
+        countsAgainAt = practice ? progress.nextCountsAt : nil
         if progress.items[id] == nil { taughtNew = true }
         currentItem = id
         wrongTries = 0
@@ -476,40 +491,53 @@ public final class TomoGame: ObservableObject {
         }
     }
 
-    /// Nothing counts right now. Before the first practice round Tomo says so and waits for "Practice" or "Later",
-    /// like WaniKani's "0 reviews": practice is a mode you choose, never something that looks like progress.
-    private func offerPractice(_ id: String, delay: Double) {
-        practiceNext = id
+    /// Nothing counts right now: Tomo rests, happy, and the card says when it's back and what's left to grow, with
+    /// Practice as a button (like WaniKani's "0 reviews" and its Extra Study: practice is a mode you choose, never
+    /// something that looks like progress). Rest holds until something counts (`tick` notices, and Tomo asks it) or
+    /// the learner picks Practice. Opening Tomo again, on any device, shows the rest again, never a new offer.
+    private func rest(delay: Double) {
         let tok = bump()
         after(delay, tok) { [weak self] in
             guard let self else { return }
+            self.currentItem = nil
             self.help = nil
             self.outcome = nil
-            self.phase = .practiceIntro
+            self.isPracticeRound = false
+            self.practiceAccepted = false
+            self.syncProgress()
+            self.countsAgainAt = self.progress.nextCountsAt
+            self.phase = .resting
             self.setBot(.idle)
             self.emote(.happy)
-            self.speak(self.lang.target.lines.practice, slow: false)
+            self.speak(self.lang.target.lines.rest ?? self.lang.target.lines.seeYou, slow: false)
             self.visitDeadline = Date().addingTimeInterval(self.ignoreAfter)
             if Self.autoplay { self.after(2.5, tok) { [weak self] in self?.startPractice() } }
         }
     }
 
-    /// "Practice": practice rounds until something counts again.
+    /// "Practice" on the resting card: practice rounds until something counts again. They never move the bar.
     public func startPractice() {
-        guard phase == .practiceIntro, let id = practiceNext else { return }
+        guard phase == .resting else { return }
         touch()
         practiceAccepted = true
-        practiceNext = nil
-        ask(id, delay: 0.2)
+        nextItem(delay: 0.2)
     }
 
-    /// "Later" (or the offer was ignored): Tomo goes back. Nothing is waiting, so no red dot.
-    public func skipPractice() {
-        guard phase == .practiceIntro else { return }
+    /// A visit that found nothing to count was left alone: Tomo tucks back in, still resting. Nothing is waiting,
+    /// so no red dot.
+    private func tuckIn() {
         endVisit()
         pending = false
         closeIsland?()
         wasOpen = false
+    }
+
+    /// Something counts again (a word's wait is half over, a new day's words, progress from another device, Tomo's
+    /// clock): while Tomo rests or practices on screen, it notices and asks that instead.
+    private func offerWhatCounts() {
+        let practicing = phase == .asking && isPracticeRound && help == nil
+        guard phase == .resting || practicing, let id = progress.nextFreePlayItem() else { return }
+        ask(id, delay: 0.1)
     }
 
     /// Nothing due or new: something Tomo already heard. It doesn't count, and the card says so.
@@ -537,6 +565,10 @@ public final class TomoGame: ObservableObject {
         let now = Date()
         let open = isIslandOpen?() ?? false
         defer { wasOpen = open }
+        // "Next at 8:37" has come: say what's left again.
+        if let at = levelLeft.nextAt, at <= TomoClock.now { levelLeft = progress.levelLeft }
+        if open && wasOpen && (phase == .resting || isPracticeRound) && progress.somethingCounts { offerWhatCounts() }
+        debugReopen(open: open, now: now)
 
         guard visitRoundsLeft != nil else {
             // User opened Tomo themselves: free play, no time limit.
@@ -557,21 +589,25 @@ public final class TomoGame: ObservableObject {
             visitDeadline = now.addingTimeInterval(ignoreAfter)
         } else if now > visitDeadline && phase == .asking {
             leave(ignored: true)
-        } else if now > visitDeadline && phase == .practiceIntro {
-            skipPractice()
+        } else if now > visitDeadline && phase == .resting {
+            tuckIn()
         }
     }
 
+    /// Tomo was opened (clicked on the Mac, the iPhone app came to the front): pick up where it was.
     private func resumeFreePlay() {
         let asked = talking ? line.say : round.say
-        // Left on practice, and now something counts (or the offer is stale): pick again.
-        let stale = isPracticeRound && progress.somethingCounts
+        let counts = progress.somethingCounts
         switch phase {
-        case .asking where !asked.isEmpty && !stale:
+        case .resting where !counts:
+            rest(delay: 0.3)                    // still nothing counts: Tomo says hi and rests, never a new offer
+        case .asking where isPracticeRound && !counts:
+            rest(delay: 0.3)                    // practice was for that sitting; picking it again is a click away
+        case .asking where !asked.isEmpty && !isPracticeRound:
             if !talking { setBot(.question) }
             speak(asked, slow: false)
-        case .asking, .right, .practiceIntro:
-            nextItem(delay: 0.3)
+        case .asking, .right, .resting:
+            nextItem(delay: 0.3)                // something counts now (or nothing was asked yet): ask it
         default:
             break
         }
@@ -607,7 +643,10 @@ public final class TomoGame: ObservableObject {
         wasOpen = false
     }
 
+    /// An unfinished visit: the red dot, if something is still waiting. A visit that was only resting or practicing
+    /// leaves none, since nothing would count.
     private func markPending() {
+        guard progress.somethingCounts else { return }
         pending = true
         nextNudge = Date().addingTimeInterval(8)   // first bounce soon after tucking in
     }
@@ -978,6 +1017,25 @@ public final class TomoGame: ObservableObject {
     private var autoMissed = false
     private static var autoExplained = false
 
+    /// Debug (TOMO_AUTOREOPEN=<seconds>): that long after Tomo first tucks back in, it opens once, the way a click on
+    /// small Tomo does (free play), so a test run can see what the learner gets then.
+    private static let autoReopen = ProcessInfo.processInfo.environment["TOMO_AUTOREOPEN"].flatMap(TimeInterval.init)
+    private var seenOpen = false
+    private var closedAt: Date?
+    private var autoReopened = false
+
+    private func debugReopen(open: Bool, now: Date) {
+        guard let wait = Self.autoReopen, !autoReopened else { return }
+        if open { seenOpen = true; closedAt = nil; return }
+        guard seenOpen else { return }
+        let closed = closedAt ?? now
+        closedAt = closed
+        if now.timeIntervalSince(closed) >= wait {
+            autoReopened = true
+            openIsland?()
+        }
+    }
+
     private func autoAnswer(_ tok: Int) {
         after(2.5, tok) { [weak self] in
             guard let self else { return }
@@ -1032,17 +1090,46 @@ public final class TomoGame: ObservableObject {
     }
 }
 
-// MARK: - Practice text (the card's offer and the header's chip, on every device)
+// MARK: - Resting, practice and what's left, in words (the card, the header and Settings, on every device)
 
-/// "Nothing counts until 5:44 AM…" (`key`), or the `key.now` variant when there's no time to give.
-@MainActor public func practiceText(_ key: String, until: Date?, _ lang: TomoLanguages) -> String {
+extension TomoGame {
+    /// What's left before the next level: "1 more word to Lv 2 · ready now", or "· next at 8:37" (`when: false`
+    /// leaves the time out). On the last level, how many words finish it.
+    public func whatsLeft(when: Bool = true) -> String {
+        let ui = lang.learner, left = levelLeft, next = "\(level + 1)"
+        guard left.words > 0 else { return ui(levelIsLast ? "left.lastDone" : "left.done", ["next": next]) }
+        let n = "\(left.words)", one = left.words == 1
+        let words = levelIsLast ? ui(one ? "left.last.one" : "left.last", ["n": n])
+            : ui(one ? "left.one" : "left.many", ["n": n, "next": next])
+        guard when else { return words }
+        return words + " · " + (left.nextAt.map { timeText("left.next", until: $0, lang) } ?? ui("left.ready"))
+    }
+
+    /// The resting card's lines: when Tomo's back ("Back at 10:12"), and what's left to grow, with its time only when
+    /// that isn't when Tomo's back anyway.
+    public var restLines: (back: String, left: String) {
+        let same = levelLeft.nextAt.map { abs($0.timeIntervalSince(countsAgainAt ?? .distantPast)) < 60 } ?? true
+        return (timeText("rest.back", until: countsAgainAt, lang), whatsLeft(when: !same))
+    }
+}
+
+/// "Back at 10:12" (`key`, with `{time}`), or the `key.now` variant when there's no time to give. A time on
+/// another day uses the `key.later` variant if the language has one ("Back tomorrow, 4:00 AM", not "at tomorrow").
+@MainActor public func timeText(_ key: String, until: Date?, _ lang: TomoLanguages) -> String {
     guard let until else { return lang.learner("\(key).now") }
+    let later = "\(key).later"
+    let today = Calendar.current.isDateInToday(wallClock(until)) || lang.learner.strings[later] == nil
+    return lang.learner(today ? key : later, ["time": tomoTime(until, lang)])
+}
+
+/// A time on Tomo's clock, short and for the middle of a sentence: "8:37 AM", or "tomorrow, 4:00 AM".
+@MainActor public func tomoTime(_ date: Date, _ lang: TomoLanguages) -> String {
     let f = DateFormatter()
     f.locale = Locale(identifier: lang.learner.id)
     f.timeStyle = .short
     f.formattingContext = .middleOfSentence
-    if !Calendar.current.isDateInToday(wallClock(until)) { f.dateStyle = .short; f.doesRelativeDateFormatting = true }
-    return lang.learner(key, ["time": f.string(from: wallClock(until))])
+    if !Calendar.current.isDateInToday(wallClock(date)) { f.dateStyle = .short; f.doesRelativeDateFormatting = true }
+    return f.string(from: wallClock(date))
 }
 
 /// A time on Tomo's clock (which testing can move ahead, TomoClock) on the device's clock.

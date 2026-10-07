@@ -24,10 +24,23 @@ struct TomoPhoneView: View {
     var body: some View {
         VStack(spacing: 0) {
             header
-            GrowthBar(progress: game.levelProgress, dimmed: game.isPracticeRound)
+            // The experience bar: its last tenth is the goal, which fills only when the level is done
+            TomoGrowthBar(progress: game.levelProgress, standing: game.levelStanding, dimmed: game.isPracticeRound,
+                          colors: [Color(hex: "#FFE68C"), Color(hex: "#34D399")], empty: Color.white.opacity(0.08))
                 .frame(height: 6)
                 .padding(.horizontal, 20)
                 .padding(.top, 10)
+            // What's left before the next level, and when the next word is ready
+            if !typing {
+                Label { Text(game.phase == .resting ? game.restLines.left : game.whatsLeft()) } icon: {
+                    Image(systemName: "flag.fill").foregroundStyle(Color(hex: "#34D399"))
+                }
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color(hex: "#9EA3AC"))
+                    .lineLimit(1).minimumScaleFactor(0.75)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+            }
 
             Spacer(minLength: 4)
             TomoBlobView(state: shell.botState, growth: growth)
@@ -75,7 +88,7 @@ struct TomoPhoneView: View {
                 .font(.system(size: 14, weight: .semibold, design: .rounded))
                 .foregroundStyle(Color(hex: "#C9CDD4"))
             if game.isPracticeRound {
-                Text(practiceText("practice.chip", until: game.practiceUntil, lang))
+                Text(timeText("practice.chip", until: game.countsAgainAt, lang))
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Color(hex: PhoneColors.practice))
                     .lineLimit(1).minimumScaleFactor(0.7)
@@ -103,8 +116,9 @@ struct TomoPhoneView: View {
                                     : game.stage == TomoGame.chatStage ? "grewTalking" : "grewPhrases", ["age": game.age]))
             case .leveledUp:
                 banner(lang.target.lines.levelUp, lang.learner("levelUp", ["level": "\(game.level)"]))
-            case .practiceIntro:
-                banner(lang.target.lines.practice, practiceText("practice.offer", until: game.practiceUntil, lang))
+            case .resting:
+                // Nothing counts right now: Tomo rests, and says when it's back (what's left is under the bar)
+                banner(lang.target.lines.rest ?? lang.target.lines.seeYou, game.restLines.back)
             default:
                 HStack(alignment: .center, spacing: 10) {
                     // Tap a word for its word card (TomoWordSheet)
@@ -176,10 +190,14 @@ struct TomoPhoneView: View {
 
     @ViewBuilder private var answers: some View {
         switch game.phase {
-        case .practiceIntro:
-            VStack(spacing: 10) {
-                PhonePill(title: lang.learner("practice.start"), tint: PhoneColors.practice) { game.startPractice() }
-                PhonePill(title: lang.learner("practice.later")) { game.skipPractice() }
+        case .resting:
+            // Practice is a choice, so a quiet button; Tomo goes on resting otherwise
+            VStack(spacing: 8) {
+                PhonePill(title: lang.learner("practice.start"), icon: "arrow.triangle.2.circlepath",
+                          color: PhoneColors.practice) { game.startPractice() }
+                Text(lang.learner("rest.practiceNote"))
+                    .font(.system(size: 13)).foregroundStyle(Color(hex: "#8E939C"))
+                    .multilineTextAlignment(.center).lineLimit(2)
             }
         case .grew, .leveledUp:
             EmptyView()
@@ -259,7 +277,7 @@ struct TomoPhoneView: View {
         case .right: return game.round.need == .sleep ? "#3B3F8F" : "#2F8F6A"
         case .wrong: return "#9B2C3A"
         case .leveledUp, .grew: return "#9A6A1E"
-        case .practiceIntro: return "#3A3D44"
+        case .resting: return "#3A3D44"
         }
     }
 }
@@ -315,6 +333,7 @@ private struct PhonePill: View {
     let title: String
     var icon: String?
     var tint: String?
+    var color: String?          // the text's color (a quiet button: the tint on a plain pill)
     var border: Color = Color.white.opacity(0.08)
     let action: () -> Void
 
@@ -324,6 +343,7 @@ private struct PhonePill: View {
                 if let icon { Image(systemName: icon) }
                 Text(title).lineLimit(1).minimumScaleFactor(0.7)
             }
+            .foregroundStyle(color.map { Color(hex: $0) } ?? Color(hex: "#F5F6F8"))
             .font(.system(size: 17, weight: .semibold))
             .frame(maxWidth: .infinity).frame(height: 52)
             .background(tint.map { Color(hex: $0).opacity(0.3) } ?? Color.white.opacity(0.06), in: Capsule())

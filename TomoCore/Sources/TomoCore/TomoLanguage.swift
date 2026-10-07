@@ -42,7 +42,8 @@ public struct TargetPack: Codable, Sendable {
     public struct Lines: Codable, Sendable {
         public let wrong: String, ouch: String, grew: String, bye: String, seeYou: String
         public let levelUp: String     // Tomo reached a new level (not a new age)
-        public let practice: String    // nothing counts right now: Tomo asks to play anyway ("Play more?")
+        public let practice: String    // Tomo asks to play more ("Play more?"); the widgets' fallback for `invite`
+        public let rest: String?       // nothing counts right now: Tomo rests, happy ("Let's play later!"); else `seeYou`
         public let invite: String?     // something is waiting: Tomo calls you over from the Lock Screen ("Let's play!")
         public let hello: SpokenLine?        // first run: Tomo's first words out of the egg ("Boo!")
         public let welcomeBack: SpokenLine?  // first run on a device that joined the learner's Tomo ("Welcome back!")

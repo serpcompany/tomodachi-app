@@ -32,36 +32,11 @@ struct TomoCharacterView: View {
 
     /// Cursor direction relative to Tomo, −1…1 (positive y = above).
     private func gaze() -> CGPoint {
-        let screen = NSScreen.main ?? NSScreen.screens[0]
-        let (w, h) = islandSize(mode: state.mode, view: state.view, progress: state.uploadProgress,
-                                nw: state.notchWidth, nh: state.notchHeight)
-        let (bx, by, _, _) = botPosition(mode: state.mode, view: state.view, islandW: w, islandH: h,
-                                         uploadProgress: state.uploadProgress)
-        let screenX = screen.frame.midX - w / 2 + bx
+        // Both in the island screen's coordinates: the island is centred at its top.
+        let (w, h) = islandSize(mode: state.mode, view: state.view, nw: state.notchWidth, nh: state.notchHeight)
+        let (bx, by, _, _) = botPosition(mode: state.mode, view: state.view, islandW: w, islandH: h)
+        let screenX = state.screenWidth / 2 - w / 2 + bx
         return CGPoint(x: tanh((state.mousePosition.x - screenX) / 260),
                        y: -tanh((state.mousePosition.y - by) / 200))
-    }
-}
-
-/// Small decorative Tomo for the leftover agent pills (switched off in Tomodachi; removed with issue #1).
-struct MiniBotCanvasView: View {
-    let task: AgentTask
-    @StateObject private var blob: TomoBlob = {
-        let c = TomoBlob()
-        c.isMini = true
-        c.setGrowth(1)
-        return c
-    }()
-
-    var body: some View {
-        TimelineView(.animation) { timeline in
-            Canvas { context, size in
-                blob.frameDate = timeline.date
-                blob.step()
-                blob.draw(context, size: size)
-            }
-        }
-        .onChange(of: task.state) { _, s in blob.setState(s) }
-        .onAppear { blob.setState(task.state, force: true) }
     }
 }

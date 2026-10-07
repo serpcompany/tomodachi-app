@@ -40,7 +40,7 @@ enum TomoOnboardingWindow {
         host.sizingOptions = []
         win.contentView = host
         win.setContentSize(size)
-        let screen = IslandWindowController.notchScreen() ?? NSScreen.main
+        let screen = IslandWindowController.islandScreen() ?? NSScreen.main
         if let visible = screen?.visibleFrame {
             win.setFrameOrigin(NSPoint(x: visible.midX - size.width / 2, y: visible.midY - size.height / 2))
         } else {

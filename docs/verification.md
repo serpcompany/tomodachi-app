@@ -13,14 +13,15 @@ macOS CI yet: CI runs only the repo checks, so the build, the self-test and the 
 | **Finish gate** | Build, self-test, repo checks, and the evidence below | Once, when the branch is done |
 
 The self-test: `TOMO_SELFTEST=1 TOMO_DATA_DIR=$(mktemp -d) <app binary>` checks the word-stage, level,
-store, sync-merge and look rules and who sees the first run, prints each check and quits (exit code 1 on a failure). A new growth rule gets
-a new check in `TomoProgress.selfTest`, a new merge rule one in `TomoSync.selfTest`.
+store, sync-merge and look rules, the island's (which screen, where, Esc) and who sees the first run, prints each
+check and quits (exit code 1 on a failure). A new growth rule gets a new check in `TomoProgress.selfTest`, a new
+merge rule one in `TomoSync.selfTest`, an island rule one in `TomoIslandSelfTest`.
 
 ## Evidence a change needs
 
 - **The card, the header or anything else on the island:** the snapshot matrix. Look at every image:
   picture and talking stages; English and Japanese interface; a short and a long Tomo line; the hint
-  (talking); Win, Practice, Miss and No score; and any new state the change adds.
+  (talking); Win, Practice, Miss and No score; resting and a level-up; and any new state the change adds.
 - **Growth rules:** the self-test, with a check for the new rule.
 - **Settings:** a snapshot of the page (`TOMO_OPEN_SETTINGS=<page>`).
 - **Tomo's look or motion:** `TOMO_RENDER_SHEET` and `TOMO_RENDER_ANIM` frames, with `TOMO_SEED=<text>` for
@@ -29,6 +30,17 @@ a new check in `TomoProgress.selfTest`, a new merge rule one in `TomoSync.selfTe
 - **Sync:** the self-test, and `TOMO_SYNC_CHECK` runs for the case it changes (below).
 - **The first run:** its window's snapshots at every step (`TOMO_ONBOARDING=1 TOMO_AUTOPLAY=1`), in English
   and Japanese, and `TOMO_ONBOARDING=welcomeBack`.
+- **Esc, the keyboard, changing displays:** a headless run can't press keys or plug in a monitor. Put the rule
+  in a pure function with a check in `TomoIslandSelfTest`, and say in the PR what wasn't tried by hand.
+
+## Testing tools in the app
+
+The menu's "Skip to talking (3さい)" (⌘3) and Settings → Testing are hidden from learners. **⌥-click the menu
+bar icon** to show them for the rest of that run, or show them always with
+`defaults write com.zenbujapanese.tomodachi tomoTestingTools -bool true` (`defaults delete` to hide them again).
+They work in every build, Developer ID included (`TomoTestingTools`). Testing never touches the saved Tomo:
+another age and "Skip ahead a day" run on a copy in memory until **Back to my Tomo**, which also puts Tomo's clock
+back.
 
 ## Sync (iCloud)
 
@@ -69,13 +81,17 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
 
 - `TOMO_HEADLESS=1`: nothing shows, sounds or takes focus (above). Use it on every test run.
 - `TOMO_SNAPSHOT_DIR=<dir>`: a PNG of the island every second. With `TOMO_OPEN_SETTINGS=<page>` (tomo,
-  words, general, ai, testing, about) it opens Settings at that page and captures it too.
-- `TOMO_AUTOPLAY=1`: answers picture rounds by itself (one miss, then right) and accepts the practice offer.
+  words, general, ai, testing, about) it opens Settings at that page and captures it too (`testing` also shows
+  the testing tools).
+- `TOMO_AUTOPLAY=1`: answers picture rounds by itself (one miss, then right) and picks Practice when Tomo rests.
+- `TOMO_AUTOREOPEN=<seconds>`: that long after Tomo first tucks back in, it opens once, the way a click on
+  small Tomo does (free play), to see what the learner gets then (the resting card, or what counts now).
 - `TOMO_STAGE=3 TOMO_AUTOCHAT="しごと してる|うん"`: a testing Tomo at that age, typing those answers. Testing
   ages run in memory; saved progress isn't touched.
 - `TOMO_TARGET=es`, `TOMO_LEARNER=ja`: the language pair.
 - `TOMO_TIME_TRAVEL=<hours>`: Tomo's clock starts that far ahead, so due words come back. Answers given
-  while ahead are saved with those dates. Settings → Testing → "Skip ahead a day" does the same live.
+  while ahead are saved with those dates, so only in a test run's `TOMO_DATA_DIR`. Settings → Testing →
+  "Skip ahead a day" moves the clock live, on a copy of Tomo in memory.
 - `TOMO_DROPIN_EVERY=8`, `TOMO_NUDGE_EVERY=5`: seconds between visits and between nudge bounces.
 - `TOMO_RENDER_ICON`, `TOMO_RENDER_SHEET`, `TOMO_RENDER_SOUNDS`, `TOMO_RENDER_ANIM`, `TOMO_RENDER_CARD_FRAMES` (`=<dir>`): render
   the icons, every age and face, every sound (WAV), or a 16-second scene (20 fps frames), then quit. The
@@ -91,8 +107,8 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
 ## Starting from a known state
 
 `mac-demo/scripts/seed-progress.py <dir>` writes saved progress for a run: a level, an age, and items at
-chosen stages and due times, for any language pair. For example, all of level 1 just learned, so nothing
-counts and Tomo offers practice:
+chosen stages and due times (and best stages, for a slip), for any language pair. For example, all of
+level 1 just learned, so nothing counts and Tomo rests:
 
 ```bash
 python3 mac-demo/scripts/seed-progress.py /tmp/tomo-test --through-level 1 --stage 1 --due 2

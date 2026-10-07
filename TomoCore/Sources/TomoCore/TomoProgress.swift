@@ -48,11 +48,15 @@ public enum TomoSRS {
     }
 }
 
-/// Tomo's clock. Testing can move it ahead: TOMO_TIME_TRAVEL=<hours>, or Settings → "Skip ahead a day".
+/// Tomo's clock. Testing can move it ahead: TOMO_TIME_TRAVEL=<hours> for a test run, or Settings → "Skip ahead a
+/// day", which only ever moves a testing Tomo (`TomoGame.skipAhead`).
 @MainActor
 public enum TomoClock {
-    public static var offset: TimeInterval =
+    /// Where the clock starts: TOMO_TIME_TRAVEL, else now. Going back to the saved Tomo (`TomoGame.start`) puts
+    /// it back here.
+    public static let start: TimeInterval =
         (ProcessInfo.processInfo.environment["TOMO_TIME_TRAVEL"].flatMap(Double.init) ?? 0) * 3600
+    public static var offset: TimeInterval = start
     public static var now: Date { Date().addingTimeInterval(offset) }
 
     /// The daily new-word limit resets at 4 am, like Anki.
@@ -138,6 +142,12 @@ public final class TomoProgress {
         }
     }
 
+    /// Testing: carry on with this Tomo in memory, as it is now. Nothing from here on is saved or synced.
+    public func detach() {
+        isScratch = true
+        store = nil
+    }
+
     private func hatch() {
         level = 1
         age = pack.levels.first?.age ?? 1
@@ -157,18 +167,53 @@ public final class TomoProgress {
     /// 90% of the level's items, rounded up.
     public var levelNeeded: Int { max(1, (levelItems.count * 9 + 9) / 10) }
     public var isLastLevel: Bool { level >= pack.levels.count }
-    /// The experience bar: every stage a word of this level reaches counts (up to "knows it"), so each answer that
-    /// counts nudges it. It uses the best stage reached, so a slip never moves it back. Full when the level is done.
-    public var levelProgress: Double {
-        let steps = levelItems.reduce(0) { $0 + min(items[$1]?.peak ?? 0, TomoSRS.knows) }
-        let full = Double(levelNeeded * TomoSRS.knows)
-        return levelKnown >= levelNeeded ? 1 : min(Double(steps) / full, 0.97)
+    /// The level is done: `levelNeeded` of its words know it now. A word that slipped has to come back first.
+    public var levelDone: Bool { levelKnown >= levelNeeded }
+
+    /// The experience bar's last stretch is the goal: it fills only when the level is done, so the bar never looks
+    /// full before (decisions.md, 2026-10-07).
+    nonisolated public static let goalShare = 0.1
+
+    /// The experience bar, 0…1. Every stage one of the level's best `levelNeeded` words reaches counts (up to "knows
+    /// it"), so each answer that counts nudges it, and ten words can't fill a nine-word goal. It uses each word's best
+    /// stage, so a slip never moves it back. The words fill it up to the goal; the goal fills when the level is done.
+    public var levelProgress: Double { levelDone ? 1 : (1 - Self.goalShare) * levelSteps { max($0.peak, $0.stage) } }
+    /// Where those words stand now, on the same scale: lower than `levelProgress` while a word that slipped has to
+    /// come back (the bar draws that part pale).
+    public var levelStanding: Double { levelDone ? 1 : (1 - Self.goalShare) * levelSteps { $0.stage } }
+
+    /// The best `levelNeeded` words' stages (each up to "knows it"), as a share of the level's goal.
+    private func levelSteps(_ stage: (Item) -> Int) -> Double {
+        let best = levelItems.map { id in items[id].map { min(stage($0), TomoSRS.knows) } ?? 0 }
+            .sorted(by: >).prefix(levelNeeded)
+        return Double(best.reduce(0, +)) / Double(levelNeeded * TomoSRS.knows)
+    }
+
+    /// What's left before the next level: how many more words have to reach "knows it", and when the next of them
+    /// counts (nil: one counts now). Shown as "1 more word to Lv 2 · next at 8:37".
+    public struct Left: Equatable, Sendable {
+        public var words: Int
+        public var nextAt: Date?
+        public init(words: Int, nextAt: Date?) { self.words = words; self.nextAt = nextAt }
+    }
+    public var levelLeft: Left {
+        let words = max(0, levelNeeded - levelKnown)
+        guard words > 0 else { return Left(words: 0, nextAt: nil) }
+        let now = TomoClock.now
+        // When each word that doesn't know it yet counts: a new one now (within the day's new words) or with the next
+        // day's; one already heard once half its wait has passed (like `counts`).
+        let ready = levelItems.filter { (items[$0]?.stage ?? 0) < TomoSRS.knows }.compactMap { id -> Date? in
+            guard let i = items[id] else { return canTeachNew ? now : TomoClock.dayStart.addingTimeInterval(86400) }
+            guard let due = i.due, let wait = TomoSRS.wait(after: i.stage, level: levelOfItem[id] ?? level) else { return nil }
+            return due.addingTimeInterval(-wait * (1 - Self.earlyShare))
+        }.min()
+        return Left(words: words, nextAt: ready.flatMap { $0 > now ? $0 : nil })
     }
     public var isTalkLevel: Bool { !(current?.starters ?? []).isEmpty }
 
     /// Level up when this level is done. Returns the new level and whether it was a birthday.
     public func levelUpIfReady() -> (level: Int, birthday: Bool)? {
-        guard !isLastLevel, levelKnown >= levelNeeded else { return nil }
+        guard !isLastLevel, levelDone else { return nil }
         level += 1
         let newAge = max(age, pack.levels[level - 1].age)
         let birthday = newAge > age
@@ -223,10 +268,10 @@ public final class TomoProgress {
     /// Would a right answer to this item count now (new, due, or far enough along)?
     public func counts(_ id: String) -> Bool { items[id] == nil || isDue(id) || isEarlyOK(id) }
 
-    /// When something counts again, if nothing does now: the soonest a word reaches half its wait, or the next day's
-    /// new words (4 am) when today's are used up and the level still has some. Nil if something counts now.
     /// Is there anything a right answer would count for now (due, new, or far enough along)?
     public var somethingCounts: Bool { !dueItems.isEmpty || canTeachNew || unlocked.contains(where: isEarlyOK) }
+    /// When something counts again, if nothing does now: the soonest a word reaches half its wait, or the next day's
+    /// new words (4 am) when today's are used up and the level still has some. Nil if something counts now.
     public var nextCountsAt: Date? {
         if somethingCounts { return nil }
         let early = unlocked.compactMap { id -> Date? in
@@ -419,12 +464,50 @@ public final class TomoProgress {
                   "an hour later, free play adds experience again")
         } else { check(false, "an hour later, free play has something that counts") }
 
+        // The experience bar (#89): the best nine of ten words count, it never looks full before the level is done,
+        // a word that slipped keeps its part but has to come back, and the card says what's left.
+        let goal = TomoProgress(pack: pack, learner: "de", directory: dir)
+        let words = pack.levels[0].itemIDs, mark = 1 - goalShare
+        func set(_ id: String, stage: Int, peak: Int? = nil, dueIn hours: Double = 96) {
+            let now = TomoClock.now
+            goal.items[id] = Item(id: id, stage: stage, due: now.addingTimeInterval(hours * 3600),
+                                  introduced: now.addingTimeInterval(-3 * 86400), answered: now.addingTimeInterval(-3600),
+                                  right: 3, wrong: 0, peak: peak ?? stage)
+        }
+        words.forEach { set($0, stage: 4) }
+        check(goal.levelProgress < mark && !goal.levelDone && goal.levelLeft.words == goal.levelNeeded,
+              "ten words at stage 4 aren't a full bar: \(Int(goal.levelProgress * 100))%")
+        words.prefix(8).forEach { set($0, stage: S.knows) }
+        check(goal.levelProgress <= mark && goal.levelProgress > 0.85 && !goal.levelDone && goal.levelUpIfReady() == nil,
+              "8 known + 2 at stage 4: near the goal (\(Int(goal.levelProgress * 100))%), not full, no level up")
+        check(goal.levelLeft.words == 1 && goal.levelLeft.nextAt != nil, "it says 1 more word, and when it's ready")
+        set(words[8], stage: 4, dueIn: -1)
+        check(goal.levelLeft.words == 1 && goal.levelLeft.nextAt == nil, "a word that's due: ready now")
+        let reached = goal.levelProgress
+        set(words[0], stage: 3, peak: S.knows)                                       // a known word slips
+        check(goal.levelProgress == reached && goal.levelStanding < reached && goal.levelLeft.words == 2,
+              "a slip after 'knows it' keeps the bar, shows the part that has to come back, and adds a word left")
+        set(words[0], stage: S.knows)
+        set(words[8], stage: S.knows)
+        check(goal.levelDone && goal.levelProgress == 1 && goal.levelStanding == 1 && goal.levelLeft.words == 0,
+              "9 known: the bar is full")
+        check(goal.levelUpIfReady()?.level == 2 && goal.levelProgress == 0, "and Tomo levels up to an empty bar")
+
         let other = TomoProgress(pack: pack, learner: "ja", directory: dir)
         check(other.level == 1 && other.items.isEmpty, "another language pair is another Tomo")
 
         reopened.scratch(age: 3)
         check(reopened.isScratch && reopened.age == 3 && reopened.isTalkLevel, "testing at 3さい → the talking level")  // text-ok: self-test output
         check(TomoProgress(pack: pack, learner: "en", directory: dir).level == p.level, "testing ages don't touch saved progress")
+        // Settings → Skip ahead a day (TomoGame.skipAhead): the saved Tomo carries on as a copy in memory first.
+        let ahead = TomoProgress(pack: pack, learner: "en", directory: dir)
+        let savedItems = ahead.items
+        ahead.detach()
+        TomoClock.offset += 86400
+        for id in ahead.levelItems.prefix(3) { ahead.answeredRight(id, mode: "picture", wrongTries: 0, hint: false) }
+        check(ahead.isScratch && ahead.items != savedItems
+              && TomoProgress(pack: pack, learner: "en", directory: dir).items == savedItems,
+              "skipping ahead runs on a copy: answers a day ahead aren't saved")
 
         reopened.startOver()
         let fresh = TomoProgress(pack: pack, learner: "en", directory: dir)

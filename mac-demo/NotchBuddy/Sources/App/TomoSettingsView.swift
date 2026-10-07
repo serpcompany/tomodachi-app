@@ -5,6 +5,7 @@ import TomoCore
 //
 // A sidebar of pages on the left, the selected page on the right:
 //   Tomo (growth: age, level, growing up, today) · Words (every level and word) · General · AI · Testing · About
+// Testing shows only after a deliberate step (TomoTestingTools).
 // All text comes from the learner's interface strings (TomoCore: Resources/languages/ui.<id>.json).
 
 /// Starting over clears this language pair's saved Tomo, so it always asks first.
@@ -66,6 +67,7 @@ final class TomoSettingsNav: ObservableObject {
 struct TomoSettingsView: View {
     @ObservedObject var lang = TomoLanguages.shared
     @ObservedObject var nav = TomoSettingsNav.shared
+    @ObservedObject var testing = TomoTestingTools.shared
 
     var body: some View {
         HStack(spacing: 0) {
@@ -91,7 +93,10 @@ struct TomoSettingsView: View {
             Section { TomoProfileRow().tag(TomoSettingsPane.tomo) }
             Section { row(.words) }
             Section { row(.general); row(.ai) }
-            Section { row(.testing); row(.about) }
+            Section {
+                if testing.shown { row(.testing) }   // ⌥-click the menu bar icon (TomoTestingTools)
+                row(.about)
+            }
         }
         .listStyle(.sidebar)
         .scrollContentBackground(.hidden)
@@ -206,12 +211,25 @@ private struct TomoGrowthPane: View {
                             Spacer()
                             Text(lang.learner("words.days", ["n": "\(daysTogether)"])).font(.callout).foregroundStyle(.secondary)
                         }
-                        ProgressView(value: game.levelProgress).tint(.teal)
+                        // The card's bar: the goal at its end fills only when the level is done.
+                        TomoGrowthBar(progress: game.levelProgress, standing: game.levelStanding,
+                                      colors: [.teal.opacity(0.7), .teal], empty: Color.secondary.opacity(0.18),
+                                      outline: Color.secondary.opacity(0.4))
+                            .frame(height: 6)
+                            .padding(.vertical, 2)
                         Text(progress.isLastLevel
                              ? lang.learner("words.lastLevel", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)"])
                              : lang.learner("words.toNext", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)",
                                                              "next": "\(game.level + 1)"]))
                             .font(.callout).foregroundStyle(.secondary)
+                        // What's left, and when the next word is ready; when Tomo rests, when it's back.
+                        Label { Text(game.phase == .resting ? game.restLines.left : game.whatsLeft()) } icon: {
+                            Image(systemName: "flag.fill").foregroundStyle(.teal)
+                        }
+                        .font(.callout.weight(.medium))
+                        if game.phase == .resting {
+                            Label(game.restLines.back, systemImage: "clock").font(.callout).foregroundStyle(.secondary)
+                        }
                     }
                 }
                 .padding(.vertical, 4)
@@ -308,9 +326,31 @@ private struct TomoGeneralSettings: View {
                 .onChange(of: newPerDay) { _, v in UserDefaults.standard.set(v, forKey: "tomoNewPerDay") }
                 Toggle(lang.learner("settings.voice"), isOn: $state.soundEnabled)
             }
+
+            Section {
+                Toggle(lang.learner("settings.openAtLogin"), isOn: Binding(
+                    get: { openAtLogin },
+                    set: { openAtLogin = TomoLoginItem.set($0); loginNeedsApproval = TomoLoginItem.needsApproval }))
+                if loginNeedsApproval {
+                    HStack {
+                        Text(lang.learner("settings.openAtLoginApprove")).font(.callout).foregroundStyle(.secondary)
+                        Spacer()
+                        Button(lang.learner("settings.openLoginItems")) { TomoLoginItem.openSystemSettings() }
+                    }
+                }
+            } footer: {
+                Text(lang.learner("settings.openAtLoginNote")).font(.caption).foregroundStyle(.secondary)
+            }
         }
         .formStyle(.grouped)
+        .onAppear {   // the learner may have changed it in System Settings → Login Items
+            openAtLogin = TomoLoginItem.isOn
+            loginNeedsApproval = TomoLoginItem.needsApproval
+        }
     }
+
+    @State private var openAtLogin = TomoLoginItem.isOn
+    @State private var loginNeedsApproval = TomoLoginItem.needsApproval
 }
 
 // MARK: - Testing

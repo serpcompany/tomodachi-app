@@ -66,8 +66,6 @@ targets:
         LSUIElement: YES
         NSHighResolutionCapable: YES
         NSSupportsAutomaticGraphicsSwitching: YES
-        NSMicrophoneUsageDescription: "Tomo listens when you answer out loud."
-        NSSpeechRecognitionUsageDescription: "Tomo turns what you say into Japanese text to understand you."
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         TomoICloudEnvironment: $(TOMO_ICLOUD_ENV)   # this build has iCloud (TomoSync)
