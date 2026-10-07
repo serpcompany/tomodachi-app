@@ -173,6 +173,14 @@ public final class TomoStore {
             [at.timeIntervalSince1970, learner, target, kind, value])
     }
 
+    /// The growth log since a time, oldest first: (kind, value) as `logGrowth` wrote it.
+    public func growthLog(since: Date = .distantPast) -> [(kind: String, value: Int)] {
+        query("SELECT kind, value FROM growth WHERE learner = ? AND target = ? AND at >= ? ORDER BY at, rowid",
+              [learner, target, since.timeIntervalSince1970]) {
+            (String(cString: sqlite3_column_text($0, 0)), Int(sqlite3_column_int64($0, 1)))
+        }
+    }
+
     /// Start over: this pair's words are cleared and the time noted; the Tomo row waits for the new Tomo
     /// (TomoProgress hatches it). The logs stay.
     public func clear(at: Date) {

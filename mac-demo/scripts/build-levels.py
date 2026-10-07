@@ -477,7 +477,8 @@ def main():
             levels += [dict(l, age=3) for l in talking]
         chunks = [rounds[i:i + LEVEL_SIZE] for i in range(0, len(rounds), LEVEL_SIZE)]
         if len(chunks) > 1 and len(chunks[-1]) < LEVEL_SIZE // 2:   # a short leftover joins the level before it
-            chunks[-2] += chunks.pop()
+            leftover = chunks.pop()      # popped first: `chunks[-2] += chunks.pop()` wrote over the level before that
+            chunks[-1] += leftover
         levels += [{"age": age, "rounds": c} for c in chunks]
     pack["levels"] = levels
     P["pack"].write_text(json.dumps(pack, ensure_ascii=False, indent=2))
