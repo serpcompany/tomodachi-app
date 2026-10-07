@@ -21,6 +21,7 @@
 		2DEB459FBD0BA3CEAAA5FDE9 /* ClaudeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A83D5410BD030B243ADDCFF4 /* ClaudeService.swift */; };
 		2F36E3C6C073E968A682AFA4 /* NotionPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE03E03D1804B0B92C5C2DAD /* NotionPoller.swift */; };
 		3F19756A396F125EC711247F /* IslandTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D3CE3617E9D336DDBA10F7A /* IslandTypes.swift */; };
+		47996A64003D2BB7179F5511 /* TomoHeadless.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6308EFADE3E72FB81790A024 /* TomoHeadless.swift */; };
 		4B6AC00F22EC75E90E0157D5 /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F6D7015D6A77AA59323C0E7 /* AppLog.swift */; };
 		4F1E0B3C838DA3CD6F864BC0 /* CalcomPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3104222B3F17BA5E8DEA5277 /* CalcomPoller.swift */; };
 		56BE8C733F10A030A638FB60 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1A7D5CBE2AC084A10C5FF3 /* SettingsView.swift */; };
@@ -55,6 +56,7 @@
 		3B6A38B5686C4A1F15AB5D29 /* PillCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillCatalog.swift; sourceTree = "<group>"; };
 		506824380E9C80B9BC6DCE72 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		61B5FDDE03F5F711146937E2 /* ResendPoller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResendPoller.swift; sourceTree = "<group>"; };
+		6308EFADE3E72FB81790A024 /* TomoHeadless.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoHeadless.swift; sourceTree = "<group>"; };
 		6FD65943C32E150F1CD65C31 /* UploadSequenceEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadSequenceEngine.swift; sourceTree = "<group>"; };
 		71718D1B87A39A4879DD2A9D /* VercelPoller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VercelPoller.swift; sourceTree = "<group>"; };
 		78BC1357785CA1B099A33969 /* IslandScreenGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandScreenGeometry.swift; sourceTree = "<group>"; };
@@ -119,6 +121,7 @@
 				7C1A7D5CBE2AC084A10C5FF3 /* SettingsView.swift */,
 				1BE21C2B315D37AA70ED45E9 /* SoundEngine.swift */,
 				2EF78999D68D56ADE4CEFBE2 /* StripePoller.swift */,
+				6308EFADE3E72FB81790A024 /* TomoHeadless.swift */,
 				C6DA49ECE3D13AC1934BC2AF /* TomoIconRenderer.swift */,
 				8FDC097EC5766E9398220B80 /* TomoIslandCharacter.swift */,
 				E792BF7FE7BE5C9B24045E83 /* TomoLineView.swift */,
@@ -265,6 +268,7 @@
 				56BE8C733F10A030A638FB60 /* SettingsView.swift in Sources */,
 				60E361FFE84C387E5E3ED1AA /* SoundEngine.swift in Sources */,
 				1558BB00C530B721172F6E65 /* StripePoller.swift in Sources */,
+				47996A64003D2BB7179F5511 /* TomoHeadless.swift in Sources */,
 				DC71BBD15F2044AE17D7B17D /* TomoIconRenderer.swift in Sources */,
 				8DB27298E60ADDEAD9F4A0F8 /* TomoIslandCharacter.swift in Sources */,
 				87E1E369A1923718D00ABD22 /* TomoLineView.swift in Sources */,
