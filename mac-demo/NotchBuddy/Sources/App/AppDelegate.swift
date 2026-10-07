@@ -49,6 +49,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             menu.addItem(.separator())
             menu.addItem(withTitle: ui("menu.talk", ["age": TomoLanguages.shared.target.ageLabel(TomoGame.chatStage)]),
                          action: #selector(skipToTalking), keyEquivalent: "3")
+            menu.addItem(withTitle: ui("menu.growStep"), action: #selector(growStep), keyEquivalent: "g")
+            menu.addItem(withTitle: ui("menu.growLevel"), action: #selector(growLevel), keyEquivalent: "l")
+            menu.addItem(withTitle: ui("menu.growBirthday"), action: #selector(growBirthday), keyEquivalent: "b")
+            if TomoGame.shared.isScratch {
+                menu.addItem(withTitle: ui("settings.backToTomo"), action: #selector(backToMyTomo), keyEquivalent: "")
+            }
         }
         menu.addItem(.separator())
         menu.addItem(withTitle: ui("menu.settings"), action: #selector(openSettings), keyEquivalent: ",")
@@ -81,6 +87,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @objc private func skipToTalking() {
         TomoGame.shared.jumpToChat()
     }
+
+    // Testing: grow without waiting, on a copy in memory (TomoGame.testGrow); the card opens to show it.
+    @objc private func growStep() { openIsland(); TomoGame.shared.testGrow(.step) }
+    @objc private func growLevel() { openIsland(); TomoGame.shared.testGrow(.level) }
+    @objc private func growBirthday() { openIsland(); TomoGame.shared.testGrow(.birthday) }
+    @objc private func backToMyTomo() { TomoGame.shared.reload() }
 
     @objc private func dropInNow() {
         TomoGame.shared.dropIn(force: true)
@@ -159,6 +171,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         game.start()
         if let firstRun { TomoOnboardingWindow.show(firstRun) } else { game.dropIn(force: true) }
         startDebugSnapshots()   // the Tomodachi window captures itself (TomoAppWindow)
+        // TOMO_GROW=step|level|birthday: the testing menu's Grow, 3 s after launch (for snapshots).
+        if let how = ProcessInfo.processInfo.environment["TOMO_GROW"].flatMap(TomoGame.TestGrowth.init(rawValue:)) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) { TomoGame.shared.testGrow(how) }
+        }
         TomoAppWindow.play = { [weak self] in self?.openIsland() }
         TomoAppWindow.openIfRequested()
     }
