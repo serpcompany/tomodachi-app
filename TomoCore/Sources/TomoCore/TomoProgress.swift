@@ -57,7 +57,9 @@ public enum TomoClock {
     public static let start: TimeInterval =
         (ProcessInfo.processInfo.environment["TOMO_TIME_TRAVEL"].flatMap(Double.init) ?? 0) * 3600
     public static var offset: TimeInterval = start
-    public static var now: Date { Date().addingTimeInterval(offset) }
+    public static var now: Date { stopped ?? Date().addingTimeInterval(offset) }
+    /// The self-test's clock (TomoGrowthSim): it stands still until the check moves it, so a run is the same every time.
+    static var stopped: Date?
 
     /// The daily new-word limit resets at 4 am, like Anki.
     public static var dayStart: Date {
@@ -229,10 +231,9 @@ public final class TomoProgress {
         let now = TomoClock.now
         // When each word that doesn't know it yet counts: a new one now (within the day's new words) or with the next
         // day's; one already heard once half its wait has passed (like `counts`).
+        let newAt = canTeachNew ? now : TomoClock.dayStart.addingTimeInterval(86400)
         let ready = levelItems.filter { (items[$0]?.stage ?? 0) < TomoSRS.knows }.compactMap { id -> Date? in
-            guard let i = items[id] else { return canTeachNew ? now : TomoClock.dayStart.addingTimeInterval(86400) }
-            guard let due = i.due, let wait = TomoSRS.wait(after: i.stage, level: levelOfItem[id] ?? level) else { return nil }
-            return due.addingTimeInterval(-wait * (1 - Self.earlyShare))
+            items[id] == nil ? newAt : countsFrom(id)
         }.min()
         return Left(words: words, nextAt: ready.flatMap { $0 > now ? $0 : nil })
     }
@@ -255,7 +256,13 @@ public final class TomoProgress {
     // MARK: What Tomo asks
 
     /// Items of this level and the ones before it.
-    private var unlocked: [String] { pack.levels.prefix(level).flatMap(\.itemIDs) }
+    private var unlocked: [String] {
+        if let u = unlockedIDs, u.pack == pack.id, u.level == level { return u.ids }
+        let ids = pack.levels.prefix(level).flatMap(\.itemIDs)    // kept until the level changes: asked every tick
+        unlockedIDs = (pack.id, level, ids)
+        return ids
+    }
+    private var unlockedIDs: (pack: String, level: Int, ids: [String])?
 
     public func isDue(_ id: String) -> Bool {
         guard let due = items[id]?.due else { return false }
@@ -266,8 +273,11 @@ public final class TomoProgress {
         unlocked.filter(isDue).sorted { (items[$0]?.due ?? .distantPast) < (items[$1]?.due ?? .distantPast) }
     }
     public var newItems: [String] { unlocked.filter { items[$0] == nil } }
-    public var newToday: Int { items.values.filter { $0.introduced >= TomoClock.dayStart }.count }
-    public var canTeachNew: Bool { newToday < Self.newPerDay && !newItems.isEmpty }
+    public var newToday: Int {
+        let start = TomoClock.dayStart                  // once: a calendar sum per word made every check slow
+        return items.values.filter { $0.introduced >= start }.count
+    }
+    public var canTeachNew: Bool { newToday < Self.newPerDay && unlocked.contains { items[$0] == nil } }
 
     /// Today (since 4 am): new words, answers, and answers that moved a word up. A testing Tomo has no log.
     public func today() -> (newWords: Int, answers: Int, stronger: Int) {
@@ -292,8 +302,18 @@ public final class TomoProgress {
         return max(0, 1 - due.timeIntervalSince(TomoClock.now) / wait)
     }
 
+    /// When answering a word Tomo already heard counts again: once half its wait has passed (nil: never again).
+    /// The one place the early-review rule lives, so the card's "ready now" and what counts always agree.
+    public func countsFrom(_ id: String) -> Date? {
+        guard let i = items[id], let due = i.due,
+              let wait = TomoSRS.wait(after: i.stage, level: levelOfItem[id] ?? level) else { return nil }
+        return due.addingTimeInterval(-wait * (1 - Self.earlyShare))
+    }
+
     /// Not due yet, but far enough along that answering it now counts (an early review).
-    public func isEarlyOK(_ id: String) -> Bool { !isDue(id) && waitShare(id) >= Self.earlyShare }
+    public func isEarlyOK(_ id: String) -> Bool {
+        !isDue(id) && (countsFrom(id).map { $0 <= TomoClock.now } ?? false)
+    }
 
     /// Would a right answer to this item count now (new, due, or far enough along)?
     public func counts(_ id: String) -> Bool { items[id] == nil || isDue(id) || isEarlyOK(id) }
@@ -304,11 +324,7 @@ public final class TomoProgress {
     /// new words (4 am) when today's are used up and the level still has some. Nil if something counts now.
     public var nextCountsAt: Date? {
         if somethingCounts { return nil }
-        let early = unlocked.compactMap { id -> Date? in
-            guard let i = items[id], let due = i.due,
-                  let wait = TomoSRS.wait(after: i.stage, level: levelOfItem[id] ?? level) else { return nil }
-            return due.addingTimeInterval(-wait * (1 - Self.earlyShare))
-        }.min()
+        let early = unlocked.compactMap(countsFrom).min()
         let newWords = newItems.isEmpty ? nil : TomoClock.dayStart.addingTimeInterval(86400)
         return [early, newWords].compactMap { $0 }.min()
     }

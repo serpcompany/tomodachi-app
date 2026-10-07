@@ -13,7 +13,7 @@ extension TomoProgress {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("tomo-growth-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: dir) }
         let savedOffset = TomoClock.offset, savedNew = newPerDayForChecks
-        defer { TomoClock.offset = savedOffset; newPerDayForChecks = savedNew }
+        defer { TomoClock.offset = savedOffset; TomoClock.stopped = nil; newPerDayForChecks = savedNew }
         newPerDayForChecks = 10                        // the default, whatever the learner chose in Settings
 
         packsSelfTest(check, in: dir)
@@ -151,7 +151,7 @@ final class TomoGrowthSim {
         self.who = who
         let eight = Calendar.current.date(bySettingHour: 8, minute: 0, second: 0, of: Date()) ?? Date()
         start = eight
-        TomoClock.offset = eight.timeIntervalSince(Date())
+        TomoClock.stopped = eight                      // a clock that moves only when the run moves it: same run every time
         p = TomoProgress(pack: pack, learner: learner.id, directory: directory)
         lastAge = p.age
     }
@@ -174,7 +174,7 @@ final class TomoGrowthSim {
                 if let id = p.nextFreePlayItem() {
                     answer(id)
                 } else if let at = p.nextCountsAt {
-                    TomoClock.offset += max(1, at.timeIntervalSince(TomoClock.now) + 1)
+                    TomoClock.stopped = max(at, TomoClock.now).addingTimeInterval(1)
                 } else {
                     fail("nothing counts, and nothing will")
                 }
@@ -182,7 +182,7 @@ final class TomoGrowthSim {
                 guard let date = cal.date(byAdding: .day, value: d, to: cal.startOfDay(for: start)) else { break }
                 d += 1
                 for hour in who.visits + [who.freePlay?.hour].compactMap({ $0 }) where !done {
-                    TomoClock.offset = date.addingTimeInterval(hour * 3600).timeIntervalSince(Date())
+                    TomoClock.stopped = date.addingTimeInterval(hour * 3600)
                     if hour == who.freePlay?.hour, let n = who.freePlay?.answers {
                         for _ in 0..<n where !done {               // free play, until Tomo rests
                             guard let id = p.nextFreePlayItem() else { break }
@@ -213,7 +213,7 @@ final class TomoGrowthSim {
         }
         p.answeredRight(id, mode: "sim", wrongTries: miss ? 1 : 0, hint: false)
         answers += 1
-        TomoClock.offset += 15
+        TomoClock.stopped = TomoClock.now.addingTimeInterval(15)
         if p.isStarter(id), talked == nil {
             talked = day
             if !toEnd { done = true }
@@ -236,7 +236,8 @@ final class TomoGrowthSim {
                 guard let i = p.items[id] else { return p.canTeachNew }
                 return i.stage < TomoSRS.knows && (p.isDue(id) || p.isEarlyOK(id))
             }
-            check(left.nextAt.map { $0 > now && !counts } ?? counts, "\"ready now\" only when a word of the level counts now")
+            check(left.nextAt.map { $0 > now && !counts } ?? counts, "\"ready now\" only when a word of the level counts now"
+                  + " (\(left.words) left, next \(left.nextAt.map { "in \(Int($0.timeIntervalSince(now)))s" } ?? "now"), counts: \(counts))")
         }
         lastLevel = p.level
         lastAge = p.age
