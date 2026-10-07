@@ -2,8 +2,8 @@ import SwiftUI
 
 // MARK: - Settings, the same on the Mac and the iPhone
 //
-// How often Tomo visits, new words a day, Tomo's voice and sounds; what only this device has (the `device` slot: open
-// at login on the Mac, reminders on the iPhone); the language Tomodachi's text is in; and Start over, which always
+// How often Tomo visits (the Mac's), new words a day, Tomo's voice and sounds; what only this device has (the `device`
+// slot: open at login on the Mac, reminders and the Lock Screen card on the iPhone); the language Tomodachi's text is in; and Start over, which always
 // asks first (`TomoScreenNav.confirmingStartOver`, so the Mac's menu bar item asks the same way). The "I'm learning"
 // picker shows only with the testing tools (TomoFeatures): the MVP is Japanese only. `more` goes at the end (the
 // iPhone's link to About).
@@ -29,10 +29,14 @@ public struct TomoSettingsScreen<Device: View, More: View>: View {
     public var body: some View {
         Form {
             Section {
+                #if os(macOS)
+                // The iPhone's cadence is its reminders (the `device` slot, TomoReminderSettingsView): visits by the
+                // notch are the Mac's.
                 Picker(lang.learner("settings.visits"), selection: $visitEvery) {
                     ForEach(DropIn.choices, id: \.seconds) { Text(lang.learner($0.key)).tag($0.seconds) }
                 }
                 .onChange(of: visitEvery) { _, v in DropIn.setEvery(v); game.rescheduleVisits() }
+                #endif
                 Picker(lang.learner("settings.newPerDay"), selection: $newPerDay) {
                     ForEach(TomoProgress.newPerDayChoices, id: \.self) { Text("\($0)").tag($0) }
                 }

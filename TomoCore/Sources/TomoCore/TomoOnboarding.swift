@@ -16,23 +16,41 @@ import SwiftUI
 // folder. A learner whose Tomo was saved before the first run existed doesn't see it. A device that meets the
 // learner's iCloud Tomo during the first run (TomoSync joins it) gets a short "welcome back" instead.
 // The guided round answers through TomoProgress, so the first word counts like any other. The views are in
-// TomoOnboardingView.swift; each shell shows them its own way (the Mac: a window, TomoOnboardingWindow).
+// TomoOnboardingView.swift; each shell shows them its own way (the Mac: a window, TomoOnboardingWindow; the iPhone:
+// full screen, TomoPhoneFirstRun).
+//
+// The iPhone's flow (`Shell.phone`) follows the reference further: after the first word, how Tomo comes to you on
+// the iPhone (notifications, the Lock Screen, widgets), the rhythm (the reminders' cadence, TomoReminders), quiet
+// hours, "Let words find you" (the only place the iOS notification prompt appears, after its reason), how to add a
+// widget, and the Lock Screen card, which starts only if the learner says yes. A phone that joins the learner's
+// iCloud Tomo gets "welcome back", then the same setup for this device.
 
 @MainActor
 public final class TomoOnboarding: ObservableObject {
     public enum Kind: Sendable { case firstRun, welcomeBack }
+    /// Which app shows it: the steps and the rhythm differ (Tomo drops in by the notch, or sends reminders).
+    public enum Shell: Sendable { case mac, phone }
 
     public enum Step: String, CaseIterable, Sendable {
         case hatch          // an egg hatches into the learner's own Tomo
         case round          // Tomo's first word, answered with a guide
         case result         // "You just understood your first Japanese", and when the word comes back
-        case visits         // Tomo comes to you: drop-ins by the notch
-        case rhythm         // how often Tomo drops in
+        case visits         // Tomo comes to you: drop-ins by the notch (Mac); notifications and the Lock Screen (iPhone)
+        case rhythm         // how often Tomo drops in (Mac) or may send a reminder (iPhone)
+        case quiet          // iPhone: quiet hours, no reminders
+        case notify         // iPhone: "Let words find you", then the iOS notification prompt
+        case widget         // iPhone: how to add a widget
+        case lockScreen     // iPhone: Tomo's Lock Screen card, yes or not now
         case ready          // what Tomo starts with; then Tomo's first real visit
         case welcomeBack    // this device joined the learner's Tomo from iCloud
 
         /// The Mac's first run. The reference's referral, trial and plan screens would go before `ready`.
         public static let firstRun: [Step] = [.hatch, .round, .result, .visits, .rhythm, .ready]
+        /// The iPhone's. Its paywall slot is the same: before `ready`.
+        public static let phoneFirstRun: [Step] = [.hatch, .round, .result, .visits, .rhythm, .quiet, .notify, .widget,
+                                                   .lockScreen, .ready]
+        /// What an iPhone sets up for itself, asked after "welcome back" too.
+        public static let phoneSetup: [Step] = [.rhythm, .quiet, .notify, .widget, .lockScreen]
     }
 
     // MARK: Who sees it
@@ -43,7 +61,8 @@ public final class TomoOnboarding: ObservableObject {
 
     /// Call before anything opens the store: TomoGame hatches a new Tomo when there's none, and then there is.
     /// Test runs (TOMO_DATA_DIR) skip it unless TOMO_ONBOARDING asks: `1` checks like a real launch, a step name
-    /// (hatch, round, result, visits, rhythm, ready) or `welcomeBack` opens there, `0` skips it.
+    /// (hatch, round, result, visits, rhythm, quiet, notify, widget, lockScreen, ready) or `welcomeBack` opens there,
+    /// `0` skips it.
     @discardableResult
     public static func checkAtLaunch() -> Kind? {
         if checked { return atLaunch }
@@ -123,8 +142,16 @@ public final class TomoOnboarding: ObservableObject {
     @Published public private(set) var botState: BotState = .idle
     /// When the first word comes back (its first wait), for the result step.
     @Published public private(set) var comesBack: Date?
-    /// How often Tomo drops in (`DropIn`), picked on the rhythm step; saved when the flow ends.
+    /// How often Tomo drops in (`DropIn`), picked on the Mac's rhythm step; saved when the flow ends.
     @Published public var visitEvery: TimeInterval = DropIn.every
+    /// iPhone: the reminders' rhythm and quiet hours, notifications and the Lock Screen card, as picked in the flow;
+    /// saved when it ends (TomoReminderCenter).
+    @Published public var reminders = TomoReminderSettings.load()
+    /// The iOS notification prompt is up.
+    @Published public private(set) var askingPermission = false
+    /// The widget step shows the Home Screen's how-to (else the Lock Screen's).
+    @Published public var widgetOnHomeScreen = false
+    public let shell: Shell
     /// The shell puts the flow away and lets Tomo drop in.
     public var onFinish: (@MainActor () -> Void)?
 
@@ -140,10 +167,12 @@ public final class TomoOnboarding: ObservableObject {
     private static let autoplay = ProcessInfo.processInfo.environment["TOMO_AUTOPLAY"] != nil
 
     /// `start`: open at this step (testing). Steps after the round find the first word already answered.
-    public init(kind: Kind, steps: [Step] = Step.firstRun, start: Step? = nil) {
-        let list = kind == .welcomeBack ? [Step.welcomeBack] : steps
+    public init(kind: Kind, shell: Shell = .mac, start: Step? = nil) {
+        let list = kind == .welcomeBack ? Self.welcomeBackSteps(shell, after: nil)
+            : shell == .phone ? Step.phoneFirstRun : Step.firstRun
         let first = start.flatMap { list.contains($0) ? $0 : nil } ?? list[0]
         self.kind = kind
+        self.shell = shell
         self.steps = list
         step = first
         metHere = TomoGame.shared.progress.metAt
@@ -184,10 +213,11 @@ public final class TomoOnboarding: ObservableObject {
         token += 1
         watch = nil
         // Saved only when changed: Debug builds share the owner's defaults, and a test run shouldn't write them.
-        if kind == .firstRun, visitEvery != DropIn.every {
+        if shell == .mac, kind == .firstRun, visitEvery != DropIn.every {
             DropIn.setEvery(visitEvery)
             game.rescheduleVisits()
         }
+        if shell == .phone { TomoReminderCenter.shared.settings = reminders }
         Saved(started: started, finished: Date()).save()
         onFinish?()
         onFinish = nil
@@ -201,6 +231,7 @@ public final class TomoOnboarding: ObservableObject {
 
     private func entered(_ s: Step) {
         let tok = token
+        NSLog("Tomo first run: %@", s.rawValue)        // the order of steps, prompts and the card (verification.md)
         switch s {
         case .hatch:
             botState = .idle
@@ -227,6 +258,21 @@ public final class TomoOnboarding: ObservableObject {
         case .rhythm:
             botState = .idle
             auto(3, tok)
+        case .quiet:
+            botState = .sleeping
+            auto(3, tok)
+        case .notify:
+            botState = .idle
+            emote(.happy)
+            if Self.autoplay { after(3, tok) { self.turnOnNotifications() } }
+        case .widget:
+            botState = .idle
+            if Self.autoplay { after(2, tok) { self.widgetOnHomeScreen = true } }
+            auto(4.5, tok)
+        case .lockScreen:
+            botState = .idle
+            emote(.love)
+            if Self.autoplay { after(3, tok) { self.chooseLockScreen(true) } }
         case .ready:
             botState = .idle
             emote(.happy)
@@ -317,12 +363,50 @@ public final class TomoOnboarding: ObservableObject {
         }
     }
 
+    // MARK: The iPhone's setup
+
+    /// "Turn on notifications": now the iOS prompt, after the reason on screen. Either way, on to the next step.
+    public func turnOnNotifications() {
+        guard step == .notify, !askingPermission else { return }
+        let tok = token
+        askingPermission = true
+        Task { @MainActor in
+            let granted = await TomoReminderCenter.shared.askPermission()
+            askingPermission = false
+            reminders.on = granted
+            guard token == tok else { return }
+            next()
+        }
+    }
+
+    /// "Not now": no reminders, no prompt. Settings can turn them on later.
+    public func notificationsLater() {
+        guard step == .notify else { return }
+        reminders.on = false
+        next()
+    }
+
+    /// Tomo's Lock Screen card: yes or not now. The shell starts it once the flow is done.
+    public func chooseLockScreen(_ on: Bool) {
+        guard step == .lockScreen else { return }
+        reminders.lockScreen = on
+        next()
+    }
+
     // MARK: Joining the iCloud Tomo
+
+    /// Welcome back, then (on the iPhone) this device's setup steps still to come.
+    private static func welcomeBackSteps(_ shell: Shell, after current: Step?) -> [Step] {
+        guard shell == .phone else { return [.welcomeBack] }
+        let setup = Step.phoneSetup
+        guard let current, let i = setup.firstIndex(of: current) else { return [.welcomeBack] + setup }
+        return [.welcomeBack] + setup[i...]
+    }
 
     private func checkJoined() {
         guard kind == .firstRun, step != steps.last, game.progress.metAt < metHere.addingTimeInterval(-1) else { return }
         kind = .welcomeBack
-        steps = [.welcomeBack]
+        steps = Self.welcomeBackSteps(shell, after: step)
         go(.welcomeBack)
     }
 
