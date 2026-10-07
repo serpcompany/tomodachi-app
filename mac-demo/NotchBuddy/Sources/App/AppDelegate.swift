@@ -1,5 +1,4 @@
 import AppKit
-import Combine
 import SwiftUI
 import TomoCore
 
@@ -29,30 +28,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let menu = NSMenu()
         menu.delegate = self
         statusItem?.menu = menu
-        fillMenu(menu)
-        // The menu is filled again each time it opens, so its text follows the interface language.
-        languageWatch = TomoLanguages.shared.objectWillChange
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.settingsWindow?.title = TomoLanguages.shared.learner("menu.settingsTitle")
-            }
+        fillMenu(menu)   // filled again each time it opens, so its text follows the interface language
     }
 
-    private var languageWatch: AnyCancellable?
-
     func menuNeedsUpdate(_ menu: NSMenu) {
-        TomoTestingTools.shared.menuOpening()   // ⌥-click shows the testing tools
+        TomoTestingTools.menuOpening()   // ⌥-click shows the testing tools
         fillMenu(menu)
     }
 
     private func fillMenu(_ menu: NSMenu) {
         let ui = TomoLanguages.shared.learner
         menu.removeAllItems()
-        menu.addItem(withTitle: ui("menu.open"), action: #selector(openIsland), keyEquivalent: "")
+        menu.addItem(withTitle: ui("menu.open"), action: #selector(openWindow), keyEquivalent: "o")
+        menu.addItem(.separator())
+        menu.addItem(withTitle: ui("menu.play"), action: #selector(openIsland), keyEquivalent: "")
         menu.addItem(withTitle: ui("menu.dropIn"), action: #selector(dropInNow), keyEquivalent: "d")
         menu.addItem(withTitle: ui("menu.words"), action: #selector(openWords), keyEquivalent: "w")
         menu.addItem(withTitle: ui("menu.restart"), action: #selector(restartDemo), keyEquivalent: "r")
-        if TomoTestingTools.shared.shown {
+        if TomoTestingTools.shown {
             menu.addItem(.separator())
             menu.addItem(withTitle: ui("menu.talk", ["age": TomoLanguages.shared.target.ageLabel(TomoGame.chatStage)]),
                          action: #selector(skipToTalking), keyEquivalent: "3")
@@ -71,12 +64,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         islandController?.takeKeyboard()   // opened on purpose: Esc closes it
     }
 
-    @objc private func openWords() {
-        TomoSettingsNav.open(.words)
+    /// The Tomodachi window (TomoAppWindow), at the page it last showed.
+    @objc private func openWindow() {
+        TomoAppWindow.open()
     }
 
+    @objc private func openWords() {
+        TomoAppWindow.open(.words)
+    }
+
+    /// Starting over always asks first: the window's Settings page asks.
     @objc private func restartDemo() {
-        TomoStartOver.confirm()
+        TomoAppWindow.open(confirmStartOver: true)
     }
 
     @objc private func skipToTalking() {
@@ -88,42 +87,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         islandController?.takeKeyboard()
     }
 
-    private var settingsWindow: NSWindow?
-
-    /// Settings, laid out like System Settings: a sidebar of pages (TomoSettingsView). TomoSettingsNav picks the page.
     @objc private func openSettings() {
-        // The island floats above every window; fold it away so it can't cover Settings.
-        if AppState.shared.mode == .expanded { islandController?.collapse() }
-        if settingsWindow == nil {
-            let win = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 780, height: 580),
-                               styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
-                               backing: .buffered, defer: false)
-            win.title = TomoLanguages.shared.learner("menu.settingsTitle")
-            win.titleVisibility = .hidden
-            win.titlebarAppearsTransparent = true
-            win.minSize = NSSize(width: 720, height: 500)
-            win.contentView = NSHostingView(rootView: TomoSettingsView())
-            win.isReleasedWhenClosed = false
-            settingsWindow = win
-        }
-        settingsWindow.map(placeBelowIsland)
-        settingsWindow?.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        TomoAppWindow.open(.settings)
     }
 
-    /// Centres the window horizontally and keeps its title bar clear of the island panel
-    /// (320 pt tall at the top of the island's screen), shrinking it to fit if needed.
-    private func placeBelowIsland(_ win: NSWindow) {
-        let screen = islandController?.window?.screen ?? IslandWindowController.islandScreen() ?? win.screen
-        guard let screen else { win.center(); return }
-        let visible = screen.visibleFrame
-        let islandBottom = screen.frame.maxY - 320 - 12   // island panel height + margin
-        let top = min(visible.maxY, islandBottom)
-        var frame = win.frame
-        frame.size.height = min(frame.height, max(top - visible.minY - 12, win.minSize.height))
-        frame.origin.x = visible.midX - frame.width / 2
-        frame.origin.y = max(visible.minY + 12, top - frame.height)
-        win.setFrame(frame, display: true)
+    /// Opening Tomodachi again from Finder, Launchpad or the Dock while it runs brings up its window.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        TomoAppWindow.open()
+        return false
     }
 
     // MARK: - Debug snapshots (TOMO_SNAPSHOT_DIR=/path): PNG of the island panel every second
@@ -148,13 +119,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     pv.cacheDisplay(in: pv.bounds, to: prep)
                     let purl = URL(fileURLWithPath: dir).appendingPathComponent(String(format: "popover%d-%03d.png", i, n))
                     try? prep.representation(using: .png, properties: [:])?.write(to: purl)
-                }
-                // TOMO_OPEN_SETTINGS=1 also captures the Settings window
-                if let sv = self?.settingsWindow?.contentView, self?.settingsWindow?.isVisible == true,
-                   let srep = sv.bitmapImageRepForCachingDisplay(in: sv.bounds) {
-                    sv.cacheDisplay(in: sv.bounds, to: srep)
-                    let surl = URL(fileURLWithPath: dir).appendingPathComponent(String(format: "settings-%03d.png", n))
-                    try? srep.representation(using: .png, properties: [:])?.write(to: surl)
                 }
             }
         }
@@ -194,11 +158,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         TomoSync.shared.registerForPushes = { NSApplication.shared.registerForRemoteNotifications() }
         game.start()
         if let firstRun { TomoOnboardingWindow.show(firstRun) } else { game.dropIn(force: true) }
-        startDebugSnapshots()
-        if ProcessInfo.processInfo.environment["TOMO_OPEN_SETTINGS"] != nil {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in self?.openSettings() }
-        }
-        NotificationCenter.default.addObserver(self, selector: #selector(openSettings),
-                                               name: .openFullSettings, object: nil)
+        startDebugSnapshots()   // the Tomodachi window captures itself (TomoAppWindow)
+        TomoAppWindow.play = { [weak self] in self?.openIsland() }
+        TomoAppWindow.openIfRequested()
     }
 }

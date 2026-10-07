@@ -1,20 +1,19 @@
 import AppKit
+import TomoCore
 
-/// The testing tools (the menu's "Skip to talking", Settings → Testing) stay out of a learner's way. They show
-/// after a deliberate step (docs/verification.md):
+/// The testing tools (the menu's "Skip to talking", the window's Testing and AI pages) stay out of a learner's way.
+/// They show after a deliberate step (docs/verification.md):
 /// - ⌥-click the menu bar icon: they show for the rest of that run;
 /// - `defaults write com.zenbujapanese.tomodachi tomoTestingTools -bool true`: they always show.
 /// Not `#if DEBUG`: the owner tests with Developer ID builds. Testing never touches the saved Tomo
-/// (`TomoGame.jump(toAge:)` and `skipAhead` run on a copy in memory).
+/// (`TomoGame.jump(toAge:)` and `skipAhead` run on a copy in memory). The switch itself is
+/// `TomoFeatures.testingTools` in TomoCore, which the shared screens read.
 @MainActor
-final class TomoTestingTools: ObservableObject {
-    static let shared = TomoTestingTools()
-
-    @Published private(set) var shown = UserDefaults.standard.bool(forKey: "tomoTestingTools")
-        || ProcessInfo.processInfo.environment["TOMO_OPEN_SETTINGS"] == "testing"
+enum TomoTestingTools {
+    static var shown: Bool { TomoFeatures.shared.testingTools }
 
     /// The menu is opening: ⌥ held shows the tools.
-    func menuOpening() {
-        if NSEvent.modifierFlags.contains(.option) { shown = true }
+    static func menuOpening() {
+        if NSEvent.modifierFlags.contains(.option) { TomoFeatures.shared.testingTools = true }
     }
 }

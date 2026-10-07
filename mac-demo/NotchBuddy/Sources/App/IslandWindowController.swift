@@ -419,13 +419,6 @@ final class IslandPanel: NSPanel {
     }
 }
 
-// MARK: - Notification names
-
-extension Notification.Name {
-    /// Opens the Settings window (TomoSettingsNav picks the page).
-    static let openFullSettings = Notification.Name("tomo.openSettings")
-}
-
 // MARK: - islandSize (takes real notch dimensions)
 
 func islandSize(mode: IslandMode, view: IslandView,
