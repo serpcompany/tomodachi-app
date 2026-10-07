@@ -57,7 +57,9 @@ public enum TomoClock {
     public static let start: TimeInterval =
         (ProcessInfo.processInfo.environment["TOMO_TIME_TRAVEL"].flatMap(Double.init) ?? 0) * 3600
     public static var offset: TimeInterval = start
-    public static var now: Date { Date().addingTimeInterval(offset) }
+    public static var now: Date { stopped ?? Date().addingTimeInterval(offset) }
+    /// The self-test's clock (TomoGrowthSim): it stands still until the check moves it, so a run is the same every time.
+    static var stopped: Date?
 
     /// The daily new-word limit resets at 4 am, like Anki.
     public static var dayStart: Date {
@@ -72,7 +74,11 @@ public final class TomoProgress {
     public typealias Item = TomoStore.ItemRow
 
     /// New words a day (Settings → General): 5, 10, 20 or 30.
-    public static var newPerDay: Int { UserDefaults.standard.object(forKey: "tomoNewPerDay") as? Int ?? 10 }
+    public static var newPerDay: Int {
+        newPerDayForChecks ?? UserDefaults.standard.object(forKey: "tomoNewPerDay") as? Int ?? 10
+    }
+    /// The self-test's own limit, so a check never reads (or depends on) the learner's setting.
+    static var newPerDayForChecks: Int?
     public static let newPerDayChoices = [5, 10, 20, 30]
     public static let newPerVisit = 1
     /// An early review counts once this share of the word's wait has passed.
@@ -80,10 +86,10 @@ public final class TomoProgress {
 
     public private(set) var pack: TargetPack
     public private(set) var learner: String
-    public private(set) var level = 1
-    public private(set) var age = 1
+    public internal(set) var level = 1         // set inside TomoCore only by the rules below and the self-test
+    public internal(set) var age = 1
     public private(set) var metAt = Date()
-    public private(set) var items: [String: Item] = [:]
+    public internal(set) var items: [String: Item] = [:]
     /// Testing ages run on an in-memory Tomo; the saved one isn't touched.
     public private(set) var isScratch = false
     private var store: TomoStore?
@@ -113,8 +119,14 @@ public final class TomoProgress {
         items = store?.loadItems() ?? [:]
         if let t = store?.loadTomo() {
             level = min(max(t.level, 1), max(pack.levels.count, 1))
-            age = t.age
             metAt = t.metAt
+            // Never younger than its level: a Tomo saved before the pack's ages moved (or seeded without an age) is
+            // that level's age now, so its next birthday comes at the pack's next age boundary.
+            age = max(t.age, current?.age ?? 1)
+            if age > t.age {
+                save()
+                store?.logGrowth(at: TomoClock.now, kind: "age", value: age)
+            }
         } else {
             hatch()
         }
@@ -142,6 +154,21 @@ public final class TomoProgress {
         }
     }
 
+    /// Testing, on a copy in memory only: every word of this level goes up `steps` stages at once (up to "knows
+    /// it"), as if each had been answered right on time. `levelUpIfReady` then decides, as always. Words met
+    /// this way count as met yesterday, so they don't use up today's new words.
+    public func testRaise(by steps: Int) {
+        guard isScratch else { return }
+        let now = TomoClock.now
+        for id in levelItems {
+            let old = items[id]
+            let stage = min((old?.stage ?? 0) + steps, TomoSRS.knows)
+            items[id] = Item(id: id, stage: stage, due: TomoSRS.wait(after: stage, level: level).map(now.addingTimeInterval),
+                             introduced: old?.introduced ?? TomoClock.dayStart.addingTimeInterval(-3600), answered: now, right: (old?.right ?? 0) + 1,
+                             wrong: old?.wrong ?? 0, peak: max(old?.peak ?? 0, stage))
+        }
+    }
+
     /// Testing: carry on with this Tomo in memory, as it is now. Nothing from here on is saved or synced.
     public func detach() {
         isScratch = true
@@ -165,7 +192,9 @@ public final class TomoProgress {
     public var levelItems: [String] { current?.itemIDs ?? [] }
     public var levelKnown: Int { levelItems.filter { (items[$0]?.stage ?? 0) >= TomoSRS.knows }.count }
     /// 90% of the level's items, rounded up.
-    public var levelNeeded: Int { max(1, (levelItems.count * 9 + 9) / 10) }
+    public var levelNeeded: Int { Self.needed(of: levelItems.count) }
+    /// How many of a level's `count` items have to know it: 90%, rounded up (9 of 10, all of a smaller level).
+    nonisolated public static func needed(of count: Int) -> Int { max(1, (count * 9 + 9) / 10) }
     public var isLastLevel: Bool { level >= pack.levels.count }
     /// The level is done: `levelNeeded` of its words know it now. A word that slipped has to come back first.
     public var levelDone: Bool { levelKnown >= levelNeeded }
@@ -202,10 +231,9 @@ public final class TomoProgress {
         let now = TomoClock.now
         // When each word that doesn't know it yet counts: a new one now (within the day's new words) or with the next
         // day's; one already heard once half its wait has passed (like `counts`).
+        let newAt = canTeachNew ? now : TomoClock.dayStart.addingTimeInterval(86400)
         let ready = levelItems.filter { (items[$0]?.stage ?? 0) < TomoSRS.knows }.compactMap { id -> Date? in
-            guard let i = items[id] else { return canTeachNew ? now : TomoClock.dayStart.addingTimeInterval(86400) }
-            guard let due = i.due, let wait = TomoSRS.wait(after: i.stage, level: levelOfItem[id] ?? level) else { return nil }
-            return due.addingTimeInterval(-wait * (1 - Self.earlyShare))
+            items[id] == nil ? newAt : countsFrom(id)
         }.min()
         return Left(words: words, nextAt: ready.flatMap { $0 > now ? $0 : nil })
     }
@@ -228,7 +256,13 @@ public final class TomoProgress {
     // MARK: What Tomo asks
 
     /// Items of this level and the ones before it.
-    private var unlocked: [String] { pack.levels.prefix(level).flatMap(\.itemIDs) }
+    private var unlocked: [String] {
+        if let u = unlockedIDs, u.pack == pack.id, u.level == level { return u.ids }
+        let ids = pack.levels.prefix(level).flatMap(\.itemIDs)    // kept until the level changes: asked every tick
+        unlockedIDs = (pack.id, level, ids)
+        return ids
+    }
+    private var unlockedIDs: (pack: String, level: Int, ids: [String])?
 
     public func isDue(_ id: String) -> Bool {
         guard let due = items[id]?.due else { return false }
@@ -239,14 +273,20 @@ public final class TomoProgress {
         unlocked.filter(isDue).sorted { (items[$0]?.due ?? .distantPast) < (items[$1]?.due ?? .distantPast) }
     }
     public var newItems: [String] { unlocked.filter { items[$0] == nil } }
-    public var newToday: Int { items.values.filter { $0.introduced >= TomoClock.dayStart }.count }
-    public var canTeachNew: Bool { newToday < Self.newPerDay && !newItems.isEmpty }
+    public var newToday: Int {
+        let start = TomoClock.dayStart                  // once: a calendar sum per word made every check slow
+        return items.values.filter { $0.introduced >= start }.count
+    }
+    public var canTeachNew: Bool { newToday < Self.newPerDay && unlocked.contains { items[$0] == nil } }
 
     /// Today (since 4 am): new words, answers, and answers that moved a word up. A testing Tomo has no log.
     public func today() -> (newWords: Int, answers: Int, stronger: Int) {
         let counts = store?.answerCounts(since: TomoClock.dayStart) ?? (answers: 0, stronger: 0)
         return (newToday, counts.answers, counts.stronger)
     }
+
+    /// Level-ups, birthdays and start-overs logged for this Tomo, oldest first. A testing Tomo has no log.
+    public func growthLog() -> [(kind: String, value: Int)] { store?.growthLog() ?? [] }
 
     /// A visit: due items first (the longest-waiting first), then at most one new one. Empty = nothing to do.
     public func visitItems(limit: Int) -> [String] {
@@ -262,8 +302,18 @@ public final class TomoProgress {
         return max(0, 1 - due.timeIntervalSince(TomoClock.now) / wait)
     }
 
+    /// When answering a word Tomo already heard counts again: once half its wait has passed (nil: never again).
+    /// The one place the early-review rule lives, so the card's "ready now" and what counts always agree.
+    public func countsFrom(_ id: String) -> Date? {
+        guard let i = items[id], let due = i.due,
+              let wait = TomoSRS.wait(after: i.stage, level: levelOfItem[id] ?? level) else { return nil }
+        return due.addingTimeInterval(-wait * (1 - Self.earlyShare))
+    }
+
     /// Not due yet, but far enough along that answering it now counts (an early review).
-    public func isEarlyOK(_ id: String) -> Bool { !isDue(id) && waitShare(id) >= Self.earlyShare }
+    public func isEarlyOK(_ id: String) -> Bool {
+        !isDue(id) && (countsFrom(id).map { $0 <= TomoClock.now } ?? false)
+    }
 
     /// Would a right answer to this item count now (new, due, or far enough along)?
     public func counts(_ id: String) -> Bool { items[id] == nil || isDue(id) || isEarlyOK(id) }
@@ -274,11 +324,7 @@ public final class TomoProgress {
     /// new words (4 am) when today's are used up and the level still has some. Nil if something counts now.
     public var nextCountsAt: Date? {
         if somethingCounts { return nil }
-        let early = unlocked.compactMap { id -> Date? in
-            guard let i = items[id], let due = i.due,
-                  let wait = TomoSRS.wait(after: i.stage, level: levelOfItem[id] ?? level) else { return nil }
-            return due.addingTimeInterval(-wait * (1 - Self.earlyShare))
-        }.min()
+        let early = unlocked.compactMap(countsFrom).min()
         let newWords = newItems.isEmpty ? nil : TomoClock.dayStart.addingTimeInterval(86400)
         return [early, newWords].compactMap { $0 }.min()
     }
@@ -518,6 +564,19 @@ public final class TomoProgress {
               && TomoProgress(pack: pack, learner: "en", directory: dir).items == savedItems,
               "skipping ahead runs on a copy: answers a day ahead aren't saved")
 
+        // The testing menu's Grow (TomoGame.testGrow): a copy grows without waiting; the saved Tomo doesn't.
+        let grower = TomoProgress(pack: pack, learner: "en", directory: dir)
+        let (savedLevel, savedGrowItems) = (grower.level, grower.items)
+        grower.testRaise(by: TomoSRS.knows)
+        check(grower.items == savedGrowItems, "growing for testing does nothing to the saved Tomo itself")
+        grower.detach()
+        grower.testRaise(by: 1)
+        let oneStep = grower.levelProgress
+        grower.testRaise(by: TomoSRS.knows)
+        check(oneStep > 0 && oneStep < 1 && grower.levelUpIfReady()?.level == savedLevel + 1
+              && TomoProgress(pack: pack, learner: "en", directory: dir).level == savedLevel,
+              "testing growth: a step moves the bar, finishing the level levels up, and nothing is saved")
+
         reopened.startOver()
         let fresh = TomoProgress(pack: pack, learner: "en", directory: dir)
         check(fresh.level == 1 && fresh.age == 1 && fresh.items.isEmpty, "start over is saved")
@@ -528,6 +587,18 @@ public final class TomoProgress {
         check(!romaji[1].unicodeScalars.contains { $0.value == 0x3063 }, "konnichiwa has ん, not a small tsu")  // text-ok: self-test output
         let english = ["what are you doing", "I'm working", "car", "yes"]
         check(english.allSatisfy { pack.normalizedAnswer($0) == $0 }, "English answers stay English")
+
+        // A Tomo saved younger than its level (a pack whose ages moved, a seeded Tomo) is that level's age when it
+        // loads, so the next birthday comes at the pack's next age boundary, not one level late.
+        let young = TomoStore(learner: "fr", target: pack.id, directory: dir)
+        let lv20 = 20, age20 = pack.levels[lv20 - 1].age
+        young?.saveTomo(.init(metAt: TomoClock.now, level: lv20, age: 1))
+        let loaded = TomoProgress(pack: pack, learner: "fr", directory: dir)
+        check(loaded.age == age20 && TomoStore(learner: "fr", target: pack.id, directory: dir)?.loadTomo()?.age == age20
+              && loaded.growthLog().last.map { $0.kind == "age" && $0.value == age20 } == true,
+              "a Tomo saved at level \(lv20) as \(pack.ageLabel(1)) loads as \(pack.ageLabel(age20)), saved and logged")
+
+        growthSelfTest(check)
         return ok
     }
 }

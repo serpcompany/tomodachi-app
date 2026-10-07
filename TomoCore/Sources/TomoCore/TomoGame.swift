@@ -167,7 +167,7 @@ public final class TomoGame: ObservableObject {
 
     public static let chatStage = 3
     /// Talking questions are asked with choices (pick the meaning, pick the reply), not typed answers
-    /// (decisions.md, 2026-10-06). The typed conversation below stays, switched off, for when it returns.
+    /// (decisions-content.md, 2026-10-06). The typed conversation below stays, switched off, for when it returns.
     public static let talkAsChoices = true
 
     /// Tomo's age (TomoProgress keeps it; it never goes down).
@@ -338,8 +338,11 @@ public final class TomoGame: ObservableObject {
     /// Progress from another device was merged into the store (TomoSync): show it. A testing Tomo stays.
     private func progressArrived(_ pairs: Set<TomoSync.Pair>) {
         guard !progress.isScratch, pairs.contains(.init(learner: lang.learner.id, target: lang.target.id)) else { return }
+        let age = stage
         progress.load(pack: lang.target, learner: lang.learner.id)
         syncProgress()
+        // A birthday on the other device: Tomo evolves here too (the Mac's Tomo only hears it this way).
+        if stage != age { NotificationCenter.default.post(name: .botGrow, object: growthStep) }
     }
 
     /// The language pair changed (or testing ended): bring that pair's saved Tomo.
@@ -362,6 +365,22 @@ public final class TomoGame: ObservableObject {
         TomoClock.offset += days * 86400
         syncProgress()
         nextDropIn = Date()
+    }
+
+    /// Testing: how much to grow at once (the Mac menu's testing tools).
+    public enum TestGrowth: String { case step, level, birthday }
+
+    /// Testing: grow without waiting, on a copy in memory like `skipAhead`, so the saved Tomo never changes (Back
+    /// to my Tomo returns to it). A step moves every word of this level up one stage; a level finishes it; a
+    /// birthday finishes levels until Tomo's age changes. Level-ups and birthdays celebrate as usual.
+    public func testGrow(_ how: TestGrowth) {
+        if !progress.isScratch { progress.detach() }
+        while true {
+            progress.testRaise(by: how == .step ? 1 : TomoSRS.knows)
+            guard let up = progress.levelUpIfReady() else { break }
+            if how != .birthday || up.birthday || progress.isLastLevel { celebrate(up); return }
+        }
+        syncProgress()
     }
 
     private func resetRound() {
@@ -1012,6 +1031,8 @@ public final class TomoGame: ObservableObject {
     // MARK: Debug autoplay (TOMO_AUTOPLAY=1, TOMO_AUTOCHAT="answer|answer|…")
 
     private static let autoplay = ProcessInfo.processInfo.environment["TOMO_AUTOPLAY"] != nil
+    /// TOMO_AUTOPLAY=right: every round right the first time, so each answer counts in full (a level-up on cue).
+    private static let autoplayRight = ProcessInfo.processInfo.environment["TOMO_AUTOPLAY"] == "right"
     private static var autochat: [String] = ProcessInfo.processInfo.environment["TOMO_AUTOCHAT"]?
         .split(separator: "|").map(String.init) ?? []
     private var autoMissed = false
@@ -1040,7 +1061,7 @@ public final class TomoGame: ObservableObject {
         after(2.5, tok) { [weak self] in
             guard let self else { return }
             let r = self.round
-            if !self.autoMissed, let wrong = r.choices.first(where: { $0.id != r.answer }) {
+            if !self.autoMissed, !Self.autoplayRight, let wrong = r.choices.first(where: { $0.id != r.answer }) {
                 self.autoMissed = true
                 self.pick(wrong)
                 self.after(2.0, self.token) { [weak self] in self?.autoAnswer(self?.token ?? 0) }

@@ -9,8 +9,9 @@ iOS with everything that isn't tied to one device: the game, growth, store, lang
 AI, voice, sounds, and Tomo's drawing. Each app is a shell around it: the Mac app in
 `mac-demo/NotchBuddy/Sources/App/`, where Coucou's files (`Island*`, `AppDelegate`, `AppState`…) are
 the notch ([coucou-fork.md](coucou-fork.md)), and the iPhone app in `ios-demo/` with its widget extension. Widgets can't run the game: the app writes a `TomoGlance` (age, level, bar, what's waiting, in the learner's language) to the App Group `group.com.zenbujapanese.tomodachi`, and the widget draws it, with the mascot moving through a font of its own frames (`TomoMovingMascot`; decisions.md). The same glance drives Tomo's Lock Screen card, a Live Activity (`TomoLiveVisit` in the app, `TomoVisitLiveActivity` in the extension), once the learner said yes to it; its stale date is the next due time, so it turns to "ready" without the app running. Mac-only parts stay in
-the Mac app: the card (`TomoView`), Settings, clickable words with the Mac's dictionary
-(`TomoLineView`) and Tomo in the island (`TomoIslandCharacter`). Invariant: TomoCore never imports AppKit
+the Mac app: the card (`TomoView`), the Tomodachi window and the menus (`TomoAppWindow`, `TomoMenus`), clickable
+words with the Mac's dictionary (`TomoLineView`) and Tomo in the island (`TomoIslandCharacter`). The screens both apps
+show (Tomo, Words, Settings, About) are in TomoCore (below, "Screens"). Invariant: TomoCore never imports AppKit
 or UIKit, or reaches into a shell.
 
 ## Layers
@@ -45,7 +46,8 @@ runs in the app's process, launching it in the background if needed; they reach 
 `TomoVisitHook`, set in the app's `init` ([#52](https://github.com/serpcompany/tomodachi-app/issues/52)).
 Invariants on the Mac: the island sits on the notch screen (else the main display) and moves when displays
 change; it needs no permission; it takes the keyboard only when the learner opens it (a click, the menu),
-so Esc works then and a visit never takes a keystroke (decisions.md).
+so Esc works then and a visit never takes a keystroke (decisions.md). It's a non-activating panel that can't be
+hidden: Tomodachi is a regular app with a Dock icon, and the island never brings it to the front.
 
 **Character.** `TomoBlob` in `TomoCharacter.swift`: a blob drawn every frame in code. Its look is a
 `TomoLook` (`TomoLook.swift`) hashed from a seed: a colour and eyes for life, and a form for each age
@@ -79,8 +81,8 @@ decides. Invariants:
 - An answer counts only when the word is due, or at least halfway through its wait.
 - Level and age never go down, and the experience bar never moves back (it uses each word's best stage).
 - The bar counts the level's best `levelNeeded` words, and its goal (`goalShare`, the last tenth) fills only
-  when the level is done. Every surface draws the same number (`TomoGrowthBar` on the card, the iPhone and
-  Settings; the glance for widgets).
+  when the level is done. Every surface draws the same number (`TomoGrowthBar` on the card, the iPhone's play
+  screen and the Tomo screen; the glance for widgets).
 - Practice is a mode the learner picks, and it never moves the bar.
 
 `TomoClock` moves time for testing, and `TOMO_SELFTEST=1` checks the rules. Planned:
@@ -153,7 +155,8 @@ placeholder that the Zenbu dictionary replaces
 
 **Conversation AI.** `TomoAI.complete` is the only network call to an AI: Anthropic's API, or any
 OpenAI-compatible endpoint. The prompt is a shared template plus the pack's persona and rules. The
-provider comes from Settings → AI (key in the Keychain), else from `.env` through `run.sh`. Planned:
+provider comes from the AI page (key in the Keychain; hidden for the first release, shown with the testing tools,
+`TomoFeatures`), else from `.env` through `run.sh`. Planned:
 [#7](https://github.com/serpcompany/tomodachi-app/issues/7),
 [#8](https://github.com/serpcompany/tomodachi-app/issues/8),
 [#32](https://github.com/serpcompany/tomodachi-app/issues/32).
@@ -166,9 +169,16 @@ synthesized in `TomoSounds.swift`, with no audio files, and all triggered in one
 ([#17](https://github.com/serpcompany/tomodachi-app/issues/17)), sound polish
 ([#21](https://github.com/serpcompany/tomodachi-app/issues/21)).
 
-**Settings.** `TomoSettingsView.swift`: a System Settings–style window with one `TomoSettingsPane` case
-per page, and `TomoSettingsNav.open(_:)` to jump to a page. Pages read `TomoGame.progress`. Testing shows
-only after a deliberate step (`TomoTestingTools`), and testing never touches the saved Tomo. Opening at
-login is `TomoLoginItem`, off until the learner turns it on.
+**Screens.** Tomo, Words, Settings and About are SwiftUI views in TomoCore (`TomoGrowthScreen`,
+`TomoWordsScreen`, `TomoSettingsScreen`, `TomoAboutScreen`), shown by both shells: the Mac in the Tomodachi
+window with a sidebar (`TomoAppWindow`), the iPhone as tabs around the play screen (`TomoPhoneHome`, which wraps
+`TomoPhoneView` unchanged). `TomoScreens.swift` holds the seam: `TomoScreen` (the screens), `TomoScreenNav` (which
+one shows; `confirmingStartOver`, so the Mac's menu asks the same way Settings does) and `TomoFeatures` (what this
+version offers: the AI page and the "I'm learning" picker show only with the testing tools). What only one device
+has goes into Settings' `device` slot: open at login on the Mac (`TomoLoginItem`, off until the learner turns it
+on), reminders on the iPhone ([#88](https://github.com/serpcompany/tomodachi-app/issues/88)). The Mac's main menu
+and its menu bar icon's menu share one list of commands (`TomoMenus`). Invariants: the screens read `TomoGame` and
+`TomoProgress` and decide nothing themselves; Start over always asks first; the testing tools (`TomoTestingTools`,
+after ⌥-clicking the menu bar icon) never touch the saved Tomo.
 
 The research behind these systems is mapped in [research/README.md](research/README.md).

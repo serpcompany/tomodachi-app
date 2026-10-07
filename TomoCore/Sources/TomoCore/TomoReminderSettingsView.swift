@@ -2,9 +2,9 @@ import SwiftUI
 
 // MARK: - Settings for reminders (issue #88): on/off, the rhythm, quiet hours, and Tomo's Lock Screen card
 //
-// Self-contained, for the iPhone's Settings screen: it reads and writes TomoReminderCenter.shared.settings, which
-// saves and schedules again on every change. `TomoReminderSettingsView()` is a page with a Form of its own;
-// `TomoReminderSettingsView.Sections()` is the same rows for a host that already has a Form. Turning reminders on
+// Self-contained: it reads and writes TomoReminderCenter.shared.settings, which saves and schedules again on every
+// change. `TomoReminderSettingsView.Sections()` is the rows for a host with a Form of its own (the iPhone's Settings,
+// TomoSettingsScreen's `device` slot); `TomoReminderSettingsView()` is a page with its own Form. Turning reminders on
 // asks iOS first if it hasn't been asked; if notifications are off for the app in iOS Settings, it says so and links
 // there. All text is in ui.<id>.json.
 
@@ -43,25 +43,16 @@ public struct TomoReminderSettingsView: View {
                     }
                     #endif
                 }
+                Picker(ui("reminders.settings.rhythm"), selection: $center.settings.every) {
+                    ForEach(TomoReminders.choices.indices, id: \.self) { i in
+                        let c = TomoReminders.choices[i]
+                        Text(ui("reminders.every.\(c.key)") + " · " + ui("reminders.tag.\(c.key)")).tag(c.every)
+                    }
+                }
             } footer: {
                 Text(TomoReminders.summary(center.settings) + " " + ui("reminders.settings.backOff"))
             }
             .task { await center.refreshPermission() }
-
-            Section(ui("reminders.settings.rhythm")) {
-                Picker(ui("reminders.settings.rhythm"), selection: $center.settings.every) {
-                    ForEach(TomoReminders.choices.indices, id: \.self) { i in
-                        let c = TomoReminders.choices[i]
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(ui("reminders.every.\(c.key)"))
-                            Text(ui("reminders.tag.\(c.key)")).font(.footnote).foregroundStyle(.secondary)
-                        }
-                        .tag(c.every)
-                    }
-                }
-                .pickerStyle(.inline)
-                .labelsHidden()
-            }
 
             Section(ui("reminders.settings.quiet")) {
                 Toggle(ui("reminders.settings.quietOn"), isOn: Binding(get: { center.settings.hasQuietHours }, set: { on in

@@ -11,15 +11,12 @@ import TomoCore
 // TOMO_ONBOARDING=<step> opens it at a step, TOMO_AUTOPLAY=1 plays it through (docs/verification.md).
 
 extension View {
-    /// Covers Tomo's screen with the first run while there is one.
+    /// Covers the whole app (the tabs) with the first run while there is one.
     func tomoFirstRun(_ shell: TomoPhoneShell) -> some View { modifier(TomoPhoneFirstRun(shell: shell)) }
 }
 
 private struct TomoPhoneFirstRun: ViewModifier {
     @ObservedObject var shell: TomoPhoneShell
-    /// Testing: TOMO_OPEN_SETTINGS=reminders shows the reminders' settings page in a sheet, until the iPhone's
-    /// Settings (#90) hosts it.
-    @State private var reminderSettings = ProcessInfo.processInfo.environment["TOMO_OPEN_SETTINGS"] == "reminders"
 
     /// The first run gets the screen's size, whatever size Tomo's screen under it would take: an overlay (or a ZStack)
     /// would size it like that screen.
@@ -36,6 +33,5 @@ private struct TomoPhoneFirstRun: ViewModifier {
                 }
             }
         }
-        .sheet(isPresented: $reminderSettings) { NavigationStack { TomoReminderSettingsView() } }
     }
 }
