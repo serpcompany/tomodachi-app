@@ -49,7 +49,7 @@ final class TomoLiveVisit {
         TomoPhoneShell.shared.start()
         closing?.cancel()
         isPlaying = true
-        if game.phase == .practiceIntro { game.startPractice() }
+        if game.phase == .resting { game.startPractice() }   // Play is a choice: practice if nothing counts
         // The game picks its next word on its own clock (TomoGame.tick, every 0.5 s).
         guard await wait(until: { self.game.phase == .asking && !self.game.round.choices.isEmpty && !self.game.isChat },
                          seconds: 3) else {

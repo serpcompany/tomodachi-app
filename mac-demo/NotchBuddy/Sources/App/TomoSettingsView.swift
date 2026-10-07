@@ -206,12 +206,23 @@ private struct TomoGrowthPane: View {
                             Spacer()
                             Text(lang.learner("words.days", ["n": "\(daysTogether)"])).font(.callout).foregroundStyle(.secondary)
                         }
-                        ProgressView(value: game.levelProgress).tint(.teal)
+                        // The card's bar: the goal at its end fills only when the level is done.
+                        TomoGrowthBar(progress: game.levelProgress, standing: game.levelStanding,
+                                      colors: [.teal.opacity(0.7), .teal], empty: Color.secondary.opacity(0.18),
+                                      outline: Color.secondary.opacity(0.4))
+                            .frame(height: 6)
+                            .padding(.vertical, 2)
                         Text(progress.isLastLevel
                              ? lang.learner("words.lastLevel", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)"])
                              : lang.learner("words.toNext", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)",
                                                              "next": "\(game.level + 1)"]))
                             .font(.callout).foregroundStyle(.secondary)
+                        // What's left, and when the next word is ready; when Tomo rests, when it's back.
+                        Label(game.whatsLeft(), systemImage: "flag.fill")
+                            .font(.callout.weight(.medium))
+                        if game.phase == .resting {
+                            Label(game.restLines.back, systemImage: "clock").font(.callout).foregroundStyle(.secondary)
+                        }
                     }
                 }
                 .padding(.vertical, 4)
