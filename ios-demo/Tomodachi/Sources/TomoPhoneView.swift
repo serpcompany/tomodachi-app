@@ -32,7 +32,9 @@ struct TomoPhoneView: View {
                 .padding(.top, 10)
             // What's left before the next level, and when the next word is ready
             if !typing {
-                Label(game.phase == .resting ? game.restLines.left : game.whatsLeft(), systemImage: "flag.fill")
+                Label { Text(game.phase == .resting ? game.restLines.left : game.whatsLeft()) } icon: {
+                    Image(systemName: "flag.fill").foregroundStyle(Color(hex: "#34D399"))
+                }
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(Color(hex: "#9EA3AC"))
                     .lineLimit(1).minimumScaleFactor(0.75)

@@ -218,8 +218,10 @@ private struct TomoGrowthPane: View {
                                                              "next": "\(game.level + 1)"]))
                             .font(.callout).foregroundStyle(.secondary)
                         // What's left, and when the next word is ready; when Tomo rests, when it's back.
-                        Label(game.whatsLeft(), systemImage: "flag.fill")
-                            .font(.callout.weight(.medium))
+                        Label { Text(game.phase == .resting ? game.restLines.left : game.whatsLeft()) } icon: {
+                            Image(systemName: "flag.fill").foregroundStyle(.teal)
+                        }
+                        .font(.callout.weight(.medium))
                         if game.phase == .resting {
                             Label(game.restLines.back, systemImage: "clock").font(.callout).foregroundStyle(.secondary)
                         }

@@ -563,7 +563,7 @@ public final class TomoGame: ObservableObject {
         defer { wasOpen = open }
         // "Next at 8:37" has come: say what's left again.
         if let at = levelLeft.nextAt, at <= TomoClock.now { levelLeft = progress.levelLeft }
-        if open && wasOpen && progress.somethingCounts { offerWhatCounts() }
+        if open && wasOpen && (phase == .resting || isPracticeRound) && progress.somethingCounts { offerWhatCounts() }
         debugReopen(open: open, now: now)
 
         guard visitRoundsLeft != nil else {
@@ -639,7 +639,10 @@ public final class TomoGame: ObservableObject {
         wasOpen = false
     }
 
+    /// An unfinished visit: the red dot, if something is still waiting. A visit that was only resting or practicing
+    /// leaves none, since nothing would count.
     private func markPending() {
+        guard progress.somethingCounts else { return }
         pending = true
         nextNudge = Date().addingTimeInterval(8)   // first bounce soon after tucking in
     }
@@ -1095,7 +1098,7 @@ extension TomoGame {
         let words = levelIsLast ? ui(one ? "left.last.one" : "left.last", ["n": n])
             : ui(one ? "left.one" : "left.many", ["n": n, "next": next])
         guard when else { return words }
-        return words + " · " + (left.nextAt.map { ui("left.next", ["time": tomoTime($0, lang)]) } ?? ui("left.ready"))
+        return words + " · " + (left.nextAt.map { timeText("left.next", until: $0, lang) } ?? ui("left.ready"))
     }
 
     /// The resting card's lines: when Tomo's back ("Back at 10:12"), and what's left to grow, with its time only when
@@ -1106,13 +1109,16 @@ extension TomoGame {
     }
 }
 
-/// "Back at 10:12" (`key`, with `{time}`), or the `key.now` variant when there's no time to give.
+/// "Back at 10:12" (`key`, with `{time}`), or the `key.now` variant when there's no time to give. A time on
+/// another day uses the `key.later` variant if the language has one ("Back tomorrow, 4:00 AM", not "at tomorrow").
 @MainActor public func timeText(_ key: String, until: Date?, _ lang: TomoLanguages) -> String {
     guard let until else { return lang.learner("\(key).now") }
-    return lang.learner(key, ["time": tomoTime(until, lang)])
+    let later = "\(key).later"
+    let today = Calendar.current.isDateInToday(wallClock(until)) || lang.learner.strings[later] == nil
+    return lang.learner(today ? key : later, ["time": tomoTime(until, lang)])
 }
 
-/// A time on Tomo's clock, short and for the middle of a sentence: "8:37 AM", or "tomorrow at 4:00 AM".
+/// A time on Tomo's clock, short and for the middle of a sentence: "8:37 AM", or "tomorrow, 4:00 AM".
 @MainActor public func tomoTime(_ date: Date, _ lang: TomoLanguages) -> String {
     let f = DateFormatter()
     f.locale = Locale(identifier: lang.learner.id)
