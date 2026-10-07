@@ -9,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) var islandController: IslandWindowController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        TomoHeadless.start()   // TOMO_HEADLESS: test runs stay invisible and silent
         NSApp.setActivationPolicy(.accessory)
         TomoIconRenderer.renderIfRequested()
         setupMenuBarItem()
@@ -19,6 +20,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func setupMenuBarItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        statusItem?.isVisible = !TomoHeadless.isOn
         guard let button = statusItem?.button else { return }
         button.image = NSImage(named: "MenuBarIcon") ?? NSImage(systemSymbolName: "circle.fill", accessibilityDescription: "Tomodachi")
         button.image?.size = NSSize(width: 24, height: 18)
