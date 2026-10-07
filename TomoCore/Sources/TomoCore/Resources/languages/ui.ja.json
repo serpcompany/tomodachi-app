@@ -225,7 +225,9 @@
     "about.credit.blobatar": "blobatar",
     "about.credit.blobatar.body": "Tomoの形と、学習者ごとの見た目をシードから作るしくみは、Alainさんのblobatarをもとにしています。MITライセンス。",
     "about.credit.coucou": "Coucou",
-    "about.credit.coucou.body": "Mac版のノッチのウィンドウは、Louis RailléさんのCoucouがベースです。MITライセンス。"
+    "about.credit.coucou.body": "Mac版のノッチのウィンドウは、Louis RailléさんのCoucouがベースです。MITライセンス。",
+    "menu.tomo": "Tomo",
+    "menu.testing": "テスト"
   },
   "helpPhrases": [
     "なに",

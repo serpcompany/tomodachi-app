@@ -16,7 +16,7 @@ we changed, is in [docs/coucou-fork.md](../docs/coucou-fork.md).
 
 `run.sh` quits the running copy, then opens the owner's copy with `OPENAI_API_KEY` or
 `ANTHROPIC_API_KEY` from the repo's `.env` (gitignored), so Tomo replies with AI at 3さい. A provider
-saved under Settings → AI takes precedence; with neither, Tomo uses offline replies. The owner's copy is a
+saved on the AI page (shown with the testing tools) takes precedence; with neither, Tomo uses offline replies. The owner's copy is a
 Developer ID build in `build/owner/` (`scripts/release-beta.sh --owner`), so it syncs with the iPhone
 through iCloud: a development-signed build gets only development push notifications, which never come
 for CloudKit's Production environment. Debug builds sync in Development, for tests
@@ -25,11 +25,14 @@ for CloudKit's Production environment. Debug builds sync in Development, for tes
 Tomo drops in on its own (every 20 minutes by default) when it has words due or a new one to teach. In
 between it sits small beside the notch: click it to play any time, and press Esc (or ×) to close. It
 follows the notch when displays change. Progress is saved on this Mac and synced through iCloud; test runs
-use their own folder. Settings → General can open Tomodachi at login (off until you turn it on).
+use their own folder. Settings can open Tomodachi at login (off until you turn it on).
 
-The menu bar icon has **Open Tomodachi**, **Drop in now** (⌘D), **Tomo's words…** (⌘W), **Start Tomo
-over…** (⌘R, asks first) and **Settings…** (⌘,: Tomo, Words, General, AI, About). ⌥-click it for the
-testing tools: **Skip to talking (3さい)** (⌘3) and Settings → Testing
+Tomodachi is a regular app with a Dock icon. Its window (the Dock icon, Tomo's age in the card, or opening
+the app again) has a sidebar: Tomo, Words, Settings and About, the same screens as the iPhone's tabs. While
+it's in front, its menus work: **About**, **Settings…** (⌘,) and **Quit** (⌘Q); **Tomo → Drop in now** (⌘D),
+**Tomo's words** (⌘W) and **Start Tomo over…** (asks first). The menu bar icon has the same, plus **Open
+Tomodachi…** and **Play with Tomo**. ⌥-click it for the testing tools: a **Testing** menu (Skip to talking ⌘3,
+Grow one step ⌘G, Finish this level ⌘L, Grow to the next birthday ⌘B) and the window's Testing and AI pages
 ([docs/verification.md](../docs/verification.md)).
 
 ## Rebuild

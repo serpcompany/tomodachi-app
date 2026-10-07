@@ -1,7 +1,8 @@
 import AppKit
 import TomoCore
 
-/// The testing tools (the menu's "Skip to talking", the window's Testing and AI pages) stay out of a learner's way.
+/// The testing tools (the Testing menu and the menu bar icon's testing items, the window's Testing and AI pages) stay
+/// out of a learner's way.
 /// They show after a deliberate step (docs/verification.md):
 /// - ⌥-click the menu bar icon: they show for the rest of that run;
 /// - `defaults write com.zenbujapanese.tomodachi tomoTestingTools -bool true`: they always show.

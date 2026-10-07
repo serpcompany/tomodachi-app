@@ -227,7 +227,9 @@
     "about.credit.blobatar": "blobatar",
     "about.credit.blobatar.body": "Tomo's shapes, and how each learner's look comes from a seed, are adapted from blobatar by Alain. MIT License.",
     "about.credit.coucou": "Coucou",
-    "about.credit.coucou.body": "The Mac app's notch window is based on Coucou by Louis Raillé. MIT License."
+    "about.credit.coucou.body": "The Mac app's notch window is based on Coucou by Louis Raillé. MIT License.",
+    "menu.tomo": "Tomo",
+    "menu.testing": "Testing"
   },
   "helpPhrases": [
     "what",

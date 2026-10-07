@@ -10,7 +10,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         TomoHeadless.start()   // TOMO_HEADLESS: test runs stay invisible and silent
         NSApp.setActivationPolicy(.accessory)
-        TomoIconRenderer.renderIfRequested()
+        TomoIconRenderer.renderIfRequested()   // the self-test and the renders quit here
+        // A regular app with a Dock icon and a main menu (decisions.md). Info.plist starts it as an agent
+        // (LSUIElement) only so a test run (TOMO_HEADLESS) never shows a Dock icon, not even for a moment.
+        // Nothing here activates it: launched at login, or by Tomo's visits, it stays in the background.
+        if !TomoHeadless.isOn { NSApp.setActivationPolicy(.regular) }
         setupMenuBarItem()
         setupIsland()
     }
@@ -28,79 +32,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let menu = NSMenu()
         menu.delegate = self
         statusItem?.menu = menu
-        fillMenu(menu)   // filled again each time it opens, so its text follows the interface language
+        TomoMenus.fill(menu)   // filled again each time it opens (TomoMenus), so it follows the interface language
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
         TomoTestingTools.menuOpening()   // ⌥-click shows the testing tools
-        fillMenu(menu)
-    }
-
-    private func fillMenu(_ menu: NSMenu) {
-        let ui = TomoLanguages.shared.learner
-        menu.removeAllItems()
-        menu.addItem(withTitle: ui("menu.open"), action: #selector(openWindow), keyEquivalent: "o")
-        menu.addItem(.separator())
-        menu.addItem(withTitle: ui("menu.play"), action: #selector(openIsland), keyEquivalent: "")
-        menu.addItem(withTitle: ui("menu.dropIn"), action: #selector(dropInNow), keyEquivalent: "d")
-        menu.addItem(withTitle: ui("menu.words"), action: #selector(openWords), keyEquivalent: "w")
-        menu.addItem(withTitle: ui("menu.restart"), action: #selector(restartDemo), keyEquivalent: "r")
-        if TomoTestingTools.shown {
-            menu.addItem(.separator())
-            menu.addItem(withTitle: ui("menu.talk", ["age": TomoLanguages.shared.target.ageLabel(TomoGame.chatStage)]),
-                         action: #selector(skipToTalking), keyEquivalent: "3")
-            menu.addItem(withTitle: ui("menu.growStep"), action: #selector(growStep), keyEquivalent: "g")
-            menu.addItem(withTitle: ui("menu.growLevel"), action: #selector(growLevel), keyEquivalent: "l")
-            menu.addItem(withTitle: ui("menu.growBirthday"), action: #selector(growBirthday), keyEquivalent: "b")
-            if TomoGame.shared.isScratch {
-                menu.addItem(withTitle: ui("settings.backToTomo"), action: #selector(backToMyTomo), keyEquivalent: "")
-            }
-        }
-        menu.addItem(.separator())
-        menu.addItem(withTitle: ui("menu.settings"), action: #selector(openSettings), keyEquivalent: ",")
-        menu.addItem(.separator())
-        menu.addItem(withTitle: ui("menu.quit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        TomoMenus.fill(menu)
     }
 
     // MARK: - Actions
 
-    @objc private func openIsland() {
+    /// The learner opened Tomo on purpose (the menus, the window's Play with Tomo): free play, and Esc closes it.
+    private func openIsland() {
         islandController?.fsm.openedExternally()
         islandController?.expand(to: .overview)
         islandController?.takeKeyboard()   // opened on purpose: Esc closes it
-    }
-
-    /// The Tomodachi window (TomoAppWindow), at the page it last showed.
-    @objc private func openWindow() {
-        TomoAppWindow.open()
-    }
-
-    @objc private func openWords() {
-        TomoAppWindow.open(.words)
-    }
-
-    /// Starting over always asks first: the window's Settings page asks.
-    @objc private func restartDemo() {
-        TomoAppWindow.open(confirmStartOver: true)
-    }
-
-    @objc private func skipToTalking() {
-        TomoGame.shared.jumpToChat()
-    }
-
-    // Testing: grow without waiting, on a copy in memory (TomoGame.testGrow); the card opens to show it.
-    @objc private func growStep() { openIsland(); TomoGame.shared.testGrow(.step) }
-    @objc private func growLevel() { openIsland(); TomoGame.shared.testGrow(.level) }
-    @objc private func growBirthday() { openIsland(); TomoGame.shared.testGrow(.birthday) }
-    @objc private func backToMyTomo() { TomoGame.shared.reload() }
-
-    @objc private func dropInNow() {
-        TomoGame.shared.dropIn(force: true)
-        islandController?.takeKeyboard()
-    }
-
-    @objc private func openSettings() {
-        TomoAppWindow.open(.settings)
     }
 
     /// Opening Tomodachi again from Finder, Launchpad or the Dock while it runs brings up its window.
@@ -175,7 +121,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if let how = ProcessInfo.processInfo.environment["TOMO_GROW"].flatMap(TomoGame.TestGrowth.init(rawValue:)) {
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) { TomoGame.shared.testGrow(how) }
         }
-        TomoAppWindow.play = { [weak self] in self?.openIsland() }
+        TomoMenus.openIsland = { [weak self] in self?.openIsland() }
+        TomoMenus.takeKeyboard = { [weak self] in self?.islandController?.takeKeyboard() }
         TomoAppWindow.openIfRequested()
+        TomoMenus.dumpIfRequested()
     }
 }

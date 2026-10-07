@@ -53,6 +53,7 @@ final class IslandWindowController: NSWindowController {
         panel.hasShadow = false
         panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.mainMenuWindow)) + 3)
         panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]
+        panel.canHide = false   // Tomodachi is a regular app: hiding it (⌘H, Hide Others) leaves Tomo in the notch
         panel.ignoresMouseEvents = true
 
         let contentSize = panel.contentRect(forFrameRect: panel.frame).size

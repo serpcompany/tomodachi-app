@@ -6,23 +6,19 @@ import TomoCore
 //
 // The same screens as the iPhone's tabs (TomoCore: TomoGrowthScreen, TomoWordsScreen, TomoSettingsScreen,
 // TomoAboutScreen), plus what only the Mac has: open at login (in Settings) and, after ⌥-clicking the menu bar icon,
-// the AI page and the testing tools (TomoFeatures). It opens from the menu bar (Open Tomodachi…, Tomo's words…,
-// Settings…), from Tomo's age in the card header, and when Tomodachi is opened again from Finder, Launchpad or the
-// Dock (AppDelegate.applicationShouldHandleReopen). While it's open, Tomodachi is a regular app with a Dock icon and
-// the menu bar; when it closes, it goes back to living in the menu bar and the notch (decisions.md).
+// the AI page and the testing tools (TomoFeatures). It opens from the menus (About, Settings…, Tomo's words, Start
+// Tomo over…, and the menu bar icon's Open Tomodachi…), from Tomo's age in the card header, and when Tomodachi is
+// opened again from the Dock, Finder or Launchpad (AppDelegate.applicationShouldHandleReopen). Closing it leaves
+// Tomo in the notch and Tomodachi in the Dock (decisions.md).
 // TOMO_OPEN_WINDOW=<screen> opens it at launch, `tour` shows every screen in turn, and TOMO_SNAPSHOT_DIR captures it
 // (window-<screen>-NNN.png, and window-sheet-NNN.png for the start-over question) (docs/verification.md).
 
 @MainActor
 enum TomoAppWindow {
     private static var window: NSWindow?
-    private static let closer = Closer()
     private static var timers: [Timer] = []
     static let size = NSSize(width: 860, height: 620)
     static let minSize = NSSize(width: 720, height: 500)
-
-    /// What "Play with Tomo" does from the window: the island opens for free play (AppDelegate).
-    static var play: (() -> Void)?
 
     /// Opens the window (or brings it to the front), at `screen` if given; `confirmStartOver` asks to start Tomo over.
     static func open(_ screen: TomoScreen? = nil, confirmStartOver: Bool = false) {
@@ -33,8 +29,6 @@ enum TomoAppWindow {
         if AppState.shared.mode == .expanded { TomoGame.shared.closeIsland?() }
         let win = window ?? make()
         if !win.isVisible { place(win) }
-        // A Dock icon and the menu bar while the window is open. A test run (TOMO_HEADLESS) stays out of the Dock.
-        if !TomoHeadless.isOn { NSApp.setActivationPolicy(.regular) }
         win.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
@@ -47,9 +41,8 @@ enum TomoAppWindow {
         win.titleVisibility = .hidden
         win.titlebarAppearsTransparent = true
         win.minSize = minSize
-        win.contentView = NSHostingView(rootView: TomoAppView(play: { play?() }))
+        win.contentView = NSHostingView(rootView: TomoAppView(play: { TomoMenus.openIsland() }))
         win.isReleasedWhenClosed = false
-        win.delegate = closer
         window = win
         startSnapshots()
         return win
@@ -67,15 +60,6 @@ enum TomoAppWindow {
         frame.origin.x = visible.midX - frame.width / 2
         frame.origin.y = max(visible.minY + 12, top - frame.height)
         win.setFrame(frame, display: true)
-    }
-
-    /// Closing the window: back to the menu bar and the notch, with no Dock icon.
-    private final class Closer: NSObject, NSWindowDelegate {
-        func windowWillClose(_ notification: Notification) {
-            MainActor.assumeIsolated {
-                if !TomoHeadless.isOn { NSApp.setActivationPolicy(.accessory) }
-            }
-        }
     }
 
     // MARK: Test runs: open at launch, the tour, snapshots
