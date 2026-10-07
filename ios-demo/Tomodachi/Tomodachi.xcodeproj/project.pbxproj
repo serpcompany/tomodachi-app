@@ -201,6 +201,7 @@
 				BBEEB6B1FED8160D6E27E71D /* Sources */,
 				FFCA357C1BB84498294D8E40 /* Resources */,
 				A0A125EA67E0BE8EA68E119C /* Frameworks */,
+				8B2104118BF0AC35455AD0BE /* Leave out the Spanish draft */,
 			);
 			buildRules = (
 			);
@@ -222,6 +223,7 @@
 				5828AAA168E2EAC80442DC5E /* Resources */,
 				26DBFF058C9038DB2655EEA5 /* Frameworks */,
 				1FF9299FC3FB176009DEA529 /* Embed Foundation Extensions */,
+				B7012771462C112622B69B6D /* Leave out the Spanish draft */,
 			);
 			buildRules = (
 			);
@@ -301,6 +303,47 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		8B2104118BF0AC35455AD0BE /* Leave out the Spanish draft */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Leave out the Spanish draft";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/../scripts/strip-packs.sh\" \"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH\"";
+		};
+		B7012771462C112622B69B6D /* Leave out the Spanish draft */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Leave out the Spanish draft";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/../scripts/strip-packs.sh\" \"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH\"";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		5C3A995BA36B8B5A3307D588 /* Sources */ = {

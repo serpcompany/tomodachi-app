@@ -16,8 +16,11 @@ struct TomoTappableLine: View {
     /// Pack text (a picture round's word) is spaced already; split only on spaces.
     var spacesOnly = false
 
+    /// Dynamic Type, up to a point: the line sits in a fixed row of Tomo's screen (TomoPhoneView).
+    @ScaledMetric(relativeTo: .title) private var textScale: CGFloat = 1
+
     private var words: [String] { TomoWords.tokens(text, script: lang.target.script, spacesOnly: spacesOnly) }
-    private var size: CGFloat { text.count <= 8 ? 34 : text.count <= 14 ? 28 : 22 }
+    private var size: CGFloat { (text.count <= 8 ? 34 : text.count <= 14 ? 28 : 22) * min(max(textScale, 0.85), 1.25) }
 
     var body: some View {
         FlowLayout(spacing: lang.target.script == "Jpan" ? 4 : size * 0.25, lineSpacing: 4) {
@@ -31,6 +34,21 @@ struct TomoTappableLine: View {
             }
         }
         .id(text)
+        // VoiceOver: the whole line, read in the target language's voice, with each word's card as an action.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(spoken))
+        .accessibilityAddTraits(.isStaticText)
+        .accessibilityActions {
+            ForEach(Array(words.enumerated()), id: \.offset) { _, w in
+                Button(lang.learner("a11y.lookUp", ["word": TomoWords.bare(w)])) { game.openWord(TomoWords.bare(w)) }
+            }
+        }
+    }
+
+    private var spoken: AttributedString {
+        var s = AttributedString(text)
+        s.languageIdentifier = lang.target.speechLocale
+        return s
     }
 }
 

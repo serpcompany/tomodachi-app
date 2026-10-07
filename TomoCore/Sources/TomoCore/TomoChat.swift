@@ -1,6 +1,8 @@
 import AVFoundation
 import Foundation
+#if os(macOS)
 import Speech
+#endif
 
 // MARK: - Talking stage: Tomo asks, you answer in your own words (typed or spoken)
 
@@ -185,7 +187,12 @@ public enum TomoBrain {
 }
 
 // MARK: - Listening: on-device speech recognition in the target language, push the mic to talk
+//
+// Mac only for now. The iPhone app gets a listener that never listens: spoken answers are off while talking
+// questions are choices, and leaving the speech and microphone APIs out of it means it needs no usage text for
+// them in its Info.plist (#92). Bring both back together.
 
+#if os(macOS)
 @MainActor
 public final class TomoListener: ObservableObject {
     @Published public private(set) var isListening = false
@@ -299,3 +306,14 @@ public final class TomoListener: ObservableObject {
         return await AVCaptureDevice.requestAccess(for: .audio)
     }
 }
+#else
+@MainActor
+public final class TomoListener: ObservableObject {
+    @Published public private(set) var isListening = false
+    @Published public private(set) var problem: String?
+
+    public init() {}
+    public func toggle(onPartial: @escaping (String) -> Void, onDone: @escaping (String) -> Void) {}
+    public func stop() {}
+}
+#endif

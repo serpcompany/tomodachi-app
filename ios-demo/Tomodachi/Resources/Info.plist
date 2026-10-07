@@ -22,10 +22,6 @@
 	<string>1</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Tomo listens when you answer out loud.</string>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Tomo turns what you say into text to understand you.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>TomoICloudEnvironment</key>
