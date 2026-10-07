@@ -18,6 +18,8 @@ import UserNotifications
 // Each one is Tomo speaking at its age (the pack's `reminders`, with a translation) plus what's waiting.
 // `TomoReminderCenter` schedules them with UNUserNotificationCenter: on launch, on every change to progress (an
 // answer, a sync), and when the app comes to the front. The settings are on each device, like the others.
+// The Mac has no reminders, but its quiet hours are the same setting: Tomo's visits by the notch skip them
+// (`visitAllowed`, TomoGame.dropIn), while clicking Tomo still plays.
 
 /// How often Tomo may find the learner, and when it never does. Saved on this device.
 public struct TomoReminderSettings: Equatable, Sendable {
@@ -127,6 +129,16 @@ public enum TomoReminders {
         return s.quietFrom > s.quietUntil ? (m >= s.quietFrom || m < s.quietUntil) : (m >= s.quietFrom && m < s.quietUntil)
     }
 
+    /// The Mac: may Tomo drop in on its own now? Not in quiet hours (clicking Tomo still plays).
+    public static func visitAllowed(at t: Date, _ s: TomoReminderSettings, calendar: Calendar = .current) -> Bool {
+        !isQuiet(t, s, calendar: calendar)
+    }
+
+    /// When quiet hours end, if `t` is in them.
+    public static func quietEnds(after t: Date, _ s: TomoReminderSettings, calendar: Calendar = .current) -> Date? {
+        isQuiet(t, s, calendar: calendar) ? next(s.quietUntil, after: t, calendar) : nil
+    }
+
     /// How many reminders fit in a day at most: hourly from 8 AM to 9 PM is 13.
     public static func perDay(_ s: TomoReminderSettings) -> Int {
         if s.every >= daily { return 1 }
@@ -230,6 +242,13 @@ public enum TomoReminders {
         check(plan(now: at(8, 22), settings: noQuiet, due: [], newAt: at(8, 22), calendar: cal).first?.at == at(8, 23),
               "without quiet hours, nights count too")
         check(perDay(s) == 13 && perDay(fast) == 52 && perDay(once) == 1, "hourly, 8 AM to 9 PM: 13 a day")
+        // The Mac's visits by the notch keep the same quiet hours.
+        check(!visitAllowed(at: at(8, 23), s, calendar: cal) && !visitAllowed(at: at(9, 7, 59), s, calendar: cal)
+              && visitAllowed(at: at(9, 8), s, calendar: cal) && visitAllowed(at: at(8, 20, 59), s, calendar: cal),
+              "Mac: no visits from 9 PM to 8 AM, visits from 8 AM to 9 PM")
+        check(quietEnds(after: at(8, 23), s, calendar: cal) == at(9, 8) && quietEnds(after: at(8, 15), s, calendar: cal) == nil,
+              "Mac: a visit due at 11 PM waits for 8 AM")
+        check(visitAllowed(at: at(8, 23), noQuiet, calendar: cal), "Mac: without quiet hours, visits any time")
 
         // From real progress: right after a whole level is learned, the first reminder is when those words are due.
         guard let pack = TomoLanguages.shared.targets.first(where: { $0.id == "ja" }) else {

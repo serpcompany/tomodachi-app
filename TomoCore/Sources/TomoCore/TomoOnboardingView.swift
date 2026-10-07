@@ -66,7 +66,7 @@ public struct TomoOnboardingView: View {
         case .round, .result: 150
         case .visits: isPhone ? PhoneSketches.notificationHero : 132
         case .rhythm: isPhone ? 64 : 96
-        case .quiet, .notify: 120
+        case .quiet, .notify, .login: 120
         case .widget: PhoneSketches.phoneHero
         case .lockScreen: PhoneSketches.cardHero
         case .ready: 116
@@ -80,7 +80,7 @@ public struct TomoOnboardingView: View {
         case .visits: isPhone ? PhoneSketches.notificationTomo : 58
         case .rhythm: isPhone ? 64 : 96
         case .quiet: 104
-        case .notify: 100
+        case .notify, .login: 100
         case .widget: 76
         case .lockScreen: PhoneSketches.cardTomo
         case .ready: 116
@@ -105,7 +105,7 @@ public struct TomoOnboardingView: View {
                 if step == .visits && !isPhone {
                     NotchSketch(pending: true, invite: lang.target.lines.invite ?? "").transition(.opacity)
                 }
-                if isPhone { phoneSketch(in: geo.size).transition(.opacity) }
+                if isPhone || step == .quiet || step == .login { phoneSketch(in: geo.size).transition(.opacity) }
                 // The egg stays until its halves have flown off (it draws nothing after); not when opened past it.
                 if step == .hatch && model.hatchStarted != .distantPast {
                     TomoEggView(look: TomoLook.current, crackedAt: model.hatchStarted)
@@ -137,6 +137,7 @@ public struct TomoOnboardingView: View {
         case .rhythm: if isPhone { phoneRhythmPage } else { rhythmPage }
         case .quiet: quietPage
         case .notify: notifyPage
+        case .login: loginPage
         case .widget: widgetPage
         case .lockScreen: lockScreenPage
         case .ready: readyPage
@@ -226,6 +227,7 @@ public struct TomoOnboardingView: View {
                 row(icon: "keyboard", ui("onboarding.visits.typing"))
                 row(icon: "cursorarrow.click.2", ui("onboarding.visits.click"))
                 row(icon: "moon.zzz.fill", ui("onboarding.visits.ignore"))
+                row(icon: "dock.rectangle", ui("onboarding.visits.dock"))
             }
             .padding(.top, 4)
         }
@@ -360,7 +362,7 @@ public struct TomoOnboardingView: View {
                 PrimaryButton(title: ui("onboarding.continue"), enabled: model.phase == .right) { model.next() }
             case .result:
                 PrimaryButton(title: ui("onboarding.result.button")) { model.next() }
-            case .visits, .rhythm, .quiet:
+            case .visits, .rhythm, .quiet, .login:
                 PrimaryButton(title: ui("onboarding.continue")) { model.next() }
             case .notify:
                 PrimaryButton(title: ui("onboarding.notify.button"), enabled: !model.askingPermission) {
@@ -421,7 +423,7 @@ public struct TomoOnboardingView: View {
         case .result: Paint.green
         case .visits, .quiet: Color(hex: "#6366F1")
         case .rhythm, .ready, .widget: Color(hex: "#22D3EE")
-        case .notify: Color(hex: "#F5A524")
+        case .notify, .login: Color(hex: "#F5A524")
         case .lockScreen: Color(hex: "#A78BFA")
         }
     }

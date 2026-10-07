@@ -7,12 +7,13 @@ Tomo is a little blob who lives next to your MacBook's notch and only speaks the
 1. You need **macOS 15 or later** (Apple Silicon or Intel).
 2. Unzip `Tomodachi-0.0.2-beta.zip` and move **Tomodachi.app** to Applications.
 3. Open it. The first time, your Tomo hatches in a short welcome: answer its first word, pick how often it
-   visits, then it pops out of the notch and waves. (If you already have a Tomo, it just pops out.)
+   visits and its quiet hours, and whether Tomodachi opens when you log in (Tomo can only visit while it's
+   open), then it pops out of the notch and waves. (If you already have a Tomo, it just pops out.)
    Tomodachi has a Dock icon and a small Tomo icon in the menu bar.
 
 ## What to try
 
-- **Answer Tomo's visits.** Tomo opens on its own (every 20 minutes by default). Tap the right picture or meaning, or do what it asks: 🍙 feed, 😴 bed, 🤗 hug.
+- **Answer Tomo's visits.** Tomo opens on its own (every 20 minutes by default, never in quiet hours: 9 PM to 8 AM unless you change them in Settings). Tap the right picture or meaning, or do what it asks: 🍙 feed, 😴 bed, 🤗 hug.
 - **Close it when it's in your way** with **×**, or Esc once you've clicked Tomo (Esc never leaves the app you're typing in). Small Tomo waits beside the notch with a red dot until you click it.
 - **Play any time:** click small Tomo next to the notch.
 - **Talk with Tomo:** hold **⌥** and click the menu bar icon → **Skip to talking (3さい)** (after that, a **Testing** menu is in Tomodachi's menu bar too). That's a test Tomo; yours comes back from **Back to my Tomo** in that menu, or when you relaunch. Tomo asks real questions; pick what it means, or later a reply that fits. Every answer shows **Win**, **Miss**, **No score**, or (when nothing counts) **Practice**.

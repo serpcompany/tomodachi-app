@@ -7,8 +7,8 @@ import TomoCore
 // Tomodachi is a regular app with a Dock icon (decisions.md), so its main menu shows while it's active and its
 // shortcuts work then: the Tomodachi menu (About, Settings… ⌘,, Quit), a Tomo menu (Drop in now ⌘D, Tomo's
 // words ⌘W, Start Tomo over…) and, while the testing tools are on (TomoTestingTools), a Testing menu (Skip to
-// talking ⌘3, Grow one step ⌘G, Finish this level ⌘L, Grow to the next birthday ⌘B, Back to my Tomo). The menu bar
-// icon's menu stays for quick access, with the same commands. All titles come from ui.<id>.json.
+// talking ⌘3, Grow one step ⌘G, Finish this level ⌘L, Grow to the next birthday ⌘B, Show the first run, Back to my
+// Tomo). The menu bar icon's menu stays for quick access, with the same commands. All titles come from ui.<id>.json.
 
 /// One command: its title, its shortcut (⌘ + `key`, or none) and what it does.
 struct TomoCommand {
@@ -42,6 +42,8 @@ enum TomoMenus {
             TomoCommand(title: ui("menu.growStep"), key: "g") { openIsland(); game.testGrow(.step) },
             TomoCommand(title: ui("menu.growLevel"), key: "l") { openIsland(); game.testGrow(.level) },
             TomoCommand(title: ui("menu.growBirthday"), key: "b") { openIsland(); game.testGrow(.birthday) },
+            // The first run as a new learner sees it, on a copy of this Tomo: nothing saved (TomoOnboardingWindow).
+            TomoCommand(title: ui("menu.previewFirstRun"), key: "") { TomoOnboardingWindow.preview() },
         ]
         if game.isScratch { items.append(TomoCommand(title: ui("settings.backToTomo"), key: "") { game.reload() }) }
         return items

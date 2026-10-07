@@ -145,6 +145,11 @@ public enum DropIn {
     ]
     /// When the next visit is due, counting from now.
     public static func nextVisit() -> Date { every > 0 ? Date().addingTimeInterval(every) : .distantFuture }
+    /// Quiet hours (the same setting as the iPhone's reminders): when they end, if it's quiet now. Tomo doesn't drop
+    /// in or bounce then; clicking Tomo still plays.
+    @MainActor public static func quietEnds(at now: Date = Date()) -> Date? {
+        TomoReminders.quietEnds(after: now, TomoReminderCenter.shared.settings)
+    }
     /// Tomo leaves when you haven't touched or hovered the island for this long.
     public static let ignoreAfter: TimeInterval = 10
     /// Answering in your own words takes longer than tapping a picture.
@@ -345,6 +350,19 @@ public final class TomoGame: ObservableObject {
         if stage != age { NotificationCenter.default.post(name: .botGrow, object: growthStep) }
     }
 
+    /// The visit at launch: right away, unless it's quiet hours (then the first visit waits for the morning). Opening
+    /// Tomo yourself still plays.
+    public func launchVisit() {
+        if DropIn.quietEnds() != nil { rescheduleVisits() } else { dropIn(force: true) }
+    }
+
+    /// Testing: carry on with the learner's Tomo as a copy in memory (the first run's preview), until Back to my
+    /// Tomo (`reload`). Nothing from here on is saved or synced.
+    public func useCopy() {
+        if !progress.isScratch { progress.detach() }
+        syncProgress()
+    }
+
     /// The language pair changed (or testing ended): bring that pair's saved Tomo.
     public func reload() {
         start()
@@ -446,6 +464,9 @@ public final class TomoGame: ObservableObject {
             }
             if secondsSinceInput?(false) ?? 0 > 5 * 60 {      // nobody at the Mac
                 nextDropIn = Date().addingTimeInterval(60); return
+            }
+            if let end = DropIn.quietEnds() {                // quiet hours: Tomo waits for the morning
+                nextDropIn = end; return
             }
         }
         // Due items first, then at most one new one. A scheduled visit with nothing to do is skipped;
@@ -592,7 +613,7 @@ public final class TomoGame: ObservableObject {
         guard visitRoundsLeft != nil else {
             // User opened Tomo themselves: free play, no time limit.
             if open && !wasOpen { pending = false; resumeFreePlay() }
-            if !open && pending && now >= nextNudge {
+            if !open && pending && now >= nextNudge && DropIn.quietEnds() == nil {   // no bounces in quiet hours
                 NotificationCenter.default.post(name: .botNudge, object: nil)
                 nextNudge = now.addingTimeInterval(DropIn.nudgeEvery)
             }

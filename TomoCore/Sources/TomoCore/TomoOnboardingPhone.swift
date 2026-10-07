@@ -57,6 +57,12 @@ extension TomoOnboardingView {
                 .foregroundStyle(Paint.accent)
                 .symbolEffect(.wiggle, options: .repeating)
                 .offset(x: 64 * fit, y: -36 * fit)
+        case .login:
+            Image(systemName: "sunrise.fill")
+                .font(.system(size: 30 * fit, weight: .bold))
+                .foregroundStyle(Paint.accent)
+                .symbolEffect(.breathe, options: .repeating)
+                .offset(x: 66 * fit, y: -34 * fit)
         case .quiet:
             Image(systemName: "moon.stars.fill")
                 .font(.system(size: 28 * fit, weight: .bold))
@@ -139,7 +145,7 @@ extension TomoOnboardingView {
     var quietPage: some View {
         VStack(alignment: .leading, spacing: 12) {
             title(ui("onboarding.quiet.title"))
-            bodyText(ui("onboarding.quiet.body"))
+            bodyText(ui(isPhone ? "onboarding.quiet.body" : "onboarding.quiet.body.mac"))
             HStack(spacing: 12) {
                 timeBox(ui("onboarding.quiet.from"), minutes: $model.reminders.quietFrom)
                 timeBox(ui("onboarding.quiet.until"), minutes: $model.reminders.quietUntil)
@@ -220,6 +226,28 @@ extension TomoOnboardingView {
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)
+    }
+
+    /// Mac: "Let Tomo find you" is opening Tomodachi at login. The reason first, then the switch, on but shown.
+    var loginPage: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            title(ui("onboarding.login.title"))
+            bodyText(ui("onboarding.login.body"))
+            HStack {
+                Text(ui("onboarding.login.toggle")).font(.system(size: 15, weight: .semibold))
+                Spacer(minLength: 8)
+                Toggle(ui("onboarding.login.toggle"), isOn: $model.openAtLogin)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .tint(Paint.accent)
+            }
+            .padding(.horizontal, 14).padding(.vertical, 12)
+            .background(Paint.card, in: RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.08)))
+            Text(ui("onboarding.login.note")).font(.system(size: 13)).foregroundStyle(Paint.faint)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     var lockScreenPage: some View {

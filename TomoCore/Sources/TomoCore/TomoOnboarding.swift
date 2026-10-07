@@ -24,6 +24,13 @@ import SwiftUI
 // hours, "Let words find you" (the only place the iOS notification prompt appears, after its reason), how to add a
 // widget, and the Lock Screen card, which starts only if the learner says yes. A phone that joins the learner's
 // iCloud Tomo gets "welcome back", then the same setup for this device.
+//
+// The Mac's flow matches it where a step applies: the rhythm is how often Tomo drops in by the notch, quiet hours
+// keep those visits away at night, and "Let Tomo find you" is opening Tomodachi at login (Tomo can only come to you
+// while the app runs), on by default but shown, so it's still the learner's choice. No notifications and no widgets
+// on the Mac: the notch visits are how Tomo comes to you there, and the visits step says the Dock icon opens
+// Tomodachi. A `preview` (the Testing menu) runs the whole flow on a copy of the learner's Tomo: it never writes
+// onboarding.json or the saved Tomo, and a setting only changes if it was changed in the preview.
 
 @MainActor
 public final class TomoOnboarding: ObservableObject {
@@ -37,20 +44,23 @@ public final class TomoOnboarding: ObservableObject {
         case result         // "You just understood your first Japanese", and when the word comes back
         case visits         // Tomo comes to you: drop-ins by the notch (Mac); notifications and the Lock Screen (iPhone)
         case rhythm         // how often Tomo drops in (Mac) or may send a reminder (iPhone)
-        case quiet          // iPhone: quiet hours, no reminders
+        case quiet          // quiet hours: no reminders (iPhone), no visits (Mac)
         case notify         // iPhone: "Let words find you", then the iOS notification prompt
+        case login          // Mac: "Let Tomo find you": open Tomodachi at login
         case widget         // iPhone: how to add a widget
         case lockScreen     // iPhone: Tomo's Lock Screen card, yes or not now
         case ready          // what Tomo starts with; then Tomo's first real visit
         case welcomeBack    // this device joined the learner's Tomo from iCloud
 
         /// The Mac's first run. The reference's referral, trial and plan screens would go before `ready`.
-        public static let firstRun: [Step] = [.hatch, .round, .result, .visits, .rhythm, .ready]
+        public static let firstRun: [Step] = [.hatch, .round, .result, .visits, .rhythm, .quiet, .login, .ready]
         /// The iPhone's. Its paywall slot is the same: before `ready`.
         public static let phoneFirstRun: [Step] = [.hatch, .round, .result, .visits, .rhythm, .quiet, .notify, .widget,
                                                    .lockScreen, .ready]
         /// What an iPhone sets up for itself, asked after "welcome back" too.
         public static let phoneSetup: [Step] = [.rhythm, .quiet, .notify, .widget, .lockScreen]
+        /// What a Mac sets up for itself, asked after "welcome back" too.
+        public static let macSetup: [Step] = [.rhythm, .quiet, .login]
     }
 
     // MARK: Who sees it
@@ -61,8 +71,8 @@ public final class TomoOnboarding: ObservableObject {
 
     /// Call before anything opens the store: TomoGame hatches a new Tomo when there's none, and then there is.
     /// Test runs (TOMO_DATA_DIR) skip it unless TOMO_ONBOARDING asks: `1` checks like a real launch, a step name
-    /// (hatch, round, result, visits, rhythm, quiet, notify, widget, lockScreen, ready) or `welcomeBack` opens there,
-    /// `0` skips it.
+    /// (hatch, round, result, visits, rhythm, quiet, login, notify, widget, lockScreen, ready) or `welcomeBack` opens
+    /// there, `0` skips it, and `preview` leaves it to the shell (the Testing menu's preview, on a copy).
     @discardableResult
     public static func checkAtLaunch() -> Kind? {
         if checked { return atLaunch }
@@ -70,6 +80,7 @@ public final class TomoOnboarding: ObservableObject {
         let env = ProcessInfo.processInfo.environment
         let ask = env["TOMO_ONBOARDING"]
         if ask == Step.welcomeBack.rawValue { atLaunch = .welcomeBack; return atLaunch }
+        if ask == "preview" { return nil }
         if let ask, Step(rawValue: ask) != nil { atLaunch = .firstRun; return atLaunch }
         if ask == "0" || (ask == nil && env["TOMO_DATA_DIR"] != nil) { return nil }
         atLaunch = needsFirstRun(in: TomoStore.directory) ? .firstRun : nil
@@ -151,6 +162,14 @@ public final class TomoOnboarding: ObservableObject {
     @Published public private(set) var askingPermission = false
     /// The widget step shows the Home Screen's how-to (else the Lock Screen's).
     @Published public var widgetOnHomeScreen = false
+    /// Mac: open Tomodachi at login, as the "Let Tomo find you" step shows it (on unless the learner turns it off).
+    @Published public var openAtLogin = true
+    /// Mac: the login item, from the shell (TomoLoginItem): whether it's on, and turning it on or off.
+    private let loginItem: (isOn: @MainActor () -> Bool, set: @MainActor (Bool) -> Void)?
+    /// The Testing menu's preview, on a copy of the learner's Tomo: nothing is marked done or saved, and a setting
+    /// changes only if it was changed here.
+    public let preview: Bool
+    private let startSettings = TomoReminderCenter.shared.settings
     public let shell: Shell
     /// The shell puts the flow away and lets Tomo drop in.
     public var onFinish: (@MainActor () -> Void)?
@@ -167,16 +186,21 @@ public final class TomoOnboarding: ObservableObject {
     private static let autoplay = ProcessInfo.processInfo.environment["TOMO_AUTOPLAY"] != nil
 
     /// `start`: open at this step (testing). Steps after the round find the first word already answered.
-    public init(kind: Kind, shell: Shell = .mac, start: Step? = nil) {
+    /// `loginItem` (Mac): the login item's state and setter. `preview`: the Testing menu's run on a copy.
+    public init(kind: Kind, shell: Shell = .mac, start: Step? = nil,
+                loginItem: (isOn: @MainActor () -> Bool, set: @MainActor (Bool) -> Void)? = nil, preview: Bool = false) {
         let list = kind == .welcomeBack ? Self.welcomeBackSteps(shell, after: nil)
             : shell == .phone ? Step.phoneFirstRun : Step.firstRun
         let first = start.flatMap { list.contains($0) ? $0 : nil } ?? list[0]
         self.kind = kind
         self.shell = shell
+        self.loginItem = loginItem
+        self.preview = preview
         self.steps = list
         step = first
         metHere = TomoGame.shared.progress.metAt
-        if kind == .firstRun { Saved(started: started, finished: nil).save() }
+        if preview { openAtLogin = loginItem?.isOn() ?? false }    // the preview starts from how things are
+        if kind == .firstRun && !preview { Saved(started: started, finished: nil).save() }
         if let i = list.firstIndex(of: first), i > 0 {
             hatched = true
             hatchStarted = .distantPast
@@ -184,8 +208,10 @@ public final class TomoOnboarding: ObservableObject {
         }
         // Progress from another device (TomoSync): an older Tomo than the one hatched here means this device
         // joined the learner's Tomo. Before the last step, the first run becomes a welcome back.
-        watch = TomoGame.shared.$progressVersion.dropFirst().sink { [weak self] _ in
-            DispatchQueue.main.async { self?.checkJoined() }
+        if !preview {
+            watch = TomoGame.shared.$progressVersion.dropFirst().sink { [weak self] _ in
+                DispatchQueue.main.async { self?.checkJoined() }
+            }
         }
     }
 
@@ -213,12 +239,21 @@ public final class TomoOnboarding: ObservableObject {
         token += 1
         watch = nil
         // Saved only when changed: Debug builds share the owner's defaults, and a test run shouldn't write them.
-        if shell == .mac, kind == .firstRun, visitEvery != DropIn.every {
+        if shell == .mac, visitEvery != DropIn.every {
             DropIn.setEvery(visitEvery)
             game.rescheduleVisits()
         }
+        if shell == .mac {
+            var s = TomoReminderCenter.shared.settings
+            if reminders.quietFrom != startSettings.quietFrom || reminders.quietUntil != startSettings.quietUntil {
+                s.quietFrom = reminders.quietFrom
+                s.quietUntil = reminders.quietUntil
+                TomoReminderCenter.shared.settings = s
+            }
+            if let item = loginItem, openAtLogin != item.isOn() { item.set(openAtLogin) }
+        }
         if shell == .phone { TomoReminderCenter.shared.settings = reminders }
-        Saved(started: started, finished: Date()).save()
+        if !preview { Saved(started: started, finished: Date()).save() }
         onFinish?()
         onFinish = nil
     }
@@ -265,6 +300,10 @@ public final class TomoOnboarding: ObservableObject {
             botState = .idle
             emote(.happy)
             if Self.autoplay { after(3, tok) { self.turnOnNotifications() } }
+        case .login:
+            botState = .idle
+            emote(.happy)
+            auto(3, tok)
         case .widget:
             botState = .idle
             if Self.autoplay { after(2, tok) { self.widgetOnHomeScreen = true } }
@@ -395,10 +434,9 @@ public final class TomoOnboarding: ObservableObject {
 
     // MARK: Joining the iCloud Tomo
 
-    /// Welcome back, then (on the iPhone) this device's setup steps still to come.
+    /// Welcome back, then this device's setup steps still to come.
     private static func welcomeBackSteps(_ shell: Shell, after current: Step?) -> [Step] {
-        guard shell == .phone else { return [.welcomeBack] }
-        let setup = Step.phoneSetup
+        let setup = shell == .phone ? Step.phoneSetup : Step.macSetup
         guard let current, let i = setup.firstIndex(of: current) else { return [.welcomeBack] + setup }
         return [.welcomeBack] + setup[i...]
     }
