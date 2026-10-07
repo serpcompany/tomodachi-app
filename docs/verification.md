@@ -13,9 +13,9 @@ macOS CI yet: CI runs only the repo checks, so the build, the self-test and the 
 | **Finish gate** | Build, self-test, repo checks, and the evidence below | Once, when the branch is done |
 
 The self-test: `TOMO_SELFTEST=1 TOMO_DATA_DIR=$(mktemp -d) <app binary>` checks the word-stage, level,
-store, sync-merge and look rules, and the island's (which screen, where, Esc), prints each check and quits (exit
-code 1 on a failure). A new growth rule gets a new check in `TomoProgress.selfTest`, a new merge rule one in
-`TomoSync.selfTest`, an island rule one in `TomoIslandSelfTest`.
+store, sync-merge and look rules, the island's (which screen, where, Esc) and who sees the first run, prints each
+check and quits (exit code 1 on a failure). A new growth rule gets a new check in `TomoProgress.selfTest`, a new
+merge rule one in `TomoSync.selfTest`, an island rule one in `TomoIslandSelfTest`.
 
 ## Evidence a change needs
 
@@ -28,6 +28,8 @@ code 1 on a failure). A new growth rule gets a new check in `TomoProgress.selfTe
   a known learner's Tomo (the mascot otherwise), and the self-test's look checks (`TomoLook.selfTest`).
 - **Sounds:** `TOMO_RENDER_SOUNDS`, and listen.
 - **Sync:** the self-test, and `TOMO_SYNC_CHECK` runs for the case it changes (below).
+- **The first run:** its window's snapshots at every step (`TOMO_ONBOARDING=1 TOMO_AUTOPLAY=1`), in English
+  and Japanese, and `TOMO_ONBOARDING=welcomeBack`.
 - **Esc, the keyboard, changing displays:** a headless run can't press keys or plug in a monitor. Put the rule
   in a pure function with a check in `TomoIslandSelfTest`, and say in the PR what wasn't tried by hand.
 
@@ -95,6 +97,9 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   the icons, every age and face, every sound (WAV), or a 16-second scene (20 fps frames), then quit. The
   sheet shows one Tomo at every age and with every face, then a crowd of other seeds.
 - `TOMO_SEED=<text>`: the seed Tomo's look is made from, in place of the saved Tomo's.
+- `TOMO_ONBOARDING=1`: the first run, if the data folder has no Tomo (test runs skip it otherwise). A step
+  name opens it there: `hatch`, `round`, `result`, `visits`, `rhythm`, `ready`, or `welcomeBack`. With
+  `TOMO_AUTOPLAY=1` it plays itself through; `TOMO_SNAPSHOT_DIR` captures its window (`onboarding-NNN.png`).
 - `TOMO_RENDER_VARIETY=<dir>`: the same eight Tomos at several `TomoLook.variety` settings, to judge how
   different Tomos should be.
 - `TOMO_RENDER_EVOLUTION=<dir>`: eight Tomos at every age, one per row, to judge how they evolve.
