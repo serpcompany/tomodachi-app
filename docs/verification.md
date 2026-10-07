@@ -38,9 +38,11 @@ merge rule one in `TomoSync.selfTest`, an island rule one in `TomoIslandSelfTest
 The menu's "Skip to talking (3さい)" (⌘3) and Settings → Testing are hidden from learners. **⌥-click the menu
 bar icon** to show them for the rest of that run, or show them always with
 `defaults write com.zenbujapanese.tomodachi tomoTestingTools -bool true` (`defaults delete` to hide them again).
-They work in every build, Developer ID included (`TomoTestingTools`). Testing never touches the saved Tomo:
-another age and "Skip ahead a day" run on a copy in memory until **Back to my Tomo**, which also puts Tomo's clock
-back.
+They work in every build, Developer ID included (`TomoTestingTools`). The menu's **Grow one step** (⌘G),
+**Finish this level** (⌘L) and **Grow to the next birthday** (⌘B) grow Tomo without waiting and celebrate as
+usual (`TomoGame.testGrow`); `TOMO_GROW=step|level|birthday` does the same 3 s after launch, for snapshots. Testing never touches the saved Tomo:
+another age, "Skip ahead a day" and Grow run on a copy in memory until **Back to my Tomo** (in the menu too),
+which also puts Tomo's clock back.
 
 ## Sync (iCloud)
 
