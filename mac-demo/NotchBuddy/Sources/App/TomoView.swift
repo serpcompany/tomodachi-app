@@ -449,7 +449,7 @@ struct TomoHeaderLeft: View {
     var body: some View {
         HStack(spacing: 8) {
             Text("Tomodachi").font(.system(size: 13, weight: .semibold))   // the app; the character is Tomo
-            Button { TomoSettingsNav.open(.tomo) } label: {    // Settings → Tomo: age, level, growing up
+            Button { TomoAppWindow.open(.tomo) } label: {    // the Tomodachi window's Tomo page: age, level, growing up
                 HStack(spacing: 8) {
                     Text(game.age)
                         .font(.system(size: 11, weight: .bold))

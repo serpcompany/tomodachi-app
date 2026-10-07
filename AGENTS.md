@@ -23,8 +23,9 @@ the [SERP engineering standards](https://github.com/serpcompany/serp/tree/main/d
   seam each one keeps, and their invariants. Read it before changing code.
 - **Language pairs:** [docs/languages.md](docs/languages.md) covers the pack format, the generated word
   levels, and adding a language.
-- **Why things are the way they are:** [docs/decisions.md](docs/decisions.md), newest first. Read it
-  before reopening a settled question.
+- **Why things are the way they are:** [docs/decisions.md](docs/decisions.md), newest first, and
+  [docs/decisions-content.md](docs/decisions-content.md) for what Tomo teaches. Read them before
+  reopening a settled question.
 - **Checking a change:** [docs/verification.md](docs/verification.md) covers the debug flags, the snapshot
   matrix, the self-test and seeded progress. Read it before you build or test.
 - **Running the demo app:** [mac-demo/README.md](mac-demo/README.md) covers running, rebuilding, beta

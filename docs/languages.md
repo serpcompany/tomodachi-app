@@ -21,7 +21,7 @@ Code: `TomoCore/Sources/TomoCore/TomoLanguage.swift` holds:
 - `LanguageContext` (the pair, passed to background work)
 - `TomoLanguages` (the current selection)
 
-Change them in **Settings → General** (I speak / I'm learning). The menu and Settings switch to the new interface language right away. For testing: `TOMO_TARGET=en`, `TOMO_LEARNER=ja`.
+Change them in **Settings** (I speak / I'm learning; the first release is Japanese only, so "I'm learning" shows only with the testing tools, `TomoFeatures`). The menus and the screens switch to the new interface language right away. For testing: `TOMO_TARGET=en`, `TOMO_LEARNER=ja`.
 
 ## What a language pack contains
 

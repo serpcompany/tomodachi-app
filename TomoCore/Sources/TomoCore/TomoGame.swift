@@ -167,7 +167,7 @@ public final class TomoGame: ObservableObject {
 
     public static let chatStage = 3
     /// Talking questions are asked with choices (pick the meaning, pick the reply), not typed answers
-    /// (decisions.md, 2026-10-06). The typed conversation below stays, switched off, for when it returns.
+    /// (decisions-content.md, 2026-10-06). The typed conversation below stays, switched off, for when it returns.
     public static let talkAsChoices = true
 
     /// Tomo's age (TomoProgress keeps it; it never goes down).

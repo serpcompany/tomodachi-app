@@ -63,7 +63,7 @@ targets:
         CFBundleVersion: "1"
         CFBundleShortVersionString: "0.0.2"
         CFBundlePackageType: APPL
-        LSUIElement: YES
+        LSUIElement: YES   # starts as an agent, so a test run (TOMO_HEADLESS) never shows a Dock icon; AppDelegate then makes it a regular app with a Dock icon (decisions.md)
         NSHighResolutionCapable: YES
         NSSupportsAutomaticGraphicsSwitching: YES
         NSAppTransportSecurity:
