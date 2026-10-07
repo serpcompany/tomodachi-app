@@ -89,7 +89,9 @@ extension TomoProgress {
             return !q.say.isEmpty && !q.meaning.isEmpty && choices.contains(q.answer) && choices.count >= 3
                 && Set(choices).count == choices.count
         }
-        if let r = round(id) { return fair(TomoRound(r, learner: learner, otherMeanings: otherMeanings(for: id, learner: learner.id))) }
+        if let r = round(id) {
+            return fair(TomoRound(r, learner: learner, otherMeanings: otherMeanings(for: id, learner: learner.id)))
+        }
         guard let s = starter(id) else { return false }
         return [TomoRoundKind.meaning, .reply].allSatisfy {
             fair(TomoRound(s, kind: $0, others: pack.allStarters, learner: learner, praise: pack.lines.levelUp))
@@ -226,7 +228,8 @@ final class TomoGrowthSim {
     /// After each answer: what the bar and the card say holds up.
     private func observe() {
         check(p.level >= lastLevel && p.age >= lastAge, "level and age never go down")
-        check(p.levelDone || p.levelProgress <= 1 - TomoProgress.goalShare + 1e-9, "the bar isn't full before the level is done")
+        check(p.levelDone || p.levelProgress <= 1 - TomoProgress.goalShare + 1e-9,
+              "the bar isn't full before the level is done")
         check(p.levelStanding <= p.levelProgress + 1e-9, "where the words stand is never past the bar")
         if p.level == lastLevel { check(p.levelProgress >= bar - 1e-9, "the bar never moves back within a level") }
         bar = p.levelProgress
@@ -236,8 +239,9 @@ final class TomoGrowthSim {
                 guard let i = p.items[id] else { return p.canTeachNew }
                 return i.stage < TomoSRS.knows && (p.isDue(id) || p.isEarlyOK(id))
             }
-            check(left.nextAt.map { $0 > now && !counts } ?? counts, "\"ready now\" only when a word of the level counts now"
-                  + " (\(left.words) left, next \(left.nextAt.map { "in \(Int($0.timeIntervalSince(now)))s" } ?? "now"), counts: \(counts))")
+            let next = left.nextAt.map { "in \(Int($0.timeIntervalSince(now))) s" } ?? "now"
+            check(left.nextAt.map { $0 > now && !counts } ?? counts,
+                  "\"ready now\" only when a word of the level counts now (\(left.words) left, next \(next), counts: \(counts))")
         }
         lastLevel = p.level
         lastAge = p.age
@@ -267,7 +271,8 @@ final class TomoGrowthSim {
         check(log.map(\.kind) == logged.map(\.kind) && log.map(\.value) == logged.map(\.value),
               "\(name): every level-up (\(reached.count)) and birthday (\(birthdays.count)) is logged")
         // The pack's age boundaries up to where the run got, and the birthdays that happened.
-        let boundaries = pack.levels.indices.dropFirst().filter { pack.levels[$0].age > pack.levels[$0 - 1].age && $0 < p.level }
+        let boundaries = pack.levels.indices.dropFirst()
+            .filter { pack.levels[$0].age > pack.levels[$0 - 1].age && $0 < p.level }
         let expected = Dictionary(uniqueKeysWithValues: boundaries.map { (pack.levels[$0].age, $0 + 1) })
         check(birthdays == expected, "\(name): birthdays at "
               + expected.sorted { $0.key < $1.key }.map { "\(pack.ageLabel($0.key)) Lv \($0.value)" }.joined(separator: ", "))
@@ -276,7 +281,7 @@ final class TomoGrowthSim {
         print("pace  " + pacing(name))
     }
 
-    /// "ja perfect: Lv 2 0.8 d (18 h) · Lv 5 … · 2さい …", from the run's first visit.
+    /// "ja perfect: Lv 2 0.8 d (19 h) · Lv 5 … · 2さい (Lv 16) …", in days from the run's start.
     func pacing(_ name: String) -> String {
         func days(_ d: Double?) -> String { d.map { String(format: "%.1f d", $0) } ?? "–" }
         var parts = [2, 5, 10].filter { $0 <= pack.levels.count }.map { "Lv \($0) \(days(reached[$0]))" }
