@@ -362,7 +362,7 @@ public final class TomoBlob: ObservableObject {
         ctx.scaleBy(x: p.sx * puff * g * (1 - jiggle * 0.5), y: p.sy * puff * g * breath * (1 + jiggle))
         ctx.translateBy(x: 0, y: -ground)
 
-        if form.details.contains(.sprout) { drawSprout(ctx, form: form, R: R) }
+        drawTopper(ctx, form: form, R: R)
         drawBody(ctx, form: form, R: R, glow: p.glow)
         drawFace(ctx, form: form, R: R, now: now, mouth: p.mouth)
 
@@ -379,6 +379,7 @@ public final class TomoBlob: ObservableObject {
         public static let heart = Color(hex: "#FF5C8A")
         public static let leaf = Color(hex: "#7FD36B")
         public static let leafDark = Color(hex: "#4FA845")
+        public static let horn = Color(hex: "#FFF1D6")
     }
 
     private func drawBody(_ ctx: GraphicsContext, form: TomoForm, R: CGFloat, glow: CGFloat) {
@@ -388,56 +389,168 @@ public final class TomoBlob: ObservableObject {
                                              startPoint: CGPoint(x: 0, y: top), endPoint: CGPoint(x: 0, y: bottom)))
         var inner = ctx
         inner.clip(to: body)
+        drawPattern(inner, form: form, R: R, top: top, bottom: bottom)
         // A soft shade along the bottom, so it sits on something.
         inner.fill(Path(ellipseIn: CGRect(x: -R * 1.4, y: bottom - R * 0.35, width: R * 2.8, height: R * 0.9)),
                    with: .color(.black.opacity(0.08)))
-        if form.details.contains(.spots) {
-            var rng = form.spotSeed
-            for _ in 0..<4 {
-                rng = (rng * 9301 + 0.4929).truncatingRemainder(dividingBy: 1)
-                let x = (CGFloat(rng) * 1.4 - 0.7) * form.rx
-                rng = (rng * 9301 + 0.4929).truncatingRemainder(dividingBy: 1)
-                let y = (CGFloat(rng) * 0.9 - 0.2) * form.ry
-                let r = R * (0.08 + 0.06 * CGFloat(rng))
-                guard abs(y - form.faceY) > 0.25 || abs(x) > form.faceW * 0.55 else { continue }
-                inner.fill(Path(ellipseIn: CGRect(x: x * R - r, y: y * R - r, width: r * 2, height: r * 2)),
-                           with: .color(.white.opacity(0.22)))
-            }
-        }
         if form.details.contains(.sheen) {
             inner.fill(Path(ellipseIn: CGRect(x: -R * 0.62, y: top + R * 0.2, width: R * 0.36, height: R * 0.22))
                         .applying(CGAffineTransform(rotationAngle: -0.5)),
                        with: .color(.white.opacity(0.4)))
         }
+        if form.details.contains(.mark) {
+            let side: CGFloat = look.markSeed < 0.5 ? -1 : 1
+            var c = inner
+            c.translateBy(x: side * form.rx * R * 0.48, y: (form.faceY - 0.42) * R)
+            c.rotate(by: .radians(Double(side) * 0.3))
+            let s = R * 0.16
+            if look.markSeed.truncatingRemainder(dividingBy: 0.5) < 0.25 { c.fill(heart(size: s), with: .color(.white.opacity(0.6))) }
+            else { c.fill(star(s * 0.55, inner: 0.45, points: 5), with: .color(.white.opacity(0.6))) }
+        }
         if glow > 0.01 { inner.fill(body, with: .color(.white.opacity(Double(glow)))) }
     }
 
-    /// A little sprout on top that sways after every move.
-    private func drawSprout(_ ctx: GraphicsContext, form: TomoForm, R: CGFloat) {
-        var c = ctx
-        c.translateBy(x: 0, y: -form.top * R + R * 0.06)
-        c.rotate(by: .radians(Double(form.sproutLean + sway * 0.9)))
-        let L = R * 0.3
-        var stem = Path()
-        stem.move(to: .zero)
-        stem.addQuadCurve(to: CGPoint(x: 0, y: -L), control: CGPoint(x: -R * 0.08, y: -L * 0.5))
-        c.stroke(stem, with: .color(Palette.leafDark), style: StrokeStyle(lineWidth: R * 0.06, lineCap: .round))
-        for side: CGFloat in [-1, 1] {
-            var leaf = Path()
-            leaf.move(to: CGPoint(x: 0, y: -L))
-            leaf.addQuadCurve(to: CGPoint(x: side * R * 0.24, y: -L - R * 0.1), control: CGPoint(x: side * R * 0.1, y: -L - R * 0.16))
-            leaf.addQuadCurve(to: CGPoint(x: 0, y: -L), control: CGPoint(x: side * R * 0.16, y: -L + R * 0.02))
-            c.fill(leaf, with: .color(Palette.leaf))
+    /// Its markings, in its second colour, kept off the face.
+    private func drawPattern(_ ctx: GraphicsContext, form: TomoForm, R: CGFloat, top: CGFloat, bottom: CGFloat) {
+        let accent = GraphicsContext.Shading.color(look.accent)
+        let w = form.rx * R
+        switch look.pattern {
+        case .none:
+            break
+        case .belly:
+            ctx.fill(Path(ellipseIn: CGRect(x: -w * 0.62, y: bottom - R * 0.72, width: w * 1.24, height: R * 1.1)), with: accent)
+        case .cap:
+            ctx.fill(Path(ellipseIn: CGRect(x: -w * 1.5, y: top - R * 1.3, width: w * 3, height: R * 1.75)), with: accent)
+        case .spots:
+            var rng = look.markSeed
+            for _ in 0..<7 {
+                rng = (rng * 9301 + 0.4929).truncatingRemainder(dividingBy: 1)
+                let x = (CGFloat(rng) * 2 - 1) * form.rx * 0.85
+                rng = (rng * 9301 + 0.4929).truncatingRemainder(dividingBy: 1)
+                let y = (CGFloat(rng) * 1.7 - 0.85) * form.ry
+                let r = R * (0.09 + 0.07 * CGFloat(rng))
+                guard abs(y - form.faceY - look.eyeY) > 0.3 || abs(x) > 0.55 else { continue }
+                ctx.fill(Path(ellipseIn: CGRect(x: x * R - r, y: y * R - r, width: r * 2, height: r * 2)), with: accent)
+            }
+        case .stripes:
+            for i in 0..<3 {
+                let y = top + R * (0.1 + 0.17 * CGFloat(i))
+                var band = Path()
+                band.move(to: CGPoint(x: -w * 1.5, y: y))
+                band.addQuadCurve(to: CGPoint(x: w * 1.5, y: y), control: CGPoint(x: 0, y: y - R * 0.12))
+                ctx.stroke(band, with: accent, style: StrokeStyle(lineWidth: R * 0.075, lineCap: .round))
+            }
+        case .twoTone:
+            ctx.fill(Path(CGRect(x: -w * 2, y: top - R, width: w * 4, height: bottom - top + R * 2)),
+                     with: .linearGradient(Gradient(colors: [look.accent, look.accent.opacity(0)]),
+                                           startPoint: CGPoint(x: -w, y: top), endPoint: CGPoint(x: w * 0.4, y: bottom)))
         }
+    }
+
+    /// What grows on its head from 2さい (ears, horns, an antenna or a sprout), swaying after every move.
+    private func drawTopper(_ ctx: GraphicsContext, form: TomoForm, R: CGFloat) {
+        guard age >= 1, look.topper != .none else { return }
+        let grow = 0.8 + 0.06 * CGFloat(age)
+        let lift = (form.silhouette == .droplet ? 0.18 : 0) - form.ry * 0.74
+        let spread = form.rx * (form.silhouette == .triangle ? 0.3 : 0.58)
+        let fill = GraphicsContext.Shading.color(look.bodyLight)
+        let inside = GraphicsContext.Shading.color(look.cheek.opacity(0.55))
+        func pair(_ draw: (GraphicsContext, CGFloat) -> Void) {
+            for side: CGFloat in [-1, 1] {
+                var c = ctx
+                c.translateBy(x: side * spread * R, y: lift * R)
+                c.rotate(by: .radians(Double(side * 0.3 + sway * 0.5)))
+                draw(c, side)
+            }
+        }
+        switch look.topper {
+        case .none:
+            break
+        case .cat:
+            pair { c, _ in
+                let h = R * 0.48 * grow, b = R * 0.24
+                c.fill(triangle(b, h), with: fill)
+                c.fill(triangle(b * 0.55, h * 0.62), with: inside)
+            }
+        case .bunny:
+            pair { c, _ in
+                let h = R * 0.8 * grow
+                c.fill(Path(ellipseIn: CGRect(x: -R * 0.13, y: -h, width: R * 0.26, height: h + R * 0.1)), with: fill)
+                c.fill(Path(ellipseIn: CGRect(x: -R * 0.065, y: -h * 0.85, width: R * 0.13, height: h * 0.75)), with: inside)
+            }
+        case .bear:
+            pair { c, _ in
+                let r = R * 0.21 * grow
+                c.fill(Path(ellipseIn: CGRect(x: -r, y: -r * 1.5, width: r * 2, height: r * 2)), with: fill)
+                c.fill(Path(ellipseIn: CGRect(x: -r * 0.5, y: -r, width: r, height: r)), with: inside)
+            }
+        case .horns:
+            pair { c, _ in
+                c.fill(triangle(R * 0.11, R * 0.36 * grow), with: .color(Palette.horn))
+            }
+        case .antenna:
+            var c = ctx
+            c.translateBy(x: 0, y: -form.top * R + R * 0.08)
+            c.rotate(by: .radians(Double(form.sproutLean + sway * 0.9)))
+            let L = R * 0.42 * grow
+            var stem = Path()
+            stem.move(to: .zero)
+            stem.addQuadCurve(to: CGPoint(x: 0, y: -L), control: CGPoint(x: R * 0.1, y: -L * 0.5))
+            c.stroke(stem, with: .color(look.ink.opacity(0.7)), style: StrokeStyle(lineWidth: R * 0.04, lineCap: .round))
+            c.fill(Path(ellipseIn: CGRect(x: -R * 0.09, y: -L - R * 0.09, width: R * 0.18, height: R * 0.18)),
+                   with: .color(look.pattern == .none ? look.cheek : look.accent))
+        case .sprout:
+            var c = ctx
+            c.translateBy(x: 0, y: -form.top * R + R * 0.06)
+            c.rotate(by: .radians(Double(form.sproutLean + sway * 0.9)))
+            let L = R * 0.3 * grow
+            var stem = Path()
+            stem.move(to: .zero)
+            stem.addQuadCurve(to: CGPoint(x: 0, y: -L), control: CGPoint(x: -R * 0.08, y: -L * 0.5))
+            c.stroke(stem, with: .color(Palette.leafDark), style: StrokeStyle(lineWidth: R * 0.06, lineCap: .round))
+            for side: CGFloat in [-1, 1] {
+                var leaf = Path()
+                leaf.move(to: CGPoint(x: 0, y: -L))
+                leaf.addQuadCurve(to: CGPoint(x: side * R * 0.24, y: -L - R * 0.1), control: CGPoint(x: side * R * 0.1, y: -L - R * 0.16))
+                leaf.addQuadCurve(to: CGPoint(x: 0, y: -L), control: CGPoint(x: side * R * 0.16, y: -L + R * 0.02))
+                c.fill(leaf, with: .color(Palette.leaf))
+            }
+        }
+    }
+
+    /// A rounded spike standing on the origin: base half-width `b`, height `h`.
+    private func triangle(_ b: CGFloat, _ h: CGFloat) -> Path {
+        var p = Path()
+        p.move(to: CGPoint(x: -b, y: b * 0.4))
+        p.addQuadCurve(to: CGPoint(x: 0, y: -h), control: CGPoint(x: -b * 0.6, y: -h * 0.5))
+        p.addQuadCurve(to: CGPoint(x: b, y: b * 0.4), control: CGPoint(x: b * 0.6, y: -h * 0.5))
+        p.closeSubpath()
+        return p
+    }
+
+    private func star(_ r: CGFloat, inner: CGFloat, points: Int) -> Path {
+        var p = Path()
+        for i in 0..<(points * 2) {
+            let a = CGFloat(i) * .pi / CGFloat(points) - .pi / 2
+            let rr = i % 2 == 0 ? r : r * inner
+            let pt = CGPoint(x: cos(a) * rr, y: sin(a) * rr)
+            if i == 0 { p.move(to: pt) } else { p.addLine(to: pt) }
+        }
+        p.closeSubpath()
+        return p
     }
 
     private func drawFace(_ ctx: GraphicsContext, form: TomoForm, R: CGFloat, now: Double, mouth: CGFloat) {
         let face = flash?.face ?? (drowsy ? .sleepy : baseFace)
         let fit = min(1, form.faceW / 0.8) * (isMini ? 1.4 : 1)       // a small face gets smaller eyes
-        let fx = look2.x * R * 0.16 * form.faceW, fy = -look2.y * R * 0.1 + form.faceY * R
-        let ew = look.eyeW * R * fit, eh = look.eyeH * R * fit
-        let gap = look.eyeGap * R * max(0.7, fit)
+        let one: CGFloat = look.cyclops ? 1.55 : 1
+        let fx = look2.x * R * 0.16 * form.faceW, fy = -look2.y * R * 0.1 + (form.faceY + look.eyeY * fit) * R
+        let ew = look.eyeW * R * fit * one, eh = look.eyeH * R * fit * one
+        let unit = R * 0.095 * fit * one                                // the size expressions are drawn at
+        let gap = look.cyclops ? 0 : look.eyeGap * R * max(0.7, fit)
         let eyeY = fy - eh * 0.2
+        let cheekX = look.cyclops ? ew * 1.9 : gap + max(ew, unit) * 1.4
+        let low = eyeY + max(eh, unit * 1.4) * 0.75                     // just under the eyes
 
         // Cheeks: a blush when it's loved; some Tomos have rosy cheeks all the time.
         let rosy: CGFloat = form.details.contains(.cheeks) ? 0.5 : 0
@@ -445,7 +558,7 @@ public final class TomoBlob: ObservableObject {
         if cheekA > 0.02 {
             for side: CGFloat in [-1, 1] {
                 let far = 1 - 0.3 * max(0, -side * look2.x)
-                let c = CGPoint(x: side * (gap + ew * 1.6) + fx * 0.6, y: eyeY + eh * 0.75)
+                let c = CGPoint(x: side * cheekX + fx * 0.6, y: low)
                 ctx.fill(Path(ellipseIn: CGRect(x: c.x - R * 0.11 * far, y: c.y - R * 0.06, width: R * 0.22 * far, height: R * 0.12)),
                          with: .color(look.cheek.opacity(Double(cheekA))))
             }
@@ -453,85 +566,128 @@ public final class TomoBlob: ObservableObject {
         if form.details.contains(.freckles) {
             for side: CGFloat in [-1, 1] {
                 for (dx, dy) in [(-0.06, 0.0), (0.05, -0.02), (0.0, 0.06)] as [(CGFloat, CGFloat)] {
-                    let c = CGPoint(x: side * (gap + ew * 1.4) + fx * 0.6 + dx * R, y: eyeY + eh * 0.7 + dy * R)
+                    let c = CGPoint(x: side * cheekX + fx * 0.6 + dx * R, y: low + dy * R)
                     ctx.fill(Path(ellipseIn: CGRect(x: c.x - R * 0.018, y: c.y - R * 0.018, width: R * 0.036, height: R * 0.036)),
                              with: .color(look.ink.opacity(0.35)))
                 }
             }
         }
 
-        // Eyes
+        // Eyes (one, for a cyclops)
         let since = now - blinkAt
         let open: CGFloat = since < 0.09 ? CGFloat(1 - since / 0.09)
                           : since < 0.2 ? CGFloat((since - 0.09) / 0.11) : 1
-        for side: CGFloat in [-1, 1] {
+        for side: CGFloat in look.cyclops ? [1] : [-1, 1] {
             var c = ctx
             c.translateBy(x: side * gap + fx, y: eyeY)
-            c.scaleBy(x: 1 - 0.25 * max(0, -side * look2.x), y: 1)   // the eye turning away narrows
-            drawEye(c, face: face, side: side, w: ew, h: eh, open: max(0.08, open), now: now)
+            if !look.cyclops { c.scaleBy(x: 1 - 0.25 * max(0, -side * look2.x), y: 1) }   // the eye turning away narrows
+            drawEye(c, face: face, side: side, w: ew, h: eh, unit: unit, open: max(0.08, open), now: now)
         }
 
-        // Mouth: opens to talk, eat, yawn and gasp; hidden otherwise.
+        // Mouth: opens to talk, eat, yawn and gasp; otherwise its own resting mouth, if it has one.
         let o = min(1, mouth + (face == .surprised ? 0.4 : 0))
+        let my = low + R * 0.04
         if o > 0.03 {
             let mw = R * (0.07 + 0.05 * o), mh = R * 0.16 * o
-            let my = eyeY + eh * 0.75 + R * 0.06
             ctx.fill(Path(roundedRect: CGRect(x: fx * 1.2 - mw, y: my, width: mw * 2, height: max(R * 0.03, mh)),
                           cornerRadius: mw), with: .color(look.ink))
+            return
+        }
+        var m = ctx
+        m.translateBy(x: fx * 1.2, y: my + R * 0.02)
+        let ink = GraphicsContext.Shading.color(look.ink)
+        let line = StrokeStyle(lineWidth: R * 0.032, lineCap: .round, lineJoin: .round)
+        switch look.mouth {
+        case .none:
+            break
+        case .smile, .fang:
+            var p = Path()
+            p.move(to: CGPoint(x: -R * 0.075, y: 0))
+            p.addQuadCurve(to: CGPoint(x: R * 0.075, y: 0), control: CGPoint(x: 0, y: R * 0.08))
+            m.stroke(p, with: ink, style: line)
+            if look.mouth == .fang {
+                var f = Path()
+                f.move(to: CGPoint(x: R * 0.015, y: R * 0.035)); f.addLine(to: CGPoint(x: R * 0.06, y: R * 0.025))
+                f.addLine(to: CGPoint(x: R * 0.04, y: R * 0.075)); f.closeSubpath()
+                m.fill(f, with: .color(.white))
+            }
+        case .cat:
+            var p = Path()
+            p.move(to: CGPoint(x: -R * 0.08, y: 0))
+            p.addQuadCurve(to: CGPoint(x: 0, y: 0), control: CGPoint(x: -R * 0.04, y: R * 0.06))
+            p.addQuadCurve(to: CGPoint(x: R * 0.08, y: 0), control: CGPoint(x: R * 0.04, y: R * 0.06))
+            m.stroke(p, with: ink, style: line)
+        case .o:
+            m.stroke(Path(ellipseIn: CGRect(x: -R * 0.032, y: -R * 0.01, width: R * 0.064, height: R * 0.07)), with: ink, style: line)
+        case .flat:
+            var p = Path()
+            p.move(to: CGPoint(x: -R * 0.05, y: R * 0.02)); p.addLine(to: CGPoint(x: R * 0.05, y: R * 0.02))
+            m.stroke(p, with: ink, style: line)
         }
     }
 
-    private func drawEye(_ ctx: GraphicsContext, face: Face, side: CGFloat, w: CGFloat, h: CGFloat, open: CGFloat, now: Double) {
+    /// One eye. At rest it's the Tomo's own eye style (`w`, `h`); expressions are drawn at a shared `unit`, so
+    /// every Tomo's faces read the same.
+    private func drawEye(_ ctx: GraphicsContext, face: Face, side: CGFloat, w: CGFloat, h: CGFloat, unit u: CGFloat,
+                         open: CGFloat, now: Double) {
         let ink = GraphicsContext.Shading.color(look.ink)
-        let line = StrokeStyle(lineWidth: w * 1.15, lineCap: .round, lineJoin: .round)
-        func bar(_ k: CGFloat, dy: CGFloat = 0) {
-            let rh = h * k * open
-            ctx.fill(TomoForm.superellipse(rx: w * k, ry: rh, n: look.eyeN).offsetBy(dx: 0, dy: dy), with: ink)
-            if open > 0.6 {
-                let s = w * k * 0.32
-                ctx.fill(Path(ellipseIn: CGRect(x: w * k * 0.15 - s, y: dy - rh * 0.5 - s, width: s * 2, height: s * 2)),
-                         with: .color(.white.opacity(0.85)))
+        let line = StrokeStyle(lineWidth: u * 1.05, lineCap: .round, lineJoin: .round)
+        func eye(_ k: CGFloat, dy: CGFloat = 0) {
+            let rw = w * k, rh = h * k * open
+            var shape = TomoForm.superellipse(rx: rw, ry: rh, n: look.eyeN).offsetBy(dx: 0, dy: dy)
+            if look.eyeStyle == .lidded {      // a heavy upper lid: only the lower part shows
+                shape = shape.intersection(Path(CGRect(x: -rw * 2, y: dy - rh * 0.25, width: rw * 4, height: rh * 3)))
+            }
+            ctx.fill(shape, with: ink)
+            guard open > 0.6, look.eyeStyle != .bead || k > 1 else { return }
+            let s = rw * (look.eyeStyle == .big ? 0.38 : 0.3)
+            let gy = look.eyeStyle == .lidded ? dy : dy - rh * 0.45
+            ctx.fill(Path(ellipseIn: CGRect(x: rw * 0.2 - s, y: gy - s, width: s * 2, height: s * 2)), with: .color(.white.opacity(0.9)))
+            if look.eyeStyle == .big {
+                let t = s * 0.45
+                ctx.fill(Path(ellipseIn: CGRect(x: -rw * 0.35 - t, y: dy + rh * 0.35 - t, width: t * 2, height: t * 2)),
+                         with: .color(.white.opacity(0.7)))
             }
         }
         func smile() {
             var p = Path()
-            p.move(to: CGPoint(x: -w * 1.5, y: h * 0.25))
-            p.addQuadCurve(to: CGPoint(x: w * 1.5, y: h * 0.25), control: CGPoint(x: 0, y: -h * 0.85))
+            p.move(to: CGPoint(x: -u * 1.5, y: u * 0.5))
+            p.addQuadCurve(to: CGPoint(x: u * 1.5, y: u * 0.5), control: CGPoint(x: 0, y: -u * 1.7))
             ctx.stroke(p, with: ink, style: line)
         }
         switch face {
-        case .normal: bar(1)
-        case .surprised: bar(1.22)
-        case .confused: side < 0 ? bar(0.72, dy: -h * 0.15) : bar(1.12)
+        case .normal: eye(1)
+        case .surprised: eye(1.22)
+        case .confused: side < 0 ? eye(0.72, dy: -h * 0.15) : eye(1.12)
         case .happy: smile()
-        case .wink: side > 0 ? smile() : bar(1)
+        case .wink: side > 0 ? smile() : eye(1)
         case .sleep:
             var p = Path()
-            p.move(to: CGPoint(x: -w * 1.5, y: 0))
-            p.addQuadCurve(to: CGPoint(x: w * 1.5, y: 0), control: CGPoint(x: 0, y: h * 0.6))
+            p.move(to: CGPoint(x: -u * 1.5, y: 0))
+            p.addQuadCurve(to: CGPoint(x: u * 1.5, y: 0), control: CGPoint(x: 0, y: u * 1.2))
             ctx.stroke(p, with: ink, style: line)
         case .sleepy:
-            ctx.fill(TomoForm.superellipse(rx: w * 1.15, ry: h * 0.3, n: look.eyeN).offsetBy(dx: 0, dy: h * 0.35), with: ink)
+            ctx.fill(Path(roundedRect: CGRect(x: -u * 1.2, y: u * 0.1, width: u * 2.4, height: u * 0.6), cornerRadius: u * 0.3), with: ink)
         case .flat:
-            ctx.fill(Path(roundedRect: CGRect(x: -w * 1.6, y: -w * 0.5, width: w * 3.2, height: w), cornerRadius: w * 0.5), with: ink)
+            ctx.fill(Path(roundedRect: CGRect(x: -u * 1.6, y: -u * 0.5, width: u * 3.2, height: u), cornerRadius: u * 0.5), with: ink)
         case .squeeze:
             var p = Path()
             let d = -side          // left eye ">", right eye "<"
-            p.move(to: CGPoint(x: -w * 1.2 * d, y: -h * 0.55))
-            p.addLine(to: CGPoint(x: w * 1.1 * d, y: 0))
-            p.addLine(to: CGPoint(x: -w * 1.2 * d, y: h * 0.55))
-            ctx.stroke(p, with: ink, style: StrokeStyle(lineWidth: w * 0.95, lineCap: .round, lineJoin: .round))
+            p.move(to: CGPoint(x: -u * 1.2 * d, y: -u * 1.1))
+            p.addLine(to: CGPoint(x: u * 1.1 * d, y: 0))
+            p.addLine(to: CGPoint(x: -u * 1.2 * d, y: u * 1.1))
+            ctx.stroke(p, with: ink, style: StrokeStyle(lineWidth: u * 0.95, lineCap: .round, lineJoin: .round))
         case .love:
-            ctx.fill(heart(size: h * 1.9), with: .color(Palette.heart))
+            ctx.fill(heart(size: u * 3.6), with: .color(Palette.heart))
         case .dizzy:
             let a = CGFloat(now * 7) * side
-            let r = max(w * 1.5, h * 0.6)
+            let r = u * 1.5
             var p = Path()
             p.addArc(center: .zero, radius: r * 0.95, startAngle: .radians(Double(a)),
                      endAngle: .radians(Double(a) + 5), clockwise: false)
             p.addArc(center: .zero, radius: r * 0.42, startAngle: .radians(Double(a) + 5),
                      endAngle: .radians(Double(a) + 9), clockwise: false)
-            ctx.stroke(p, with: ink, style: StrokeStyle(lineWidth: w * 0.7, lineCap: .round))
+            ctx.stroke(p, with: ink, style: StrokeStyle(lineWidth: u * 0.7, lineCap: .round))
         }
     }
 

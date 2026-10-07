@@ -15,16 +15,33 @@ import SwiftUI
 public struct TomoLook: Equatable, Sendable {
     public let seed: String
 
-    /// The colours, fixed for life.
+    public enum EyeStyle: Sendable { case bar, dot, big, lidded, bead }
+    public enum Mouth: Sendable { case none, smile, cat, o, fang, flat }
+    public enum Pattern: Sendable { case none, belly, cap, spots, stripes, twoTone }
+    public enum Topper: Sendable { case none, cat, bunny, bear, horns, antenna, sprout }
+
+    /// The colours, fixed for life. `accent` is the second colour its markings use.
+    public let hue: Double
     public let body: Color
     public let bodyLight: Color
+    public let accent: Color
     public let ink: Color
     public let cheek: Color
-    /// Eyes, fixed for life: width and height (in body radii), squareness.
+    /// Eyes, fixed for life: a style, width and height (in body radii), squareness, spacing, height on the face.
+    /// A rare Tomo has one big eye.
+    public let eyeStyle: EyeStyle
+    public let cyclops: Bool
     public let eyeW: CGFloat
     public let eyeH: CGFloat
     public let eyeN: CGFloat
     public let eyeGap: CGFloat
+    public let eyeY: CGFloat
+    /// Its face at rest, its markings, and what grows on its head from 2さい: all for life.
+    public let mouth: Mouth
+    public let pattern: Pattern
+    public let topper: Topper
+    /// Where its markings and its mark sit, seeded.
+    public let markSeed: Double
     /// How fast it breathes and how often it blinks, so a room of Tomos doesn't move in unison.
     public let breathRate: Double
     public let blinkPace: Double
@@ -43,7 +60,7 @@ public struct TomoLook: Equatable, Sendable {
         let t = TomoTraits(seed: seed, overrides: overrides)
 
         // Colour: any hue, in one of a few authored tones, so every Tomo looks like it came from one designer.
-        let hue = t.numD("hue", 0, 360)
+        hue = t.numD("hue", 0, 360)
         let tone = t.band("tone", Self.tones)
         var head = TomoOklch(l: tone.l, c: tone.c, h: hue)
         head = head.ensuringContrast(against: .notch, min: 3)          // always visible on the black notch
@@ -53,14 +70,38 @@ public struct TomoLook: Equatable, Sendable {
         ink = eye.ensuringContrast(against: head, min: 4.5).color
         cheek = TomoOklch(l: 0.72, c: 0.15, h: 12).color
 
-        eyeW = t.num("eye.w", 0.085, 0.115)
-        eyeH = eyeW * t.num("eye.ratio", 1.7, 2.8)
-        eyeN = t.num("eye.n", 3.5, 6)
-        eyeGap = t.num("eye.gap", 0.25, 0.36)
+        pattern = t.band("pattern", [(Pattern.none, 0.3), (.belly, 0.46), (.cap, 0.6), (.spots, 0.74), (.stripes, 0.86), (.twoTone, 1)])
+        let shift = t.numD("accent.hue", 40, 160) * (t("accent.dir") < 0.5 ? -1 : 1)
+        let darker = head.l > 0.6 ? -0.13 : 0.13
+        switch pattern {
+        case .belly: accent = TomoOklch(l: min(0.97, head.l + 0.1), c: head.c * 0.35, h: hue).color
+        case .twoTone: accent = TomoOklch(l: head.l, c: max(head.c, 0.1), h: hue + shift * 0.45).color   // neighbours, never muddy
+        default: accent = TomoOklch(l: head.l + darker, c: max(head.c, 0.11), h: hue + shift * 0.5).color
+        }
+
+        eyeStyle = t.band("eye.style", [(EyeStyle.bar, 0.3), (.dot, 0.55), (.big, 0.72), (.lidded, 0.87), (.bead, 1)])
+        cyclops = t("eye.cyclops") < 0.05
+        switch eyeStyle {
+        case .bar:
+            eyeW = t.num("eye.w", 0.085, 0.11); eyeH = eyeW * t.num("eye.ratio", 1.7, 2.6); eyeN = t.num("eye.n", 3.5, 6)
+        case .dot:
+            eyeW = t.num("eye.w", 0.085, 0.115); eyeH = eyeW * t.num("eye.ratio", 1, 1.15); eyeN = 2
+        case .big:
+            eyeW = t.num("eye.w", 0.13, 0.16); eyeH = eyeW * t.num("eye.ratio", 1.15, 1.35); eyeN = 2
+        case .lidded:
+            eyeW = t.num("eye.w", 0.11, 0.14); eyeH = eyeW * t.num("eye.ratio", 1, 1.2); eyeN = 2
+        case .bead:
+            eyeW = t.num("eye.w", 0.05, 0.065); eyeH = eyeW * t.num("eye.ratio", 1, 1.2); eyeN = 2
+        }
+        eyeGap = max(t.num("eye.gap", 0.2, 0.42), eyeW * 1.7)
+        eyeY = t.num("eye.y", -0.16, 0.1)
+        mouth = t.band("mouth", [(Mouth.none, 0.35), (.smile, 0.58), (.cat, 0.74), (.o, 0.84), (.fang, 0.93), (.flat, 1)])
+        topper = t.band("topper", [(Topper.none, 0.3), (.cat, 0.44), (.bunny, 0.56), (.bear, 0.7), (.horns, 0.8), (.antenna, 0.9), (.sprout, 1)])
+        markSeed = t("mark")
         breathRate = t.numD("motion.breath", 1.45, 1.95)
         blinkPace = t.numD("motion.blink", 0.8, 1.25)
 
-        // The details it gains with age, in this Tomo's own order. One more at each birthday from 2さい.
+        // The extras it gains with age, three of four in this Tomo's own order: at 2, 4 and 6さい.
         var pool = TomoForm.Detail.allCases
         var order: [TomoForm.Detail] = []
         for i in 0..<pool.count {
@@ -69,7 +110,7 @@ public struct TomoLook: Equatable, Sendable {
         }
         var forms: [TomoForm] = []
         for age in 0..<Self.ages {
-            forms.append(TomoForm(age: age, traits: t, details: Set(order.prefix(max(0, age))),
+            forms.append(TomoForm(age: age, traits: t, details: Set(order.prefix(min(3, (age + 1) / 2))),
                                    after: newShapeEachAge ? forms.last?.silhouette : nil))
         }
         self.forms = forms
@@ -87,7 +128,10 @@ public struct TomoLook: Equatable, Sendable {
     /// The Tomodachi mascot: the one Tomo everyone sees where a learner's own can't be drawn (widgets, the
     /// Lock Screen, the app icon). Pinned traits, so it never changes with the hash.
     public static let mascot = TomoLook(seed: "tomodachi", overrides: [
-        "hue": 0.24, "tone": 0.7, "eye.w": 0.8, "eye.ratio": 0.5, "eye.n": 0.4, "eye.gap": 0.5,
+        "hue": 0.24, "tone": 0.7, "eye.style": 0.1, "eye.cyclops": 0.9, "eye.w": 0.8, "eye.ratio": 0.5,
+        "eye.n": 0.4, "eye.gap": 0.5, "eye.y": 0.4, "mouth": 0.1, "pattern": 0.1, "topper": 0.1,
+        "age0.body.ratio": 0.45, "age1.body.ratio": 0.45, "age2.body.ratio": 0.45, "age3.body.ratio": 0.45,
+        "age4.body.ratio": 0.45, "age5.body.ratio": 0.45,
         "age0.shape": 0.1, "age1.shape": 0.1, "age2.shape": 0.1, "age3.shape": 0.1, "age4.shape": 0.1, "age5.shape": 0.1,
     ], newShapeEachAge: false)
 
@@ -123,10 +167,14 @@ extension TomoLook {
         let crowd = (0..<300).map { TomoLook(seed: "selftest-crowd-\($0)") }
         check(crowd.allSatisfy { l in zip(l.forms, l.forms.dropFirst()).allSatisfy { $0.silhouette != $1.silhouette } },
               "every birthday changes the shape")
-        check(crowd.allSatisfy { [.round, .organic, .nub].contains($0.form(0).silhouette) }, "1さい is always a soft shape")
+        check(crowd.allSatisfy { [.round, .organic, .nub].contains($0.form(0).silhouette) }, "age 1 is always a soft shape")
         check(Set(crowd.map { $0.form(3).silhouette.rawValue }).count == 10, "every shape turns up in a crowd")
-        check(crowd.allSatisfy { $0.form(5).details.count == 5 && $0.form(0).details.isEmpty },
-              "a detail is added at each birthday from 2さい")
+        check(crowd.allSatisfy { $0.form(5).details.count == 3 && $0.form(0).details.isEmpty },
+              "three extras come with age, at ages 2, 4 and 6")
+        let kinds = Set(crowd.map { l in
+            "\(Int(l.hue / 20)) \(l.eyeStyle) \(l.cyclops) \(l.mouth) \(l.pattern) \(l.topper) \(l.form(0).silhouette)"
+        })
+        check(kinds.count >= 295, "a crowd of 300 Tomos has almost no lookalikes (\(kinds.count) different)")
         check(mascot.forms.allSatisfy { $0.silhouette == .round }, "the mascot stays round at every age")
         var readable = true
         for (tone, _) in tones {
@@ -146,7 +194,7 @@ extension TomoLook {
 /// One age's shape: the silhouette and the extra details Tomo has at that age.
 public struct TomoForm: Sendable {
     public enum Silhouette: String, Sendable { case round, organic, boxy, capsule, nub, cloud, droplet, hexagon, sun, triangle }
-    public enum Detail: CaseIterable, Sendable { case cheeks, sprout, freckles, sheen, spots }
+    public enum Detail: CaseIterable, Sendable { case cheeks, freckles, sheen, mark }
 
     public let silhouette: Silhouette
     /// Size, growing with age (1 at 1さい).
@@ -167,9 +215,8 @@ public struct TomoForm: Sendable {
     public let faceY: CGFloat
     public let faceW: CGFloat
     public let details: Set<Detail>
-    /// Where the details sit, seeded too.
+    /// How its topper leans, seeded too.
     public let sproutLean: CGFloat
-    public let spotSeed: Double
 
     /// The everyday shapes come up often; the loud ones are finds. Babies (1さい) are always soft shapes.
     private static let bands: [(Silhouette, Double)] = [
@@ -190,9 +237,8 @@ public struct TomoForm: Sendable {
         scale = 1 + 0.07 * CGFloat(age)
         self.details = details
         sproutLean = t.jitter(k + "sprout", 0.35)
-        spotSeed = t(k + "spots")
 
-        let ratio = t.num(k + "body.ratio", 0.92, 1.06)
+        let ratio = t.num(k + "body.ratio", 0.78, 1.22)
         var rx: CGFloat = 1, ry: CGFloat = ratio, n = t.num(k + "body.n", 1.9, 2.5), rot: CGFloat = 0
         var radii: [CGFloat] = []
         var petals: [(x: CGFloat, y: CGFloat, r: CGFloat)] = []

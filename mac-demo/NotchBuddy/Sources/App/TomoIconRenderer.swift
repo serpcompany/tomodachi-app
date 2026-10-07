@@ -167,7 +167,7 @@ enum TomoIconRenderer {
             }
         }
         let ages = ["1さい", "2さい", "3さい", "4さい", "5さい", "6さい"]  // text-ok: debug sheet labels
-        let crowd = (0..<12).map { TomoLook(seed: "sheet-\($0)") }
+        let crowd = (0..<24).map { TomoLook(seed: "sheet-\($0)") }
         let rows: [[AnyView]] = [
             (0..<6).map { AnyView(cell(ages[$0], growth: CGFloat($0))) },
             [AnyView(cell("look") { $0.lookX = 0.8; $0.lookY = -0.6; for _ in 0..<40 { $0.step() } }),
@@ -182,8 +182,9 @@ enum TomoIconRenderer {
              AnyView(cell("wink", growth: 2) { $0.emote(.wink) }),
              AnyView(cell("annoyed") { $0.emote(.annoyed) }),
              AnyView(cell("dizzy") { $0.setState(.dizzy) })],
-            (0..<6).map { AnyView(cell(crowd[$0].form(2).silhouette.rawValue, growth: 2, look: crowd[$0])) },
-            (6..<12).map { AnyView(cell(crowd[$0].form(2).silhouette.rawValue, growth: 2, look: crowd[$0])) },
+        ] + (0..<4).map { r in
+            (r * 6..<r * 6 + 6).map { AnyView(cell(crowd[$0].form(3).silhouette.rawValue, growth: 3, look: crowd[$0])) }
+        } + [
             (0..<6).map { AnyView(cell(crowd[0].form($0).silhouette.rawValue, growth: CGFloat($0), look: crowd[0])) },
         ]
         return VStack(spacing: 10) {
