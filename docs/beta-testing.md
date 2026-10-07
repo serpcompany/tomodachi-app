@@ -19,7 +19,7 @@ Tomo is a little blob who lives next to your MacBook's notch and only speaks the
 
 ## Good to know
 
-- **Progress is saved on this Mac and syncs through your iCloud.** Tomo grows over days, not minutes: a word only counts again when it's due (hours at first, then days), so a few short visits a day is the right pace. Clicking Tomo to play counts too, as long as some time has passed since you last saw a word. When nothing counts, Tomo asks first whether you want to practice; practice is marked in blue and doesn't move the bar. **Lv** in the header goes up when most of a level's words are known; some levels are birthdays. The bar under the header moves a little with every answer that counts. To start over: menu bar icon → **Start Tomo over…**
+- **Progress is saved on this Mac and syncs through your iCloud.** Tomo grows over days, not minutes: a word only counts again when it's due (hours at first, then days), so a few short visits a day is the right pace. Clicking Tomo to play counts too, as long as some time has passed since you last saw a word. When nothing counts, Tomo rests and says when it's back; if you'd like to keep playing anyway, **Practice** is a button there (marked in blue; it doesn't move the bar). **Lv** in the header goes up when 9 of a level's 10 words are known; some levels are birthdays. The bar under the header moves a little with every answer that counts; the short piece at its end fills only when the level is done, and the card says what's left ("1 more word to Lv 2 · ready now"). To start over: menu bar icon → **Start Tomo over…**
 - **The voice is the Mac's built-in Japanese voice at a higher pitch.** Better voices come later.
 - **Word cards and explanations use AI** if you add a key in Settings → AI (OpenAI, Anthropic, Gemini, OpenRouter, Groq, or a local Ollama). The key stays in your Keychain. Each AI call costs a fraction of a cent, on your account.
 - **No microphone:** you answer by clicking, so Tomodachi doesn't ask for it.
@@ -29,7 +29,7 @@ Tomo is a little blob who lives next to your MacBook's notch and only speaks the
 
 Install **TestFlight** from the App Store, then open the invite link we send you. Signed in to the same iCloud account on both, the iPhone and the Mac share one Tomo: play on either and the other catches up (iPhone 1.1 and Mac beta 0.0.2 or later). If both already had a Tomo, they merge.
 
-- **Play in the app:** the same rounds as on the Mac. Tap a word in Tomo's line to look it up.
+- **Play in the app:** the same rounds as on the Mac. Tap a word in Tomo's line to look it up. When nothing counts, Tomo rests on the screen and says when it's back; Practice is there if you want it.
 - **Add the widget:** long-press the Home Screen → **+** → Tomodachi (small or medium). It shows Tomo and how many words are waiting.
 - **Lock your phone:** Tomo's card is on the Lock Screen (allow Live Activities when asked). Tap the yellow **▶** to play one round right there, or tap the card to open the app. On iPhones with a Dynamic Island, Tomo sits there too.
 

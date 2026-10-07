@@ -21,7 +21,7 @@ code 1 on a failure). A new growth rule gets a new check in `TomoProgress.selfTe
 
 - **The card, the header or anything else on the island:** the snapshot matrix. Look at every image:
   picture and talking stages; English and Japanese interface; a short and a long Tomo line; the hint
-  (talking); Win, Practice, Miss and No score; and any new state the change adds.
+  (talking); Win, Practice, Miss and No score; resting and a level-up; and any new state the change adds.
 - **Growth rules:** the self-test, with a check for the new rule.
 - **Settings:** a snapshot of the page (`TOMO_OPEN_SETTINGS=<page>`).
 - **Tomo's look or motion:** `TOMO_RENDER_SHEET` and `TOMO_RENDER_ANIM` frames, with `TOMO_SEED=<text>` for
@@ -81,7 +81,9 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
 - `TOMO_SNAPSHOT_DIR=<dir>`: a PNG of the island every second. With `TOMO_OPEN_SETTINGS=<page>` (tomo,
   words, general, ai, testing, about) it opens Settings at that page and captures it too (`testing` also shows
   the testing tools).
-- `TOMO_AUTOPLAY=1`: answers picture rounds by itself (one miss, then right) and accepts the practice offer.
+- `TOMO_AUTOPLAY=1`: answers picture rounds by itself (one miss, then right) and picks Practice when Tomo rests.
+- `TOMO_AUTOREOPEN=<seconds>`: that long after Tomo first tucks back in, it opens once, the way a click on
+  small Tomo does (free play), to see what the learner gets then (the resting card, or what counts now).
 - `TOMO_STAGE=3 TOMO_AUTOCHAT="しごと してる|うん"`: a testing Tomo at that age, typing those answers. Testing
   ages run in memory; saved progress isn't touched.
 - `TOMO_TARGET=es`, `TOMO_LEARNER=ja`: the language pair.
@@ -100,8 +102,8 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
 ## Starting from a known state
 
 `mac-demo/scripts/seed-progress.py <dir>` writes saved progress for a run: a level, an age, and items at
-chosen stages and due times, for any language pair. For example, all of level 1 just learned, so nothing
-counts and Tomo offers practice:
+chosen stages and due times (and best stages, for a slip), for any language pair. For example, all of
+level 1 just learned, so nothing counts and Tomo rests:
 
 ```bash
 python3 mac-demo/scripts/seed-progress.py /tmp/tomo-test --through-level 1 --stage 1 --due 2
