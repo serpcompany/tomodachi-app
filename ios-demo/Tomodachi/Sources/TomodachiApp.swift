@@ -1,3 +1,4 @@
+import AVFoundation
 import Combine
 import SwiftUI
 import TomoCore
@@ -21,6 +22,9 @@ struct TomodachiApp: App {
         TomoOnboarding.checkAtLaunch()       // before anything opens the store: a new learner gets the first run (#88)
         TomoReminderCenter.shared.install()  // a tap on a reminder can be why we launched
         TomoLiveVisit.shared.install()      // before anything else: a tap on the card can be why we launched
+        // Tomo's voice and peeps are a game's sounds: the Ring/Silent switch mutes them, and they play over the
+        // learner's music instead of stopping it (#92).
+        try? AVAudioSession.sharedInstance().setCategory(.ambient)
     }
 
     var body: some Scene {

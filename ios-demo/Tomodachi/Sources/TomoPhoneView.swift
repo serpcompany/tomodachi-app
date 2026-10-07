@@ -6,56 +6,82 @@ import TomoCore
 // Top to bottom: header (age, level, sound) and the level bar · Tomo, big and alive · what Tomo says ·
 // the result · the answers (picture tiles, meaning pills, or the answer box when Tomo talks).
 // Every text that can grow is capped (line limits, scaling), so the layout never shifts between rounds.
-// While the keyboard is up, Tomo and the text shrink so the header and the answer box stay in view.
-// All text comes from the language packs.
+// Tomo, the speech and the answers share what height there is: full size from about an iPhone 17's screen
+// down to an iPhone SE's (`fit`). While the keyboard is up, Tomo and the text shrink so the header and the
+// answer box stay in view. Text follows Dynamic Type up to a cap (`textScale`), and VoiceOver reads the bar,
+// Tomo, its line and every choice. All text comes from the language packs.
 
 struct TomoPhoneView: View {
     @ObservedObject var shell: TomoPhoneShell
     @ObservedObject var game = TomoGame.shared
     @ObservedObject var lang = TomoLanguages.shared
     @FocusState private var typing: Bool
+    /// The screen's height inside the safe area.
+    @State private var height: CGFloat = 780
+    @ScaledMetric(relativeTo: .body) private var dynamicScale: CGFloat = 1
 
     private var growth: CGFloat { game.growthStep }
     private var said: String { game.isChat ? game.line.say : game.round.say }
-    /// Row sizes: full, or compact while the keyboard is up.
-    private var tomoSize: CGFloat { typing ? 110 : 220 }
-    private var speechHeight: CGFloat { typing ? 180 : 190 }   // two lines, the result, one line of why
+    private var ui: LearnerPack { lang.learner }
+
+    /// How much of the flexible rows' full size fits: 1 on a regular iPhone, about 0.4 on an iPhone SE. The fixed
+    /// rows (header, bar, what's left, margins) take about 108 pt; Tomo, the speech and the answers take 456 pt at
+    /// their smallest and 640 pt at full size.
+    private var fit: CGFloat { min(max((height - 108 - 456) / (640 - 456), 0), 1) }
+    /// Row sizes: full, smaller on short screens, or compact while the keyboard is up.
+    private var tomoSize: CGFloat { typing ? 110 : 120 + 100 * fit }
+    private var speechHeight: CGFloat { typing ? 180 : 150 + 40 * fit }   // two lines, the result, one line of why
+    private var answersHeight: CGFloat { 186 + 44 * fit }
+    /// Dynamic Type, capped so text grows inside its row instead of pushing the others out.
+    private var textScale: CGFloat { min(max(dynamicScale, 0.85), 1.3) }
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            // The experience bar: its last tenth is the goal, which fills only when the level is done
-            TomoGrowthBar(progress: game.levelProgress, standing: game.levelStanding, dimmed: game.isPracticeRound,
-                          colors: [Color(hex: "#FFE68C"), Color(hex: "#34D399")], empty: Color.white.opacity(0.08))
-                .frame(height: 6)
-                .padding(.horizontal, 20)
-                .padding(.top, 10)
-            // What's left before the next level, and when the next word is ready
-            if !typing {
-                Label { Text(game.phase == .resting ? game.restLines.left : game.whatsLeft()) } icon: {
-                    Image(systemName: "flag.fill").foregroundStyle(Color(hex: "#34D399"))
-                }
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(Color(hex: "#9EA3AC"))
-                    .lineLimit(1).minimumScaleFactor(0.75)
+        // The rows are sized from the space the screen offers, never from what they hold (no layout loop).
+        GeometryReader { geo in
+            VStack(spacing: 0) {
+                header
+                // The experience bar: its last tenth is the goal, which fills only when the level is done
+                TomoGrowthBar(progress: game.levelProgress, standing: game.levelStanding, dimmed: game.isPracticeRound,
+                              colors: [Color(hex: "#FFE68C"), Color(hex: "#34D399")], empty: Color.white.opacity(0.08))
+                    .frame(height: 6)
                     .padding(.horizontal, 20)
-                    .padding(.top, 8)
+                    .padding(.top, 10)
+                    .accessibilityElement()
+                    .accessibilityLabel(ui("a11y.bar", ["next": "\(game.level + 1)"]))
+                    .accessibilityValue("\(Int((game.levelProgress * 100).rounded()))%")
+                // What's left before the next level, and when the next word is ready
+                if !typing {
+                    Label { Text(game.phase == .resting ? game.restLines.left : game.whatsLeft()) } icon: {
+                        Image(systemName: "flag.fill").foregroundStyle(Color(hex: "#34D399"))
+                    }
+                        .font(.system(size: 13 * textScale, weight: .medium))
+                        .foregroundStyle(Color(hex: "#9EA3AC"))
+                        .lineLimit(1).minimumScaleFactor(0.75)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 8)
+                }
+
+                Spacer(minLength: 4)
+                TomoBlobView(state: shell.botState, growth: growth)
+                    .frame(width: tomoSize, height: tomoSize)
+                    .contentShape(Rectangle())
+                    .onTapGesture { NotificationCenter.default.post(name: .triggerSlap, object: nil) }
+                    .accessibilityElement()
+                    .accessibilityLabel(ui("a11y.tomo", ["age": game.age]))
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityAction { NotificationCenter.default.post(name: .triggerSlap, object: nil) }
+                speech
+                    .frame(height: speechHeight, alignment: .top)
+                    .padding(.horizontal, 24)
+                Spacer(minLength: 4)
+
+                answers
+                    .frame(height: typing ? nil : answersHeight, alignment: .bottom)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 12)
             }
-
-            Spacer(minLength: 4)
-            TomoBlobView(state: shell.botState, growth: growth)
-                .frame(width: tomoSize, height: tomoSize)
-                .contentShape(Rectangle())
-                .onTapGesture { NotificationCenter.default.post(name: .triggerSlap, object: nil) }
-            speech
-                .frame(height: speechHeight, alignment: .top)
-                .padding(.horizontal, 24)
-            Spacer(minLength: 4)
-
-            answers
-                .frame(height: typing ? nil : 230, alignment: .bottom)
-                .padding(.horizontal, 20)
-                .padding(.bottom, 12)
+            .frame(width: geo.size.width, height: geo.size.height)
+            .onChange(of: geo.size.height, initial: true) { _, h in height = h }
         }
         .foregroundStyle(Color(hex: "#F5F6F8"))
         .background(background.ignoresSafeArea().onTapGesture { typing = false })
@@ -87,6 +113,7 @@ struct TomoPhoneView: View {
             Text(lang.learner("level", ["n": "\(game.level)"]))
                 .font(.system(size: 14, weight: .semibold, design: .rounded))
                 .foregroundStyle(Color(hex: "#C9CDD4"))
+                .lineLimit(1).fixedSize()
             if game.isPracticeRound {
                 Text(timeText("practice.chip", until: game.countsAgainAt, lang))
                     .font(.system(size: 12, weight: .semibold))
@@ -100,6 +127,8 @@ struct TomoPhoneView: View {
                     .frame(width: 40, height: 40)
                     .background(Color.white.opacity(0.08), in: Circle())
             }
+            .accessibilityLabel(ui("a11y.sound"))
+            .accessibilityValue(ui(game.soundEnabled ? "a11y.on" : "a11y.off"))
         }
         .padding(.horizontal, 20)
         .padding(.top, 8)
@@ -131,6 +160,7 @@ struct TomoPhoneView: View {
                                 .frame(width: 38, height: 38)
                                 .background(Color.white.opacity(0.1), in: Circle())
                         }
+                        .accessibilityLabel(ui("a11y.replay"))
                     }
                 }
                 result
@@ -146,7 +176,7 @@ struct TomoPhoneView: View {
             if game.phase == .thinking { ProgressView().tint(.white) }
             if showMeaning {
                 Text(meaningLine)
-                    .font(.system(size: 15))
+                    .font(.system(size: 15 * textScale))
                     .foregroundStyle(Color(hex: "#D5D8DE"))
                     .lineLimit(2).minimumScaleFactor(0.8)
             }
@@ -154,7 +184,7 @@ struct TomoPhoneView: View {
         // Talking: why the answer got its result, and what Tomo read (romaji shows here as kana).
         if game.isChat, game.help != .hint, let you = game.lastAnswer, let o = game.outcome, game.phase != .thinking {
             Text("\(o.why(lang)) · \(lang.learner("you", ["x": you]))")
-                .font(.system(size: 14))
+                .font(.system(size: 14 * textScale))
                 .foregroundStyle(Color(hex: "#9EA3AC"))
                 .multilineTextAlignment(.center)
                 .lineLimit(2).minimumScaleFactor(0.8)
@@ -181,8 +211,8 @@ struct TomoPhoneView: View {
     private func banner(_ title: String, _ subtitle: String) -> some View {
         VStack(spacing: 8) {
             Text(title).font(.system(size: 32, weight: .bold, design: .rounded)).lineLimit(1).minimumScaleFactor(0.6)
-            Text(subtitle).font(.system(size: 15)).foregroundStyle(Color(hex: "#C9CDD4"))
-                .multilineTextAlignment(.center).lineLimit(3)
+            Text(subtitle).font(.system(size: 15 * textScale)).foregroundStyle(Color(hex: "#C9CDD4"))
+                .multilineTextAlignment(.center).lineLimit(3).minimumScaleFactor(0.8)
         }
     }
 
@@ -194,10 +224,10 @@ struct TomoPhoneView: View {
             // Practice is a choice, so a quiet button; Tomo goes on resting otherwise
             VStack(spacing: 8) {
                 PhonePill(title: lang.learner("practice.start"), icon: "arrow.triangle.2.circlepath",
-                          color: PhoneColors.practice) { game.startPractice() }
+                          color: PhoneColors.practice, scale: textScale) { game.startPractice() }
                 Text(lang.learner("rest.practiceNote"))
-                    .font(.system(size: 13)).foregroundStyle(Color(hex: "#8E939C"))
-                    .multilineTextAlignment(.center).lineLimit(2)
+                    .font(.system(size: 13 * textScale)).foregroundStyle(Color(hex: "#8E939C"))
+                    .multilineTextAlignment(.center).lineLimit(2).minimumScaleFactor(0.8)
             }
         case .grew, .leveledUp:
             EmptyView()
@@ -206,13 +236,15 @@ struct TomoPhoneView: View {
             else if game.round.kind == .meaning || game.round.kind == .reply {
                 VStack(spacing: 10) {
                     ForEach(game.round.choices) { c in
-                        PhonePill(title: c.label ?? "", border: border(c)) { game.pick(c) }
+                        PhonePill(title: c.label ?? "", border: border(c), scale: textScale) { game.pick(c) }
+                            .accessibilityValue(choiceState(c))
                     }
                 }
             } else {
                 HStack(spacing: 12) {
                     ForEach(game.round.choices) { c in
-                        PhoneTile(choice: c, border: border(c)) { game.pick(c) }
+                        PhoneTile(choice: c, border: border(c), scale: textScale) { game.pick(c) }
+                            .accessibilityValue(choiceState(c))
                     }
                 }
             }
@@ -240,7 +272,17 @@ struct TomoPhoneView: View {
                     .frame(width: 50, height: 50)
                     .background(Color(hex: game.draft.isEmpty ? "#3A3D44" : "#6366F1"), in: Circle())
             }
+            .accessibilityLabel(ui("a11y.send"))
             .disabled(game.draft.isEmpty || game.phase != .asking)
+        }
+    }
+
+    /// What VoiceOver adds about a choice once one is picked: the right one, or not that one.
+    private func choiceState(_ c: TomoChoice) -> String {
+        switch game.phase {
+        case .right where c.id == game.round.answer: ui("a11y.right")
+        case .wrong(let e) where e == c.id: ui("a11y.wrong")
+        default: ""
         }
     }
 
@@ -288,37 +330,20 @@ enum PhoneColors {
     static let practice = "#8FB8DE"   // the Mac card's practice tint
 }
 
-private struct GrowthBar: View {
-    let progress: Double
-    let dimmed: Bool
-
-    var body: some View {
-        GeometryReader { g in
-            ZStack(alignment: .leading) {
-                Capsule().fill(Color.white.opacity(0.08))
-                Capsule()
-                    .fill(LinearGradient(colors: [Color(hex: "#FFE68C"), Color(hex: "#34D399")],
-                                         startPoint: .leading, endPoint: .trailing))
-                    .frame(width: max(6, g.size.width * min(max(progress, 0), 1)))
-                    .opacity(dimmed ? 0.35 : 1)
-            }
-        }
-        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: progress)
-    }
-}
-
 private struct PhoneTile: View {
     let choice: TomoChoice
     let border: Color
+    var scale: CGFloat = 1      // Dynamic Type, capped (TomoPhoneView.textScale)
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
                 Text(choice.emoji ?? "").font(.system(size: 52))
+                    .accessibilityHidden(choice.label != nil)   // "feed", not the emoji's name
                 if let label = choice.label {
-                    Text(label).font(.system(size: 13, weight: .medium)).foregroundStyle(Color(hex: "#9398A1"))
-                        .lineLimit(1).minimumScaleFactor(0.7)
+                    Text(label).font(.system(size: 13 * scale, weight: .medium)).foregroundStyle(Color(hex: "#9398A1"))
+                        .lineLimit(1).minimumScaleFactor(0.6)
                 }
             }
             .frame(maxWidth: .infinity).frame(height: 120)
@@ -335,16 +360,17 @@ private struct PhonePill: View {
     var tint: String?
     var color: String?          // the text's color (a quiet button: the tint on a plain pill)
     var border: Color = Color.white.opacity(0.08)
+    var scale: CGFloat = 1      // Dynamic Type, capped (TomoPhoneView.textScale)
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
-                if let icon { Image(systemName: icon) }
-                Text(title).lineLimit(1).minimumScaleFactor(0.7)
+                if let icon { Image(systemName: icon).accessibilityHidden(true) }
+                Text(title).lineLimit(1).minimumScaleFactor(0.6)
             }
             .foregroundStyle(color.map { Color(hex: $0) } ?? Color(hex: "#F5F6F8"))
-            .font(.system(size: 17, weight: .semibold))
+            .font(.system(size: 17 * scale, weight: .semibold))
             .frame(maxWidth: .infinity).frame(height: 52)
             .background(tint.map { Color(hex: $0).opacity(0.3) } ?? Color.white.opacity(0.06), in: Capsule())
             .overlay(Capsule().stroke(border, lineWidth: 2))
