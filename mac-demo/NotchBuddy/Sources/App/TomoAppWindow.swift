@@ -186,7 +186,10 @@ private struct TomoAppView: View {
         switch nav.screen {
         case .tomo:     TomoGrowthScreen(play: play)
         case .words:    TomoWordsScreen()
-        case .settings: TomoSettingsScreen(device: { TomoLoginItemSection() }, more: { EmptyView() })
+        case .settings: TomoSettingsScreen(device: {
+            TomoLoginItemSection()
+            TomoReminderSettingsView.QuietHours(forVisits: true)   // no visits at night (#88)
+        }, more: { EmptyView() })
         case .about:    TomoAboutScreen()
         case .ai:       TomoAISettingsView()
         case .testing:  TomoTestingSettings()

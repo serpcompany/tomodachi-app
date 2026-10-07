@@ -111,7 +111,9 @@ Production. The logs and settings stay on each device for now
 that counts and you're at a natural break (not typing, not away). It tucks back in when ignored, leaving
 a red dot. Opening it yourself is free play, with no time limit. When nothing counts, Tomo rests
 (`TomoPhase.resting`, `TomoGame.rest`) in every shell until something counts, which the tick notices, or the
-learner picks Practice; opening Tomo again shows the rest, never a new offer. Planned: chattiness and back-off
+learner picks Practice; opening Tomo again shows the rest, never a new offer. Quiet hours (`DropIn.quietEnds`, the
+reminders' setting) hold the visits, the launch visit (`launchVisit`) and the red dot's bounces until morning;
+clicking Tomo still plays. Planned: chattiness and back-off
 ([#19](https://github.com/serpcompany/tomodachi-app/issues/19)), busy detection
 ([#20](https://github.com/serpcompany/tomodachi-app/issues/20)).
 
@@ -129,15 +131,20 @@ cadence.
 
 **First run.** `TomoOnboarding.swift` decides who sees it and runs the flow; `TomoOnboardingView.swift`
 draws it (SwiftUI only, so any shell can host it), with the iPhone's own steps in `TomoOnboardingPhone.swift`;
-the Mac shows it in a window (`TomoOnboardingWindow`), which `AppDelegate` opens instead of the launch visit,
+the Mac shows it in a window (`TomoOnboardingWindow`), which `AppDelegate` opens instead of the launch visit
+(its own steps: quiet hours for the visits, and open at login as "Let Tomo find you", through the shell's
+`TomoLoginItem`; a test run never changes the login item), and whose `preview` plays it on a copy of the Tomo
+(`TomoGame.useCopy`) for the Testing menu,
 and the iPhone full screen over Tomo's screen (`TomoPhoneFirstRun`), holding the game, the Lock Screen card
 and the reminders until it's done. `checkAtLaunch()` runs before anything opens the
-store, because `TomoGame` hatches a Tomo when there's none. The guided round answers through
+store, because `TomoGame` hatches a Tomo when there's none (on the Mac, in `NotchBuddyApp.init`, before the
+main menu reads the game). The guided round answers through
 `TomoProgress`, so the first word counts; the visit clock is held while the window is open, and the flow
 ends with `TomoGame.reload()`, which is Tomo's first visit. Invariants: the "done" mark is
 `onboarding.json` in the data folder, never UserDefaults (Debug builds share the owner's defaults); a
-learner with a saved Tomo never sees a hatch; a device that joins the iCloud Tomo during the flow (an older
-`metAt` arrives) gets "welcome back" (on the iPhone, followed by the device's own setup); the Lock Screen
+learner with a saved Tomo never sees a hatch; a preview never writes `onboarding.json`, the saved Tomo, or a
+setting that wasn't changed in it; a device that joins the iCloud Tomo during the flow (an older
+`metAt` arrives) gets "welcome back", followed by the device's own setup; the Lock Screen
 card starts only after the learner says yes (`TomoReminderSettings.lockScreen`). Planned: the reference's
 trial and plan screens go before `ready` once pricing is decided.
 

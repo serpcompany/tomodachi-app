@@ -115,7 +115,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         TomoSync.shared.registerForPushes = { NSApplication.shared.registerForRemoteNotifications() }
         game.start()
-        if let firstRun { TomoOnboardingWindow.show(firstRun) } else { game.dropIn(force: true) }
+        if ProcessInfo.processInfo.environment["TOMO_ONBOARDING"] == "preview" {   // the Testing menu's preview, for snapshots
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { TomoOnboardingWindow.preview() }
+        } else if let firstRun {
+            TomoOnboardingWindow.show(firstRun)
+        } else {
+            game.launchVisit()   // none in quiet hours
+        }
         startDebugSnapshots()   // the Tomodachi window captures itself (TomoAppWindow)
         // TOMO_GROW=step|level|birthday: the testing menu's Grow, 3 s after launch (for snapshots).
         if let how = ProcessInfo.processInfo.environment["TOMO_GROW"].flatMap(TomoGame.TestGrowth.init(rawValue:)) {
