@@ -2,13 +2,19 @@
 """Seed saved progress for a test run, so a check starts from a known state (docs/verification.md).
 
     python3 mac-demo/scripts/seed-progress.py <dir> [--pair en:ja] [--level N] [--age A]
-        [--through-level N --stage S --due H] [item=stage=dueHours ...]
+        [--through-level N --stage S --due H] [item=stage=dueHours[=peak] ...]
 
 <dir> is the run's TOMO_DATA_DIR; it's wiped first. --through-level seeds every item of levels 1..N from
-the target pack at stage S, due in H hours. Items listed after the options override those. Example: all of
-level 1 just learned, so nothing counts for about an hour (the practice offer):
+the target pack at stage S, due in H hours. Items listed after the options override those; a fourth part is
+the best stage the word ever reached (a slip: ja:mama=3=40=5). Example: all of level 1 just learned, so
+nothing counts for about an hour (Tomo rests):
 
     python3 mac-demo/scripts/seed-progress.py /tmp/tomo-test --through-level 1 --stage 1 --due 2
+
+The owner's Tomo in #89, one word short of level 2 (どうぞ due, いないいないばあ tomorrow):
+
+    python3 mac-demo/scripts/seed-progress.py /tmp/tomo-test --through-level 1 --stage 5 --due 96 \
+        ja:douzo=4=-3 ja:inaiinaibaa=4=20
 
 The tables mirror TomoStore.swift; change both together.
 """
@@ -57,15 +63,16 @@ def main():
     ap.add_argument("--through-level", type=int, default=0)
     ap.add_argument("--stage", type=int, default=1)
     ap.add_argument("--due", type=float, default=2, help="hours until due")
-    ap.add_argument("items", nargs="*", help="item=stage=dueHours, e.g. ja:mama=3=-1 (due an hour ago)")
+    ap.add_argument("items", nargs="*",
+                    help="item=stage=dueHours[=peak], e.g. ja:mama=3=-1 (due an hour ago), ja:mama=3=40=5 (slipped)")
     a = ap.parse_args()
 
     learner, target = a.pair.split(":")
     now = time.time()
-    items = {i: (a.stage, a.due) for i in level_items(target, a.through_level)}
+    items = {i: (a.stage, a.due, a.stage) for i in level_items(target, a.through_level)}
     for spec in a.items:
-        item, stage, due = spec.split("=")
-        items[item] = (int(stage), float(due))
+        item, stage, due, *peak = spec.split("=")
+        items[item] = (int(stage), float(due), max(int(stage), int(peak[0]) if peak else 0))
 
     d = Path(a.dir)
     shutil.rmtree(d, ignore_errors=True)
@@ -75,8 +82,8 @@ def main():
     db.execute("INSERT INTO tomo VALUES (?, ?, ?, ?, ?)",
                (learner, target, now - 5 * 86400, a.level or a.through_level or 1, a.age))
     db.executemany("INSERT INTO item VALUES (?, ?, ?, ?, ?, ?, ?, 3, 0, ?)", [
-        (learner, target, item, stage, now + due * 3600, now - 3 * 86400, now - 3600, stage)
-        for item, (stage, due) in items.items()])
+        (learner, target, item, stage, now + due * 3600, now - 3 * 86400, now - 3600, peak)
+        for item, (stage, due, peak) in items.items()])
     db.commit()
     print(f"{d}/learner.sqlite: {learner} → {target}, {len(items)} items")
 

@@ -24,8 +24,9 @@ enum TomoGrid {
     static let levelBar: CGFloat = 5
     static let levelBarGap: CGFloat = 7
 
-    // Picture card, two rows: the word with its replay icon (44) · the result (40) + 8 = 92. No hint here:
-    // a wrong pick just means picking again, which is its own hint.
+    // Picture card, three rows: the word with its replay icon (44) · the result (40) · what's left to grow (16),
+    // + 2 × 7 = 114. No hint here: a wrong pick just means picking again, which is its own hint. The resting card
+    // uses the same rows: Tomo's line · when it's back · what's left.
     static let tile = CGSize(width: 76, height: 84)
     static let tileGap: CGFloat = 8
     static var tilesWidth: CGFloat { tile.width * 3 + tileGap * 2 }       // 244
@@ -34,6 +35,7 @@ enum TomoGrid {
     static let pillGap: CGFloat = 8
     static let wordRow: CGFloat = 44
     static let promptRow: CGFloat = 40
+    static let goalRow: CGFloat = 16             // "1 more word to Lv 2 · ready now": one line, scaled to fit
     static let iconButton: CGFloat = 26
     static let iconGap: CGFloat = 6
     static var wordWidth: CGFloat { pictureColumn - iconButton - iconGap }   // 190
@@ -66,19 +68,20 @@ struct TomoView: View {
         case .right:    return game.round.need == .sleep ? .indigo : .green
         case .wrong:    return .red
         case .leveledUp, .grew: return .amber
-        case .practiceIntro: return .soft
+        case .resting: return .soft
         }
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            // Progress to the next level, the whole width of the card (an RPG-style experience bar)
-            GrowthBar(progress: game.levelProgress, dimmed: game.isPracticeRound)
+            // Progress to the next level, the whole width of the card (an RPG-style experience bar). Its last
+            // tenth is the goal, which fills only when the level is done (TomoGrowthBar).
+            TomoGrowthBar(progress: game.levelProgress, standing: game.levelStanding, dimmed: game.isPracticeRound,
+                          colors: [Color(hex: "#FFD3BD"), Color(hex: "#7BD389")])
                 .frame(width: TomoGrid.content.width - 28, height: TomoGrid.levelBar)
                 .padding(.bottom, TomoGrid.levelBarGap)
-                .help(game.isPracticeRound ? practiceText("practice.offer", until: game.practiceUntil, lang)
-                      : lang.learner("words.toNext", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)",
-                                                      "next": "\(game.level + 1)"]))
+                .help(game.isPracticeRound ? timeText("practice.offer", until: game.countsAgainAt, lang)
+                      : game.whatsLeft())
             VStack(spacing: TomoGrid.helpGap) {
                 card
                 if let help = game.help {
@@ -101,8 +104,8 @@ struct TomoView: View {
                 Color.clear.frame(width: TomoGrid.tomoColumn)    // Tomo sits here
 
                 Group {
-                    if game.phase == .practiceIntro {
-                        practiceOffer
+                    if game.phase == .resting {
+                        restCard
                     } else if game.phase == .grew {
                         banner(title: lang.target.lines.grew,
                                subtitle: lang.learner(game.stage > TomoGame.chatStage ? "grewOlder"
@@ -168,6 +171,9 @@ struct TomoView: View {
                 }
             }
             .frame(height: TomoGrid.promptRow, alignment: .leading)
+
+            GoalLine(text: game.whatsLeft())
+                .frame(width: TomoGrid.pictureColumn, height: TomoGrid.goalRow, alignment: .leading)
         }
         .transaction { $0.animation = nil }   // a new round replaces the old one; no cross-fade
     }
@@ -190,16 +196,33 @@ struct TomoView: View {
         }
     }
 
-    // Nothing counts right now: Tomo asks to play anyway; the card says it's practice and won't move the bar
-    // (like WaniKani's "0 reviews" before its Extra Study). Practice starts only on "Practice".
-    private var practiceOffer: some View {
-        HStack(alignment: .center, spacing: TomoGrid.gap) {
-            banner(title: lang.target.lines.practice,
-                   subtitle: practiceText("practice.offer", until: game.practiceUntil, lang))
-                .frame(width: TomoGrid.pictureColumn, alignment: .leading)
-            VStack(spacing: TomoGrid.pillGap) {
-                OfferButton(title: lang.learner("practice.start"), primary: true) { game.startPractice() }
-                OfferButton(title: lang.learner("practice.later")) { game.skipPractice() }
+    // Nothing counts right now: Tomo rests, happy (TomoGame.rest). The rows say Tomo's line, when it's back and
+    // what's left to grow; Practice is a quieter button on the right that says it won't move the bar (like WaniKani's
+    // "0 reviews" beside its Extra Study). Clicking small Tomo while it rests shows this card again.
+    private var restCard: some View {
+        let lines = game.restLines
+        return HStack(alignment: .center, spacing: TomoGrid.gap) {
+            VStack(alignment: .leading, spacing: TomoGrid.rowGap) {
+                Text(lang.target.lines.rest ?? lang.target.lines.seeYou)
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .lineLimit(1).minimumScaleFactor(0.6)
+                    .frame(width: TomoGrid.pictureColumn, height: TomoGrid.wordRow, alignment: .leading)
+                Label(lines.back, systemImage: "clock")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "#D5D8DE"))
+                    .lineLimit(2).minimumScaleFactor(0.8)
+                    .frame(width: TomoGrid.pictureColumn, height: TomoGrid.promptRow, alignment: .leading)
+                GoalLine(text: lines.left)
+                    .frame(width: TomoGrid.pictureColumn, height: TomoGrid.goalRow, alignment: .leading)
+            }
+            VStack(spacing: 6) {
+                OfferButton(title: lang.learner("practice.start"), icon: "arrow.triangle.2.circlepath") {
+                    game.startPractice()
+                }
+                Text(lang.learner("rest.practiceNote"))
+                    .font(.system(size: 10.5)).foregroundColor(Color(hex: "#8E939C"))
+                    .multilineTextAlignment(.center).lineLimit(2).minimumScaleFactor(0.85)
+                    .frame(width: TomoGrid.pill.width)
             }
             .frame(width: TomoGrid.tilesWidth)
         }
@@ -307,25 +330,41 @@ private struct MeaningPill: View {
     }
 }
 
-/// "Practice" / "Later" on the practice offer, the size of a meaning pill.
+/// What's left before the next level, one line under the card's other rows: "1 more word to Lv 2 · ready now".
+private struct GoalLine: View {
+    let text: String
+
+    var body: some View {
+        HStack(spacing: 5) {
+            Image(systemName: "flag.fill").font(.system(size: 8.5, weight: .bold)).foregroundColor(Color(hex: "#7BD389"))
+            Text(text).font(.system(size: 11, weight: .medium)).foregroundColor(Color(hex: "#9EA3AC"))
+                .lineLimit(1).minimumScaleFactor(0.75)
+        }
+    }
+}
+
+/// "Practice" on the resting card: the size of a meaning pill, but quiet (the practice tint on a plain pill), since
+/// resting is what Tomo does now and practice is a choice.
 private struct OfferButton: View {
     let title: String
-    var primary = false
+    var icon: String?
     let action: () -> Void
     @State private var hovered = false
 
     var body: some View {
         Button(action: action) {
-            Text(title)
-                .font(.system(size: 13.5, weight: primary ? .semibold : .medium))
-                .foregroundColor(Color(hex: primary ? "#F5F6F8" : "#C9CDD4"))
-                .lineLimit(1).minimumScaleFactor(0.7)
-                .frame(width: TomoGrid.pill.width, height: TomoGrid.pill.height)
-                .background(primary ? Color(hex: PracticeChip.tint).opacity(hovered ? 0.4 : 0.28)
-                                    : Color.white.opacity(hovered ? 0.1 : 0.05))
-                .overlay(Capsule().stroke(Color.white.opacity(hovered ? 0.22 : 0.06), lineWidth: 2))
-                .clipShape(Capsule())
-                .scaleEffect(hovered ? 1.03 : 1)
+            HStack(spacing: 6) {
+                if let icon { Image(systemName: icon).font(.system(size: 11, weight: .bold)) }
+                Text(title)
+            }
+            .font(.system(size: 13.5, weight: .medium))
+            .foregroundColor(Color(hex: PracticeChip.tint))
+            .lineLimit(1).minimumScaleFactor(0.7)
+            .frame(width: TomoGrid.pill.width, height: TomoGrid.pill.height)
+            .background(Color.white.opacity(hovered ? 0.1 : 0.05))
+            .overlay(Capsule().stroke(Color.white.opacity(hovered ? 0.22 : 0.06), lineWidth: 2))
+            .clipShape(Capsule())
+            .scaleEffect(hovered ? 1.03 : 1)
         }
         .buttonStyle(.plain)
         .onHover { hovered = $0 }
@@ -349,13 +388,13 @@ struct PracticeChip: View {
         .background(Color(hex: Self.tint).opacity(0.16))
         .clipShape(Capsule())
         .frame(maxWidth: 130, alignment: .trailing)   // stays clear of the physical notch
-        .help(practiceText("practice.offer", until: until, lang))
+        .help(timeText("practice.offer", until: until, lang))
     }
 
     /// The time only when it's today; a later day is in the tooltip and the offer.
     private var text: String {
         guard let until, Calendar.current.isDateInToday(wallClock(until)) else { return lang.learner("practice.chip.now") }
-        return practiceText("practice.chip", until: until, lang)
+        return timeText("practice.chip", until: until, lang)
     }
 }
 
@@ -437,7 +476,7 @@ struct TomoHeaderRight: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            if game.isPracticeRound { PracticeChip(until: game.practiceUntil) }
+            if game.isPracticeRound { PracticeChip(until: game.countsAgainAt) }
             Button(action: { state.soundEnabled.toggle() }) {
                 Image(systemName: state.soundEnabled ? "speaker.wave.2" : "speaker.slash")
                     .font(.system(size: 14))
@@ -455,27 +494,6 @@ struct TomoHeaderRight: View {
             .buttonStyle(.plain)
             .help(lang.learner("notNow"))
         }
-    }
-}
-
-private struct GrowthBar: View {
-    let progress: Double
-    /// Practice: the bar fades back, since nothing done now moves it.
-    var dimmed = false
-
-    var body: some View {
-        GeometryReader { g in
-            ZStack(alignment: .leading) {
-                Capsule().fill(Color.white.opacity(0.1))
-                Capsule()
-                    .fill(LinearGradient(colors: [Color(hex: "#FFD3BD"), Color(hex: "#7BD389")],
-                                         startPoint: .leading, endPoint: .trailing))
-                    .frame(width: g.size.width * min(1, max(0, progress)))
-                    .opacity(dimmed ? 0.3 : 1)
-            }
-        }
-        .animation(.spring(response: 0.5, dampingFraction: 0.7), value: progress)
-        .animation(.easeInOut(duration: 0.4), value: dimmed)
     }
 }
 

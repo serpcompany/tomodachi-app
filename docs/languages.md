@@ -32,7 +32,7 @@ Change them in **Settings → General** (I speak / I'm learning). The menu and S
 | `speechLocale`, `recognitionLocale` | Tomo's voice and the speech-recognition locale (`ja-JP`, `es-ES`) |
 | `romanization` | The name of the romanization (romaji), or `null` for Latin-script languages |
 | `age` | Age label format: `{n}さい`, `{n} año` / `{n} años` |
-| `labels`, `lines` | Tomo's own words: "again", "listening…", wrong, ouch, grew up, level up, bye, "say it in my language", "I don't understand" |
+| `labels`, `lines` | Tomo's own words: "again", "listening…", wrong, ouch, grew up, level up, resting ("let's play later"), bye, "say it in my language", "I don't understand" |
 | `ai` | Persona (`"a {age}-year-old child from Spain"`) and language-specific rules (script, register), placed into a shared prompt template. `ai.rulesByAge` replaces the rules from an age on. Reply length and style follow Tomo's age |
 | `levels` | Tomo's levels, in order. Each has an `age` and either `rounds` or `starters` (conversation openers with example answers). A round is a **picture** round (`answer` emoji + 3 `choices`), a **need** round (`need`: eat / sleep / hug), or, with neither, a **meaning** round: the learner picks its meaning out of three, the other two taken from other words (a different `category` first, never a word that sounds the same). Every item has an `id` like `ja:wanwan` or `ja:talk-onaka-suita`. A level whose `age` is higher than the one before is a birthday. Japanese levels are generated: see below |
 | `startersByAge` | Openers for ages past the levels (testing older Tomos), from an age on (`fromAge`) |
