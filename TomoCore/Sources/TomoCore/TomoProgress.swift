@@ -142,6 +142,21 @@ public final class TomoProgress {
         }
     }
 
+    /// Testing, on a copy in memory only: every word of this level goes up `steps` stages at once (up to "knows
+    /// it"), as if each had been answered right on time. `levelUpIfReady` then decides, as always. Words met
+    /// this way count as met yesterday, so they don't use up today's new words.
+    public func testRaise(by steps: Int) {
+        guard isScratch else { return }
+        let now = TomoClock.now
+        for id in levelItems {
+            let old = items[id]
+            let stage = min((old?.stage ?? 0) + steps, TomoSRS.knows)
+            items[id] = Item(id: id, stage: stage, due: TomoSRS.wait(after: stage, level: level).map(now.addingTimeInterval),
+                             introduced: old?.introduced ?? TomoClock.dayStart.addingTimeInterval(-3600), answered: now, right: (old?.right ?? 0) + 1,
+                             wrong: old?.wrong ?? 0, peak: max(old?.peak ?? 0, stage))
+        }
+    }
+
     /// Testing: carry on with this Tomo in memory, as it is now. Nothing from here on is saved or synced.
     public func detach() {
         isScratch = true
@@ -508,6 +523,19 @@ public final class TomoProgress {
         check(ahead.isScratch && ahead.items != savedItems
               && TomoProgress(pack: pack, learner: "en", directory: dir).items == savedItems,
               "skipping ahead runs on a copy: answers a day ahead aren't saved")
+
+        // The testing menu's Grow (TomoGame.testGrow): a copy grows without waiting; the saved Tomo doesn't.
+        let grower = TomoProgress(pack: pack, learner: "en", directory: dir)
+        let (savedLevel, savedGrowItems) = (grower.level, grower.items)
+        grower.testRaise(by: TomoSRS.knows)
+        check(grower.items == savedGrowItems, "growing for testing does nothing to the saved Tomo itself")
+        grower.detach()
+        grower.testRaise(by: 1)
+        let oneStep = grower.levelProgress
+        grower.testRaise(by: TomoSRS.knows)
+        check(oneStep > 0 && oneStep < 1 && grower.levelUpIfReady()?.level == savedLevel + 1
+              && TomoProgress(pack: pack, learner: "en", directory: dir).level == savedLevel,
+              "testing growth: a step moves the bar, finishing the level levels up, and nothing is saved")
 
         reopened.startOver()
         let fresh = TomoProgress(pack: pack, learner: "en", directory: dir)
