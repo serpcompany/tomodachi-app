@@ -2,12 +2,13 @@
 """Seed saved progress for a test run, so a check starts from a known state (docs/verification.md).
 
     python3 mac-demo/scripts/seed-progress.py <dir> [--pair en:ja] [--level N] [--age A]
-        [--through-level N --stage S --due H] [--edge N] [item=stage=dueHours[=peak] ...]
+        [--through-level N --stage S --due H] [--edge N] [--days D] [item=stage=dueHours[=peak] ...]
 
 <dir> is the run's TOMO_DATA_DIR; it's wiped first. --through-level seeds every item of levels 1..N from
 the target pack at stage S, due in H hours. Items listed after the options override those; a fourth part is
 the best stage the word ever reached (a slip: ja:mama=3=40=5). The age defaults to the level's age in the
-pack. Example: all of level 1 just learned, so nothing counts for about an hour (Tomo rests):
+pack. --days D: Tomo hatched D days ago (default 5), for "Day N together" on the Tomo screen. Example: all
+of level 1 just learned, so nothing counts for about an hour (Tomo rests):
 
     python3 mac-demo/scripts/seed-progress.py /tmp/tomo-test --through-level 1 --stage 1 --due 2
 
@@ -84,6 +85,7 @@ def main():
     ap.add_argument("--edge", type=int, metavar="N", help="one word short of finishing level N (above)")
     ap.add_argument("--stage", type=int, default=1)
     ap.add_argument("--due", type=float, default=2, help="hours until due")
+    ap.add_argument("--days", type=float, default=5, help="days since Tomo hatched (default 5)")
     ap.add_argument("items", nargs="*",
                     help="item=stage=dueHours[=peak], e.g. ja:mama=3=-1 (due an hour ago), ja:mama=3=40=5 (slipped)")
     a = ap.parse_args()
@@ -112,9 +114,9 @@ def main():
     db.executescript(SCHEMA)
     level = a.level or a.through_level or 1
     age = a.age or levels[min(level, len(levels)) - 1]["age"]
-    db.execute("INSERT INTO tomo VALUES (?, ?, ?, ?, ?)", (learner, target, now - 5 * 86400, level, age))
+    db.execute("INSERT INTO tomo VALUES (?, ?, ?, ?, ?)", (learner, target, now - a.days * 86400, level, age))
     db.executemany("INSERT INTO item VALUES (?, ?, ?, ?, ?, ?, ?, 3, 0, ?)", [
-        (learner, target, item, stage, now + due * 3600, now - 3 * 86400, now - 3600, peak)
+        (learner, target, item, stage, now + due * 3600, now - min(3, a.days) * 86400, now - 3600, peak)
         for item, (stage, due, peak) in items.items()])
     db.commit()
     print(f"{d}/learner.sqlite: {learner} → {target}, level {level}, age {age}, {len(items)} items")
