@@ -51,7 +51,7 @@ public struct TomoOnboardingView: View {
         switch step {
         case .hatch, .welcomeBack: 236
         case .round, .result: 150
-        case .visits: 150
+        case .visits: 132
         case .rhythm: 96
         case .ready: 116
         }
@@ -70,7 +70,9 @@ public struct TomoOnboardingView: View {
     private var hero: some View {
         GeometryReader { geo in
             ZStack {
-                if step == .visits { NotchSketch(pending: true).transition(.opacity) }
+                if step == .visits {
+                    NotchSketch(pending: true, invite: lang.target.lines.invite ?? "").transition(.opacity)
+                }
                 // The egg stays until its halves have flown off (it draws nothing after); not when opened past it.
                 if step == .hatch && model.hatchStarted != .distantPast {
                     TomoEggView(look: TomoLook.current, crackedAt: model.hatchStarted)
@@ -159,7 +161,7 @@ public struct TomoOnboardingView: View {
     private var resultPage: some View {
         VStack(spacing: 12) {
             if let r = model.round { answerLine(r) }
-            Text(ui("onboarding.result.title"))
+            Text(ui("onboarding.result.title", ["language": lang.targetName]))
                 .font(.system(size: 25, weight: .heavy, design: .rounded))
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -173,11 +175,12 @@ public struct TomoOnboardingView: View {
 
     private var stickText: String {
         guard let r = model.round else { return ui("onboarding.result.stick.later") }
-        guard let back = model.comesBack else { return ui("onboarding.result.stick.later", ["word": r.say]) }
+        let word = TomoWords.bare(r.say)
+        guard let back = model.comesBack else { return ui("onboarding.result.stick.later", ["word": word]) }
         let f = DateFormatter()
         f.locale = Locale(identifier: lang.learner.id)
         f.timeStyle = .short
-        return ui("onboarding.result.stick.body", ["word": r.say, "time": f.string(from: back)])
+        return ui("onboarding.result.stick.body", ["word": word, "time": f.string(from: back)])
     }
 
     private var visitsPage: some View {
@@ -446,10 +449,10 @@ private struct PrimaryButton: View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 16, weight: .bold, design: .rounded))
-                .foregroundStyle(Color(hex: "#211A05"))
+                .foregroundStyle(enabled ? Color(hex: "#211A05") : Paint.faint)
                 .frame(maxWidth: .infinity)
                 .frame(height: 46)
-                .background(Paint.accent.opacity(enabled ? (hovered ? 1 : 0.92) : 0.25), in: Capsule())
+                .background(enabled ? Paint.accent.opacity(hovered ? 1 : 0.92) : Color.white.opacity(0.07), in: Capsule())
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -572,6 +575,7 @@ private struct RhythmRow: View {
 private struct NotchSketch: View {
     static let notch = CGSize(width: 132, height: 30)
     var pending: Bool
+    var invite: String           // what Tomo calls out ("あそぼ！")
     @State private var pulse = false
 
     var body: some View {
@@ -594,6 +598,15 @@ private struct NotchSketch: View {
                     .onAppear {
                         withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) { pulse = true }
                     }
+            }
+            if !invite.isEmpty {
+                Text(invite)
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundStyle(Paint.page)
+                    .padding(.horizontal, 12).padding(.vertical, 6)
+                    .background(Paint.text, in: RoundedRectangle(cornerRadius: 12))
+                    .offset(x: Self.notch.width / 2 + 34, y: Self.notch.height + 28)
+                    .scaleEffect(pulse ? 1.04 : 0.98)
             }
         }
     }
