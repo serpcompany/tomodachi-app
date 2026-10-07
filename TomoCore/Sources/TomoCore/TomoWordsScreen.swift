@@ -1,53 +1,73 @@
 import SwiftUI
-import TomoCore
 
-// MARK: - Settings → Words: every level and its words, with each word's stage
+// MARK: - Words: every level and its words, with each word's stage (the Mac window's Words page, the iPhone's tab)
 //
-// Opened from the menu bar ("Tomo's words…") or the sidebar in Settings. Locked levels are listed too,
-// so you can see what's coming. Reads TomoGame.progress (TomoProgress.swift); all text comes from the
-// learner's interface strings and the target pack.
+// Locked levels are listed too, so you can see what's coming. It opens at Tomo's current level; the words per stage
+// stay on top. Reads TomoGame.progress (TomoProgress.swift); all text comes from the learner's interface strings and
+// the target pack.
 
-struct TomoWordsPane: View {
+public struct TomoWordsScreen: View {
     @ObservedObject var game = TomoGame.shared
     @ObservedObject var lang = TomoLanguages.shared
+
+    public init() {}
 
     private var progress: TomoProgress { game.progress }
     private var levels: [TargetPack.Level] { progress.pack.levels }
 
-    var body: some View {
-        // Re-read every 30 s so "due in…" stays current; game.progressVersion re-renders after each answer.
+    public var body: some View {
+        // Re-read every 30 s so "due in…" stays current; an answer re-renders it too (`game` publishes
+        // progressVersion), without rebuilding the list, so the scroll position stays.
         TimelineView(.periodic(from: .now, by: 30)) { _ in
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 18) {
-                    summary
-                    ForEach(Array(levels.enumerated()), id: \.offset) { i, level in
-                        levelSection(number: i + 1, level: level)
+            VStack(spacing: 0) {
+                summary
+                Divider()
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 12) {
+                        ForEach(1..<levels.count + 1, id: \.self) { n in   // identified by level number
+                            levelSection(number: n, level: levels[n - 1])
+                        }
                     }
+                    .scrollTargetLayout()
+                    .padding(.horizontal, horizontalPadding).padding(.vertical, 10)
                 }
-                .padding(.horizontal, 24).padding(.vertical, 14)
-                .id(game.progressVersion)
+                .scrollPosition(id: $shown, anchor: .top)
+                .onAppear { if shown == nil { shown = game.level } }
+                .onChange(of: game.level) { _, level in shown = level }
             }
         }
     }
 
-    // MARK: Summary: words per stage (age, level and the level bar are on the Tomo page)
+    /// The level at the top of the list: it opens at Tomo's level.
+    @State private var shown: Int?
+
+    private var horizontalPadding: CGFloat {
+        #if os(iOS)
+        16
+        #else
+        24
+        #endif
+    }
+
+    // MARK: Summary: words per stage (age, level and the bar are on the Tomo screen)
 
     private var summary: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
-                ForEach(["heard", "knows", "good", "loves", "forever"], id: \.self) { g in
-                    StagePill(group: g, text: "\(lang.learner("stage.\(g)")) \(count(group: g))")
+        VStack(alignment: .leading, spacing: 8) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(["heard", "knows", "good", "loves", "forever"], id: \.self) { g in
+                        TomoStagePill(group: g, text: "\(lang.learner("stage.\(g)")) \(progress.count(group: g))")
+                    }
                 }
+                .padding(.horizontal, horizontalPadding)
             }
             if game.isScratch {
                 Label(lang.learner("words.testing"), systemImage: "flask")
                     .font(.callout).foregroundStyle(.orange)
+                    .padding(.horizontal, horizontalPadding)
             }
         }
-    }
-
-    private func count(group: String) -> Int {
-        progress.items.values.filter { TomoSRS.group($0.stage) == group }.count
+        .padding(.vertical, 10)
     }
 
     // MARK: One level
@@ -65,8 +85,9 @@ struct TomoWordsPane: View {
                     Label(lang.learner("words.birthday", ["age": lang.target.ageLabel(level.age)]),
                           systemImage: "birthday.cake")
                         .font(.caption).foregroundStyle(.orange)
+                        .lineLimit(1)
                 }
-                Spacer()
+                Spacer(minLength: 4)
                 Text(lang.learner("words.state.\(state)")).font(.caption).foregroundStyle(.secondary)
             }
             VStack(spacing: 0) {
@@ -75,16 +96,17 @@ struct TomoWordsPane: View {
                     if id != level.itemIDs.last { Divider().padding(.leading, 44) }
                 }
             }
-            .background(Color.primary.opacity(0.04))
+            .background(Color.primary.opacity(0.05))
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .opacity(state == "locked" ? 0.6 : 1)
         }
+        .padding(.top, 6)   // room above the level when it's scrolled to the top
     }
 
     // MARK: One word: picture, the word, its reading and meaning, its stage and when it's due
 
     private func wordRow(_ id: String, locked: Bool) -> some View {
-        let w = word(id)
+        let w = progress.word(id, learner: lang.learner.id)
         let item = progress.items[id]
         return HStack(alignment: .center, spacing: 10) {
             Group {
@@ -92,17 +114,18 @@ struct TomoWordsPane: View {
                 else { Image(systemName: "text.bubble").foregroundStyle(.secondary) }   // asked by meaning
             }
             .frame(width: 30)
+            .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 1) {
-                HStack(spacing: 6) {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(w.say).font(.system(size: 15, weight: .semibold))
-                    if let r = w.reading { Text(r).font(.caption).foregroundStyle(.secondary) }
+                    if let r = w.reading { Text(r).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
                 }
                 Text(w.meaning).font(.callout).foregroundStyle(.secondary).lineLimit(2)
             }
             Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 2) {
                 let group = locked && item == nil ? "locked" : TomoSRS.group(item?.stage ?? 0)
-                StagePill(group: group, text: lang.learner("stage.\(group)"))
+                TomoStagePill(group: group, text: lang.learner("stage.\(group)"))
                     .help(item.map { lang.learner("words.stageOf", ["n": "\($0.stage)"]) } ?? "")
                 if let due = dueText(item) {
                     Text(due).font(.caption2).foregroundStyle(.secondary)
@@ -110,23 +133,11 @@ struct TomoWordsPane: View {
             }
         }
         .padding(.horizontal, 10).padding(.vertical, 7)
-    }
-
-    private struct Word { let say: String; let reading: String?; let meaning: String; let emoji: String? }
-
-    private func word(_ id: String) -> Word {
-        if let r = progress.round(id) {
-            let emoji = r.need.flatMap(TomoNeed.init(rawValue:))?.emoji ?? r.answer
-            return Word(say: r.say, reading: r.romanization, meaning: r.meaning(lang.learner.id), emoji: emoji)
-        }
-        if let s = progress.starter(id) {
-            return Word(say: s.say, reading: s.romanization, meaning: s.translation(lang.learner.id), emoji: nil)
-        }
-        return Word(say: id, reading: nil, meaning: "", emoji: nil)
+        .accessibilityElement(children: .combine)
     }
 
     private func dueText(_ item: TomoStore.ItemRow?) -> String? {
-        guard let item, let due = item.due else { return nil }
+        guard let item, let due = item.due, item.stage < TomoSRS.forever else { return nil }
         if due <= TomoClock.now { return lang.learner("words.dueNow") }
         let f = RelativeDateTimeFormatter()
         f.locale = Locale(identifier: lang.learner.id)
@@ -135,10 +146,15 @@ struct TomoWordsPane: View {
     }
 }
 
-/// A word's stage as a colored capsule: grey (not met, locked) to deep teal (forever).
-private struct StagePill: View {
+/// A word's stage as a colored capsule: grey (not met, locked) to deep teal, and purple for forever.
+public struct TomoStagePill: View {
     let group: String
     let text: String
+
+    public init(group: String, text: String) {
+        self.group = group
+        self.text = text
+    }
 
     private var color: Color {
         switch group {
@@ -151,7 +167,7 @@ private struct StagePill: View {
         }
     }
 
-    var body: some View {
+    public var body: some View {
         Text(text)
             .font(.system(size: 11, weight: .semibold))
             .foregroundStyle(color)
@@ -159,5 +175,27 @@ private struct StagePill: View {
             .background(color.opacity(0.15))
             .clipShape(Capsule())
             .fixedSize()
+    }
+}
+
+extension TomoProgress {
+    /// A word as the Words screen shows it: what Tomo says, its reading, its meaning in the learner's language, and
+    /// its picture (nil: asked by its meaning).
+    public struct WordInfo: Sendable { public let say: String; public let reading: String?; public let meaning: String; public let emoji: String? }
+
+    public func word(_ id: String, learner: String) -> WordInfo {
+        if let r = round(id) {
+            let emoji = r.need.flatMap(TomoNeed.init(rawValue:))?.emoji ?? r.answer
+            return WordInfo(say: r.say, reading: r.romanization, meaning: r.meaning(learner), emoji: emoji)
+        }
+        if let s = starter(id) {
+            return WordInfo(say: s.say, reading: s.romanization, meaning: s.translation(learner), emoji: nil)
+        }
+        return WordInfo(say: id, reading: nil, meaning: "", emoji: nil)
+    }
+
+    /// How many of the learner's words are at a stage group ("heard", "knows", "good", "loves", "forever").
+    public func count(group: String) -> Int {
+        items.values.filter { TomoSRS.group($0.stage) == group }.count
     }
 }
