@@ -679,8 +679,10 @@ struct TomoEggView: View {
             ctx.rotate(by: .radians(rot))
             drawEgg(ctx)
             if crackShown > 0 {
-                ctx.stroke(crack.trimmedPath(from: 0, to: crackShown), with: .color(Color(hex: "#7A5F3A")),
-                           style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+                var shell = ctx
+                shell.clip(to: egg)                                 // the crack stays on the shell
+                shell.stroke(crack.trimmedPath(from: 0, to: crackShown), with: .color(Color(hex: "#7A5F3A")),
+                             style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
             }
             return
         }

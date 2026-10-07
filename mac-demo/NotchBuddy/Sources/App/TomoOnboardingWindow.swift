@@ -34,7 +34,12 @@ enum TomoOnboardingWindow {
         win.isMovableByWindowBackground = true
         win.isReleasedWhenClosed = false
         win.delegate = closer
-        win.contentView = NSHostingView(rootView: TomoOnboardingView(model: model, gaze: { gaze(in: win) }))
+        // A fixed page: the window never resizes to the view's ideal size.
+        let host = NSHostingView(rootView: TomoOnboardingView(model: model, gaze: { gaze(in: win) })
+            .frame(width: size.width, height: size.height))
+        host.sizingOptions = []
+        win.contentView = host
+        win.setContentSize(size)
         let screen = IslandWindowController.notchScreen() ?? NSScreen.main
         if let visible = screen?.visibleFrame {
             win.setFrameOrigin(NSPoint(x: visible.midX - size.width / 2, y: visible.midY - size.height / 2))
