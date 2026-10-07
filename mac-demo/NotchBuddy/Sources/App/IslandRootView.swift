@@ -1,10 +1,8 @@
 import SwiftUI
 import TomoCore
 
-/// Top-level SwiftUI view rendered inside the 720×320 transparent panel.
+/// Top-level SwiftUI view rendered inside the transparent island panel.
 /// The island is drawn at the top-center; everything else is transparent and click-through.
-/// Note: drag-drop is handled at the AppKit level in IslandWindowController (FileDropNSView),
-/// not in SwiftUI, to avoid interfering with SwiftUI hit-testing.
 struct IslandRootView: View {
     @EnvironmentObject var state: AppState
 
@@ -26,38 +24,22 @@ struct IslandContainer: View {
     @State private var islandWidth:  CGFloat = IslandConst.notchWidth
     @State private var islandHeight: CGFloat = IslandConst.notchHeight
     @State private var cornerRadius: CGFloat = IslandConst.roundedCorner
-    // topRadius > 0 → convex expanded corners; < 0 → concave ear cutouts
-    @State private var islandTopRadius: CGFloat = 0
-    @State private var greetNotif: Bool = false
 
     private let openSpring = Animation.spring(response: 0.5, dampingFraction: 0.72)
     private let closeEase  = Animation.timingCurve(0.45, 0, 0.2, 1, duration: 0.34)
 
-    private var chatPromptHeight: CGFloat {
-        let base: CGFloat = 240
-        let perMsg: CGFloat = 40
-        return min(300, base + CGFloat(state.chatHistory.count) * perMsg)
-    }
-
-    /// Pixels the content must be pushed down to clear the concave ear transparent area.
-    /// = 0 in expanded mode (no ears), = earRadius in compact/notch mode.
-    private var earOffset: CGFloat { max(0, -islandTopRadius) }
-
     var body: some View {
-        // Tomo's character draws itself (TomoCharacterView); Coucou's greeting and upload canvases are gone.
+        // Tomo's character draws itself (TomoCharacterView).
         return ZStack(alignment: .topLeading) {
             // Black island shape
-            IslandShape(width: islandWidth, height: islandHeight,
-                        cornerRadius: cornerRadius, topRadius: islandTopRadius)
+            IslandShape(width: islandWidth, height: islandHeight, cornerRadius: cornerRadius)
                 .fill(Color.black)
 
             // Content
             if state.mode == .expanded {
                 IslandContentView(state: state)
-                    .frame(width: islandWidth, height: islandHeight - earOffset)
-                    .offset(y: earOffset)
-                    .clipShape(IslandShape(width: islandWidth, height: islandHeight,
-                                          cornerRadius: cornerRadius, topRadius: islandTopRadius))
+                    .frame(width: islandWidth, height: islandHeight)
+                    .clipShape(IslandShape(width: islandWidth, height: islandHeight, cornerRadius: cornerRadius))
                     .transition(.opacity)
             }
 
@@ -71,78 +53,42 @@ struct IslandContainer: View {
                                       height: state.mode == .expanded ? 320 : islandHeight)
                 }
 
-            CountdownBar(state: state, islandW: islandWidth)
-
             if state.mode == .compact {
                 let rest = IslandRestingLayout(width: islandWidth, height: islandHeight)
                 TomoPendingDot()
                     .position(x: 40 + rest.botDiameter * 0.45, y: rest.botCenterY - rest.botDiameter * 0.4)
             }
-
-            Group {
-                if state.mode == .compact {
-                    CompactMiniGrid(state: state)
-                        .scaleEffect(IslandRestingLayout(width: islandWidth, height: islandHeight).miniGridScale)
-                        .position(x: islandWidth - 40, y: islandHeight / 2)
-                        .transition(.opacity)
-                }
-            }
-            .animation(.easeInOut(duration: 0.25), value: state.mode == .compact)
         }
         .frame(width: islandWidth, height: islandHeight, alignment: .topLeading)
         .onChange(of: state.mode) { oldMode, newMode in
             let shrinking = modeOrder(newMode) < modeOrder(oldMode)
             let anim = shrinking ? closeEase : openSpring
-            let (w, h) = islandSize(mode: newMode, view: state.view,
-                                    progress: state.uploadProgress,
-                                    nw: state.notchWidth, nh: state.notchHeight)
-            let cr  = newMode == .expanded ? IslandConst.expandedCorner : IslandConst.roundedCorner
-            let tr: CGFloat = 0
+            let (w, h) = islandSize(mode: newMode, view: state.view, nw: state.notchWidth, nh: state.notchHeight)
+            let cr = newMode == .expanded ? IslandConst.expandedCorner : IslandConst.roundedCorner
             withAnimation(anim) {
-                islandWidth      = w
-                islandHeight     = (newMode == .expanded && state.view == .prompt) ? chatPromptHeight
-                                 : h + (newMode == .expanded ? state.helpPanelHeight : 0)
-                cornerRadius     = cr
-                islandTopRadius  = tr
+                islandWidth  = w
+                islandHeight = h + (newMode == .expanded ? state.helpPanelHeight : 0)
+                cornerRadius = cr
             }
         }
         .onChange(of: state.view) { _, newView in
             guard state.mode == .expanded else { return }
-            // Deactivate engine if user navigates outside the upload flow
-            let uploadViews: Set<IslandView> = [.upload, .uploading, .choose]
-            if UploadSequenceEngine.shared.isActive && !uploadViews.contains(newView) {
-                UploadSequenceEngine.shared.deactivate()
-            }
-            let (w, h) = islandSize(mode: .expanded, view: newView,
-                                    progress: state.uploadProgress,
-                                    nw: state.notchWidth, nh: state.notchHeight)
+            let (w, h) = islandSize(mode: .expanded, view: newView, nw: state.notchWidth, nh: state.notchHeight)
             withAnimation(openSpring) {
                 islandWidth  = w
-                islandHeight = newView == .prompt ? chatPromptHeight : h + state.helpPanelHeight
+                islandHeight = h + state.helpPanelHeight
             }
         }
         .onChange(of: state.helpPanelHeight) { _, extra in
-            guard state.mode == .expanded, state.view != .prompt else { return }
-            let (_, h) = islandSize(mode: .expanded, view: state.view, progress: state.uploadProgress,
-                                    nw: state.notchWidth, nh: state.notchHeight)
+            guard state.mode == .expanded else { return }
+            let (_, h) = islandSize(mode: .expanded, view: state.view, nw: state.notchWidth, nh: state.notchHeight)
             withAnimation(extra > 0 ? openSpring : closeEase) { islandHeight = h + extra }
         }
-        .onChange(of: state.chatHistory.count) { _, _ in
-            guard state.mode == .expanded, state.view == .prompt else { return }
-            withAnimation(openSpring) { islandHeight = chatPromptHeight }
-        }
         .onAppear {
-            let (w, h) = islandSize(mode: state.mode, view: state.view,
-                                    progress: state.uploadProgress,
-                                    nw: state.notchWidth, nh: state.notchHeight)
-            islandWidth      = w
-            islandHeight     = state.view == .prompt ? chatPromptHeight
-                             : h + (state.mode == .expanded ? state.helpPanelHeight : 0)
-            cornerRadius     = state.mode == .expanded ? IslandConst.expandedCorner : IslandConst.roundedCorner
-            islandTopRadius  = 0
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .botGreet)) { _ in
-            greetNotif.toggle()
+            let (w, h) = islandSize(mode: state.mode, view: state.view, nw: state.notchWidth, nh: state.notchHeight)
+            islandWidth  = w
+            islandHeight = h + (state.mode == .expanded ? state.helpPanelHeight : 0)
+            cornerRadius = state.mode == .expanded ? IslandConst.expandedCorner : IslandConst.roundedCorner
         }
     }
 
@@ -153,79 +99,37 @@ struct IslandContainer: View {
 
 // MARK: - Island shape
 //
-// topRadius > 0  → convex rounded top corners (expanded mode)
-// topRadius < 0  → concave ear cutouts, |topRadius| = ear radius (compact/notch mode)
-// topRadius = 0  → sharp top corners (transient during animation)
+// Square top corners (glued to the top of the screen), rounded bottom corners.
 
 struct IslandShape: Shape {
     var width: CGFloat
     var height: CGFloat
     var cornerRadius: CGFloat   // bottom corners
-    var topRadius: CGFloat      // see above
 
-    var animatableData: AnimatablePair<AnimatablePair<AnimatablePair<CGFloat, CGFloat>, CGFloat>, CGFloat> {
-        get { .init(.init(.init(width, height), cornerRadius), topRadius) }
+    var animatableData: AnimatablePair<AnimatablePair<CGFloat, CGFloat>, CGFloat> {
+        get { .init(.init(width, height), cornerRadius) }
         set {
-            width        = newValue.first.first.first
-            height       = newValue.first.first.second
-            cornerRadius = newValue.first.second
-            topRadius    = newValue.second
+            width        = newValue.first.first
+            height       = newValue.first.second
+            cornerRadius = newValue.second
         }
     }
 
     func path(in rect: CGRect) -> Path {
         let cr = max(0, cornerRadius)
         var p  = Path()
-
-        if topRadius >= 0 {
-            // ── Convex rounded top corners (expanded) ──────────────────────────
-            let tr = min(topRadius, min(width / 2, height / 2))
-            p.move(to: CGPoint(x: tr, y: 0))
-            p.addLine(to: CGPoint(x: width - tr, y: 0))
-            // Top-right convex corner
-            p.addArc(center: CGPoint(x: width - tr, y: tr), radius: tr,
-                     startAngle: .degrees(270), endAngle: .degrees(0), clockwise: false)
-            // Right edge
-            p.addLine(to: CGPoint(x: width, y: height - cr))
-            // Bottom-right corner
-            p.addArc(center: CGPoint(x: width - cr, y: height - cr), radius: cr,
-                     startAngle: .degrees(0), endAngle: .degrees(90), clockwise: false)
-            // Bottom edge
-            p.addLine(to: CGPoint(x: cr, y: height))
-            // Bottom-left corner
-            p.addArc(center: CGPoint(x: cr, y: height - cr), radius: cr,
-                     startAngle: .degrees(90), endAngle: .degrees(180), clockwise: false)
-            // Left edge
-            p.addLine(to: CGPoint(x: 0, y: tr))
-            // Top-left convex corner
-            p.addArc(center: CGPoint(x: tr, y: tr), radius: tr,
-                     startAngle: .degrees(180), endAngle: .degrees(270), clockwise: false)
-        } else {
-            // ── Concave ear cutouts (compact / notch) ─────────────────────────
-            let er = -topRadius   // positive ear radius
-            p.move(to: CGPoint(x: 0, y: 0))
-            // Top-left ear
-            p.addArc(center: CGPoint(x: 0, y: er), radius: er,
-                     startAngle: .degrees(270), endAngle: .degrees(0), clockwise: false)
-            // Top edge
-            p.addLine(to: CGPoint(x: width - er, y: er))
-            // Top-right ear
-            p.addArc(center: CGPoint(x: width, y: er), radius: er,
-                     startAngle: .degrees(180), endAngle: .degrees(270), clockwise: false)
-            // Right edge
-            p.addLine(to: CGPoint(x: width, y: height - cr))
-            // Bottom-right corner
-            p.addArc(center: CGPoint(x: width - cr, y: height - cr), radius: cr,
-                     startAngle: .degrees(0), endAngle: .degrees(90), clockwise: false)
-            // Bottom edge
-            p.addLine(to: CGPoint(x: cr, y: height))
-            // Bottom-left corner
-            p.addArc(center: CGPoint(x: cr, y: height - cr), radius: cr,
-                     startAngle: .degrees(90), endAngle: .degrees(180), clockwise: false)
-            // Left edge back to top-left corner
-            p.addLine(to: CGPoint(x: 0, y: 0))
-        }
-
+        p.move(to: .zero)
+        p.addLine(to: CGPoint(x: width, y: 0))
+        // Right edge
+        p.addLine(to: CGPoint(x: width, y: height - cr))
+        // Bottom-right corner
+        p.addArc(center: CGPoint(x: width - cr, y: height - cr), radius: cr,
+                 startAngle: .degrees(0), endAngle: .degrees(90), clockwise: false)
+        // Bottom edge
+        p.addLine(to: CGPoint(x: cr, y: height))
+        // Bottom-left corner
+        p.addArc(center: CGPoint(x: cr, y: height - cr), radius: cr,
+                 startAngle: .degrees(90), endAngle: .degrees(180), clockwise: false)
         p.closeSubpath()
         return p
     }
@@ -239,14 +143,13 @@ struct BotPlacement: View {
     let islandH: CGFloat
 
     var body: some View {
-        let (cx, cy, diameter, opacity) = botPosition(mode: state.mode, view: state.view, islandW: islandW, islandH: islandH, uploadProgress: state.uploadProgress, hasNotch: state.hasNotch)
+        let (cx, cy, diameter, opacity) = botPosition(mode: state.mode, view: state.view, islandW: islandW,
+                                                      islandH: islandH, hasNotch: state.hasNotch)
         let canvasSize = diameter / 0.6
         let overhang: CGFloat = 40
-        let isUploading = state.view == .uploading
 
         Group {
-            // No glow in uploading mode — the tiny dot doesn't need it
-            if state.mode == .expanded && !isUploading {
+            if state.mode == .expanded {
                 Circle()
                     .fill(RadialGradient(
                         gradient: Gradient(stops: [
@@ -264,42 +167,18 @@ struct BotPlacement: View {
                     .animation(.easeInOut(duration: 0.4), value: state.effectiveState)
             }
 
-            // Uploading: no particle overhang (no hearts during upload), positioned directly at cy.
-            // TomoBlob cy = H/2 + 0 + dy*R + R*0.06 ≈ H/2 (body centered in canvas).
-            // With .position(x:y:) placing the frame center at (uploadCx, cy), bot is at cy ✓.
-            //
-            // Normal: extra 40pt canvas at top for heart particles; position offset up by 20pt;
-            // TomoBlob compensates with cy = H/2 + particleOverhang/2 + dy*R + R*0.06.
-            if isUploading {
-                TimelineView(.animation) { tl in
-                    let elapsed: Double = {
-                        guard let start = state.uploadStartTime else { return 0 }
-                        return tl.date.timeIntervalSince(start)
-                    }()
-                    let t = min(1.0, max(0, elapsed / state.uploadDuration))
-                    // cx = 36 + 526*t: bot center at fill right edge (bar left=36, width=526)
-                    let uploadCx = 36 + CGFloat(t * (2 - t)) * 526
-                    TomoCharacterView(state: state, particleOverhang: 0)
-                        .frame(width: canvasSize, height: canvasSize)
-                        .opacity(state.isDraggingBot ? 0 : opacity)
-                        .position(x: uploadCx, y: cy)
-                }
+            // An extra 40pt of canvas at the top for heart particles; the position is offset up by 20pt,
+            // and TomoBlob compensates with cy = H/2 + particleOverhang/2 + dy*R + R*0.06.
+            TomoCharacterView(state: state, particleOverhang: overhang)
+                .frame(width: canvasSize, height: canvasSize + overhang)
+                .opacity(opacity)
+                .position(x: cx, y: cy - overhang / 2)
+                .animation(.spring(response: 0.5, dampingFraction: 0.72), value: cx)
+                .animation(.spring(response: 0.5, dampingFraction: 0.72), value: cy)
+                .animation(.spring(response: 0.5, dampingFraction: 0.72), value: canvasSize)
                 .transition(.scale(scale: 0.01, anchor: .center).combined(with: .opacity))
-            } else {
-                TomoCharacterView(state: state, particleOverhang: overhang)
-                    .frame(width: canvasSize, height: canvasSize + overhang)
-                    .opacity(state.isDraggingBot ? 0 : opacity)
-                    .position(x: cx, y: cy - overhang / 2)
-                    .animation(.spring(response: 0.5, dampingFraction: 0.72), value: cx)
-                    .animation(.spring(response: 0.5, dampingFraction: 0.72), value: cy)
-                    .animation(.spring(response: 0.5, dampingFraction: 0.72), value: canvasSize)
-                    .transition(.scale(scale: 0.01, anchor: .center).combined(with: .opacity))
-            }
         }
-        // Branch switch (uploading ↔ normal) animates with a fast spring: uploading dot
-        // scales out at bar-end while normal bot scales in at choose position.
-        .animation(.spring(response: 0.36, dampingFraction: 0.72), value: isUploading)
-        // Slap, drag, and hover are handled by the AppKit NSEvent monitor in
+        // Pokes and hover are handled by the AppKit NSEvent monitors in
         // IslandWindowController — not SwiftUI gestures — so this is safe.
         .allowsHitTesting(false)
     }
@@ -326,7 +205,8 @@ struct BotPlacement: View {
     }
 }
 
-func botPosition(mode: IslandMode, view: IslandView, islandW: CGFloat, islandH: CGFloat, uploadProgress: Double, hasNotch: Bool = true) -> (CGFloat, CGFloat, CGFloat, Double) {
+func botPosition(mode: IslandMode, view: IslandView, islandW: CGFloat, islandH: CGFloat,
+                 hasNotch: Bool = true) -> (CGFloat, CGFloat, CGFloat, Double) {
     let resting = IslandRestingLayout(width: islandW, height: islandH)
     switch mode {
     case .hidden:
@@ -334,15 +214,7 @@ func botPosition(mode: IslandMode, view: IslandView, islandW: CGFloat, islandH: 
             : (islandW / 2, resting.botCenterY, resting.botDiameter, 1)
     case .compact: return (40, resting.botCenterY, resting.botDiameter, 1)
     case .expanded:
-        let layout = IslandConst.viewLayouts[view]!
-        let diameter = layout.botDiameter
-        // Uploading: Tomo rides the leading edge of the progress fill.
-        // Bar in island coords: left=36, width=526. cx = 36 + progress*526 (dot center at fill right edge).
-        // cy comes from ViewLayout.botY (bar center in island coords).
-        if view == .uploading {
-            let cx = 36 + CGFloat(uploadProgress) * 526
-            return (cx, layout.botY ?? 103, diameter, 1)
-        }
+        let layout = IslandConst.layout(view)
         let cx = layout.botX
         let cy: CGFloat
         if let fixedY = layout.botY {
@@ -353,50 +225,7 @@ func botPosition(mode: IslandMode, view: IslandView, islandW: CGFloat, islandH: 
             let cardH: CGFloat = 84
             cy = headerBottom + (islandH - headerBottom - cardH) / 2 + cardH / 2
         }
-        return (cx, cy, diameter, 1)
-    }
-}
-
-// MARK: - Countdown bar
-
-struct CountdownBar: View {
-    @ObservedObject var state: AppState
-    let islandW: CGFloat
-    @State private var barWidth: CGFloat = 0
-    @State private var timer: Timer? = nil
-
-    var body: some View {
-        GeometryReader { _ in
-            Rectangle()
-                .fill(Color.white.opacity(0.35))
-                .frame(width: barWidth, height: 2)
-                .cornerRadius(2)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-        }
-        .onAppear { startTimer() }
-        .onDisappear { timer?.invalidate() }
-    }
-
-    private func startTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-            updateBar()
-        }
-    }
-
-    private func updateBar() {
-        guard state.mode == .expanded && !state.isPinned else {
-            barWidth = 0
-            return
-        }
-        let autoClose = state.autoCloseInterval
-        let window = min(10.0, autoClose * 0.6)
-        let elapsed = Date.now.timeIntervalSince(state.lastActivity)
-        let remaining = autoClose - elapsed
-        if remaining < window {
-            barWidth = max(0, CGFloat(remaining / window) * 160)
-        } else {
-            barWidth = 0
-        }
+        return (cx, cy, layout.botDiameter, 1)
     }
 }
 
@@ -415,10 +244,8 @@ struct IslandContentView: View {
             ZStack {
                 ForEach(IslandView.allCases, id: \.self) { v in
                     let active = state.view == v
-                    // Views that fill available height instead of the fixed 98pt content frame:
-                    // chat (prompt) is always flexible; mail is flexible only when active so
-                    // it doesn't push the ZStack taller when inactive.
-                    let isTall = v == .prompt || v == .overview || v == .empty || (v == .mail && active)
+                    // Tomo's card fills the available height; the dizzy card has a fixed 98pt content frame.
+                    let isTall = v == .overview
                     let anim: Animation = active
                         ? .spring(response: 0.4, dampingFraction: 0.8).delay(0.16)
                         : .easeIn(duration: 0.16)
@@ -441,7 +268,7 @@ struct IslandContentView: View {
     }
 }
 
-// MARK: - Island header (tabs + icons)
+// MARK: - Island header
 
 struct IslandHeader: View {
     @ObservedObject var state: AppState
@@ -459,74 +286,5 @@ struct IslandHeader: View {
             .padding(.trailing, 16)
         }
         .frame(maxHeight: .infinity)
-    }
-}
-
-struct TabButton: View {
-    let icon: String
-    let view: IslandView
-    @ObservedObject var state: AppState
-    var preAction: (() -> Void)? = nil
-    @State private var isHovered = false
-
-    private var isOn: Bool {
-        if view == .overview { return state.view == .overview || state.view == .empty }
-        return state.view == view
-    }
-
-    var body: some View {
-        Button(action: {
-            preAction?()
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                state.view = view
-            }
-        }) {
-            Image(systemName: icon)
-                .font(.system(size: 13))
-                .foregroundColor(isOn ? Color(hex: "#F5F6F8") : (isHovered ? Color(hex: "#B0B5BE") : Color(hex: "#8E939C")))
-                .frame(width: 30, height: 22)
-                .background(
-                    isOn ? Color(hex: "#1D1F23") :
-                    isHovered ? Color.white.opacity(0.07) : Color.clear
-                )
-                .clipShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .onHover { isHovered = $0 }
-    }
-}
-
-// MARK: - Compact mini grid (2×2 to the right of the notch; Coucou's agent pills, switched off)
-
-struct CompactMiniGrid: View {
-    @ObservedObject var state: AppState
-
-    private var others: [AgentTask] {
-        Array(state.tasks.filter { $0.id != state.focusId }.prefix(4))
-    }
-
-    var body: some View {
-        let cols = [GridItem(.fixed(12), spacing: 4), GridItem(.fixed(12), spacing: 4)]
-        LazyVGrid(columns: cols, spacing: 4) {
-            ForEach(others) { task in
-                MiniBotCanvasView(task: task)
-                    .frame(width: 12 / 0.6, height: 12 / 0.6)
-                    .frame(width: 12, height: 12, alignment: .center)
-            }
-        }
-        .frame(width: 28, height: 28)
-    }
-}
-
-// MARK: - Color helper
-
-extension Color {
-    init(hex: String) {
-        let h = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
-        let val = UInt64(h, radix: 16) ?? 0
-        let r = Double((val >> 16) & 0xFF) / 255
-        let g = Double((val >> 8)  & 0xFF) / 255
-        let b = Double( val        & 0xFF) / 255
-        self.init(red: r, green: g, blue: b)
     }
 }

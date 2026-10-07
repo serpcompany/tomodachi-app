@@ -30,13 +30,11 @@ struct IslandScreenGeometry {
     }
 }
 
-/// Shared by the compact view and the greeting's collapse destination.
+/// Where small Tomo sits in the resting (compact) island.
 struct IslandRestingLayout {
     let width: CGFloat
     let height: CGFloat
 
     var botDiameter: CGFloat { min(20, max(0, height - 6)) }
     var botCenterY: CGFloat { height / 2 }
-    var miniGridScale: CGFloat { min(1, max(0, height - 4) / 28) }
-    var miniGridCenterX: CGFloat { width - 40 }
 }

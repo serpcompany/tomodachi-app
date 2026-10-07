@@ -9,10 +9,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) var islandController: IslandWindowController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Ignore SIGPIPE — prevents crash when nb-hook closes socket before we write response
-        signal(SIGPIPE, SIG_IGN)
-        // Warm up Keychain cache on main thread BEFORE any poller or view touches it
-        _ = KeychainStore.shared
         NSApp.setActivationPolicy(.accessory)
         TomoIconRenderer.renderIfRequested()
         setupMenuBarItem()
@@ -172,9 +168,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         game.isIslandOpen = { AppState.shared.mode == .expanded }
         game.focusInput = { [weak self] in self?.islandController?.window?.makeKey() }
         game.isPointerInside = { AppState.shared.mouseInIsland }
-        game.onBotState = { AppState.shared.updateTask(id: "tomo", state: $0) }
+        game.onBotState = { AppState.shared.tomoState = $0 }
         game.onHelpChange = { AppState.shared.helpPanelHeight = $0 == nil ? 0 : TomoGrid.helpHeight }
-        game.onActivity = { AppState.shared.lastActivity = .now }
         game.secondsSinceInput = { typing in
             let src = CGEventSourceStateID.combinedSessionState
             if typing { return CGEventSource.secondsSinceLastEventType(src, eventType: .keyDown) }

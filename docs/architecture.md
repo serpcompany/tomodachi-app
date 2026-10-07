@@ -32,7 +32,8 @@ Island shell (Coucou)       notch window, open/close state machine, click-throug
 ## Systems
 
 **Island shell.** Coucou's notch window and state machine (`IslandWindowController`,
-`IslandStateMachine`, `IslandRootView`). Tomo reaches it only through four closures on `TomoGame`
+`IslandStateMachine`, `IslandRootView`), cut down to what Tomo uses: it shows Tomo's card or the dizzy
+card, and nothing of Coucou's agent features is left ([coucou-fork.md](coucou-fork.md)). Tomo reaches it only through four closures on `TomoGame`
 (`openIsland`, `closeIsland`, `isIslandOpen`, `focusInput`, plus `isPointerInside`, `onBotState`,
 `onHelpChange`, `onActivity` and `secondsSinceInput`), set in `AppDelegate`. Another shell sets the same
 closures: the iPhone app's `TomoPhoneShell` treats the app being on screen as open, so Tomo never times
