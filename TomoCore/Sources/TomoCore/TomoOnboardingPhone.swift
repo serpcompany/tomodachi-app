@@ -293,7 +293,7 @@ private struct LockCardSketch: View {
             HStack(spacing: 12) {
                 Color.clear.frame(width: 64, height: 64)            // Tomo's spot
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(status).font(.system(size: 14, weight: .bold)).lineLimit(1).minimumScaleFactor(0.7)
+                    Text(status).font(.system(size: 14, weight: .bold)).lineLimit(2).minimumScaleFactor(0.8)
                     HStack(spacing: 6) {
                         Text(age).font(.system(size: 11, weight: .bold, design: .rounded))
                             .foregroundStyle(Color(hex: "#FFD9A8"))
