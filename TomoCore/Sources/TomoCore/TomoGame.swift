@@ -367,6 +367,22 @@ public final class TomoGame: ObservableObject {
         nextDropIn = Date()
     }
 
+    /// Testing: how much to grow at once (the Mac menu's testing tools).
+    public enum TestGrowth: String { case step, level, birthday }
+
+    /// Testing: grow without waiting, on a copy in memory like `skipAhead`, so the saved Tomo never changes (Back
+    /// to my Tomo returns to it). A step moves every word of this level up one stage; a level finishes it; a
+    /// birthday finishes levels until Tomo's age changes. Level-ups and birthdays celebrate as usual.
+    public func testGrow(_ how: TestGrowth) {
+        if !progress.isScratch { progress.detach() }
+        while true {
+            progress.testRaise(by: how == .step ? 1 : TomoSRS.knows)
+            guard let up = progress.levelUpIfReady() else { break }
+            if how != .birthday || up.birthday || progress.isLastLevel { celebrate(up); return }
+        }
+        syncProgress()
+    }
+
     private func resetRound() {
         queue = []
         currentItem = nil
