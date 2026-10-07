@@ -36,7 +36,7 @@ Signing is automatic with team `W3GXL2NQQP` (the one Pedos ships with). The simu
 
 ## App Store
 
-The listing lives in `ios-demo/metadata/`: `app-info/en-US.json` (name, subtitle, category, privacy) and `version/1.0/en-US.json` (description, keywords, promotional text, URLs, review notes), in the same shape as the Zenbu iOS app's. Screenshots are 6.9" (1320×2868): capture raw screens on a `tomodachi-max` simulator (iPhone 17 Pro Max, status bar set with `xcrun simctl status_bar … override --time 9:41`), then `python3 ios-demo/scripts/make-screenshots.py <raw dir> ios-demo/metadata/screenshots/6.9` puts each under its headline on the icon's sky blue; `6.3/` holds the same images at 1206×2622, the size App Store Connect asks for first ("iPhone with Dynamic Island, medium display").
+The listing is for version 1.1 (the rejected 1.0 becomes 1.1 in App Store Connect) and lives in `ios-demo/metadata/`: `app-info/en-US.json` (name, subtitle, category, privacy) and `version/1.1/en-US.json` (description, keywords, promotional text, URLs, review notes), in the same shape as the Zenbu iOS app's. Screenshots (`screenshots/6.9/`, `6.3/`) are real screens from a headless simulator under a headline: `ios-demo/scripts/make-screenshots.py`. What the listing may say, and how each screenshot is captured: [app-store.md](app-store.md).
 
 ## Debug flags
 
