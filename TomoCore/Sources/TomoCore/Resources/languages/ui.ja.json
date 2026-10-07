@@ -208,7 +208,17 @@
     "onboarding.ready.go": "はじめよう！",
     "onboarding.ready.note": "まもなく Tomo がノッチから出てきます。",
     "onboarding.back.title": "おかえりなさい",
-    "onboarding.back.body": "ほかのデバイスの Tomo が、この Mac にも来ました：{age} · Lv {level}。この Mac ではノッチの横にいて、ときどき遊びに来ます。クリックすればいつでも遊べます。"
+    "onboarding.back.body": "ほかのデバイスの Tomo が、この Mac にも来ました：{age} · Lv {level}。この Mac ではノッチの横にいて、ときどき遊びに来ます。クリックすればいつでも遊べます。",
+    "a11y.bar": "Lv {next}までの経験値",
+    "a11y.tomo": "Tomo、{age}。タップするとつつけます。",
+    "a11y.sound": "Tomoの声と効果音",
+    "a11y.on": "オン",
+    "a11y.off": "オフ",
+    "a11y.replay": "もう一度聞く",
+    "a11y.send": "送信",
+    "a11y.right": "正解",
+    "a11y.wrong": "ちがう答え",
+    "a11y.lookUp": "{word}を調べる"
   },
   "helpPhrases": [
     "なに",

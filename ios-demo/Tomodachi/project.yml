@@ -64,8 +64,8 @@ targets:
         UIBackgroundModes: [remote-notification]   # CloudKit's push when the Mac changed Tomo (TomoSync)
         TomoICloudEnvironment: $(TOMO_ICLOUD_ENV)   # this build has iCloud (TomoSync)
         ITSAppUsesNonExemptEncryption: false   # only Apple's own encryption (HTTPS): no export paperwork
-        NSMicrophoneUsageDescription: "Tomo listens when you answer out loud."
-        NSSpeechRecognitionUsageDescription: "Tomo turns what you say into text to understand you."
+        # No microphone or speech-recognition text: answers are choices (TomoGame.talkAsChoices), and TomoCore
+        # leaves its listener out of iOS builds, so the app never asks (#92).
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.zenbujapanese.tomodachi
@@ -74,6 +74,10 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_ENTITLEMENTS: Resources/Tomodachi.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon   # Tomo on sky blue, drawn from its code (TOMO_RENDER_ICON)
+    postBuildScripts:
+      - name: Leave out the Spanish draft
+        script: '"$SRCROOT/../scripts/strip-packs.sh" "$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH"'
+        basedOnDependencyAnalysis: false
 
   # Home Screen widgets (issue #52). Reads TomoGlance from the App Group; draws Tomo with TomoMovingChick.
   TomoWidgets:
@@ -105,3 +109,7 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_ENTITLEMENTS: Widgets/Widgets.entitlements
         SKIP_INSTALL: YES
+    postBuildScripts:
+      - name: Leave out the Spanish draft
+        script: '"$SRCROOT/../scripts/strip-packs.sh" "$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH"'
+        basedOnDependencyAnalysis: false

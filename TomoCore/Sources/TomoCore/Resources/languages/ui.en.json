@@ -210,7 +210,17 @@
     "onboarding.ready.go": "Let's go!",
     "onboarding.ready.note": "Tomo pops out of the notch in a moment.",
     "onboarding.back.title": "Welcome back",
-    "onboarding.back.body": "Your Tomo came along from your other device: {age} · Lv {level}. On this Mac it lives by the notch and drops in every so often. Click it any time to play."
+    "onboarding.back.body": "Your Tomo came along from your other device: {age} · Lv {level}. On this Mac it lives by the notch and drops in every so often. Click it any time to play.",
+    "a11y.bar": "Experience to Lv {next}",
+    "a11y.tomo": "Tomo, {age}. Tap to poke it.",
+    "a11y.sound": "Tomo's voice and sounds",
+    "a11y.on": "On",
+    "a11y.off": "Off",
+    "a11y.replay": "Hear it again",
+    "a11y.send": "Send",
+    "a11y.right": "Right",
+    "a11y.wrong": "Not that one",
+    "a11y.lookUp": "Look up {word}"
   },
   "helpPhrases": [
     "what",
