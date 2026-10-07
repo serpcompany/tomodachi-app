@@ -204,6 +204,10 @@ public final class TomoListener: ObservableObject {
 
     public func toggle(onPartial: @escaping (String) -> Void, onDone: @escaping (String) -> Void) {
         if isListening { stop(); return }
+        // Spoken answers are off while talking questions are choices, and the Mac app doesn't ask for the
+        // microphone then: asking without its usage text in Info.plist would crash. Bring that text (and
+        // the audio-input entitlement) back before turning `talkAsChoices` off.
+        guard !TomoGame.talkAsChoices else { return }
         self.onPartial = onPartial
         self.onDone = onDone
         Task { await start() }

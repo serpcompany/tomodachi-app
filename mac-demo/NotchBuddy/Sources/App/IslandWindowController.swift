@@ -27,38 +27,26 @@ final class IslandWindowController: NSWindowController {
 
     private var pendingIslandClick = false   // any island click → expand on mouseUp
 
-    // Notch real dimensions (set on init)
+    // Notch real dimensions (set by place(on:))
     private var notchW: CGFloat = IslandConst.notchWidth
     private var notchH: CGFloat = IslandConst.notchHeight
     private var hasNotch = true
 
-    convenience init() {
-        let screen = Self.notchScreen() ?? NSScreen.main!
-        let geometry = Self.screenGeometry(for: screen)
-        let nW = geometry.width
-        let nH = geometry.height
+    nonisolated static let panelSize = NSSize(width: 720, height: 560)   // room for Tomo's help panel below the card
 
-        let panelW: CGFloat = 720
-        let panelH: CGFloat = 560   // room for Tomo's help panel below the card
-        let sf = screen.frame
+    convenience init() {
         let panel = IslandPanel(
-            contentRect: NSRect(x: sf.midX - panelW/2, y: sf.maxY - panelH,
-                                width: panelW, height: panelH),
+            contentRect: NSRect(origin: .zero, size: Self.panelSize),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered, defer: false
         )
-        panel.notchWidth  = nW
-        panel.notchHeight = nH
-
         self.init(window: panel)
         self.islandPanel = panel
-        self.notchW = nW
-        self.notchH = nH
-        self.hasNotch = geometry.hasNotch
-        setupPanel(screen: screen)
+        if let screen = Self.islandScreen() { place(on: screen) }
+        setupPanel()
     }
 
-    private func setupPanel(screen: NSScreen) {
+    private func setupPanel() {
         guard let panel = window as? IslandPanel else { return }
         panel.backgroundColor = .clear
         panel.isOpaque = false
@@ -66,11 +54,6 @@ final class IslandWindowController: NSWindowController {
         panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.mainMenuWindow)) + 3)
         panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]
         panel.ignoresMouseEvents = true
-
-        // Propagate real notch dimensions to AppState
-        AppState.shared.notchWidth  = notchW
-        AppState.shared.notchHeight = notchH
-        AppState.shared.hasNotch = hasNotch
 
         let contentSize = panel.contentRect(forFrameRect: panel.frame).size
 
@@ -87,7 +70,57 @@ final class IslandWindowController: NSWindowController {
 
         startPolling()
         startKeyMonitor()
+        followScreens()
         wireFSM()
+    }
+
+    // MARK: - Screens (the notch one if there is one; it can change while Tomo runs)
+
+    /// Re-places the island whenever displays change: a monitor plugged in or out, the lid closed or opened,
+    /// a resolution change, or waking from sleep. It was picked once at launch, and stranded after any of those.
+    private func followScreens() {
+        let replace: @Sendable (Notification) -> Void = { [weak self] _ in
+            Task { @MainActor in
+                guard let self, let screen = Self.islandScreen() else { return }
+                self.place(on: screen)
+            }
+        }
+        NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification,
+                                               object: nil, queue: .main, using: replace)
+        NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didWakeNotification,
+                                                          object: nil, queue: .main, using: replace)
+    }
+
+    /// Puts the island at the top centre of `screen`, sized for its notch (or for none).
+    private func place(on screen: NSScreen) {
+        let geometry = Self.screenGeometry(for: screen)
+        notchW = geometry.width
+        notchH = geometry.height
+        hasNotch = geometry.hasNotch
+        islandPanel.notchWidth = notchW
+        islandPanel.notchHeight = notchH
+        islandPanel.setFrame(Self.panelFrame(on: screen.frame), display: true)
+        // AppState drives the SwiftUI island; it resizes when these change.
+        if state.notchWidth != notchW { state.notchWidth = notchW }
+        if state.notchHeight != notchH { state.notchHeight = notchH }
+        if state.hasNotch != hasNotch { state.hasNotch = hasNotch }
+        if state.screenWidth != screen.frame.width { state.screenWidth = screen.frame.width }
+    }
+
+    /// The screen Tomo lives on: the one with a notch, else the main display (the one with the menu bar).
+    static func islandScreen() -> NSScreen? {
+        pickScreen(NSScreen.screens.map { $0.safeAreaInsets.top > 0 }).map { NSScreen.screens[$0] }
+    }
+
+    /// Which of the screens (true = it has a notch) Tomo lives on: the first notch, else the first screen.
+    nonisolated static func pickScreen(_ hasNotch: [Bool]) -> Int? {
+        hasNotch.firstIndex(of: true) ?? (hasNotch.isEmpty ? nil : 0)
+    }
+
+    /// The panel's frame: glued to the top of the screen, centred.
+    nonisolated static func panelFrame(on screen: NSRect) -> NSRect {
+        NSRect(x: screen.midX - panelSize.width / 2, y: screen.maxY - panelSize.height,
+               width: panelSize.width, height: panelSize.height)
     }
 
     // MARK: - FSM wiring
@@ -148,9 +181,9 @@ final class IslandWindowController: NSWindowController {
             }
         }
 
-        // Mouse in screen coords (Y flipped, origin top-left) for Tomo's gaze
-        let screenH = panel.screen?.frame.height ?? NSScreen.main!.frame.height
-        let newPos = CGPoint(x: mouse.x - (panel.screen?.frame.minX ?? 0), y: screenH - mouse.y)
+        // Mouse in the island screen's coords (Y flipped, origin top-left) for Tomo's gaze
+        let sf = panel.screen?.frame ?? pf
+        let newPos = CGPoint(x: mouse.x - sf.minX, y: sf.maxY - mouse.y)
         let cur = AppState.shared.mousePosition
         if abs(newPos.x - cur.x) > 1 || abs(newPos.y - cur.y) > 1 {
             AppState.shared.mousePosition = newPos
@@ -233,21 +266,43 @@ final class IslandWindowController: NSWindowController {
         // Keep the FSM in step with what is on screen (home → petit now).
         fsm.collapse()
         setMode(.compact)
-        window?.resignKey()
+        giveBackKeyboard()
     }
 
     // MARK: - Keyboard (Escape closes) and mouse
 
+    /// The learner opened Tomo themselves (a click, the menu): the island takes the keyboard, so Esc closes it.
+    /// Tomo dropping in by itself never does, or the learner's typing would land in it.
+    func takeKeyboard() {
+        window?.makeKey()
+    }
+
+    /// A key the island got closes it: Esc, sent to the island (not Settings), while it's open. Anything else
+    /// passes on untouched.
+    nonisolated static func escCloses(keyCode: UInt16, inIsland: Bool, open: Bool) -> Bool {
+        keyCode == 53 && inIsland && open   // 53: Escape
+    }
+
+    /// Hands the keyboard back to the app the learner was in. The panel never activates Tomodachi, so that app
+    /// is still frontmost: ordering the panel out and straight back in gives its window the keyboard again.
+    private func giveBackKeyboard() {
+        guard let panel = window, panel.isKeyWindow else { return }
+        panel.orderOut(nil)
+        panel.orderFrontRegardless()
+    }
+
     private func startKeyMonitor() {
-        keyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            Task { @MainActor in
-                guard let self = self else { return }
-                if event.keyCode == 53 { // Escape
-                    if self.state.mode == .expanded {
-                        self.collapse()
-                    }
-                }
+        // Esc closes the island. A local monitor sees only keys sent to Tomo's own windows, so it needs no
+        // permission (a global one needs Accessibility, which Tomodachi never asks for) and never takes a key
+        // from the app the learner is working in (decisions.md).
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            let closed = MainActor.assumeIsolated { () -> Bool in
+                guard let self, Self.escCloses(keyCode: event.keyCode, inIsland: event.window === self.window,
+                                               open: self.state.mode == .expanded) else { return false }
+                self.collapse()
+                return true
             }
+            return closed ? nil : event
         }
 
         // .botDizzy — posted by TomoBlob.poke() on the 3rd poke; show confused view + recover after 3.3s
@@ -282,6 +337,7 @@ final class IslandWindowController: NSWindowController {
                     } else {
                         self.fsm.click()   // FSM petit/hidden→home; onTransition calls expand(to:)
                     }
+                    self.takeKeyboard()
                 }
             }
             return event
@@ -325,10 +381,6 @@ final class IslandWindowController: NSWindowController {
     }
 
     // MARK: - Notch detection (static)
-
-    static func notchScreen() -> NSScreen? {
-        NSScreen.screens.first { $0.safeAreaInsets.top > 0 }
-    }
 
     static func screenGeometry(for screen: NSScreen) -> IslandScreenGeometry {
         let visibleMenuBarHeight = screen.frame.maxY - screen.visibleFrame.maxY

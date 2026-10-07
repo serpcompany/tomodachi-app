@@ -1,6 +1,12 @@
 # Decisions
 
-Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident.
+Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident. The first day's decisions are in [decisions-2026-10-03.md](decisions-2026-10-03.md).
+
+### 2026-10-07: Esc closes Tomo only when Tomo has the keyboard
+Esc is a local key monitor on the island: it works once the learner has clicked Tomo or opened it from the menu (the island takes the keyboard then, and gives it back when it closes), with no permission. During a visit Tomo drops in on its own, Esc stays with the learner's app; × closes the visit, or ignoring it does. **Why:** the old global monitor needed Accessibility, which Tomodachi never asks for, so Esc never worked. A Carbon hot key would have worked anywhere, but it takes Esc from every other app while Tomo is open (vim, dialogs, full-screen video), and Tomo opens by itself while people work.
+
+### 2026-10-07: Testing tools are hidden, and never touch the saved Tomo
+"Skip to talking" and Settings → Testing show after ⌥-clicking the menu bar icon, or with the `tomoTestingTools` default ([verification.md](verification.md)); "Skip ahead a day" moves a copy of Tomo in memory, never the saved one. The microphone permission is gone while talking questions are choices. **Why:** a learner shouldn't find tools that change Tomo's clock: skipping ahead saved answers dated in the future and synced them to iCloud. The owner tests with Developer ID builds, so it isn't `#if DEBUG`.
 
 ### 2026-10-07: Coucou's agent features are deleted, not kept switched off
 About 9,400 lines are gone ([coucou-fork.md](coucou-fork.md)); git history keeps them. **Why:** "switched off" wasn't off: a file dropped on the notch was copied and could be emailed, and every launch read 12 of Coucou's API keys from the Keychain. The project rename waits until no branches are open.
@@ -79,39 +85,3 @@ In Japanese, Tomo says わたし, never ぼく, おれ or あたし. わたし i
 
 ### 2026-10-05: The app is Tomodachi (by Zenbu Japanese); the character is Tomo
 The app's name (menu, island header, About, bundle) is **Tomodachi**, credited "by Zenbu Japanese". **Tomo** stays the character's name in sentences ("Tomo understood you"). The bundle ID is `com.zenbujapanese.tomodachi`, matching the Zenbu iPhone app's `com.zenbujapanese.dictionary`. It was changed before any tester build shipped. **Why:** the product is Tomodachi; Tomo is the friend inside it.
-
-### 2026-10-03: Beta 0.0.1 ships as a signed, notarized zip
-Built by `mac-demo/scripts/release-beta.sh` with the team's Developer ID (847HR8U8D9): universal, hardened runtime, microphone permission only. Coucou's sounds and icons aren't bundled. The default visit frequency is 20 minutes, changeable in Settings. No AI key ships in the app: testers add their own or use offline replies. **Why:** testers can open it without macOS warnings, and nothing we can't legally or safely distribute is inside.
-
-### 2026-10-03: Every answer is a Win, a Miss, or No score
-**Win** (understood / right picture) counts toward growth. **Miss** (tried in the target language, Tomo didn't get it / wrong picture) gives no credit; later, the leveling model weakens the word. **No score** (wrong language, or asking for help) gives no credit and no penalty. **Why:** the learner should always know what an answer earned, and asking for help must never feel like failing.
-
-### 2026-10-03: Language pairs from day one
-Tomo supports any learner language × any target language. Target languages are data packs (`Resources/languages/<id>.json`: words, lines, voice and recognition locales, script check, AI persona). Learner languages are interface-string files plus translations inside the packs. No Swift code contains text in a specific language. One Tomo per target language. **Why:** anybody should be able to learn anything. A Spanish draft pack proves the swap works end to end (pictures, voice, language check, AI). See [languages.md](languages.md).
-
-### 2026-10-03: The AI never decides credit alone
-Code checks the answer first (it must contain Japanese, and later it must fit the question via the Zenbu dictionary). The AI's verdict is only an input that code double-checks. **Why:** `gpt-5.4-mini` accepted the English answer "car" as understood despite the prompt rules.
-
-### 2026-10-03: Tomo can be dismissed but nudges you back
-A × button (and Esc) closes an open visit at any time, because Tomo must never block what you're doing. An unfinished visit (closed or ignored) leaves a red dot on small Tomo and a bounce every 60 s until you check in. **Why:** people get lazy about learning, and a quiet nudge brings them back without guilt.
-
-### 2026-10-03: Prove each part first; plug real systems in later
-The current goal is proof that each part works, plus clean extension points ([architecture.md](architecture.md)). The offline keyword matcher is a placeholder: Zenbu's offline dictionary system will check answers. **Why:** that system already exists in the other Zenbu apps.
-
-### 2026-10-03: AI through one provider adapter
-`TomoAI` speaks Anthropic's own API plus the OpenAI-compatible format (OpenAI, Gemini, OpenRouter, Groq, Ollama, custom). The default is OpenAI `gpt-5.4-mini`, chosen after a test turn against `gpt-5.4-nano`: natural toddler Japanese, about 2 s, and it rejects English. **Why:** don't lock into one vendor. Keys come from `.env` (dev) or the Keychain.
-
-### 2026-10-03: Speech recognition stays on the Mac
-`TomoListener` requires on-device recognition, with no server fallback. **Why:** the concepts promise free, private voice input.
-
-### 2026-10-03: Drop-in visits, with Tomo always available
-Tomo opens on its own every so often (10 min in the demo) for 3 answers, and leaves quietly after 10 s with no interaction (20 s while talking). Between visits it sits small beside the notch for unlimited free play. **Why:** people get lazy about studying. Visits are the nudge, and free play is for when you want more.
-
-### 2026-10-03: Ages are the levels; understanding comes before speaking
-1さい: tap pictures or actions. 2さい: two-word phrases. 3さい: answer in your own words. Each age adds a harder way to answer. Grade whether Tomo understood you, not your pronunciation.
-
-### 2026-10-03: Build on Coucou's code, not its character
-Fork [Coucou](https://github.com/Louis-CFM/coucou) (MIT code) for the notch shell and character engine. Grok Bot isn't open source; its "reconstruction" repo is unlicensed. Coucou's name, Mochi character and sounds are reserved, so Tomo gets its own look, and the sound effects are off by default. **Why:** the fastest route to a native notch companion without license risk.
-
-### 2026-10-03: Mac notch first
-A native Swift app in `mac-demo/`. Phone and web come later.

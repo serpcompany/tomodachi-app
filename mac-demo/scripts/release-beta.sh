@@ -56,7 +56,6 @@ check_app() {
   [[ "$signature" == *"runtime"* ]] || die "hardened runtime is off"
   [[ "$signature" == *"Authority=Developer ID Application"* ]] || die "not signed with Developer ID"
   [[ "$signature" == *"TeamIdentifier=$TEAM"* ]] || die "not signed by team $TEAM"
-  [[ "$entitlements" == *"device.audio-input"* ]] || die "microphone entitlement missing"
   [[ "$entitlements" == *"iCloud.com.zenbujapanese.tomodachi"* ]] || die "iCloud entitlement missing"
   [[ "$entitlements" == *"<string>Production</string>"* ]] || die "not on CloudKit's Production environment"
   [[ "$entitlements" == *"<string>production</string>"* ]] || die "push notifications aren't production"

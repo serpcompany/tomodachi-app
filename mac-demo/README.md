@@ -23,12 +23,14 @@ for CloudKit's Production environment. Debug builds sync in Development, for tes
 ([docs/verification.md](../docs/verification.md)).
 
 Tomo drops in on its own (every 20 minutes by default) when it has words due or a new one to teach. In
-between it sits small beside the notch: click it to play any time, and press Esc to close. Progress is
-saved on this Mac and synced through iCloud; test runs use their own folder.
+between it sits small beside the notch: click it to play any time, and press Esc (or ×) to close. It
+follows the notch when displays change. Progress is saved on this Mac and synced through iCloud; test runs
+use their own folder. Settings → General can open Tomodachi at login (off until you turn it on).
 
-The menu bar icon has **Open Tomodachi**, **Drop in now** (⌘D), **Skip to talking (3さい)** (⌘3, a
-testing Tomo in memory), **Tomo's words…** (⌘W), **Start Tomo over…** (⌘R, asks first) and
-**Settings…** (⌘,: Tomo, Words, General, AI, Testing, About).
+The menu bar icon has **Open Tomodachi**, **Drop in now** (⌘D), **Tomo's words…** (⌘W), **Start Tomo
+over…** (⌘R, asks first) and **Settings…** (⌘,: Tomo, Words, General, AI, About). ⌥-click it for the
+testing tools: **Skip to talking (3さい)** (⌘3) and Settings → Testing
+([docs/verification.md](../docs/verification.md)).
 
 ## Rebuild
 
@@ -62,9 +64,8 @@ mac-demo/scripts/release-beta.sh --owner         # the owner's copy in build/own
   then staples the ticket.
 - **Output:** `mac-demo/build/release/Tomodachi-<version>-beta.zip`: universal (Apple Silicon and Intel),
   macOS 15+. The version is `CFBundleShortVersionString` in `NotchBuddy/project.yml`.
-- **What the script checks:** your Developer ID team, the hardened runtime, the microphone permission,
-  iCloud on CloudKit's Production environment with production push, and that no Coucou sounds are
-  bundled. It checks again after notarizing, along with the stapled ticket and Gatekeeper.
+- **What the script checks:** your Developer ID team, the hardened runtime, iCloud on CloudKit's
+  Production environment with production push, and that no Coucou sounds are bundled. It checks again after notarizing, along with the stapled ticket and Gatekeeper.
 - **What to send testers:** the zip, plus [docs/beta-testing.md](../docs/beta-testing.md).
 
 ## App icon

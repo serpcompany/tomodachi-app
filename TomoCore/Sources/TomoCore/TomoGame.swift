@@ -311,6 +311,7 @@ public final class TomoGame: ObservableObject {
     public func start() {
         bump()
         loadVoice(lang.target.speechLocale)        // ready before Tomo's first line
+        TomoClock.offset = TomoClock.start         // the saved Tomo runs on real time (skipAhead moved a copy)
         progress.load(pack: lang.target, learner: lang.learner.id)
         syncProgress()
         TomoSync.shared.onArrived = { [weak self] pairs in self?.progressArrived(pairs) }
@@ -348,8 +349,11 @@ public final class TomoGame: ObservableObject {
         reload()
     }
 
-    /// Testing: move Tomo's clock ahead, so due words come back without waiting.
+    /// Testing: move Tomo's clock ahead, so due words come back without waiting. It only ever moves a testing
+    /// Tomo: the saved one carries on as a copy in memory first, so no answer dated in the future is saved or
+    /// synced. Back to my Tomo (`reload`) puts the clock back.
     public func skipAhead(days: Double) {
+        if !progress.isScratch { progress.detach() }
         TomoClock.offset += days * 86400
         syncProgress()
         nextDropIn = Date()

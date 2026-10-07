@@ -84,12 +84,19 @@ struct IslandContainer: View {
             let (_, h) = islandSize(mode: .expanded, view: state.view, nw: state.notchWidth, nh: state.notchHeight)
             withAnimation(extra > 0 ? openSpring : closeEase) { islandHeight = h + extra }
         }
+        // The island moved to another screen (displays changed): fit its notch, or the lack of one.
+        .onChange(of: state.notchWidth) { _, _ in fitToScreen() }
+        .onChange(of: state.notchHeight) { _, _ in fitToScreen() }
         .onAppear {
-            let (w, h) = islandSize(mode: state.mode, view: state.view, nw: state.notchWidth, nh: state.notchHeight)
-            islandWidth  = w
-            islandHeight = h + (state.mode == .expanded ? state.helpPanelHeight : 0)
+            fitToScreen()
             cornerRadius = state.mode == .expanded ? IslandConst.expandedCorner : IslandConst.roundedCorner
         }
+    }
+
+    private func fitToScreen() {
+        let (w, h) = islandSize(mode: state.mode, view: state.view, nw: state.notchWidth, nh: state.notchHeight)
+        islandWidth  = w
+        islandHeight = h + (state.mode == .expanded ? state.helpPanelHeight : 0)
     }
 
     private func modeOrder(_ m: IslandMode) -> Int {

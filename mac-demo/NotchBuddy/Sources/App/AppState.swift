@@ -18,10 +18,12 @@ final class AppState: ObservableObject {
     /// Overrides Tomo's state for a moment (dizzy after three pokes).
     @Published var stateOverride: BotState? = nil
 
-    // Real notch dimensions (set by IslandWindowController on launch)
-    var notchWidth:  CGFloat = IslandConst.notchWidth
-    var notchHeight: CGFloat = IslandConst.notchHeight
-    var hasNotch = true
+    // The island's screen: its notch (or none) and width. IslandWindowController sets them at launch and
+    // whenever displays change; the island resizes to match.
+    @Published var notchWidth:  CGFloat = IslandConst.notchWidth
+    @Published var notchHeight: CGFloat = IslandConst.notchHeight
+    @Published var hasNotch = true
+    var screenWidth: CGFloat = 1512
 
     // Mouse tracking
     var mousePosition: CGPoint = .zero
