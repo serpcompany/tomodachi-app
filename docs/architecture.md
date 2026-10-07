@@ -41,6 +41,9 @@ out while you look at it, and so is a round open on the Lock Screen card (`TomoL
 card's Play and choice buttons are `LiveActivityIntent`s (`TomoPlayIntent`, `TomoAnswerIntent`) that iOS
 runs in the app's process, launching it in the background if needed; they reach the game through
 `TomoVisitHook`, set in the app's `init` ([#52](https://github.com/serpcompany/tomodachi-app/issues/52)).
+Invariants on the Mac: the island sits on the notch screen (else the main display) and moves when displays
+change; it needs no permission; it takes the keyboard only when the learner opens it (a click, the menu),
+so Esc works then and a visit never takes a keystroke (decisions.md).
 
 **Character.** `TomoBlob` in `TomoCharacter.swift`: a blob drawn every frame in code. Its look is a
 `TomoLook` (`TomoLook.swift`) hashed from a seed: a colour and eyes for life, and a form for each age
@@ -131,6 +134,8 @@ synthesized in `TomoSounds.swift`, with no audio files, and all triggered in one
 ([#21](https://github.com/serpcompany/tomodachi-app/issues/21)).
 
 **Settings.** `TomoSettingsView.swift`: a System Settings–style window with one `TomoSettingsPane` case
-per page, and `TomoSettingsNav.open(_:)` to jump to a page. Pages read `TomoGame.progress`.
+per page, and `TomoSettingsNav.open(_:)` to jump to a page. Pages read `TomoGame.progress`. Testing shows
+only after a deliberate step (`TomoTestingTools`), and testing never touches the saved Tomo. Opening at
+login is `TomoLoginItem`, off until the learner turns it on.
 
 The research behind these systems is mapped in [research/README.md](research/README.md).

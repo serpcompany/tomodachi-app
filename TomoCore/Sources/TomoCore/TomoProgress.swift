@@ -48,11 +48,15 @@ public enum TomoSRS {
     }
 }
 
-/// Tomo's clock. Testing can move it ahead: TOMO_TIME_TRAVEL=<hours>, or Settings → "Skip ahead a day".
+/// Tomo's clock. Testing can move it ahead: TOMO_TIME_TRAVEL=<hours> for a test run, or Settings → "Skip ahead a
+/// day", which only ever moves a testing Tomo (`TomoGame.skipAhead`).
 @MainActor
 public enum TomoClock {
-    public static var offset: TimeInterval =
+    /// Where the clock starts: TOMO_TIME_TRAVEL, else now. Going back to the saved Tomo (`TomoGame.start`) puts
+    /// it back here.
+    public static let start: TimeInterval =
         (ProcessInfo.processInfo.environment["TOMO_TIME_TRAVEL"].flatMap(Double.init) ?? 0) * 3600
+    public static var offset: TimeInterval = start
     public static var now: Date { Date().addingTimeInterval(offset) }
 
     /// The daily new-word limit resets at 4 am, like Anki.
@@ -136,6 +140,12 @@ public final class TomoProgress {
             items[id] = Item(id: id, stage: TomoSRS.knows, due: now.addingTimeInterval(7 * 86400),
                              introduced: weekAgo, answered: weekAgo, right: 4, wrong: 0, peak: TomoSRS.knows)
         }
+    }
+
+    /// Testing: carry on with this Tomo in memory, as it is now. Nothing from here on is saved or synced.
+    public func detach() {
+        isScratch = true
+        store = nil
     }
 
     private func hatch() {
@@ -425,6 +435,15 @@ public final class TomoProgress {
         reopened.scratch(age: 3)
         check(reopened.isScratch && reopened.age == 3 && reopened.isTalkLevel, "testing at 3さい → the talking level")  // text-ok: self-test output
         check(TomoProgress(pack: pack, learner: "en", directory: dir).level == p.level, "testing ages don't touch saved progress")
+        // Settings → Skip ahead a day (TomoGame.skipAhead): the saved Tomo carries on as a copy in memory first.
+        let ahead = TomoProgress(pack: pack, learner: "en", directory: dir)
+        let savedItems = ahead.items
+        ahead.detach()
+        TomoClock.offset += 86400
+        for id in ahead.levelItems.prefix(3) { ahead.answeredRight(id, mode: "picture", wrongTries: 0, hint: false) }
+        check(ahead.isScratch && ahead.items != savedItems
+              && TomoProgress(pack: pack, learner: "en", directory: dir).items == savedItems,
+              "skipping ahead runs on a copy: answers a day ahead aren't saved")
 
         reopened.startOver()
         let fresh = TomoProgress(pack: pack, learner: "en", directory: dir)
