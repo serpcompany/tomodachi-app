@@ -283,6 +283,15 @@ public final class TomoProgress {
         return [early, newWords].compactMap { $0 }.min()
     }
 
+    /// When words get ready, for reminders (TomoReminders): each word's due time, and when new words are ready (now,
+    /// within the day's new words, else the next day's at 4 am while the level still has some; nil when the level has
+    /// none left until it levels up). Without the learner answering, what's ready only grows. On Tomo's clock.
+    public func readyTimes() -> (due: [Date], newAt: Date?) {
+        let due = unlocked.compactMap { items[$0]?.due }                 // "forever" words have no due time
+        let newAt = newItems.isEmpty ? nil : canTeachNew ? TomoClock.now : TomoClock.dayStart.addingTimeInterval(86400)
+        return (due, newAt)
+    }
+
     /// Free play, after a visit's items: a due item, else a new one (within the daily limit), else one that
     /// can be reviewed early. Each of these counts.
     public func nextFreePlayItem() -> String? {

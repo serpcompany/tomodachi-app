@@ -62,6 +62,107 @@
       }
     }
   },
+  "reminders": [
+    {
+      "fromAge": 1,
+      "lines": [
+        {
+          "say": "あそぼ！",
+          "romanization": "asobo!",
+          "translation": {
+            "en": "Let's play!"
+          }
+        },
+        {
+          "say": "ねえねえ！",
+          "romanization": "nē nē!",
+          "translation": {
+            "en": "Hey, hey!"
+          }
+        },
+        {
+          "say": "みてみて！",
+          "romanization": "mite mite!",
+          "translation": {
+            "en": "Look, look!"
+          }
+        },
+        {
+          "say": "ばあ！",
+          "romanization": "bā!",
+          "translation": {
+            "en": "Boo! (like peekaboo)"
+          }
+        }
+      ]
+    },
+    {
+      "fromAge": 2,
+      "lines": [
+        {
+          "say": "ねえ、あそぼ！",
+          "romanization": "nē, asobo!",
+          "translation": {
+            "en": "Hey, let's play!"
+          }
+        },
+        {
+          "say": "いっしょに あそぼ！",
+          "romanization": "issho ni asobo!",
+          "translation": {
+            "en": "Let's play together!"
+          }
+        },
+        {
+          "say": "これ みて！",
+          "romanization": "kore mite!",
+          "translation": {
+            "en": "Look at this!"
+          }
+        },
+        {
+          "say": "ことば あるよ！",
+          "romanization": "kotoba aru yo!",
+          "translation": {
+            "en": "I've got a word!"
+          }
+        }
+      ]
+    },
+    {
+      "fromAge": 3,
+      "lines": [
+        {
+          "say": "ねえ、きいて きいて！",
+          "romanization": "nē, kiite kiite!",
+          "translation": {
+            "en": "Hey, listen, listen!"
+          }
+        },
+        {
+          "say": "あたらしい ことば、みつけたよ！",
+          "romanization": "atarashii kotoba, mitsuketa yo!",
+          "translation": {
+            "en": "I found a new word!"
+          }
+        },
+        {
+          "say": "いま あそべる？",
+          "romanization": "ima asoberu?",
+          "translation": {
+            "en": "Can you play now?"
+          }
+        },
+        {
+          "say": "いっしょに おしゃべり しよう！",
+          "romanization": "issho ni oshaberi shiyō!",
+          "translation": {
+            "en": "Let's chat together!"
+          }
+        }
+      ]
+    }
+  ],
   "ai": {
     "persona": "a {age}-year-old Japanese child",
     "rules": [
