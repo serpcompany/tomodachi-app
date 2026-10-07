@@ -6,7 +6,7 @@ import Foundation
 // game) reads it. All text is already in the learner's language, so the reader needs no language packs.
 
 public struct TomoGlance: Codable, Sendable, Hashable {
-    public var growth: Double           // 0 = in the shell, 1 = hatched, 2 = bigger (TomoChick)
+    public var growth: Double           // age step: 0 = 1さい … 5 = 6さい (TomoBlob)
     public var age: String              // "3さい"
     public var level: String            // "Lv 61"
     public var progress: Double         // the experience bar, 0…1
@@ -56,7 +56,7 @@ extension TomoGame {
             : progress.canTeachNew ? ui("glance.new") : ui("glance.done")
         let waiting = due > 0 || progress.canTeachNew
         let nextDue = waiting ? nil : progress.items.values.compactMap(\.due).filter { $0 > TomoClock.now }.min()
-        return TomoGlance(growth: Double(min(max(stage - 1, 0), 2)), age: age, level: ui("level", ["n": "\(level)"]),
+        return TomoGlance(growth: Double(min(max(stage - 1, 0), TomoLook.ages - 1)), age: age, level: ui("level", ["n": "\(level)"]),
                           progress: levelProgress, waiting: waiting, status: status,
                           nextDue: nextDue.map(wallClock), statusLater: ui("glance.waiting"), about: ui("glance.about"),
                           invite: TomoLanguages.shared.target.lines.invite ?? TomoLanguages.shared.target.lines.practice,

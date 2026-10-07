@@ -13,7 +13,7 @@ macOS CI yet: CI runs only the repo checks, so the build, the self-test and the 
 | **Finish gate** | Build, self-test, repo checks, and the evidence below | Once, when the branch is done |
 
 The self-test: `TOMO_SELFTEST=1 TOMO_DATA_DIR=$(mktemp -d) <app binary>` checks the word-stage, level,
-store and sync-merge rules, prints each check and quits (exit code 1 on a failure). A new growth rule gets
+store, sync-merge and look rules, prints each check and quits (exit code 1 on a failure). A new growth rule gets
 a new check in `TomoProgress.selfTest`, a new merge rule one in `TomoSync.selfTest`.
 
 ## Evidence a change needs
@@ -23,7 +23,8 @@ a new check in `TomoProgress.selfTest`, a new merge rule one in `TomoSync.selfTe
   (talking); Win, Practice, Miss and No score; and any new state the change adds.
 - **Growth rules:** the self-test, with a check for the new rule.
 - **Settings:** a snapshot of the page (`TOMO_OPEN_SETTINGS=<page>`).
-- **Tomo's look or motion:** `TOMO_RENDER_SHEET` and `TOMO_RENDER_ANIM` frames.
+- **Tomo's look or motion:** `TOMO_RENDER_SHEET` and `TOMO_RENDER_ANIM` frames, with `TOMO_SEED=<text>` for
+  a known learner's Tomo (the mascot otherwise), and the self-test's look checks (`TomoLook.selfTest`).
 - **Sounds:** `TOMO_RENDER_SOUNDS`, and listen.
 - **Sync:** the self-test, and `TOMO_SYNC_CHECK` runs for the case it changes (below).
 
@@ -69,7 +70,12 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   while ahead are saved with those dates. Settings → Testing → "Skip ahead a day" does the same live.
 - `TOMO_DROPIN_EVERY=8`, `TOMO_NUDGE_EVERY=5`: seconds between visits and between nudge bounces.
 - `TOMO_RENDER_ICON`, `TOMO_RENDER_SHEET`, `TOMO_RENDER_SOUNDS`, `TOMO_RENDER_ANIM`, `TOMO_RENDER_CARD_FRAMES` (`=<dir>`): render
-  the icons, every age and face, every sound (WAV), or a 16-second scene (20 fps frames), then quit.
+  the icons, every age and face, every sound (WAV), or a 16-second scene (20 fps frames), then quit. The
+  sheet shows one Tomo at every age and with every face, then a crowd of other seeds.
+- `TOMO_SEED=<text>`: the seed Tomo's look is made from, in place of the saved Tomo's.
+- `TOMO_RENDER_VARIETY=<dir>`: the same eight Tomos at several `TomoLook.variety` settings, to judge how
+  different Tomos should be.
+- `TOMO_RENDER_EVOLUTION=<dir>`: eight Tomos at every age, one per row, to judge how they evolve.
 
 ## Starting from a known state
 

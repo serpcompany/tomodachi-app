@@ -11,7 +11,7 @@ import WidgetKit
 // and its choices (TomoVisitActivity.swift); Tomo reacts, and a few seconds after a right answer the card
 // invites again. Not yet: Tomo sleeps, and the first row says when the next words come ("New words at 10:12";
 // a ticking countdown loses its seconds on the Lock Screen, which shows "9:--"). Tomo moves
-// everywhere here (TomoMovingChick); each update also swaps its pose with a short transition. The compact
+// everywhere here (TomoMovingMascot); each update also swaps its pose with a short transition. The compact
 // Dynamic Island keeps Tomo's call ("あそぼ！"). Tapping anywhere else opens the app.
 
 struct TomoVisitLiveActivity: Widget {
@@ -31,8 +31,8 @@ struct TomoVisitLiveActivity: Widget {
             let g = context.state.glance, ready = isReady(context), round = shownRound(context)
             return DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    if let round { TomoRoundChick(glance: g, round: round, size: 64) }
-                    else { TomoMovingChick(glance: g, ready: ready, size: 64) }
+                    if let round { TomoRoundMascot(glance: g, round: round, size: 64) }
+                    else { TomoMovingMascot(glance: g, ready: ready, size: 64) }
                 }
                 DynamicIslandExpandedRegion(.center) {
                     if let round { TomoRoundLine(round: round) } else { TomoCardText(glance: g, ready: ready) }
@@ -44,7 +44,7 @@ struct TomoVisitLiveActivity: Widget {
                     if let round { TomoRoundChoices(round: round) }
                 }
             } compactLeading: {
-                TomoMovingChick(glance: g, ready: ready, size: 26)
+                TomoMovingMascot(glance: g, ready: ready, size: 26)
             } compactTrailing: {
                 if ready {
                     Text(g.invite).font(.system(size: 13, weight: .bold, design: .rounded)).lineLimit(1)
@@ -54,7 +54,7 @@ struct TomoVisitLiveActivity: Widget {
                         .frame(maxWidth: 56)
                 }
             } minimal: {
-                TomoMovingChick(glance: g, ready: ready, size: 24)
+                TomoMovingMascot(glance: g, ready: ready, size: 24)
             }
         }
     }
@@ -77,7 +77,7 @@ struct TomoCardView: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            TomoMovingChick(glance: glance, ready: ready, size: 84)
+            TomoMovingMascot(glance: glance, ready: ready, size: 84)
             TomoCardText(glance: glance, ready: ready)
             if ready { TomoPlayButton(glance: glance, size: 52) }
         }
@@ -111,7 +111,7 @@ struct TomoRoundCard: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            TomoRoundChick(glance: glance, round: round, size: 72)
+            TomoRoundMascot(glance: glance, round: round, size: 72)
             VStack(alignment: .leading, spacing: 8) {
                 TomoRoundLine(round: round)
                 TomoRoundChoices(round: round)
@@ -122,7 +122,7 @@ struct TomoRoundCard: View {
 }
 
 /// Tomo asking (moving), or reacting to the answer: a hop for a right one, a shake-off for a miss.
-struct TomoRoundChick: View {
+struct TomoRoundMascot: View {
     let glance: TomoGlance
     let round: TomoVisitAttributes.CardRound
     let size: CGFloat
@@ -130,11 +130,11 @@ struct TomoRoundChick: View {
     var body: some View {
         Group {
             if let right = round.right {
-                TomoChickStill(state: right ? .finished : .error, emote: right ? .happy : nil,
-                               growth: CGFloat(glance.growth))
+                TomoBlobStill(state: right ? .finished : .error, emote: right ? .happy : nil,
+                              growth: CGFloat(TomoMovingMascot.fontAge(glance)))
                     .frame(width: size, height: size)
             } else {
-                TomoMovingChick(glance: glance, ready: true, size: size)
+                TomoMovingMascot(glance: glance, ready: true, size: size)
             }
         }
         .id(round.right)

@@ -3,8 +3,8 @@ import SwiftUI
 // MARK: - How the game talks to whatever draws Tomo
 //
 // TomoGame sets Tomo's state (`BotState`) through `TomoGame.onBotState` and posts these notifications;
-// TomoChick (TomoCharacter.swift) and TomoSounds react to them. Each shell (the Mac island, the iPhone
-// app) only has to draw a TomoChick and pass the state on. The names come from Coucou and go with
+// TomoBlob (TomoCharacter.swift) and TomoSounds react to them. Each shell (the Mac island, the iPhone
+// app) only has to draw a TomoBlob and pass the state on. The names come from Coucou and go with
 // issue #1.
 
 public enum BotState: String, CaseIterable, Sendable {
