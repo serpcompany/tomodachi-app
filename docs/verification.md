@@ -50,7 +50,8 @@ pack's age boundary. Each run prints a `pace` line: the days to Lv 2, 5 and 10 a
 
 ## Testing tools in the app
 
-The Testing menu, the window's Testing and AI pages and the "I'm learning" picker are hidden from learners.
+The Testing menu, the window's Testing and AI pages and the "I'm learning" picker are hidden from learners. The AI
+page exists in Debug builds only.
 **⌥-click the menu bar icon** to show them for the rest of that run, or show them always with
 `defaults write com.zenbujapanese.tomodachi tomoTestingTools -bool true` (`defaults delete` to hide them again).
 They work in every build, Developer ID included (`TomoTestingTools`). The Testing menu is in the main menu while

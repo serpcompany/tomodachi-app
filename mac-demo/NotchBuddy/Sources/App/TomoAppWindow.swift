@@ -75,7 +75,8 @@ enum TomoAppWindow {
     /// Every screen in turn, three seconds each, then the start-over question.
     private static func tour() {
         var screens: [TomoScreen] = [.tomo, .words, .settings, .about]
-        if TomoFeatures.shared.testingTools { screens += [.ai, .testing] }
+        if TomoFeatures.shared.ai { screens += [.ai] }
+        if TomoFeatures.shared.testingTools { screens += [.testing] }
         open(screens[0])
         for (i, screen) in screens.enumerated().dropFirst() {
             DispatchQueue.main.asyncAfter(deadline: .now() + 3 * Double(i)) { open(screen) }

@@ -83,8 +83,8 @@ public final class TomoFeatures: ObservableObject {
             || ["testing", "ai"].contains(TomoScreenNav.requested)
     }
 
-    /// The AI page: the provider for word cards and explanations.
-    public var ai: Bool { testingTools }
+    /// The AI page: the provider for word cards and explanations. Never in a Release build (`TomoAI.isAvailable`).
+    public var ai: Bool { testingTools && TomoAI.isAvailable }
 
     /// The "I'm learning" picker: with the testing tools, or for a learner already on another language, so they can
     /// come back to Japanese.
