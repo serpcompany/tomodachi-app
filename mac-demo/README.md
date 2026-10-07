@@ -15,8 +15,9 @@ we changed, is in [docs/coucou-fork.md](../docs/coucou-fork.md).
 ```
 
 `run.sh` quits the running copy, then opens the owner's copy with `OPENAI_API_KEY` or
-`ANTHROPIC_API_KEY` from the repo's `.env` (gitignored), so Tomo replies with AI at 3さい. A provider
-saved on the AI page (shown with the testing tools) takes precedence; with neither, Tomo uses offline replies. The owner's copy is a
+`ANTHROPIC_API_KEY` from the repo's `.env` (gitignored). The owner's copy is a Release build, and Release builds
+have no AI for now (`TomoAI.isAvailable`), so it ignores them; a Debug build uses them, or a provider saved on its AI
+page. Without AI, Tomo uses offline replies. The owner's copy is a
 Developer ID build in `build/owner/` (`scripts/release-beta.sh --owner`), so it syncs with the iPhone
 through iCloud: a development-signed build gets only development push notifications, which never come
 for CloudKit's Production environment. Debug builds sync in Development, for tests
@@ -32,7 +33,7 @@ the app again) has a sidebar: Tomo, Words, Settings and About, the same screens 
 it's in front, its menus work: **About**, **Settings…** (⌘,) and **Quit** (⌘Q); **Tomo → Drop in now** (⌘D),
 **Tomo's words** (⌘W) and **Start Tomo over…** (asks first). The menu bar icon has the same, plus **Open
 Tomodachi…** and **Play with Tomo**. ⌥-click it for the testing tools: a **Testing** menu (Skip to talking ⌘3,
-Grow one step ⌘G, Finish this level ⌘L, Grow to the next birthday ⌘B) and the window's Testing and AI pages
+Grow one step ⌘G, Finish this level ⌘L, Grow to the next birthday ⌘B) and the window's Testing page (and AI, in Debug builds)
 ([docs/verification.md](../docs/verification.md)).
 
 ## Rebuild

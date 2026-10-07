@@ -73,9 +73,20 @@ public enum TomoAI {
     private static let keychainKey = "tomo-ai-api-key"
     private static var cachedKey: String?
 
+    /// Release builds (the App Store, TestFlight, the beta and the owner's copy) have no AI for now: the MVP is offline
+    /// (decisions.md), so nothing a learner does leaves the device but their own iCloud sync. Debug builds keep it.
+    public nonisolated static let isAvailable: Bool = {
+        #if DEBUG
+        return true
+        #else
+        return false
+        #endif
+    }()
+
     /// The saved configuration, with its key. With nothing saved, OPENAI_API_KEY or ANTHROPIC_API_KEY from the
     /// environment is used (mac-demo/run.sh loads ../.env). TOMO_AI_PROVIDER / _MODEL / _BASE_URL / _KEY override all (testing).
     public static var config: TomoAIConfig {
+        guard isAvailable else { return TomoAIConfig(provider: .anthropic, baseURL: "", model: "", apiKey: "") }
         var c = TomoAIConfig()
         if let data = UserDefaults.standard.data(forKey: defaultsKey),
            let saved = try? JSONDecoder().decode(TomoAIConfig.self, from: data) { c = saved }
@@ -111,6 +122,7 @@ public enum TomoAI {
 
     /// One-shot completion: system prompt + user text → assistant text.
     public nonisolated static func complete(system: String, user: String, config c: TomoAIConfig) async throws -> String {
+        guard isAvailable else { throw URLError(.notConnectedToInternet) }
         let base = c.baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
         if c.provider == .anthropic {
             let body: [String: Any] = [
@@ -168,6 +180,7 @@ public enum TomoAI {
     }
 
     nonisolated private static func send(_ req: URLRequest) async throws -> [String: Any] {
+        guard isAvailable else { throw URLError(.notConnectedToInternet) }
         let data: Data, resp: URLResponse
         do { (data, resp) = try await URLSession.shared.data(for: req) }
         catch { throw TomoAIError(message: "Couldn't reach \(req.url?.host ?? "the server"): \(error.localizedDescription)") }
