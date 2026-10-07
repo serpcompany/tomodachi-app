@@ -44,6 +44,8 @@ public struct TargetPack: Codable, Sendable {
         public let levelUp: String     // Tomo reached a new level (not a new age)
         public let practice: String    // nothing counts right now: Tomo asks to play anyway ("Play more?")
         public let invite: String?     // something is waiting: Tomo calls you over from the Lock Screen ("Let's play!")
+        public let hello: SpokenLine?        // first run: Tomo's first words out of the egg ("Boo!")
+        public let welcomeBack: SpokenLine?  // first run on a device that joined the learner's Tomo ("Welcome back!")
         public let sayItInMyLanguage: SpokenLine
         public let dontUnderstand: SpokenLine
     }

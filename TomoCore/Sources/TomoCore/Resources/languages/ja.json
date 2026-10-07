@@ -30,6 +30,20 @@
     "levelUp": "やったー！",
     "practice": "もっと あそぼ？",
     "invite": "あそぼ！",
+    "hello": {
+      "say": "ばあ！",
+      "romanization": "bā!",
+      "translation": {
+        "en": "Boo! (like peekaboo)"
+      }
+    },
+    "welcomeBack": {
+      "say": "おかえり！",
+      "romanization": "okaeri!",
+      "translation": {
+        "en": "Welcome back!"
+      }
+    },
     "bye": "バイバイ！",
     "seeYou": "またね！",
     "sayItInMyLanguage": {

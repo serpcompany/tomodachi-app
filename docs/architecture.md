@@ -24,6 +24,7 @@ Island shell (Coucou)       notch window, open/close state machine, click-throug
        ├─ Learner store     saved progress and answer log (TomoStore, SQLite)
        ├─ Sync              one Tomo across the learner's devices (TomoSync, iCloud)
        ├─ Visits            when Tomo drops in, when it leaves
+       ├─ First run         who sees the welcome, and its flow (TomoOnboarding)
        ├─ Answer checking   language check → AI → offline placeholder
        ├─ Conversation AI   TomoAI provider adapter
        └─ Voice and sound   speech out and in · TomoSounds
@@ -101,6 +102,18 @@ that counts and you're at a natural break (not typing, not away). It tucks back 
 a red dot. Opening it yourself is free play, with no time limit. Planned: chattiness and back-off
 ([#19](https://github.com/serpcompany/tomodachi-app/issues/19)), busy detection
 ([#20](https://github.com/serpcompany/tomodachi-app/issues/20)).
+
+**First run.** `TomoOnboarding.swift` decides who sees it and runs the flow; `TomoOnboardingView.swift`
+draws it (SwiftUI only, so any shell can host it); the Mac shows it in a window (`TomoOnboardingWindow`),
+which `AppDelegate` opens instead of the launch visit. `checkAtLaunch()` runs before anything opens the
+store, because `TomoGame` hatches a Tomo when there's none. The guided round answers through
+`TomoProgress`, so the first word counts; the visit clock is held while the window is open, and the flow
+ends with `TomoGame.reload()`, which is Tomo's first visit. Invariants: the "done" mark is
+`onboarding.json` in the data folder, never UserDefaults (Debug builds share the owner's defaults); a
+learner with a saved Tomo never sees a hatch; a device that joins the iCloud Tomo during the flow (an older
+`metAt` arrives) gets "welcome back". Planned: the iPhone's flow with reminders and the Lock Screen opt-in
+([#88](https://github.com/serpcompany/tomodachi-app/issues/88)); the reference's trial and plan screens go
+before `ready` once pricing is decided.
 
 **Card and help panel.** `TomoView.swift`. The card is a fixed grid (`TomoGrid`): Tomo's column plus
 fixed rows, and new UI goes into a slot. Help (a hint, an explanation, a word card) never squeezes into

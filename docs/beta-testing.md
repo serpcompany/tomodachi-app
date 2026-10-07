@@ -6,7 +6,9 @@ Tomo is a little blob who lives next to your MacBook's notch and only speaks the
 
 1. You need **macOS 15 or later** (Apple Silicon or Intel).
 2. Unzip `Tomodachi-0.0.2-beta.zip` and move **Tomodachi.app** to Applications.
-3. Open it. Tomo pops out of the notch and waves. A small Tomo icon appears in the menu bar.
+3. Open it. The first time, your Tomo hatches in a short welcome: answer its first word, pick how often it
+   visits, then it pops out of the notch and waves. (If you already have a Tomo, it just pops out.) A small
+   Tomo icon appears in the menu bar.
 
 ## What to try
 
@@ -34,6 +36,7 @@ Install **TestFlight** from the App Store, then open the invite link we send you
 
 ## Feedback we want
 
+- Did the welcome make clear what Tomo is and how to answer? Was it too long?
 - Did visits feel like a nice nudge, or annoying? Was the frequency right?
 - Was it clear what Tomo wanted? Were Win / Miss / No score clear?
 - Did anything feel like studying instead of playing?

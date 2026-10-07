@@ -28,6 +28,20 @@
     "levelUp": "¡Bien!",
     "practice": "¿Jugamos más?",
     "invite": "¡A jugar!",
+    "hello": {
+      "say": "¡Cucú!",
+      "romanization": null,
+      "translation": {
+        "en": "Peekaboo!"
+      }
+    },
+    "welcomeBack": {
+      "say": "¡Ya volviste!",
+      "romanization": null,
+      "translation": {
+        "en": "You're back!"
+      }
+    },
     "bye": "¡Adiós!",
     "seeYou": "¡Hasta luego!",
     "sayItInMyLanguage": {
