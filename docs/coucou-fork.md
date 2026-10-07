@@ -2,7 +2,7 @@
 
 The demo app started as a fork of [Coucou](https://github.com/Louis-CFM/coucou), a notch companion for
 coding agents. Coucou supplies the notch window and its open/close logic; everything Tomo is our own.
-This page says what we may use, which Coucou files we changed, and what's left to remove.
+This page says what we may use, which Coucou files we changed, what we deleted, and what's left.
 
 ## What we may use
 
@@ -23,20 +23,28 @@ These are the Coucou files we had to touch; add a file here when a change has to
 
 | File | Change |
 |---|---|
-| `AppDelegate.swift`, `AppState.swift` | No hooks or pollers. A single "tomo" task. Launches straight into the game. `AppDelegate` sets `TomoGame`'s shell closures and `TomoSync.registerForPushes`; `AppState.soundEnabled` forwards to `TomoGame.soundEnabled`. The menu: Tomo's words…, Start Tomo over… (asks first). The Settings window is resizable with a full-size content view |
-| `IslandRootView.swift`, `IslandViewContent.swift`, `IslandTypes.swift` | The header and overview show Tomo, with room for the level bar. Draws `TomoCharacterView`. The dizzy card's text comes from the language files. `BotState` and `BotEmote` moved to TomoCore (`TomoSignals.swift`) |
-| `IslandWindowController.swift` | A taller window (560 pt) so the help panel fits; the drag ghost draws Tomo. Tomo's notification names moved to TomoCore (`TomoSignals.swift`) |
+| `AppDelegate.swift`, `AppState.swift` | Launches straight into the game. `AppDelegate` sets `TomoGame`'s shell closures and `TomoSync.registerForPushes`. `AppState` keeps only what the island draws: its mode and view, Tomo's state (`tomoState`, from `TomoGame.onBotState`) and the pointer; `soundEnabled` forwards to `TomoGame.soundEnabled`. The menu: Tomo's words…, Start Tomo over… (asks first). The Settings window is resizable with a full-size content view |
+| `IslandRootView.swift`, `IslandViewContent.swift`, `IslandTypes.swift` | The island shows Tomo's card (`TomoView`) or the dizzy card, nothing else. The header shows Tomo, with room for the level bar. Draws `TomoCharacterView`. The dizzy card's text comes from the language files. `BotState` and `BotEmote` moved to TomoCore (`TomoSignals.swift`) |
+| `IslandWindowController.swift`, `IslandStateMachine.swift` | A taller window (560 pt) so the help panel fits. Hover, click, pokes and Esc only; no greeting state. Tomo's notification names moved to TomoCore (`TomoSignals.swift`) |
 | `NotchBuddyApp.swift` | The Settings scene shows `TomoSettingsView` |
 | `project.yml`, `Resources/Info.plist` | App name, bundle ID `com.zenbujapanese.tomodachi`, microphone and speech permission text, Release signing for beta builds. Depends on the local `TomoCore` package; the language packs come from its bundle |
 | `SoundEngine.swift` | A shim that sends the island's open, close and peek to `TomoSounds`. Coucou's 28 sound files are deleted |
-| `ClaudeService.swift` | The Keychain service is `co.zenbu.tomodachi`. Its `Keychain` helper moved to TomoCore (`TomoKeychain.swift`), where `TomoAI` uses it |
-| `BotEngine.swift`, `BotCanvasView.swift`, `GreetingCanvasView.swift`, `UploadCanvasView.swift` | Deleted: Coucou's character and the canvases that drew it |
 
-## Switched off, still compiled
+## Deleted
 
-`HookServer`, the `*Poller` integrations, `PillCatalog`, the upload, mail and file-drop flow,
-`SettingsView` and `WindowContextCapture` compile but never start. Removing them, and the
-Coucou names left in code and comments, is
-[#1](https://github.com/serpcompany/tomodachi-app/issues/1). `WindowContextCapture` may be
-worth keeping for [#24](https://github.com/serpcompany/tomodachi-app/issues/24) (Tomo names
-what's on your screen).
+- **Coucou's character:** `BotEngine`, `BotCanvasView`, `GreetingCanvasView`, `UploadCanvasView`.
+- **Its coding-agent features** ([#1](https://github.com/serpcompany/tomodachi-app/issues/1)): the hook
+  server (`HookServer`), the seven `*Poller` integrations and their pills (`PillCatalog`), the chat
+  (`ClaudeService`, which also read Coucou's API keys from the Keychain at every launch), file drop with
+  its "ask a question" and "send by email" flow (`FileDropView`, `UploadSequenceEngine`), drag-to-attach a
+  window (`WindowContextCapture`), Coucou's settings (`SettingsView`), `AppLog`, `SafeWebURL`, and the
+  views they drew in the island. The `Keychain` helper moved to TomoCore first (`TomoKeychain.swift`).
+- The last versions are in git history, for example
+  `git show 7992e4e:mac-demo/NotchBuddy/Sources/App/WindowContextCapture.swift`, worth a look for
+  [#24](https://github.com/serpcompany/tomodachi-app/issues/24) (Tomo names what's on your screen).
+
+## Left to do
+
+Renaming the Xcode project, target, scheme and folder from `NotchBuddy` to `Tomodachi`
+([#1](https://github.com/serpcompany/tomodachi-app/issues/1)). It touches every path under
+`mac-demo/NotchBuddy/`, so it waits until no branches are open there.
