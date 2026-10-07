@@ -15,7 +15,7 @@ struct TomoPhoneView: View {
     @ObservedObject var lang = TomoLanguages.shared
     @FocusState private var typing: Bool
 
-    private var growth: CGFloat { CGFloat(min(max(game.stage - 1, 0), 2)) }
+    private var growth: CGFloat { game.growthStep }
     private var said: String { game.isChat ? game.line.say : game.round.say }
     /// Row sizes: full, or compact while the keyboard is up.
     private var tomoSize: CGFloat { typing ? 110 : 220 }
@@ -30,7 +30,7 @@ struct TomoPhoneView: View {
                 .padding(.top, 10)
 
             Spacer(minLength: 4)
-            TomoChickView(state: shell.botState, growth: growth)
+            TomoBlobView(state: shell.botState, growth: growth)
                 .frame(width: tomoSize, height: tomoSize)
                 .contentShape(Rectangle())
                 .onTapGesture { NotificationCenter.default.post(name: .triggerSlap, object: nil) }

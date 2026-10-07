@@ -13,10 +13,10 @@
 		1C30573A4EFCEC1784E40BAD /* TomoWordSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE15650199C378342BFCA096 /* TomoWordSheet.swift */; };
 		1F7D3B14990380320D4BB1C3 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C3C4C2027DB8873CC0A1EC01 /* SwiftUI.framework */; };
 		43C83B710033B8A4E45A3326 /* TomoLiveVisit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DD481FC31C8E38E2AB4F657 /* TomoLiveVisit.swift */; };
+		473AFFBA189B29BCEACD06A1 /* TomoMovingMascot.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5849F648AA4E62CBEBF52E /* TomoMovingMascot.swift */; };
 		55B668E3CF5DF92A2428F6DE /* TomoWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = E56A0CD36F22076E120230DE /* TomoWidgets.swift */; };
 		5A2853E1494B345A841CF220 /* TomoVisitLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 643C75D304AC245CB7F57635 /* TomoVisitLiveActivity.swift */; };
 		65D3A2DECEF7CDCB4AC5EA6E /* TomoVisitActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 413F94AD4C585B825A5624A9 /* TomoVisitActivity.swift */; };
-		7680F3C18773AF06F32716B2 /* TomoMovingChick.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38F8C2C6A4A493FF0B8B0554 /* TomoMovingChick.swift */; };
 		7782BC02AF02475CA7679202 /* TomoReady0.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8A139532B7D9250EC8422DC8 /* TomoReady0.ttf */; };
 		8B9F1DA1C06402828C976C1D /* TomoReady1.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B0765F5932D239F53E699926 /* TomoReady1.ttf */; };
 		9FEBC7FFBC6E85112AC44873 /* TomoSleep1.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F81A388C0AC485FCA108A8AF /* TomoSleep1.ttf */; };
@@ -58,7 +58,6 @@
 		040E64E13B16E7A347446C38 /* TomodachiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomodachiApp.swift; sourceTree = "<group>"; };
 		0FDC47A6BEC3C329C93CC701 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		37822A1675BCDE011D4AE744 /* TomoCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TomoCore; path = ../../TomoCore; sourceTree = SOURCE_ROOT; };
-		38F8C2C6A4A493FF0B8B0554 /* TomoMovingChick.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoMovingChick.swift; sourceTree = "<group>"; };
 		39485395578F29851071E083 /* TomoReady2.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = TomoReady2.ttf; sourceTree = "<group>"; };
 		413F94AD4C585B825A5624A9 /* TomoVisitActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoVisitActivity.swift; sourceTree = "<group>"; };
 		5DD481FC31C8E38E2AB4F657 /* TomoLiveVisit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoLiveVisit.swift; sourceTree = "<group>"; };
@@ -76,6 +75,7 @@
 		C3C4C2027DB8873CC0A1EC01 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		D7EBDB597D2052726D407A36 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		E56A0CD36F22076E120230DE /* TomoWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoWidgets.swift; sourceTree = "<group>"; };
+		EA5849F648AA4E62CBEBF52E /* TomoMovingMascot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoMovingMascot.swift; sourceTree = "<group>"; };
 		F81A388C0AC485FCA108A8AF /* TomoSleep1.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = TomoSleep1.ttf; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -116,7 +116,7 @@
 			isa = PBXGroup;
 			children = (
 				B44A800E230C1B199FCC12C2 /* Info.plist */,
-				38F8C2C6A4A493FF0B8B0554 /* TomoMovingChick.swift */,
+				EA5849F648AA4E62CBEBF52E /* TomoMovingMascot.swift */,
 				643C75D304AC245CB7F57635 /* TomoVisitLiveActivity.swift */,
 				E56A0CD36F22076E120230DE /* TomoWidgets.swift */,
 				AD651B7836EDDD8F2EC6F351 /* Widgets.entitlements */,
@@ -313,7 +313,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7680F3C18773AF06F32716B2 /* TomoMovingChick.swift in Sources */,
+				473AFFBA189B29BCEACD06A1 /* TomoMovingMascot.swift in Sources */,
 				B1C493B8922D71739E609A43 /* TomoVisitActivity.swift in Sources */,
 				5A2853E1494B345A841CF220 /* TomoVisitLiveActivity.swift in Sources */,
 				55B668E3CF5DF92A2428F6DE /* TomoWidgets.swift in Sources */,

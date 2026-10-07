@@ -44,7 +44,7 @@ struct TomodachiApp: App {
 final class TomoPhoneShell: ObservableObject {
     static let shared = TomoPhoneShell()
 
-    /// What Tomo is doing (asking, thinking, right, wrong…), passed to its TomoChickView.
+    /// What Tomo is doing (asking, thinking, right, wrong…), passed to its TomoBlobView.
     @Published private(set) var botState: BotState = .idle
     /// The app is on screen: Tomo is "open", and a visit doesn't time out (you're looking at it).
     var isActive = false

@@ -245,7 +245,7 @@ public final class TomoGame: ObservableObject {
     public var focusInput: (@MainActor () -> Void)?
     /// The pointer is over Tomo's card: a visit doesn't time out while you're there.
     public var isPointerInside: (@MainActor () -> Bool)?
-    /// Tomo's state changed (asking, thinking, right, wrong…): the shell passes it to its TomoChick.
+    /// Tomo's state changed (asking, thinking, right, wrong…): the shell passes it to its TomoBlob.
     public var onBotState: (@MainActor (BotState) -> Void)?
     /// The help panel opened or closed: the shell makes room for it.
     public var onHelpChange: (@MainActor (TomoHelp?) -> Void)?
@@ -292,7 +292,8 @@ public final class TomoGame: ObservableObject {
     private var lang: TomoLanguages { .shared }
     public var isChat: Bool { talking }
     public var age: String { lang.target.ageLabel(stage) }
-    private var growthStep: CGFloat { CGFloat(min(max(stage - 1, 0), 2)) }
+    /// Tomo's age step for drawing: 0 = 1さい … 5 = 6さい (TomoBlob).
+    public var growthStep: CGFloat { CGFloat(min(max(stage - 1, 0), TomoLook.ages - 1)) }
     private var ignoreAfter: TimeInterval { isChat ? DropIn.ignoreAfterChat : DropIn.ignoreAfter }
 
     private init() {
@@ -374,6 +375,8 @@ public final class TomoGame: ObservableObject {
     }
 
     private func syncProgress() {
+        TomoLook.current = TomoLook(seed: TomoLook.seed(learner: lang.learner.id, target: lang.target.id,
+                                                        metAt: progress.metAt))
         stage = progress.age
         level = progress.level
         levelKnown = progress.levelKnown
@@ -699,7 +702,7 @@ public final class TomoGame: ObservableObject {
         nextItem(delay: 0.3)
     }
 
-    /// A new level: a small celebration. A new level with a new age: Tomo grows up (the hatch).
+    /// A new level: a small celebration. A new level with a new age: Tomo grows up (it evolves).
     private func celebrate(_ up: (level: Int, birthday: Bool)) {
         let tok = bump()
         syncProgress()

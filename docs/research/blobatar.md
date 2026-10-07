@@ -6,6 +6,10 @@ them, and can it animate in the notch? ([#84](https://github.com/serpcompany/tom
 
 ## Answer
 
+**Outcome:** the owner chose to replace the chick with the blob after all, keeping our own faces and
+moves, evolving at every birthday, and showing a fixed mascot on widgets
+([decisions.md](../decisions.md), 2026-10-07). The research below is as it was written.
+
 Blobatar can run in the notch technically, but it would replace Tomo rather than make Tomo unique. Don't
 adopt its look. Take its **method** instead: hash a seed made once, at hatching, into a few traits of
 our own chick's drawing, so every Tomo is still a chick but no two look alike.

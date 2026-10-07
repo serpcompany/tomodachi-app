@@ -146,21 +146,21 @@ private struct TomoProfileRow: View {
 struct TomoLiveAvatar: View {
     let size: CGFloat
     @ObservedObject var game = TomoGame.shared
-    @State private var chick = TomoChick()
+    @State private var blob = TomoBlob()
 
-    private var step: CGFloat { CGFloat(min(max(game.stage - 1, 0), 2)) }
+    private var step: CGFloat { game.growthStep }
 
     var body: some View {
         TimelineView(.animation(minimumInterval: 1 / 30)) { timeline in
             Canvas { ctx, sz in
-                chick.frameDate = timeline.date
-                chick.step()
-                chick.draw(ctx, size: sz)
+                blob.frameDate = timeline.date
+                blob.step()
+                blob.draw(ctx, size: sz)
             }
         }
         .frame(width: size, height: size)
-        .onAppear { chick.setGrowth(step) }
-        .onChange(of: game.stage) { _, _ in chick.grow(to: step) }
+        .onAppear { blob.setGrowth(step) }
+        .onChange(of: game.stage) { _, _ in blob.grow(to: step) }
     }
 }
 

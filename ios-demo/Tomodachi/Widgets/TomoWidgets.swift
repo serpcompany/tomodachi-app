@@ -7,7 +7,7 @@ import WidgetKit
 // Small: Tomo, its age, and a red dot when something is waiting. Medium: the same plus the level and its
 // experience bar. The app writes a TomoGlance to the App Group whenever progress changes and asks WidgetKit
 // to reload; when nothing is waiting, a second entry turns the red dot on at the next due time.
-// Tomo moves the way it does on the Lock Screen (TomoMovingChick): asking when something waits, asleep until
+// Tomo moves the way it does on the Lock Screen (TomoMovingMascot): asking when something waits, asleep until
 // the next words otherwise.
 
 @main
@@ -75,7 +75,7 @@ struct TomoWidgetView: View {
     }
 
     private func tomo(_ size: CGFloat) -> some View {
-        TomoMovingChick(glance: glance, ready: glance.waiting, size: size)
+        TomoMovingMascot(glance: glance, ready: glance.waiting, size: size)
     }
 
     private var small: some View {

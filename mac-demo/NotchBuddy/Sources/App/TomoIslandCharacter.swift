@@ -1,33 +1,33 @@
 import SwiftUI
 import TomoCore
 
-// MARK: - Tomo in the notch island (the shared drawing is TomoChick, in TomoCore)
+// MARK: - Tomo in the notch island (the shared drawing is TomoBlob, in TomoCore)
 
 /// Tomo in the island: a Canvas redrawn every frame, gaze following the cursor.
 struct TomoCharacterView: View {
     @ObservedObject var state: AppState
     var particleOverhang: CGFloat = 0
-    @StateObject private var chick = TomoChick()
+    @StateObject private var blob = TomoBlob()
 
     var body: some View {
         // The Canvas must read the timeline's date, or SwiftUI won't redraw it every frame.
         TimelineView(.animation(paused: state.mode == .hidden)) { timeline in
             Canvas { context, size in
-                chick.frameDate = timeline.date
+                blob.frameDate = timeline.date
                 let g = gaze()
-                chick.lookX = g.x
-                chick.lookY = g.y
-                chick.particleOverhang = particleOverhang
-                chick.step()
-                chick.draw(context, size: size)
+                blob.lookX = g.x
+                blob.lookY = g.y
+                blob.particleOverhang = particleOverhang
+                blob.step()
+                blob.draw(context, size: size)
             }
         }
-        .onChange(of: state.effectiveState) { _, s in chick.setState(s) }
+        .onChange(of: state.effectiveState) { _, s in blob.setState(s) }
         .onAppear {
-            chick.setState(state.effectiveState, force: true)
-            chick.setGrowth(CGFloat(min(max(TomoGame.shared.stage - 1, 0), 2)))
+            blob.setState(state.effectiveState, force: true)
+            blob.setGrowth(TomoGame.shared.growthStep)
         }
-        .tomoReactions(chick)
+        .tomoReactions(blob)
     }
 
     /// Cursor direction relative to Tomo, −1…1 (positive y = above).
@@ -46,8 +46,8 @@ struct TomoCharacterView: View {
 /// Small decorative Tomo for the leftover agent pills (switched off in Tomodachi; removed with issue #1).
 struct MiniBotCanvasView: View {
     let task: AgentTask
-    @StateObject private var chick: TomoChick = {
-        let c = TomoChick()
+    @StateObject private var blob: TomoBlob = {
+        let c = TomoBlob()
         c.isMini = true
         c.setGrowth(1)
         return c
@@ -56,12 +56,12 @@ struct MiniBotCanvasView: View {
     var body: some View {
         TimelineView(.animation) { timeline in
             Canvas { context, size in
-                chick.frameDate = timeline.date
-                chick.step()
-                chick.draw(context, size: size)
+                blob.frameDate = timeline.date
+                blob.step()
+                blob.draw(context, size: size)
             }
         }
-        .onChange(of: task.state) { _, s in chick.setState(s) }
-        .onAppear { chick.setState(task.state, force: true) }
+        .onChange(of: task.state) { _, s in blob.setState(s) }
+        .onAppear { blob.setState(task.state, force: true) }
     }
 }

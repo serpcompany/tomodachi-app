@@ -1,6 +1,6 @@
 # Tomodachi beta (0.0.2): tester guide
 
-Tomo is a baby chick who lives next to your MacBook's notch and only speaks the language you're learning, at its own age. It starts at age 1, still in its eggshell (single baby words), and grows up as you understand it.
+Tomo is a little blob who lives next to your MacBook's notch and only speaks the language you're learning, at its own age. Every tester's Tomo looks different. It starts at age 1 (single baby words), and evolves into a new shape at each birthday as you understand it.
 
 ## Install
 
