@@ -36,6 +36,11 @@ enum TomoIconRenderer {
             renderCardFrames(to: URL(fileURLWithPath: dir))
             NSApp.terminate(nil)
         }
+        if let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_EVOLUTION"] {
+            try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
+            write(evolutionSheet, to: URL(fileURLWithPath: dir).appendingPathComponent("tomo-evolution.png"))
+            NSApp.terminate(nil)
+        }
         if let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_VARIETY"] {
             try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
             write(varietySheet, to: URL(fileURLWithPath: dir).appendingPathComponent("tomo-variety.png"))
@@ -195,6 +200,23 @@ enum TomoIconRenderer {
         return VStack(spacing: 10) {
             ForEach(0..<rows.count, id: \.self) { r in
                 HStack(spacing: 10) { ForEach(0..<rows[r].count, id: \.self) { rows[r][$0] } }
+            }
+        }
+        .padding(20)
+        .background(Color.black)
+    }
+
+    /// TOMO_RENDER_EVOLUTION=<dir>: eight Tomos, one per row, at every age from left to right.
+    private static var evolutionSheet: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            ForEach(0..<8, id: \.self) { i in
+                HStack(spacing: 6) {
+                    ForEach(0..<TomoLook.ages, id: \.self) { age in
+                        let blob = TomoBlob(look: TomoLook(seed: "variety-\(i)"))
+                        let _ = blob.setGrowth(CGFloat(age))
+                        Canvas { ctx, sz in blob.draw(ctx, size: sz) }.frame(width: 150, height: 150)
+                    }
+                }
             }
         }
         .padding(20)
