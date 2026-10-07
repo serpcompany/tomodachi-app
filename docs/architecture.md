@@ -8,7 +8,7 @@ Tomo's code is in `Tomo*.swift` files, in two places. **`TomoCore/`** is a Swift
 iOS with everything that isn't tied to one device: the game, growth, store, languages and their packs,
 AI, voice, sounds, and Tomo's drawing. Each app is a shell around it: the Mac app in
 `mac-demo/NotchBuddy/Sources/App/`, where Coucou's files (`Island*`, `AppDelegate`, `AppState`…) are
-the notch ([coucou-fork.md](coucou-fork.md)), and the iPhone app in `ios-demo/` with its widget extension. Widgets can't run the game: the app writes a `TomoGlance` (age, level, bar, what's waiting, in the learner's language) to the App Group `group.com.zenbujapanese.tomodachi`, and the widget draws it, with the mascot moving through a font of its own frames (`TomoMovingMascot`; decisions.md). The same glance drives Tomo's Lock Screen card, a Live Activity (`TomoLiveVisit` in the app, `TomoVisitLiveActivity` in the extension); its stale date is the next due time, so it turns to "ready" without the app running. Mac-only parts stay in
+the notch ([coucou-fork.md](coucou-fork.md)), and the iPhone app in `ios-demo/` with its widget extension. Widgets can't run the game: the app writes a `TomoGlance` (age, level, bar, what's waiting, in the learner's language) to the App Group `group.com.zenbujapanese.tomodachi`, and the widget draws it, with the mascot moving through a font of its own frames (`TomoMovingMascot`; decisions.md). The same glance drives Tomo's Lock Screen card, a Live Activity (`TomoLiveVisit` in the app, `TomoVisitLiveActivity` in the extension), once the learner said yes to it; its stale date is the next due time, so it turns to "ready" without the app running. Mac-only parts stay in
 the Mac app: the card (`TomoView`), the Tomodachi window and the menus (`TomoAppWindow`, `TomoMenus`), clickable
 words with the Mac's dictionary (`TomoLineView`) and Tomo in the island (`TomoIslandCharacter`). The screens both apps
 show (Tomo, Words, Settings, About) are in TomoCore (below, "Screens"). Invariant: TomoCore never imports AppKit
@@ -25,6 +25,7 @@ Island shell (Coucou)       notch window, open/close state machine, click-throug
        ├─ Learner store     saved progress and answer log (TomoStore, SQLite)
        ├─ Sync              one Tomo across the learner's devices (TomoSync, iCloud)
        ├─ Visits            when Tomo drops in, when it leaves
+       ├─ Reminders         iPhone notifications when words are ready (TomoReminders)
        ├─ First run         who sees the welcome, and its flow (TomoOnboarding)
        ├─ Answer checking   language check → AI → offline placeholder
        ├─ Conversation AI   TomoAI provider adapter
@@ -110,21 +111,42 @@ Production. The logs and settings stay on each device for now
 that counts and you're at a natural break (not typing, not away). It tucks back in when ignored, leaving
 a red dot. Opening it yourself is free play, with no time limit. When nothing counts, Tomo rests
 (`TomoPhase.resting`, `TomoGame.rest`) in every shell until something counts, which the tick notices, or the
-learner picks Practice; opening Tomo again shows the rest, never a new offer. Planned: chattiness and back-off
+learner picks Practice; opening Tomo again shows the rest, never a new offer. Quiet hours (`DropIn.quietEnds`, the
+reminders' setting) hold the visits, the launch visit (`launchVisit`) and the red dot's bounces until morning;
+clicking Tomo still plays. Planned: chattiness and back-off
 ([#19](https://github.com/serpcompany/tomodachi-app/issues/19)), busy detection
 ([#20](https://github.com/serpcompany/tomodachi-app/issues/20)).
 
+**Reminders.** `TomoReminders.swift`: how Tomo comes to you on the iPhone. `TomoReminders.plan` is a pure
+function from the learner's ready times (`TomoProgress.readyTimes`: each word's due time, and when new words
+are ready) and `TomoReminderSettings` (rhythm, quiet hours, on, the Lock Screen card; saved per device) to the
+reminders to schedule; `TomoReminderCenter` schedules them with `UNUserNotificationCenter`, in Tomo's words at
+its age (the pack's `reminders`). The shell calls `install()` at launch (the delegate: no banner while the
+app is open) and `start()` once the game runs; then every progress change, and the app coming and going,
+schedules again. `TomoReminderSettingsView` is their settings page. Invariants: a reminder only when something
+counts; never sooner than one rhythm after now, never in quiet hours; at most 48 pending (iOS keeps 64);
+the iOS prompt only after its reason (the first run's "Let words find you", or the Settings switch);
+`TOMO_SELFTEST` checks the rules (`TomoReminders.selfTest`). The Mac has no reminders: its visits are its
+cadence.
+
 **First run.** `TomoOnboarding.swift` decides who sees it and runs the flow; `TomoOnboardingView.swift`
-draws it (SwiftUI only, so any shell can host it); the Mac shows it in a window (`TomoOnboardingWindow`),
-which `AppDelegate` opens instead of the launch visit. `checkAtLaunch()` runs before anything opens the
-store, because `TomoGame` hatches a Tomo when there's none. The guided round answers through
+draws it (SwiftUI only, so any shell can host it), with the iPhone's own steps in `TomoOnboardingPhone.swift`;
+the Mac shows it in a window (`TomoOnboardingWindow`), which `AppDelegate` opens instead of the launch visit
+(its own steps: quiet hours for the visits, and open at login as "Let Tomo find you", through the shell's
+`TomoLoginItem`; a test run never changes the login item), and whose `preview` plays it on a copy of the Tomo
+(`TomoGame.useCopy`) for the Testing menu,
+and the iPhone full screen over Tomo's screen (`TomoPhoneFirstRun`), holding the game, the Lock Screen card
+and the reminders until it's done. `checkAtLaunch()` runs before anything opens the
+store, because `TomoGame` hatches a Tomo when there's none (on the Mac, in `NotchBuddyApp.init`, before the
+main menu reads the game). The guided round answers through
 `TomoProgress`, so the first word counts; the visit clock is held while the window is open, and the flow
 ends with `TomoGame.reload()`, which is Tomo's first visit. Invariants: the "done" mark is
 `onboarding.json` in the data folder, never UserDefaults (Debug builds share the owner's defaults); a
-learner with a saved Tomo never sees a hatch; a device that joins the iCloud Tomo during the flow (an older
-`metAt` arrives) gets "welcome back". Planned: the iPhone's flow with reminders and the Lock Screen opt-in
-([#88](https://github.com/serpcompany/tomodachi-app/issues/88)); the reference's trial and plan screens go
-before `ready` once pricing is decided.
+learner with a saved Tomo never sees a hatch; a preview never writes `onboarding.json`, the saved Tomo, or a
+setting that wasn't changed in it; a device that joins the iCloud Tomo during the flow (an older
+`metAt` arrives) gets "welcome back", followed by the device's own setup; the Lock Screen
+card starts only after the learner says yes (`TomoReminderSettings.lockScreen`). Planned: the reference's
+trial and plan screens go before `ready` once pricing is decided.
 
 **Card and help panel.** `TomoView.swift`. The card is a fixed grid (`TomoGrid`): Tomo's column plus
 fixed rows, and new UI goes into a slot. Help (a hint, an explanation, a word card) never squeezes into

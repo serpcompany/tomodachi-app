@@ -2,10 +2,12 @@ import SwiftUI
 import TomoCore
 import WidgetKit
 
-// MARK: - Home Screen widgets (issue #52)
+// MARK: - Home Screen and Lock Screen widgets (issues #52, #88)
 //
 // Small: Tomo, its age, and a red dot when something is waiting. Medium: the same plus the level and its
-// experience bar. The app writes a TomoGlance to the App Group whenever progress changes and asks WidgetKit
+// experience bar. On the Lock Screen (the first run's widget how-to points there): age and level with the bar and
+// what's waiting (rectangular), the bar around Tomo's age (circular), or one line (inline); iOS draws these in one
+// tint, so they're text and a gauge. The app writes a TomoGlance to the App Group whenever progress changes and asks WidgetKit
 // to reload; when nothing is waiting, a second entry turns the red dot on at the next due time.
 // Tomo moves the way it does on the Lock Screen (TomoMovingMascot): asking when something waits, asleep until
 // the next words otherwise.
@@ -27,7 +29,7 @@ struct TomoWidget: Widget {
         }
         .configurationDisplayName(appName)
         .description(TomoGlance.load()?.about ?? "")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular, .accessoryCircular, .accessoryInline])
     }
 }
 
@@ -64,13 +66,41 @@ struct TomoWidgetView: View {
     @Environment(\.widgetFamily) private var family
 
     var body: some View {
-        Group {
-            if family == .systemMedium { medium } else { small }
+        switch family {
+        case .accessoryRectangular, .accessoryCircular, .accessoryInline:
+            lockScreen.containerBackground(for: .widget) { Color.clear }
+        default:
+            Group {
+                if family == .systemMedium { medium } else { small }
+            }
+            .foregroundStyle(Color.white)
+            .containerBackground(for: .widget) {
+                LinearGradient(colors: [Color(red: 0.07, green: 0.12, blue: 0.15), Color(red: 0.04, green: 0.05, blue: 0.07)],
+                               startPoint: .top, endPoint: .bottom)
+            }
         }
-        .foregroundStyle(Color.white)
-        .containerBackground(for: .widget) {
-            LinearGradient(colors: [Color(red: 0.07, green: 0.12, blue: 0.15), Color(red: 0.04, green: 0.05, blue: 0.07)],
-                           startPoint: .top, endPoint: .bottom)
+    }
+
+    private var bar: Double { min(max(glance.progress, 0), 1) }
+
+    @ViewBuilder private var lockScreen: some View {
+        switch family {
+        case .accessoryCircular:
+            Gauge(value: bar) { Text(glance.level) } currentValueLabel: {
+                Text(glance.age).font(.system(size: 13, weight: .bold, design: .rounded)).minimumScaleFactor(0.6)
+            }
+            .gaugeStyle(.accessoryCircularCapacity)
+            .widgetAccentable()
+        case .accessoryInline:
+            Text(glance.waiting ? "\(glance.invite) \(glance.status)" : glance.status)
+        default:
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(glance.age) · \(glance.level)")
+                    .font(.system(size: 15, weight: .bold, design: .rounded)).widgetAccentable()
+                Gauge(value: bar) { EmptyView() }.gaugeStyle(.accessoryLinearCapacity)
+                Text(glance.status).font(.system(size: 13, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.7)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 

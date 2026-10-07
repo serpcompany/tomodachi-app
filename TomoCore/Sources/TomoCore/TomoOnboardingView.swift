@@ -5,13 +5,16 @@ import SwiftUI
 // A portrait page like the reference app's (#83): Tomo at the top, a short title and text, the action at the
 // bottom. One Tomo stays on screen the whole way and moves between steps (it never re-appears from nothing);
 // the egg it hatches from is drawn and animated live too (TomoEggView). Shared by every shell: the Mac shows it in
-// a window, and the iPhone can show it full screen. All text comes from ui.<id>.json and the target pack.
+// a window, and the iPhone full screen, with its own steps (TomoOnboardingPhone.swift), sized down on short screens
+// (`fit`). All text comes from ui.<id>.json and the target pack.
 
 public struct TomoOnboardingView: View {
     @ObservedObject var model: TomoOnboarding
     @ObservedObject var game = TomoGame.shared
     @ObservedObject var lang = TomoLanguages.shared
     var gaze: (() -> CGPoint)?
+    /// iPhone: how much of the full size fits the screen's height (1 on the Mac's fixed window).
+    @State var fit: CGFloat = 1
 
     /// `gaze`: where the pointer is relative to Tomo, −1…1 (positive y = above), for shells that know.
     public init(model: TomoOnboarding, gaze: (() -> CGPoint)? = nil) {
@@ -19,25 +22,35 @@ public struct TomoOnboardingView: View {
         self.gaze = gaze
     }
 
-    private var step: TomoOnboarding.Step { model.step }
+    var step: TomoOnboarding.Step { model.step }
+    var isPhone: Bool { model.shell == .phone }
 
     public var body: some View {
-        VStack(spacing: 0) {
-            dots.frame(height: 22)
-            hero
-                .frame(height: heroHeight)
-                .padding(.top, 10)
-            ZStack(alignment: .top) {
-                page.id(step).transition(.asymmetric(insertion: .opacity.combined(with: .offset(y: 12)),
-                                                     removal: .opacity))
+        // Sized from the space offered, never from what the steps hold (GeometryReader: no layout loop).
+        GeometryReader { geo in
+            VStack(spacing: 0) {
+                dots.frame(height: 22)
+                hero
+                    .frame(height: heroHeight * fit)
+                    .padding(.top, 10)
+                ZStack(alignment: .top) {
+                    page.id(step).transition(.asymmetric(insertion: .opacity.combined(with: .offset(y: 12)),
+                                                         removal: .opacity))
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .padding(.top, 14)
+                buttons
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .padding(.top, 14)
-            buttons
+            .padding(.horizontal, isPhone ? 24 : 28)
+            .padding(.top, 10)
+            .padding(.bottom, isPhone ? 12 : 22)
+            .frame(width: geo.size.width, height: geo.size.height)
+            .onChange(of: geo.size.height, initial: true) { _, h in
+                // Tomo and the sketches fill the height there is: about 1.2 on an iPhone 17 (780 pt inside the safe
+                // area), 0.87 on an SE (647 pt).
+                fit = isPhone ? 0.7 + 0.5 * min(max((h - 580) / 200, 0), 1) : 1
+            }
         }
-        .padding(.horizontal, 28)
-        .padding(.top, 10)
-        .padding(.bottom, 22)
         .foregroundStyle(Paint.text)
         .background(background.ignoresSafeArea())
         .animation(.spring(response: 0.5, dampingFraction: 0.82), value: step)
@@ -51,8 +64,11 @@ public struct TomoOnboardingView: View {
         switch step {
         case .hatch, .welcomeBack: 236
         case .round, .result: 150
-        case .visits: 132
-        case .rhythm: 96
+        case .visits: isPhone ? PhoneSketches.notificationHero : 132
+        case .rhythm: isPhone ? 64 : 96
+        case .quiet, .notify, .login: 120
+        case .widget: PhoneSketches.phoneHero
+        case .lockScreen: PhoneSketches.cardHero
         case .ready: 116
         }
     }
@@ -61,33 +77,48 @@ public struct TomoOnboardingView: View {
         switch step {
         case .hatch, .welcomeBack: 220
         case .round, .result: 150
-        case .visits: 58
-        case .rhythm: 96
+        case .visits: isPhone ? PhoneSketches.notificationTomo : 58
+        case .rhythm: isPhone ? 64 : 96
+        case .quiet: 104
+        case .notify, .login: 100
+        case .widget: 76
+        case .lockScreen: PhoneSketches.cardTomo
         case .ready: 116
+        }
+    }
+
+    /// Where Tomo sits in the hero, from its centre: by the notch (Mac), or in a sketch of the iPhone's screens.
+    private func tomoOffset(in size: CGSize) -> CGSize {
+        switch step {
+        case .visits where !isPhone:
+            CGSize(width: NotchSketch.notch.width / 2 + 30, height: -size.height / 2 + NotchSketch.notch.height / 2 + 2)
+        case .visits: PhoneSketches.notificationSlot(width: size.width, fit: fit)
+        case .widget: PhoneSketches.besidePhone(fit: fit)
+        case .lockScreen: PhoneSketches.cardSlot(width: size.width, fit: fit)
+        default: .zero
         }
     }
 
     private var hero: some View {
         GeometryReader { geo in
             ZStack {
-                if step == .visits {
+                if step == .visits && !isPhone {
                     NotchSketch(pending: true, invite: lang.target.lines.invite ?? "").transition(.opacity)
                 }
+                if isPhone || step == .quiet || step == .login { phoneSketch(in: geo.size).transition(.opacity) }
                 // The egg stays until its halves have flown off (it draws nothing after); not when opened past it.
                 if step == .hatch && model.hatchStarted != .distantPast {
                     TomoEggView(look: TomoLook.current, crackedAt: model.hatchStarted)
-                        .frame(width: 220, height: 236)
+                        .frame(width: 220 * fit, height: 236 * fit)
                         .contentShape(Rectangle())
                         .onTapGesture { model.hatch() }
                         .transition(.identity)
                 }
                 TomoBlobView(state: model.botState, growth: game.growthStep, gaze: gaze)
-                    .frame(width: tomoSize, height: tomoSize)
+                    .frame(width: tomoSize * fit, height: tomoSize * fit)
                     .scaleEffect(model.hatched ? 1 : 0.2)
                     .opacity(model.hatched ? 1 : 0)
-                    .offset(step == .visits ? CGSize(width: NotchSketch.notch.width / 2 + 30,
-                                                     height: -geo.size.height / 2 + NotchSketch.notch.height / 2 + 2)
-                                            : .zero)
+                    .offset(tomoOffset(in: geo.size))
                     .animation(.spring(response: 0.45, dampingFraction: 0.55), value: model.hatched)
                     .onTapGesture { NotificationCenter.default.post(name: .triggerSlap, object: nil) }
             }
@@ -102,8 +133,13 @@ public struct TomoOnboardingView: View {
         case .hatch: hatchPage
         case .round: roundPage
         case .result: resultPage
-        case .visits: visitsPage
-        case .rhythm: rhythmPage
+        case .visits: if isPhone { phoneVisitsPage } else { visitsPage }
+        case .rhythm: if isPhone { phoneRhythmPage } else { rhythmPage }
+        case .quiet: quietPage
+        case .notify: notifyPage
+        case .login: loginPage
+        case .widget: widgetPage
+        case .lockScreen: lockScreenPage
         case .ready: readyPage
         case .welcomeBack: welcomeBackPage
         }
@@ -191,6 +227,7 @@ public struct TomoOnboardingView: View {
                 row(icon: "keyboard", ui("onboarding.visits.typing"))
                 row(icon: "cursorarrow.click.2", ui("onboarding.visits.click"))
                 row(icon: "moon.zzz.fill", ui("onboarding.visits.ignore"))
+                row(icon: "dock.rectangle", ui("onboarding.visits.dock"))
             }
             .padding(.top, 4)
         }
@@ -260,7 +297,8 @@ public struct TomoOnboardingView: View {
         VStack(alignment: .leading, spacing: 12) {
             if let line = lang.target.lines.welcomeBack { spoken(line) }
             title(ui("onboarding.back.title"))
-            bodyText(ui("onboarding.back.body", ["age": game.age, "level": "\(game.level)"]))
+            bodyText(ui(isPhone ? "onboarding.back.body.phone" : "onboarding.back.body",
+                        ["age": game.age, "level": "\(game.level)"]))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -324,15 +362,31 @@ public struct TomoOnboardingView: View {
                 PrimaryButton(title: ui("onboarding.continue"), enabled: model.phase == .right) { model.next() }
             case .result:
                 PrimaryButton(title: ui("onboarding.result.button")) { model.next() }
-            case .visits, .rhythm:
+            case .visits, .rhythm, .quiet, .login:
+                PrimaryButton(title: ui("onboarding.continue")) { model.next() }
+            case .notify:
+                PrimaryButton(title: ui("onboarding.notify.button"), enabled: !model.askingPermission) {
+                    model.turnOnNotifications()
+                }
+                SecondaryButton(title: ui("onboarding.notify.later")) { model.notificationsLater() }
+            case .widget:
+                PrimaryButton(title: ui("onboarding.widget.done")) { model.next() }
+                SecondaryButton(title: ui("onboarding.widget.later")) { model.next() }
+            case .lockScreen:
+                PrimaryButton(title: ui("onboarding.lock.yes")) { model.chooseLockScreen(true) }
+                SecondaryButton(title: ui("onboarding.lock.no")) { model.chooseLockScreen(false) }
+            case .welcomeBack where model.steps.count > 1:
                 PrimaryButton(title: ui("onboarding.continue")) { model.next() }
             case .ready, .welcomeBack:
                 PrimaryButton(title: ui("onboarding.ready.go")) { model.next() }
-                Text(ui("onboarding.ready.note")).font(.system(size: 12)).foregroundStyle(Paint.faint)
+                Text(ui(isPhone ? "onboarding.ready.note.phone" : "onboarding.ready.note"))
+                    .font(.system(size: 12)).foregroundStyle(Paint.faint)
             }
         }
-        .frame(height: 74, alignment: .top)
+        .frame(height: twoButtons ? 98 : 74, alignment: .top)
     }
+
+    private var twoButtons: Bool { step == .notify || step == .widget || step == .lockScreen }
 
     // MARK: Pieces
 
@@ -367,31 +421,33 @@ public struct TomoOnboardingView: View {
             default: Color(hex: "#22D3EE")
             }
         case .result: Paint.green
-        case .visits: Color(hex: "#6366F1")
-        case .rhythm, .ready: Color(hex: "#22D3EE")
+        case .visits, .quiet: Color(hex: "#6366F1")
+        case .rhythm, .ready, .widget: Color(hex: "#22D3EE")
+        case .notify, .login: Color(hex: "#F5A524")
+        case .lockScreen: Color(hex: "#A78BFA")
         }
     }
 
-    private func ui(_ key: String, _ args: [String: String] = [:]) -> String { lang.learner(key, args) }
+    func ui(_ key: String, _ args: [String: String] = [:]) -> String { lang.learner(key, args) }
 
-    private func eyebrow(_ s: String) -> some View {
+    func eyebrow(_ s: String) -> some View {
         Text(s.uppercased()).font(.system(size: 11, weight: .heavy)).kerning(1.2).foregroundStyle(Color(hex: "#22D3EE"))
     }
 
-    private func title(_ s: String) -> some View {
+    func title(_ s: String) -> some View {
         Text(s).font(.system(size: 28, weight: .heavy, design: .rounded))
             .lineLimit(2).minimumScaleFactor(0.7)
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    private func bodyText(_ s: String) -> some View {
+    func bodyText(_ s: String) -> some View {
         Text(s).font(.system(size: 15)).foregroundStyle(Paint.soft)
             .lineSpacing(2)
             .fixedSize(horizontal: false, vertical: true)
     }
 
     /// Something Tomo says, in the target language, with its reading and translation.
-    private func spoken(_ line: TargetPack.SpokenLine) -> some View {
+    func spoken(_ line: TargetPack.SpokenLine) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(line.say).font(.system(size: 26, weight: .bold, design: .rounded))
             Text([line.romanization, line.translation(lang.learner.id)].compactMap { $0 }.joined(separator: " · "))
@@ -399,7 +455,7 @@ public struct TomoOnboardingView: View {
         }
     }
 
-    private func row(icon: String, _ s: String) -> some View {
+    func row(icon: String, _ s: String) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: icon).font(.system(size: 14, weight: .semibold)).foregroundStyle(Paint.accent)
                 .frame(width: 22)
@@ -408,7 +464,7 @@ public struct TomoOnboardingView: View {
         }
     }
 
-    private func panel(icon: String, title: String, text: String) -> some View {
+    func panel(icon: String, title: String, text: String) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: icon).font(.system(size: 15, weight: .bold)).foregroundStyle(Paint.green)
                 .frame(width: 22).padding(.top, 2)
@@ -426,7 +482,7 @@ public struct TomoOnboardingView: View {
 
 // MARK: - Colours (the card's own: dark page, soft text, green right, red wrong)
 
-private enum Paint {
+enum Paint {
     static let page = Color(hex: "#0E1014")
     static let card = Color(hex: "#1A1D23")
     static let text = Color(hex: "#F5F6F8")
@@ -439,7 +495,24 @@ private enum Paint {
 
 // MARK: - Controls
 
-private struct PrimaryButton: View {
+/// The quiet choice under the primary one ("Not now").
+struct SecondaryButton: View {
+    let title: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .foregroundStyle(Paint.soft)
+                .frame(maxWidth: .infinity).frame(height: 40)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct PrimaryButton: View {
     let title: String
     var enabled = true
     let action: () -> Void
@@ -540,10 +613,11 @@ private struct OnboardingBadge: View {
     }
 }
 
-private struct RhythmRow: View {
+struct RhythmRow: View {
     let title: String
     let tag: String
     let selected: Bool
+    var height: CGFloat = 44
     let action: () -> Void
     @State private var hovered = false
 
@@ -559,7 +633,7 @@ private struct RhythmRow: View {
                 }
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, 14).frame(height: 44)
+            .padding(.horizontal, 14).frame(height: height)
             .background(Color.white.opacity(hovered ? 0.09 : 0.05), in: RoundedRectangle(cornerRadius: 12))
             .overlay(RoundedRectangle(cornerRadius: 12).stroke(selected ? Paint.accent.opacity(0.8) : Color.white.opacity(0.06),
                                                                 lineWidth: selected ? 2 : 1))

@@ -7,12 +7,13 @@ Tomo is a little blob who lives next to your MacBook's notch and only speaks the
 1. You need **macOS 15 or later** (Apple Silicon or Intel).
 2. Unzip `Tomodachi-0.0.2-beta.zip` and move **Tomodachi.app** to Applications.
 3. Open it. The first time, your Tomo hatches in a short welcome: answer its first word, pick how often it
-   visits, then it pops out of the notch and waves. (If you already have a Tomo, it just pops out.)
+   visits and its quiet hours, and whether Tomodachi opens when you log in (Tomo can only visit while it's
+   open), then it pops out of the notch and waves. (If you already have a Tomo, it just pops out.)
    Tomodachi has a Dock icon and a small Tomo icon in the menu bar.
 
 ## What to try
 
-- **Answer Tomo's visits.** Tomo opens on its own (every 20 minutes by default). Tap the right picture or meaning, or do what it asks: 🍙 feed, 😴 bed, 🤗 hug.
+- **Answer Tomo's visits.** Tomo opens on its own (every 20 minutes by default, never in quiet hours: 9 PM to 8 AM unless you change them in Settings). Tap the right picture or meaning, or do what it asks: 🍙 feed, 😴 bed, 🤗 hug.
 - **Close it when it's in your way** with **×**, or Esc once you've clicked Tomo (Esc never leaves the app you're typing in). Small Tomo waits beside the notch with a red dot until you click it.
 - **Play any time:** click small Tomo next to the notch.
 - **Talk with Tomo:** hold **⌥** and click the menu bar icon → **Skip to talking (3さい)** (after that, a **Testing** menu is in Tomodachi's menu bar too). That's a test Tomo; yours comes back from **Back to my Tomo** in that menu, or when you relaunch. Tomo asks real questions; pick what it means, or later a reply that fits. Every answer shows **Win**, **Miss**, **No score**, or (when nothing counts) **Practice**.
@@ -31,14 +32,17 @@ Tomo is a little blob who lives next to your MacBook's notch and only speaks the
 
 Install **TestFlight** from the App Store, then open the invite link we send you. Signed in to the same iCloud account on both, the iPhone and the Mac share one Tomo: play on either and the other catches up (iPhone 1.1 and Mac beta 0.0.2 or later). If both already had a Tomo, they merge.
 
+- **The first time:** your Tomo hatches and asks its first word, then you pick how often Tomo may find you (hourly unless you change it), quiet hours (9 PM to 8 AM), whether Tomo may send notifications, and whether it sits on your Lock Screen. If your Tomo is already on your Mac, it says "welcome back" instead of hatching. If you had the app before, you won't see this.
+- **Reminders:** when words are ready, Tomo sends a notification at the rhythm you picked, never in quiet hours. If you don't come by for two days, it slows down to once a morning, and after a week it waits for you. Tap one to play.
+
 - **Play in the app:** the same rounds as on the Mac. Tap a word in Tomo's line to look it up. When nothing counts, Tomo rests on the screen and says when it's back; Practice is there if you want it.
 - **The tabs:** **Play**, **Tomo** and **Words** (the same as the Mac's window) and **Settings**, with **About** (the version, privacy policy, support and credits) at the bottom.
-- **Add the widget:** long-press the Home Screen → **+** → Tomodachi (small or medium). It shows Tomo and how many words are waiting.
-- **Lock your phone:** Tomo's card is on the Lock Screen (allow Live Activities when asked). Tap the yellow **▶** to play one round right there, or tap the card to open the app. On iPhones with a Dynamic Island, Tomo sits there too.
+- **Add the widget:** long-press the Home Screen → **+** → Tomodachi (small or medium). It shows Tomo and how many words are waiting. On the Lock Screen: long-press it → Customize → the space under the time → Tomodachi.
+- **Lock your phone:** if you said yes to it, Tomo's card is on the Lock Screen (allow Live Activities when asked). Tap the yellow **▶** to play one round right there, or tap the card to open the app. On iPhones with a Dynamic Island, Tomo sits there too.
 
 ## Feedback we want
 
-- Did the welcome make clear what Tomo is and how to answer? Was it too long?
+- Did the welcome make clear what Tomo is and how to answer? Was it too long? On the iPhone: were the reminders too many, too few, or at bad times?
 - Did visits feel like a nice nudge, or annoying? Was the frequency right?
 - Was it clear what Tomo wanted? Were Win / Miss / No score clear? Did Tomo's sounds fit it, or get annoying?
 - Did anything feel like studying instead of playing?

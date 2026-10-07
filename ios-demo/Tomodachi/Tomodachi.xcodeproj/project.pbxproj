@@ -18,6 +18,7 @@
 		55B668E3CF5DF92A2428F6DE /* TomoWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = E56A0CD36F22076E120230DE /* TomoWidgets.swift */; };
 		5A2853E1494B345A841CF220 /* TomoVisitLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 643C75D304AC245CB7F57635 /* TomoVisitLiveActivity.swift */; };
 		65D3A2DECEF7CDCB4AC5EA6E /* TomoVisitActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 413F94AD4C585B825A5624A9 /* TomoVisitActivity.swift */; };
+		6E1F760DD9C89FEA03565D5E /* TomoPhoneFirstRun.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED0CFFD4BB66F948A4C01F77 /* TomoPhoneFirstRun.swift */; };
 		7782BC02AF02475CA7679202 /* TomoReady0.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8A139532B7D9250EC8422DC8 /* TomoReady0.ttf */; };
 		8B9F1DA1C06402828C976C1D /* TomoReady1.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B0765F5932D239F53E699926 /* TomoReady1.ttf */; };
 		9FEBC7FFBC6E85112AC44873 /* TomoSleep1.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F81A388C0AC485FCA108A8AF /* TomoSleep1.ttf */; };
@@ -78,6 +79,7 @@
 		D7EBDB597D2052726D407A36 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		E56A0CD36F22076E120230DE /* TomoWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoWidgets.swift; sourceTree = "<group>"; };
 		EA5849F648AA4E62CBEBF52E /* TomoMovingMascot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoMovingMascot.swift; sourceTree = "<group>"; };
+		ED0CFFD4BB66F948A4C01F77 /* TomoPhoneFirstRun.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoPhoneFirstRun.swift; sourceTree = "<group>"; };
 		F81A388C0AC485FCA108A8AF /* TomoSleep1.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = TomoSleep1.ttf; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -108,6 +110,7 @@
 			children = (
 				040E64E13B16E7A347446C38 /* TomodachiApp.swift */,
 				5DD481FC31C8E38E2AB4F657 /* TomoLiveVisit.swift */,
+				ED0CFFD4BB66F948A4C01F77 /* TomoPhoneFirstRun.swift */,
 				666A72997ED021BF38D009FD /* TomoPhoneHome.swift */,
 				946EAB4DCF25D24015CABDF5 /* TomoPhoneView.swift */,
 				BE15650199C378342BFCA096 /* TomoWordSheet.swift */,
@@ -198,6 +201,7 @@
 				BBEEB6B1FED8160D6E27E71D /* Sources */,
 				FFCA357C1BB84498294D8E40 /* Resources */,
 				A0A125EA67E0BE8EA68E119C /* Frameworks */,
+				8B2104118BF0AC35455AD0BE /* Leave out the Spanish draft */,
 			);
 			buildRules = (
 			);
@@ -219,6 +223,7 @@
 				5828AAA168E2EAC80442DC5E /* Resources */,
 				26DBFF058C9038DB2655EEA5 /* Frameworks */,
 				1FF9299FC3FB176009DEA529 /* Embed Foundation Extensions */,
+				B7012771462C112622B69B6D /* Leave out the Spanish draft */,
 			);
 			buildRules = (
 			);
@@ -299,12 +304,54 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		8B2104118BF0AC35455AD0BE /* Leave out the Spanish draft */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Leave out the Spanish draft";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/../scripts/strip-packs.sh\" \"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH\"";
+		};
+		B7012771462C112622B69B6D /* Leave out the Spanish draft */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Leave out the Spanish draft";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/../scripts/strip-packs.sh\" \"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH\"";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		5C3A995BA36B8B5A3307D588 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				43C83B710033B8A4E45A3326 /* TomoLiveVisit.swift in Sources */,
+				6E1F760DD9C89FEA03565D5E /* TomoPhoneFirstRun.swift in Sources */,
 				2AE9D1DC5132E456A1102842 /* TomoPhoneHome.swift in Sources */,
 				EDC97339274AD5D9DE559C33 /* TomoPhoneView.swift in Sources */,
 				65D3A2DECEF7CDCB4AC5EA6E /* TomoVisitActivity.swift in Sources */,

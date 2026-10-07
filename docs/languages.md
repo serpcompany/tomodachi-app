@@ -12,7 +12,7 @@ Japanese-for-English-speakers is just the first pair. No Swift code contains tex
 |---|---|---|
 | Decides | The interface text, hints, translations, and the "need" labels (feed / bed / hug) | Tomo's words and lines, voice, speech recognition, the "is this the right language?" check, the AI's character rules, age labels (1さい / 1 año) |
 | File | `TomoCore/Sources/TomoCore/Resources/languages/ui.<id>.json` | `TomoCore/Sources/TomoCore/Resources/languages/<id>.json` (a **language pack**) |
-| Today | `en`, `ja` | `ja`, `en`, `es` (all drafts until a native speaker reviews them) |
+| Today | `en`, `ja` | `ja`, `en`, `es` (all drafts until a native speaker reviews them). The iPhone app leaves `es` out of its bundle (`ios-demo/scripts/strip-packs.sh`) |
 
 Translations live inside each pack, keyed by learner language: `"meaning": {"en": "doggy", "es": "perrito"}`. If a translation is missing, English is used.
 
