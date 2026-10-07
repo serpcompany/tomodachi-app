@@ -119,8 +119,10 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   sheet shows one Tomo at every age and with every face, then a crowd of other seeds.
 - `TOMO_SEED=<text>`: the seed Tomo's look is made from, in place of the saved Tomo's.
 - `TOMO_ONBOARDING=1`: the first run, if the data folder has no Tomo (test runs skip it otherwise). A step
-  name opens it there: `hatch`, `round`, `result`, `visits`, `rhythm`, `ready`, or `welcomeBack` (the iPhone
-  also has `quiet`, `notify`, `widget` and `lockScreen`). With
+  name opens it there: `hatch`, `round`, `result`, `visits`, `rhythm`, `quiet`, `login`, `ready`, or
+  `welcomeBack` (the iPhone has `notify`, `widget` and `lockScreen` in place of `login`). `preview` opens the
+  Testing menu's preview of it on a copy of the data folder's Tomo, which is never changed (seed one first,
+  below). A test run never changes the login item: it logs what it would have done. With
   `TOMO_AUTOPLAY=1` it plays itself through; `TOMO_SNAPSHOT_DIR` captures its window (`onboarding-NNN.png`).
 - `TOMO_RENDER_VARIETY=<dir>`: the same eight Tomos at several `TomoLook.variety` settings, to judge how
   different Tomos should be.

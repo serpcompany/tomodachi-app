@@ -54,20 +54,7 @@ public struct TomoReminderSettingsView: View {
             }
             .task { await center.refreshPermission() }
 
-            Section(ui("reminders.settings.quiet")) {
-                Toggle(ui("reminders.settings.quietOn"), isOn: Binding(get: { center.settings.hasQuietHours }, set: { on in
-                    let standard = TomoReminderSettings.standard
-                    center.settings.quietFrom = on ? standard.quietFrom : 0
-                    center.settings.quietUntil = on ? standard.quietUntil : 0
-                }))
-                if center.settings.hasQuietHours {
-                    DatePicker(ui("reminders.settings.from"), selection: TomoReminders.timeOfDay($center.settings.quietFrom),
-                               displayedComponents: .hourAndMinute)
-                    DatePicker(ui("reminders.settings.until"), selection: TomoReminders.timeOfDay($center.settings.quietUntil),
-                               displayedComponents: .hourAndMinute)
-                }
-            }
-            .environment(\.locale, Locale(identifier: lang.learner.id))
+            QuietHours(forVisits: false)
 
             if showsLockScreen {
                 Section {
@@ -89,6 +76,42 @@ public struct TomoReminderSettingsView: View {
                 asking = false
                 center.settings.on = granted
             }
+        }
+    }
+}
+
+extension TomoReminderSettingsView {
+    /// Quiet hours, on its own: the iPhone's reminders keep them, and so do the Mac's visits by the notch
+    /// (`forVisits`, the Mac's Settings), from the same setting.
+    public struct QuietHours: View {
+        @ObservedObject private var center = TomoReminderCenter.shared
+        @ObservedObject private var lang = TomoLanguages.shared
+        private let forVisits: Bool
+
+        public init(forVisits: Bool) { self.forVisits = forVisits }
+
+        private func ui(_ key: String) -> String { lang.learner(key) }
+
+        public var body: some View {
+            Section {
+                Toggle(ui(forVisits ? "reminders.settings.quietOn.mac" : "reminders.settings.quietOn"),
+                       isOn: Binding(get: { center.settings.hasQuietHours }, set: { on in
+                    let standard = TomoReminderSettings.standard
+                    center.settings.quietFrom = on ? standard.quietFrom : 0
+                    center.settings.quietUntil = on ? standard.quietUntil : 0
+                }))
+                if center.settings.hasQuietHours {
+                    DatePicker(ui("reminders.settings.from"), selection: TomoReminders.timeOfDay($center.settings.quietFrom),
+                               displayedComponents: .hourAndMinute)
+                    DatePicker(ui("reminders.settings.until"), selection: TomoReminders.timeOfDay($center.settings.quietUntil),
+                               displayedComponents: .hourAndMinute)
+                }
+            } header: {
+                Text(ui("reminders.settings.quiet"))
+            } footer: {
+                if forVisits { Text(ui("reminders.settings.quietNote.mac")) }
+            }
+            .environment(\.locale, Locale(identifier: lang.learner.id))
         }
     }
 }

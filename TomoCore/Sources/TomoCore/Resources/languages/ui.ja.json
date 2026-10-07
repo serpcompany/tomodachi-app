@@ -296,7 +296,16 @@
     "reminders.settings.until": "終了",
     "reminders.settings.backOff": "2日間来なかったら、Tomoは朝1回だけに減らします。1週間たったら、あなたが来るのを待ちます。",
     "reminders.settings.lockScreen": "ロック画面のTomo",
-    "reminders.settings.lockScreenNote": "Tomoがロック画面とダイナミックアイランドで待っていて、その場でことばに答えられます。"
+    "reminders.settings.lockScreenNote": "Tomoがロック画面とダイナミックアイランドで待っていて、その場でことばに答えられます。",
+    "onboarding.quiet.body.mac": "この時間は、Tomoは来ません。遊びたいときは、いつでもTomoをクリック。",
+    "onboarding.login.title": "Tomoに見つけてもらおう",
+    "onboarding.login.body": "TomoはTomodachiが開いているあいだだけ来られます。ログイン時に開けば、毎日ノッチのそばにいます。",
+    "onboarding.login.toggle": "ログイン時にTomodachiを開く",
+    "onboarding.login.note": "設定でいつでも変えられます。macOSでは「ログイン項目」に表示されます。",
+    "onboarding.visits.dock": "DockのアイコンでTomodachiが開きます：Tomoの成長、ことば、設定。",
+    "menu.previewFirstRun": "はじめての画面を見る（テスト）",
+    "reminders.settings.quietOn.mac": "夜は来ない",
+    "reminders.settings.quietNote.mac": "この時間はTomoが来ません。遊びたいときは、いつでもTomoをクリック。"
   },
   "helpPhrases": [
     "なに",

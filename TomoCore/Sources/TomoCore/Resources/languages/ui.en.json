@@ -298,7 +298,16 @@
     "reminders.settings.until": "Until",
     "reminders.settings.backOff": "If you don't come by for two days, Tomo slows down to once a morning, and after a week it waits for you.",
     "reminders.settings.lockScreen": "Tomo on the Lock Screen",
-    "reminders.settings.lockScreenNote": "Tomo waits on your Lock Screen and in the Dynamic Island, and you can answer a word there."
+    "reminders.settings.lockScreenNote": "Tomo waits on your Lock Screen and in the Dynamic Island, and you can answer a word there.",
+    "onboarding.quiet.body.mac": "No visits between these times. Click Tomo any time to play.",
+    "onboarding.login.title": "Let Tomo find you",
+    "onboarding.login.body": "Tomo can only come to you while Tomodachi is open. Open it when you log in, and Tomo is by your notch every day.",
+    "onboarding.login.toggle": "Open Tomodachi when I log in",
+    "onboarding.login.note": "Change it any time in Settings. macOS lists it under Login Items.",
+    "onboarding.visits.dock": "The Dock icon opens Tomodachi: how Tomo is growing, its words, and Settings.",
+    "menu.previewFirstRun": "Show the first run (testing)",
+    "reminders.settings.quietOn.mac": "No visits at night",
+    "reminders.settings.quietNote.mac": "Tomo doesn't drop in between these times. Click Tomo any time to play."
   },
   "helpPhrases": [
     "what",
