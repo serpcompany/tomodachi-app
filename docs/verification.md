@@ -73,6 +73,8 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   the icons, every age and face, every sound (WAV), or a 16-second scene (20 fps frames), then quit. The
   sheet shows one Tomo at every age and with every face, then a crowd of other seeds.
 - `TOMO_SEED=<text>`: the seed Tomo's look is made from, in place of the saved Tomo's.
+- `TOMO_RENDER_VARIETY=<dir>`: the same eight Tomos at several `TomoLook.variety` settings, to judge how
+  different Tomos should be.
 
 ## Starting from a known state
 

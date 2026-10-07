@@ -36,6 +36,11 @@ enum TomoIconRenderer {
             renderCardFrames(to: URL(fileURLWithPath: dir))
             NSApp.terminate(nil)
         }
+        if let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_VARIETY"] {
+            try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
+            write(varietySheet, to: URL(fileURLWithPath: dir).appendingPathComponent("tomo-variety.png"))
+            NSApp.terminate(nil)
+        }
         if let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_SHEET"] {
             try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
             write(sheet, to: URL(fileURLWithPath: dir).appendingPathComponent("tomo-sheet.png"))
@@ -190,6 +195,26 @@ enum TomoIconRenderer {
         return VStack(spacing: 10) {
             ForEach(0..<rows.count, id: \.self) { r in
                 HStack(spacing: 10) { ForEach(0..<rows[r].count, id: \.self) { rows[r][$0] } }
+            }
+        }
+        .padding(20)
+        .background(Color.black)
+    }
+
+    /// TOMO_RENDER_VARIETY=<dir>: the same eight seeds at several `TomoLook.variety` settings, one row each.
+    private static var varietySheet: some View {
+        let levels = [0.25, 0.5, 0.75, 1, 1.25, 1.5]
+        return VStack(alignment: .leading, spacing: 6) {
+            ForEach(levels, id: \.self) { v in
+                HStack(spacing: 6) {
+                    Text(String(format: "%.2f", v)).font(.system(size: 22, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white.opacity(v == 1 ? 1 : 0.6)).frame(width: 70)
+                    ForEach(0..<8, id: \.self) { i in
+                        let blob = TomoBlob(look: TomoLook(seed: "variety-\(i)", variety: v))
+                        let _ = blob.setGrowth(3)
+                        Canvas { ctx, sz in blob.draw(ctx, size: sz) }.frame(width: 150, height: 150)
+                    }
+                }
             }
         }
         .padding(20)

@@ -55,12 +55,20 @@ public struct TomoLook: Equatable, Sendable {
     public static let ages = 6
 
     /// `newShapeEachAge`: off for the mascot, which keeps its one shape and only grows.
-    public init(seed: String, overrides: [String: Double] = [:], newShapeEachAge: Bool = true) {
+    /// How different Tomos are from one another. 1 is the shipped mix; lower pulls every Tomo toward the
+    /// common middle (warm colours, everyday shapes, rare traits rarer), higher widens every range and makes
+    /// rare traits commoner. Changing it changes every learner's Tomo, so it's fixed once shipped.
+    public static let variety = 1.0
+
+    /// `newShapeEachAge`: off for the mascot, which keeps its one shape and only grows.
+    public init(seed: String, overrides: [String: Double] = [:], newShapeEachAge: Bool = true, variety: Double = TomoLook.variety) {
         self.seed = seed
-        let t = TomoTraits(seed: seed, overrides: overrides)
+        let t = TomoTraits(seed: seed, overrides: overrides, spread: variety)
 
         // Colour: any hue, in one of a few authored tones, so every Tomo looks like it came from one designer.
-        hue = t.numD("hue", 0, 360)
+        // Centred on a warm yellow, so a low variety means warm Tomos rather than one arbitrary colour.
+        let h = 85 + (t("hue") - 0.5) * 360 * min(1, variety)
+        hue = (h.truncatingRemainder(dividingBy: 360) + 360).truncatingRemainder(dividingBy: 360)
         let tone = t.band("tone", Self.tones)
         var head = TomoOklch(l: tone.l, c: tone.c, h: hue)
         head = head.ensuringContrast(against: .notch, min: 3)          // always visible on the black notch
@@ -80,7 +88,7 @@ public struct TomoLook: Equatable, Sendable {
         }
 
         eyeStyle = t.band("eye.style", [(EyeStyle.bar, 0.3), (.dot, 0.55), (.big, 0.72), (.lidded, 0.87), (.bead, 1)])
-        cyclops = t("eye.cyclops") < 0.05
+        cyclops = t.chance("eye.cyclops", 0.05)
         switch eyeStyle {
         case .bar:
             eyeW = t.num("eye.w", 0.085, 0.11); eyeH = eyeW * t.num("eye.ratio", 1.7, 2.6); eyeN = t.num("eye.n", 3.5, 6)
@@ -128,12 +136,12 @@ public struct TomoLook: Equatable, Sendable {
     /// The Tomodachi mascot: the one Tomo everyone sees where a learner's own can't be drawn (widgets, the
     /// Lock Screen, the app icon). Pinned traits, so it never changes with the hash.
     public static let mascot = TomoLook(seed: "tomodachi", overrides: [
-        "hue": 0.24, "tone": 0.7, "eye.style": 0.1, "eye.cyclops": 0.9, "eye.w": 0.8, "eye.ratio": 0.5,
+        "hue": 0.5, "tone": 0.7, "eye.style": 0.1, "eye.cyclops": 0.9, "eye.w": 0.8, "eye.ratio": 0.5,
         "eye.n": 0.4, "eye.gap": 0.5, "eye.y": 0.4, "mouth": 0.1, "pattern": 0.1, "topper": 0.1,
         "age0.body.ratio": 0.45, "age1.body.ratio": 0.45, "age2.body.ratio": 0.45, "age3.body.ratio": 0.45,
         "age4.body.ratio": 0.45, "age5.body.ratio": 0.45,
         "age0.shape": 0.1, "age1.shape": 0.1, "age2.shape": 0.1, "age3.shape": 0.1, "age4.shape": 0.1, "age5.shape": 0.1,
-    ], newShapeEachAge: false)
+    ], newShapeEachAge: false, variety: 1)
 
     /// The learner's Tomo, set by TomoGame when the saved Tomo loads or changes (each TomoBlob that follows
     /// the learner picks it up on its next frame). The mascot until then.
@@ -414,7 +422,11 @@ struct TomoTraits {
     private let state: UInt32
     private let overrides: [String: Double]
 
-    init(seed: String, overrides: [String: Double] = [:]) {
+    /// How far values reach from the middle of each range, and how flat the odds are (1 = as written).
+    private let spread: Double
+
+    init(seed: String, overrides: [String: Double] = [:], spread: Double = 1) {
+        self.spread = max(0.01, spread)
         let s = seed.precomposedStringWithCanonicalMapping.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let bytes = Array(s.utf8)
         state = Self.feed(1_779_033_703 ^ UInt32(truncatingIfNeeded: bytes.count), bytes)
@@ -428,13 +440,24 @@ struct TomoTraits {
         return Double(h) / 4_294_967_296
     }
 
-    func num(_ key: String, _ lo: Double, _ hi: Double) -> CGFloat { CGFloat(lo + self(key) * (hi - lo)) }
-    func numD(_ key: String, _ lo: Double, _ hi: Double) -> Double { lo + self(key) * (hi - lo) }
-    func jitter(_ key: String, _ amount: Double) -> CGFloat { CGFloat((self(key) * 2 - 1) * amount) }
-    /// A weighted pick: each option with the upper edge of its band in [0, 1).
+    func num(_ key: String, _ lo: Double, _ hi: Double) -> CGFloat { CGFloat(numD(key, lo, hi)) }
+    func numD(_ key: String, _ lo: Double, _ hi: Double) -> Double { (lo + hi) / 2 + (self(key) - 0.5) * (hi - lo) * spread }
+    func jitter(_ key: String, _ amount: Double) -> CGFloat { CGFloat((self(key) * 2 - 1) * amount * spread) }
+    /// True with probability `p` (squared with the spread, so rare things get much rarer or commoner).
+    func chance(_ key: String, _ p: Double) -> Bool { self(key) < min(0.5, p * spread * spread) }
+    /// A weighted pick: each option with the upper edge of its band in [0, 1). The spread flattens the odds
+    /// (above 1) or sharpens them toward the commonest options (below 1).
     func band<T>(_ key: String, _ bands: [(T, Double)]) -> T {
         let v = self(key)
-        return (bands.first { v < $0.1 } ?? bands[bands.count - 1]).0
+        var edges = bands.map(\.1)
+        if spread != 1 {
+            var last = 0.0
+            let weights = bands.map { b -> Double in defer { last = b.1 }; return pow(max(1e-6, b.1 - last), 1 / spread) }
+            let total = weights.reduce(0, +)
+            var sum = 0.0
+            edges = weights.map { sum += $0 / total; return sum }
+        }
+        return bands[edges.firstIndex { v < $0 } ?? bands.count - 1].0
     }
 
     private static func feed(_ h0: UInt32, _ bytes: [UInt8]) -> UInt32 {
