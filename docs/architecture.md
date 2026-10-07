@@ -162,8 +162,9 @@ placeholder that the Zenbu dictionary replaces
 
 **Conversation AI.** `TomoAI.complete` is the only network call to an AI: Anthropic's API, or any
 OpenAI-compatible endpoint. The prompt is a shared template plus the pack's persona and rules. The
-provider comes from the AI page (key in the Keychain; hidden for the first release, shown with the testing tools,
-`TomoFeatures`), else from `.env` through `run.sh`. Planned:
+provider comes from the AI page (key in the Keychain; shown with the testing tools, `TomoFeatures`), else from the
+environment. Only Debug builds have AI (`TomoAI.isAvailable`): in a Release build there's no AI page, no provider and
+no AI call. Planned:
 [#7](https://github.com/serpcompany/tomodachi-app/issues/7),
 [#8](https://github.com/serpcompany/tomodachi-app/issues/8),
 [#32](https://github.com/serpcompany/tomodachi-app/issues/32).
