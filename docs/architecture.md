@@ -51,7 +51,8 @@ appeared, which is already synced, so every device draws the same Tomo. Places t
 (`TomoGame.onBotState`), never called directly, so any screen can host it: `TomoBlobView` on the iPhone,
 `TomoCharacterView` in the island. Its time comes from a clock, so it can be rendered offline.
 Invariants: idle life never stops; a seed always gives the same Tomo. Trait keys can be added freely, but
-changing a range, a band or a list changes every learner's Tomo (`TomoLook.selfTest`).
+changing a range, a band or a list changes every learner's Tomo (`TomoLook.selfTest`). `TomoLook.variety` scales how different Tomos are. Planned: evolution that reads as growing up
+([#87](https://github.com/serpcompany/tomodachi-app/issues/87)).
 
 **Languages.** `TomoLanguage.swift`: the target pack (Tomo's words, voice, recognition, AI rules) and the
 learner pack (interface text) for the current pair, `TomoLanguages.shared`; background work takes a
