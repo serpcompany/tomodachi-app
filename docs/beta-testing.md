@@ -44,6 +44,6 @@ Install **TestFlight** from the App Store, then open the invite link we send you
 
 - Did the welcome make clear what Tomo is and how to answer? Was it too long? On the iPhone: were the reminders too many, too few, or at bad times?
 - Did visits feel like a nice nudge, or annoying? Was the frequency right?
-- Was it clear what Tomo wanted? Were Win / Miss / No score clear?
+- Was it clear what Tomo wanted? Were Win / Miss / No score clear? Did Tomo's sounds fit it, or get annoying?
 - Did anything feel like studying instead of playing?
 - Anything broken, confusing, or ugly. Screenshots help.
