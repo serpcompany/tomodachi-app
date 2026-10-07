@@ -163,6 +163,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // MARK: - Island setup
 
     private func setupIsland() {
+        let firstRun = TomoOnboarding.checkAtLaunch()   // before anything opens the store (#88)
         islandController = IslandWindowController()
         islandController?.showWindow(nil)
         TomoSounds.shared.listen()           // Tomo's own synthesized sound effects
@@ -192,7 +193,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         TomoSync.shared.registerForPushes = { NSApplication.shared.registerForRemoteNotifications() }
         game.start()
-        game.dropIn(force: true)
+        if let firstRun { TomoOnboardingWindow.show(firstRun) } else { game.dropIn(force: true) }
         startDebugSnapshots()
         if ProcessInfo.processInfo.environment["TOMO_OPEN_SETTINGS"] != nil {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in self?.openSettings() }
