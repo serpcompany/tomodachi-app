@@ -56,8 +56,9 @@ node .github/scripts/check-docs.mjs && node .github/scripts/check-swift-text.mjs
 - **Finish gate:** the build, the self-test, the repo checks, and the evidence the change needs. A UI
   change needs the snapshot matrix; see [docs/verification.md](docs/verification.md). There's no macOS
   CI yet, so CI runs only the repo checks and the link check.
-- **Test runs never touch the owner's Tomo:** always pass `TOMO_DATA_DIR=<a temp dir>`, mute Tomo, and
-  relaunch the owner's copy afterwards.
+- **Test runs never touch the owner's Tomo or screen:** always pass `TOMO_DATA_DIR=<a temp dir>` and
+  `TOMO_HEADLESS=1` (invisible, silent, never takes the keyboard), never `pkill` by name, and never open
+  Simulator.app (`xcrun simctl` runs headless).
 
 ## Rules
 
