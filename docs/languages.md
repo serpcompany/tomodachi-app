@@ -63,7 +63,7 @@ English is for learners who speak Japanese, so every English word needs a Japane
 **A new target language:**
 1. Copy `es.json` to `<id>.json`. Fill in the locales, script, labels, lines, AI persona and rules, and the levels (rounds and starters, each with an `id`).
 2. Check the Mac has a voice (System Settings → Accessibility → Spoken Content) and on-device dictation for it.
-3. Run `TOMO_TARGET=<id>` with `TOMO_AUTOPLAY=1`, then `TOMO_STAGE=3 TOMO_AUTOCHAT="<an English word>|<a target answer>"` (see [verification.md](verification.md)).
+3. Run the self-test: it fails unless every level can be finished (enough items a round can ask, each `id` in one level, ages never going down, talking on the first 3-year-old level) and a simulated learner grows through the pack. Then run `TOMO_TARGET=<id>` with `TOMO_AUTOPLAY=1`, and `TOMO_STAGE=3 TOMO_AUTOCHAT="<an English word>|<a target answer>"` (see [verification.md](verification.md)).
 4. Have a native speaker review it, then set `reviewedByNativeSpeaker: true`.
 
 **A new learner language:**

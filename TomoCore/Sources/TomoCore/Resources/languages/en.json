@@ -3466,162 +3466,134 @@
       "age": 1,
       "rounds": [
         {
-          "id": "en:frenchfries",
-          "say": "French fries!",
+          "id": "en:sun",
+          "say": "Sun!",
           "meaning": {
-            "en": "french fries",
-            "ja": "フライドポテト"
-          },
-          "category": "food_drink",
-          "answer": "🍟",
-          "choices": [
-            "🍟",
-            "🪆",
-            "🚲"
-          ],
-          "praise": "French fries!"
-        },
-        {
-          "id": "en:gopotty",
-          "say": "Go potty!",
-          "meaning": {
-            "en": "go potty",
-            "ja": "トイレに行く"
-          },
-          "category": "games_routines",
-          "answer": "🚽",
-          "choices": [
-            "👀",
-            "🐑",
-            "🚽"
-          ],
-          "praise": "Go potty!"
-        },
-        {
-          "id": "en:grass",
-          "say": "Grass!",
-          "meaning": {
-            "en": "grass",
-            "ja": "草"
+            "en": "sun",
+            "ja": "おひさま"
           },
           "category": "outside",
-          "answer": "🌱",
+          "answer": "☀️",
           "choices": [
-            "🧹",
-            "🦒",
-            "🌱"
+            "👕",
+            "🦷",
+            "☀️"
           ],
-          "praise": "Grass!"
+          "praise": "Sun!"
         },
         {
-          "id": "en:house",
-          "say": "House!",
+          "id": "en:wet",
+          "say": "Wet!",
           "meaning": {
-            "en": "house",
-            "ja": "いえ"
+            "en": "wet",
+            "ja": "ぬれた"
           },
-          "category": "places",
-          "answer": "🏡",
+          "category": "descriptive_words",
+          "answer": "💦",
           "choices": [
-            "🏡",
-            "⭐",
-            "📄"
+            "🌙",
+            "🍕",
+            "💦"
           ],
-          "praise": "House!"
+          "praise": "Wet!"
         },
         {
-          "id": "en:inside",
-          "say": "Inside!",
+          "id": "en:blue",
+          "say": "Blue!",
           "meaning": {
-            "en": "inside",
-            "ja": "なか"
+            "en": "blue",
+            "ja": "青い"
           },
-          "category": "locations",
-          "praise": "Inside!"
+          "category": "descriptive_words",
+          "answer": "🟦",
+          "choices": [
+            "🟦",
+            "🥛",
+            "🛁"
+          ],
+          "praise": "Blue!"
         },
         {
-          "id": "en:love",
-          "say": "Love!",
+          "id": "en:broken",
+          "say": "Broken!",
           "meaning": {
-            "en": "love",
-            "ja": "だいすき"
+            "en": "broken",
+            "ja": "こわれた"
+          },
+          "category": "descriptive_words",
+          "praise": "Broken!"
+        },
+        {
+          "id": "en:button",
+          "say": "Button!",
+          "meaning": {
+            "en": "button",
+            "ja": "ボタン"
+          },
+          "category": "clothing",
+          "praise": "Button!"
+        },
+        {
+          "id": "en:call",
+          "say": "Call!",
+          "meaning": {
+            "en": "call",
+            "ja": "よぶ"
+          },
+          "category": "games_routines",
+          "praise": "Call!"
+        },
+        {
+          "id": "en:cereal",
+          "say": "Cereal!",
+          "meaning": {
+            "en": "cereal",
+            "ja": "シリアル"
+          },
+          "category": "food_drink",
+          "answer": "🥣",
+          "choices": [
+            "🛁",
+            "🥣",
+            "🙈"
+          ],
+          "praise": "Cereal!"
+        },
+        {
+          "id": "en:chin",
+          "say": "Chin!",
+          "meaning": {
+            "en": "chin",
+            "ja": "あご"
+          },
+          "category": "body_parts",
+          "praise": "Chin!"
+        },
+        {
+          "id": "en:clap",
+          "say": "Clap!",
+          "meaning": {
+            "en": "clap",
+            "ja": "てをたたく"
           },
           "category": "action_words",
-          "answer": "❤️",
+          "praise": "Clap!"
+        },
+        {
+          "id": "en:crayon",
+          "say": "Crayon!",
+          "meaning": {
+            "en": "crayon",
+            "ja": "クレヨン"
+          },
+          "category": "toys",
+          "answer": "🖍️",
           "choices": [
-            "🥚",
-            "👆",
-            "❤️"
+            "💧",
+            "👶",
+            "🖍️"
           ],
-          "praise": "Love!"
-        },
-        {
-          "id": "en:paper",
-          "say": "Paper!",
-          "meaning": {
-            "en": "paper",
-            "ja": "かみ"
-          },
-          "category": "household",
-          "answer": "📄",
-          "choices": [
-            "📄",
-            "⭐",
-            "❤️"
-          ],
-          "praise": "Paper!"
-        },
-        {
-          "id": "en:snack",
-          "say": "Snack!",
-          "meaning": {
-            "en": "snack",
-            "ja": "おやつ"
-          },
-          "category": "games_routines",
-          "praise": "Snack!"
-        },
-        {
-          "id": "en:star",
-          "say": "Star!",
-          "meaning": {
-            "en": "star",
-            "ja": "星"
-          },
-          "category": "outside",
-          "answer": "⭐",
-          "choices": [
-            "⭐",
-            "🥕",
-            "🐑"
-          ],
-          "praise": "Star!"
-        },
-        {
-          "id": "en:strawberry",
-          "say": "Strawberry!",
-          "meaning": {
-            "en": "strawberry",
-            "ja": "いちご"
-          },
-          "category": "food_drink",
-          "answer": "🍓",
-          "choices": [
-            "⭐",
-            "👨",
-            "🍓"
-          ],
-          "praise": "Strawberry!"
-        },
-        {
-          "id": "en:yogurt",
-          "say": "Yogurt!",
-          "meaning": {
-            "en": "yogurt",
-            "ja": "ヨーグルト"
-          },
-          "category": "food_drink",
-          "praise": "Yogurt!"
+          "praise": "Crayon!"
         }
       ]
     },
