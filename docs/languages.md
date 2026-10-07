@@ -21,7 +21,7 @@ Code: `TomoCore/Sources/TomoCore/TomoLanguage.swift` holds:
 - `LanguageContext` (the pair, passed to background work)
 - `TomoLanguages` (the current selection)
 
-Change them in **Settings → General** (I speak / I'm learning). The menu and Settings switch to the new interface language right away. For testing: `TOMO_TARGET=en`, `TOMO_LEARNER=ja`.
+Change them in **Settings** (I speak / I'm learning; the first release is Japanese only, so "I'm learning" shows only with the testing tools, `TomoFeatures`). The menus and the screens switch to the new interface language right away. For testing: `TOMO_TARGET=en`, `TOMO_LEARNER=ja`.
 
 ## What a language pack contains
 
@@ -63,7 +63,7 @@ English is for learners who speak Japanese, so every English word needs a Japane
 **A new target language:**
 1. Copy `es.json` to `<id>.json`. Fill in the locales, script, labels, lines, AI persona and rules, and the levels (rounds and starters, each with an `id`).
 2. Check the Mac has a voice (System Settings → Accessibility → Spoken Content) and on-device dictation for it.
-3. Run `TOMO_TARGET=<id>` with `TOMO_AUTOPLAY=1`, then `TOMO_STAGE=3 TOMO_AUTOCHAT="<an English word>|<a target answer>"` (see [verification.md](verification.md)).
+3. Run the self-test: it fails unless every level can be finished (enough items a round can ask, each `id` in one level, ages never going down, talking on the first 3-year-old level) and a simulated learner grows through the pack. Then run `TOMO_TARGET=<id>` with `TOMO_AUTOPLAY=1`, and `TOMO_STAGE=3 TOMO_AUTOCHAT="<an English word>|<a target answer>"` (see [verification.md](verification.md)).
 4. Have a native speaker review it, then set `reviewedByNativeSpeaker: true`.
 
 **A new learner language:**

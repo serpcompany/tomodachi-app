@@ -12,6 +12,7 @@
 		17268293140381667D3693BB /* TomoCore in Frameworks */ = {isa = PBXBuildFile; productRef = D7DDDC272F7133197F0D59BB /* TomoCore */; };
 		1C30573A4EFCEC1784E40BAD /* TomoWordSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE15650199C378342BFCA096 /* TomoWordSheet.swift */; };
 		1F7D3B14990380320D4BB1C3 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C3C4C2027DB8873CC0A1EC01 /* SwiftUI.framework */; };
+		2AE9D1DC5132E456A1102842 /* TomoPhoneHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 666A72997ED021BF38D009FD /* TomoPhoneHome.swift */; };
 		43C83B710033B8A4E45A3326 /* TomoLiveVisit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DD481FC31C8E38E2AB4F657 /* TomoLiveVisit.swift */; };
 		473AFFBA189B29BCEACD06A1 /* TomoMovingMascot.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5849F648AA4E62CBEBF52E /* TomoMovingMascot.swift */; };
 		55B668E3CF5DF92A2428F6DE /* TomoWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = E56A0CD36F22076E120230DE /* TomoWidgets.swift */; };
@@ -63,6 +64,7 @@
 		5DD481FC31C8E38E2AB4F657 /* TomoLiveVisit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoLiveVisit.swift; sourceTree = "<group>"; };
 		643C75D304AC245CB7F57635 /* TomoVisitLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoVisitLiveActivity.swift; sourceTree = "<group>"; };
 		666A1D255B37C508A967E5C0 /* TomoSleep0.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = TomoSleep0.ttf; sourceTree = "<group>"; };
+		666A72997ED021BF38D009FD /* TomoPhoneHome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoPhoneHome.swift; sourceTree = "<group>"; };
 		88609709C79E2CA69714B54D /* TomoSleep2.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = TomoSleep2.ttf; sourceTree = "<group>"; };
 		8A139532B7D9250EC8422DC8 /* TomoReady0.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = TomoReady0.ttf; sourceTree = "<group>"; };
 		946EAB4DCF25D24015CABDF5 /* TomoPhoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoPhoneView.swift; sourceTree = "<group>"; };
@@ -106,6 +108,7 @@
 			children = (
 				040E64E13B16E7A347446C38 /* TomodachiApp.swift */,
 				5DD481FC31C8E38E2AB4F657 /* TomoLiveVisit.swift */,
+				666A72997ED021BF38D009FD /* TomoPhoneHome.swift */,
 				946EAB4DCF25D24015CABDF5 /* TomoPhoneView.swift */,
 				BE15650199C378342BFCA096 /* TomoWordSheet.swift */,
 			);
@@ -345,6 +348,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				43C83B710033B8A4E45A3326 /* TomoLiveVisit.swift in Sources */,
+				2AE9D1DC5132E456A1102842 /* TomoPhoneHome.swift in Sources */,
 				EDC97339274AD5D9DE559C33 /* TomoPhoneView.swift in Sources */,
 				65D3A2DECEF7CDCB4AC5EA6E /* TomoVisitActivity.swift in Sources */,
 				1C30573A4EFCEC1784E40BAD /* TomoWordSheet.swift in Sources */,

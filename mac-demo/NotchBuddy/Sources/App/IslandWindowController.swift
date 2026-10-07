@@ -53,6 +53,7 @@ final class IslandWindowController: NSWindowController {
         panel.hasShadow = false
         panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.mainMenuWindow)) + 3)
         panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]
+        panel.canHide = false   // Tomodachi is a regular app: hiding it (⌘H, Hide Others) leaves Tomo in the notch
         panel.ignoresMouseEvents = true
 
         let contentSize = panel.contentRect(forFrameRect: panel.frame).size
@@ -417,13 +418,6 @@ final class IslandPanel: NSPanel {
         let h = fixedH + (s.mode == .expanded ? s.helpPanelHeight : 0)
         return CGRect(x: (frame.width - w) / 2, y: frame.height - h, width: w, height: h)
     }
-}
-
-// MARK: - Notification names
-
-extension Notification.Name {
-    /// Opens the Settings window (TomoSettingsNav picks the page).
-    static let openFullSettings = Notification.Name("tomo.openSettings")
 }
 
 // MARK: - islandSize (takes real notch dimensions)
