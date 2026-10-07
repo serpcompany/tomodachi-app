@@ -265,11 +265,11 @@ struct BotPlacement: View {
             }
 
             // Uploading: no particle overhang (no hearts during upload), positioned directly at cy.
-            // TomoChick cy = H/2 + 0 + dy*R + R*0.06 ≈ H/2 (body centered in canvas).
+            // TomoBlob cy = H/2 + 0 + dy*R + R*0.06 ≈ H/2 (body centered in canvas).
             // With .position(x:y:) placing the frame center at (uploadCx, cy), bot is at cy ✓.
             //
             // Normal: extra 40pt canvas at top for heart particles; position offset up by 20pt;
-            // TomoChick compensates with cy = H/2 + particleOverhang/2 + dy*R + R*0.06.
+            // TomoBlob compensates with cy = H/2 + particleOverhang/2 + dy*R + R*0.06.
             if isUploading {
                 TimelineView(.animation) { tl in
                     let elapsed: Double = {

@@ -6,9 +6,9 @@ detail. Planned work links to its issue.
 
 Tomo's code is in `Tomo*.swift` files, in two places. **`TomoCore/`** is a Swift package for macOS and
 iOS with everything that isn't tied to one device: the game, growth, store, languages and their packs,
-AI, voice, sounds, and the chick's drawing. Each app is a shell around it: the Mac app in
+AI, voice, sounds, and Tomo's drawing. Each app is a shell around it: the Mac app in
 `mac-demo/NotchBuddy/Sources/App/`, where Coucou's files (`Island*`, `AppDelegate`, `AppState`…) are
-the notch ([coucou-fork.md](coucou-fork.md)), and the iPhone app in `ios-demo/` with its widget extension. Widgets can't run the game: the app writes a `TomoGlance` (age, level, bar, what's waiting, in the learner's language) to the App Group `group.com.zenbujapanese.tomodachi`, and the widget draws it, with Tomo moving through a font of its own frames (`TomoMovingChick`; decisions.md). The same glance drives Tomo's Lock Screen card, a Live Activity (`TomoLiveVisit` in the app, `TomoVisitLiveActivity` in the extension); its stale date is the next due time, so it turns to "ready" without the app running. Mac-only parts stay in
+the notch ([coucou-fork.md](coucou-fork.md)), and the iPhone app in `ios-demo/` with its widget extension. Widgets can't run the game: the app writes a `TomoGlance` (age, level, bar, what's waiting, in the learner's language) to the App Group `group.com.zenbujapanese.tomodachi`, and the widget draws it, with the mascot moving through a font of its own frames (`TomoMovingMascot`; decisions.md). The same glance drives Tomo's Lock Screen card, a Live Activity (`TomoLiveVisit` in the app, `TomoVisitLiveActivity` in the extension); its stale date is the next due time, so it turns to "ready" without the app running. Mac-only parts stay in
 the Mac app: the card (`TomoView`), Settings, clickable words with the Mac's dictionary
 (`TomoLineView`) and Tomo in the island (`TomoIslandCharacter`). Invariant: TomoCore never imports AppKit
 or UIKit, or reaches into a shell.
@@ -17,7 +17,7 @@ or UIKit, or reaches into a shell.
 
 ```
 Island shell (Coucou)       notch window, open/close state machine, click-through
-  └─ Character (TomoChick)  Tomo the chick: body, faces, moves, growth
+  └─ Character (TomoBlob)   Tomo the blob: a look from a seed, faces, moves, evolving
   └─ Tomo app               TomoGame (flow) · TomoView (UI)
        ├─ Content source    what Tomo brings: the age track (language packs)
        ├─ Growth            word stages, levels, ages (TomoProgress)
@@ -41,14 +41,17 @@ card's Play and choice buttons are `LiveActivityIntent`s (`TomoPlayIntent`, `Tom
 runs in the app's process, launching it in the background if needed; they reach the game through
 `TomoVisitHook`, set in the app's `init` ([#52](https://github.com/serpcompany/tomodachi-app/issues/52)).
 
-**Character.** `TomoChick` in `TomoCharacter.swift`: our chick, drawn every frame in code, with three
-looks (in its shell, hatched, bigger). It's driven by notifications (`.botGrow`, `.botLevelUp`,
-`.triggerEmote` and others, in `TomoSignals.swift`) and Tomo's state (`TomoGame.onBotState`), never
-called directly, so any screen can host it: `TomoChickView` on the iPhone, `TomoCharacterView` in the
-island. Its time comes from a clock, so it can be rendered offline. Invariant: idle life
-never stops. Planned: faces and looks past 3さい
-([#22](https://github.com/serpcompany/tomodachi-app/issues/22)), variants
-([#23](https://github.com/serpcompany/tomodachi-app/issues/23)).
+**Character.** `TomoBlob` in `TomoCharacter.swift`: a blob drawn every frame in code. Its look is a
+`TomoLook` (`TomoLook.swift`) hashed from a seed: a colour and eyes for life, and a form for each age
+(silhouette, size, details) that changes at every birthday. The learner's look is `TomoLook.current`,
+which `TomoGame` sets from the saved Tomo; the seed is the language pair and the second the Tomo first
+appeared, which is already synced, so every device draws the same Tomo. Places that can't draw it live
+(widgets, Live Activities, the icons) show `TomoLook.mascot`. It's driven by notifications (`.botGrow`,
+`.botLevelUp`, `.triggerEmote` and others, in `TomoSignals.swift`) and Tomo's state
+(`TomoGame.onBotState`), never called directly, so any screen can host it: `TomoBlobView` on the iPhone,
+`TomoCharacterView` in the island. Its time comes from a clock, so it can be rendered offline.
+Invariants: idle life never stops; a seed always gives the same Tomo. Trait keys can be added freely, but
+changing a range, a band or a list changes every learner's Tomo (`TomoLook.selfTest`).
 
 **Languages.** `TomoLanguage.swift`: the target pack (Tomo's words, voice, recognition, AI rules) and the
 learner pack (interface text) for the current pair, `TomoLanguages.shared`; background work takes a

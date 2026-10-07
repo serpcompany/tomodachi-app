@@ -392,7 +392,7 @@ final class IslandWindowController: NSWindowController {
             self?.collapse()
         }
 
-        // .botDizzy — posted by TomoChick.poke() on the 3rd poke; show confused view + recover after 3.3s
+        // .botDizzy — posted by TomoBlob.poke() on the 3rd poke; show confused view + recover after 3.3s
         NotificationCenter.default.addObserver(forName: .botDizzy, object: nil, queue: .main) { [weak self] _ in
             self?.handleDizzy()
         }
@@ -725,7 +725,7 @@ final class IslandWindowController: NSWindowController {
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.2, execute: item)
     }
 
-    // MARK: - Dizzy recovery (triggered by TomoChick.poke via .botDizzy)
+    // MARK: - Dizzy recovery (triggered by TomoBlob.poke via .botDizzy)
 
     private func handleDizzy() {
         let prevView = state.view

@@ -4,7 +4,7 @@ import TomoCore
 
 // MARK: - App icon from the character code (debug tool)
 //
-// TOMO_RENDER_ICON=<dir> renders Tomo with the real character code (TomoChick) and quits:
+// TOMO_RENDER_ICON=<dir> renders the Tomodachi mascot with the real character code (TomoBlob) and quits:
 //   <dir>/icon-1024.png  the app icon (Tomo on a dark rounded square, Apple's 824-pt icon grid)
 //   <dir>/tomo-1024.png  Tomo alone on transparent, for the menu bar template
 //   <dir>/icon-ios-1024.png  the iPhone app icon: full-bleed and opaque (iOS draws the rounded mask)
@@ -15,9 +15,9 @@ enum TomoIconRenderer {
     private static var checkResult: Bool?
 
     static func renderIfRequested() {
-        if ProcessInfo.processInfo.environment["TOMO_SELFTEST"] != nil {   // TomoProgress rules + store, sync merges
-            let growth = TomoProgress.selfTest(), sync = TomoSync.selfTest()
-            exit(growth && sync ? 0 : 1)
+        if ProcessInfo.processInfo.environment["TOMO_SELFTEST"] != nil {   // TomoProgress rules + store, sync merges, looks
+            let growth = TomoProgress.selfTest(), sync = TomoSync.selfTest(), look = TomoLook.selfTest()
+            exit(growth && sync && look ? 0 : 1)
         }
         if let step = ProcessInfo.processInfo.environment["TOMO_SYNC_CHECK"] {   // TomoSync between data folders
             Task { checkResult = await TomoSync.check(step) }
@@ -50,12 +50,17 @@ enum TomoIconRenderer {
         NSApp.terminate(nil)
     }
 
-    /// Tomo drawn by the same engine as the notch, at rest, looking straight ahead.
+    /// The Tomo these renders show: TOMO_SEED=<text> for a learner-style Tomo, otherwise the mascot.
+    private static var look: TomoLook {
+        ProcessInfo.processInfo.environment["TOMO_SEED"].map { TomoLook(seed: $0) } ?? .mascot
+    }
+
+    /// The mascot drawn by the same engine as the notch, at rest, looking straight ahead.
     private static func tomo(size: CGFloat, grow: CGFloat) -> some View {
-        let chick = TomoChick()
-        chick.setGrowth(grow)
+        let blob = TomoBlob(look: .mascot)
+        blob.setGrowth(grow)
         return Canvas { ctx, sz in
-            chick.draw(ctx, size: sz)
+            blob.draw(ctx, size: sz)
         }
         .frame(width: size, height: size)
     }
@@ -65,13 +70,13 @@ enum TomoIconRenderer {
     private static func renderAnimation(to out: URL) {
         try? FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
         var t = 0.0
-        let chick = TomoChick()
-        chick.clock = { t }
-        chick.particleOverhang = 40
-        chick.setGrowth(0)
-        let script: [(at: Double, run: (TomoChick) -> Void)] = [
+        let blob = TomoBlob(look: look)
+        blob.clock = { t }
+        blob.particleOverhang = 40
+        blob.setGrowth(0)
+        let script: [(at: Double, run: (TomoBlob) -> Void)] = [
             (0.8, { $0.talk() }), (1.1, { $0.talk() }), (1.4, { $0.talk() }),
-            (2.2, { $0.grow(to: 1) }),                                   // hatches
+            (2.2, { $0.grow(to: 1) }),                                   // 2さい: its first evolution
             (4.2, { $0.setState(.question) }),
             (5.4, { $0.setState(.finished) }), (6.6, { $0.setState(.idle) }),
             (7.2, { $0.setState(.error) }), (8.1, { $0.setState(.idle) }),
@@ -85,24 +90,24 @@ enum TomoIconRenderer {
         let fps = 20.0
         for i in 0..<Int(fps * 16) {
             t = Double(i) / fps
-            while next < script.count && script[next].at <= t { script[next].run(chick); next += 1 }
-            chick.lookX = CGFloat(sin(t * 0.9)) * 0.9          // a cursor drifting around
-            chick.lookY = CGFloat(cos(t * 0.6)) * 0.5
-            chick.step()
-            let frame = Canvas { ctx, sz in chick.draw(ctx, size: sz) }
+            while next < script.count && script[next].at <= t { script[next].run(blob); next += 1 }
+            blob.lookX = CGFloat(sin(t * 0.9)) * 0.9          // a cursor drifting around
+            blob.lookY = CGFloat(cos(t * 0.6)) * 0.5
+            blob.step()
+            let frame = Canvas { ctx, sz in blob.draw(ctx, size: sz) }
                 .frame(width: 240, height: 280)
                 .background(Color.black)
             write(frame, to: out.appendingPathComponent(String(format: "frame-%04d.png", i)))
         }
     }
 
-    /// TOMO_RENDER_CARD_FRAMES=<dir>: the ten frames of Tomo's loop on the iPhone's Lock Screen card, for each
-    /// age and both moods: <dir>/<ready|sleep>-<0|1|2>/frame-0.png … frame-9.png (240 px, transparent).
+    /// TOMO_RENDER_CARD_FRAMES=<dir>: the ten frames of the mascot's loop on the iPhone's Lock Screen card, for
+    /// each age and both moods: <dir>/<ready|sleep>-<0|1|2>/frame-0.png … frame-9.png (240 px, transparent).
     /// One frame shows per second (ios-demo/scripts/make-frame-font.py), so each is a distinct pose and
     /// frame 9 leads back into frame 0.
     private static func renderCardFrames(to out: URL) {
-        typealias Beat = (lead: Double, run: (TomoChick) -> Void)
-        let look: (CGFloat, CGFloat) -> (TomoChick) -> Void = { x, y in { $0.lookX = x; $0.lookY = y } }
+        typealias Beat = (lead: Double, run: (TomoBlob) -> Void)
+        let look: (CGFloat, CGFloat) -> (TomoBlob) -> Void = { x, y in { $0.lookX = x; $0.lookY = y } }
         // Per frame: what happens, and how long before the frame is drawn.
         let ready: [[Beat]] = [
             [(0.6, look(0, 0))],
@@ -122,11 +127,11 @@ enum TomoIconRenderer {
                 let dir = out.appendingPathComponent("\(name)-\(growth)")
                 try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
                 var t = 100.0
-                let chick = TomoChick()
-                chick.clock = { t }
-                chick.setGrowth(CGFloat(growth))
-                chick.step()
-                chick.setState(mood, force: true)
+                let blob = TomoBlob(look: .mascot)
+                blob.clock = { t }
+                blob.setGrowth(CGFloat(growth))
+                blob.step()
+                blob.setState(mood, force: true)
                 // Run a few seconds first so the z's are already drifting, then one frame per second.
                 var events = beats.enumerated().flatMap { k, list in list.map { (at: 104 + Double(k) - $0.lead, run: $0.run) } }
                     .sorted { $0.at < $1.at }
@@ -134,14 +139,14 @@ enum TomoIconRenderer {
                     let shot = 104 + Double(k)
                     while t < shot {
                         t = min(shot, t + 1.0 / 60)
-                        while let e = events.first, e.at <= t { e.run(chick); events.removeFirst() }
-                        chick.step()
+                        while let e = events.first, e.at <= t { e.run(blob); events.removeFirst() }
+                        blob.step()
                     }
                     // Tomo a little smaller and lower than the frame, so hops and the "?" stay inside it.
                     let frame = Canvas { ctx, _ in
                         var c = ctx
                         c.translateBy(x: 24, y: 40)
-                        chick.draw(c, size: CGSize(width: 192, height: 192))
+                        blob.draw(c, size: CGSize(width: 192, height: 192))
                     }.frame(width: 240, height: 240)
                     write(frame, to: dir.appendingPathComponent("frame-\(k).png"))
                 }
@@ -149,28 +154,37 @@ enum TomoIconRenderer {
         }
     }
 
-    /// TOMO_RENDER_SHEET=<dir>: every age and face on one image, for reviewing the character.
+    /// TOMO_RENDER_SHEET=<dir>: one Tomo at every age and with every face, then a crowd of other Tomos, on one
+    /// image for reviewing the character. TOMO_SEED picks the Tomo (the mascot otherwise).
     private static var sheet: some View {
-        func cell(_ label: String, growth: CGFloat = 1, _ setup: (TomoChick) -> Void = { _ in }) -> some View {
-            let chick = TomoChick()
-            chick.setGrowth(growth)
-            setup(chick)
+        func cell(_ label: String, growth: CGFloat = 1, look l: TomoLook = look, _ setup: (TomoBlob) -> Void = { _ in }) -> some View {
+            let blob = TomoBlob(look: l)
+            blob.setGrowth(growth)
+            setup(blob)
             return VStack(spacing: 4) {
-                Canvas { ctx, sz in chick.draw(ctx, size: sz) }.frame(width: 220, height: 220)
-                Text(label).font(.system(size: 18, weight: .medium)).foregroundColor(.white.opacity(0.7))
+                Canvas { ctx, sz in blob.draw(ctx, size: sz) }.frame(width: 180, height: 180)
+                Text(label).font(.system(size: 16, weight: .medium)).foregroundColor(.white.opacity(0.7))
             }
         }
+        let ages = ["1さい", "2さい", "3さい", "4さい", "5さい", "6さい"]  // text-ok: debug sheet labels
+        let crowd = (0..<12).map { TomoLook(seed: "sheet-\($0)") }
         let rows: [[AnyView]] = [
-            [AnyView(cell("1さい", growth: 0)), AnyView(cell("2さい", growth: 1)), AnyView(cell("3さい", growth: 2)),  // text-ok: debug sheet labels
-             AnyView(cell("look", growth: 1) { $0.lookX = 0.8; $0.lookY = -0.6; for _ in 0..<40 { $0.step() } })],
-            [AnyView(cell("right", growth: 1) { $0.setState(.finished) }),
-             AnyView(cell("wrong", growth: 1) { $0.setState(.error) }),
-             AnyView(cell("huh?", growth: 1) { $0.setState(.question); for _ in 0..<60 { $0.step() } }),
-             AnyView(cell("asleep", growth: 1) { $0.setState(.sleeping) })],
-            [AnyView(cell("love", growth: 1) { $0.emote(.love) }),
-             AnyView(cell("surprised", growth: 1) { $0.emote(.surprised) }),
+            (0..<6).map { AnyView(cell(ages[$0], growth: CGFloat($0))) },
+            [AnyView(cell("look") { $0.lookX = 0.8; $0.lookY = -0.6; for _ in 0..<40 { $0.step() } }),
+             AnyView(cell("right") { $0.setState(.finished) }),
+             AnyView(cell("wrong") { $0.setState(.error) }),
+             AnyView(cell("huh?") { $0.setState(.question); for _ in 0..<60 { $0.step() } }),
+             AnyView(cell("asleep") { $0.setState(.sleeping) }),
+             AnyView(cell("talk") { $0.talk(); $0.step() })],
+            [AnyView(cell("love") { $0.emote(.love) }),
+             AnyView(cell("surprised") { $0.emote(.surprised) }),
              AnyView(cell("yawn", growth: 0) { $0.emote(.yawn) }),
-             AnyView(cell("wink", growth: 2) { $0.emote(.wink) })],
+             AnyView(cell("wink", growth: 2) { $0.emote(.wink) }),
+             AnyView(cell("annoyed") { $0.emote(.annoyed) }),
+             AnyView(cell("dizzy") { $0.setState(.dizzy) })],
+            (0..<6).map { AnyView(cell(crowd[$0].form(2).silhouette.rawValue, growth: 2, look: crowd[$0])) },
+            (6..<12).map { AnyView(cell(crowd[$0].form(2).silhouette.rawValue, growth: 2, look: crowd[$0])) },
+            (0..<6).map { AnyView(cell(crowd[0].form($0).silhouette.rawValue, growth: CGFloat($0), look: crowd[0])) },
         ]
         return VStack(spacing: 10) {
             ForEach(0..<rows.count, id: \.self) { r in

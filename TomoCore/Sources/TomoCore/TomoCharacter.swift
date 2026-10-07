@@ -1,17 +1,17 @@
 import SwiftUI
 
-// MARK: - Tomo, the chick
+// MARK: - Tomo, the blob
 //
-// Tomo is a hiyoko (baby chick), drawn and animated by our own code. Growth:
-//   0 = 1さい: sits in the bottom half of its eggshell, one head feather
-//   1 = 2さい: hatched; the shell drops away, feet and a second feather appear
-//   2 = 3さい: a little bigger, a third feather
+// Every Tomo is a blob of its own, drawn and animated by our own code (decisions.md, 2026-10-07). What it
+// looks like comes from its seed (TomoLook.swift): a colour and eyes for life, and a new form at every
+// birthday. Growth is an age step, 0 = 1さい … 5 = 6さい; each birthday it squeezes down, flashes and pops out
+// in its next form.
 // The app drives it through notifications (docs/architecture.md, "Character"): the task state
 // (`AppState.effectiveState`), `.botTalk`, `.botNudge`, `.botGrow`, `.botGreet`, `.botGulp`,
 // `.triggerEmote`, `.triggerSlap`, `.botBlink`, `.botSetTgEs`.
 
 @MainActor
-public final class TomoChick: ObservableObject {
+public final class TomoBlob: ObservableObject {
     /// Where the cursor is, −1…1 (positive y = above Tomo).
     public var lookX: CGFloat = 0
     public var lookY: CGFloat = 0
@@ -26,12 +26,18 @@ public final class TomoChick: ObservableObject {
     /// The frame being drawn (set by the view; reading it ties the Canvas to the frame timer).
     public var frameDate = Date()
 
-    public init() {}
+    /// Whose Tomo this is. Nil: the learner's own (`TomoLook.current`), changing with a pop when it does.
+    public let fixedLook: TomoLook?
+    public private(set) var look: TomoLook
 
-    /// 0 = 1さい (in the shell), 1 = 2さい (hatched), 2 = 3さい. Springs toward `growthTarget`.
-    public var growth: CGFloat = 0
-    private var growthTarget: CGFloat = 0
-    private var growthVel: CGFloat = 0
+    public init(look: TomoLook? = nil) {
+        fixedLook = look
+        self.look = look ?? TomoLook.current
+    }
+
+    /// The age step on show (0 = 1さい), and the one it's growing into.
+    public private(set) var age = 0
+    private var swap: (at: Double, age: Int, look: TomoLook)?
 
     public private(set) var state: BotState = .idle
     private var baseFace: Face = .normal
@@ -41,7 +47,7 @@ public final class TomoChick: ObservableObject {
     private var pose = Pose()              // this frame's moves, summed in step()
 
     // Smoothed values and secondary motion
-    private var look = CGPoint.zero
+    private var look2 = CGPoint.zero
     private var glance: (to: CGPoint, until: Double)?
     private var saccade = CGPoint.zero
     private var wander = CGPoint.zero
@@ -49,8 +55,10 @@ public final class TomoChick: ObservableObject {
     private var puff: CGFloat = 1
     private var puffTarget: CGFloat = 1
     private var blush: CGFloat = 0
-    private var tuftSwing: CGFloat = 0
-    private var tuftVel: CGFloat = 0
+    private var sway: CGFloat = 0          // the sprout, lagging behind the body's moves
+    private var swayVel: CGFloat = 0
+    private var jiggle: CGFloat = 0        // the body's own wobble after a hop or a pop
+    private var jiggleVel: CGFloat = 0
     private var lastDy: CGFloat = 0
     private var lastRot: CGFloat = 0
     private var lastDx: CGFloat = 0
@@ -81,8 +89,8 @@ public final class TomoChick: ObservableObject {
         baseFace = Self.face(for: s)
         let now = clock()
         switch s {
-        case .finished:                       // got it right: hop, flap, sparkles
-            add(.hop(0.3), 0.45); add(.flap(4), 0.5); add(.rock, 0.9)
+        case .finished:                       // got it right: hop, wiggle, sparkles
+            add(.hop(0.3), 0.45); add(.wiggle(4), 0.5); add(.rock, 0.9)
             emit(.sparkle, 6)
         case .error:                          // wrong: shake it off
             add(.shake, 0.45)
@@ -101,21 +109,21 @@ public final class TomoChick: ObservableObject {
 
     public func blink() { blinkAt = clock() }
 
-    /// One beak flap per spoken line.
-    public func talk() { stir(); add(.beak, 0.28) }
+    /// The mouth opens once per spoken line.
+    public func talk() { stir(); add(.mouth, 0.28) }
 
-    /// "Over here!": a double hop with a wing flap.
+    /// "Over here!": a double hop with a wiggle.
     public func nudge() { stir(); add(.nudge, 0.75); blink() }
 
     public func greet() {
         stir()
-        add(.hop(0.25), 0.45); add(.flap(6), 0.8)
+        add(.hop(0.25), 0.45); add(.wiggle(6), 0.8)
         flash = (.happy, clock() + 1.4)
         emit(.sparkle, 3)
     }
 
-    /// Eating (feed): two pecks.
-    public func gulp() { stir(); add(.peck, 0.6) }
+    /// Eating (feed): two gulps.
+    public func gulp() { stir(); add(.gulp, 0.6) }
 
     /// Clicked on Tomo. Three pokes in a row make it dizzy.
     public func poke() {
@@ -135,11 +143,11 @@ public final class TomoChick: ObservableObject {
         let now = clock()
         switch e {
         case .love:      flash = (.love, now + 1.8); blush = 1; emit(.heart, 4)
-        case .surprised: flash = (.surprised, now + 1.2); add(.hop(0.2), 0.4); add(.beak, 0.6)
+        case .surprised: flash = (.surprised, now + 1.2); add(.hop(0.2), 0.4); add(.mouth, 0.6)
         case .proud:     flash = (.happy, now + 1.8); add(.hop(0.15), 0.4); emit(.sparkle, 4)
         case .wink:      flash = (.wink, now + 0.9)
-        case .yawn:      flash = (.sleepy, now + 1.6); add(.beak, 1.2)
-        case .happy:     flash = (.happy, now + 1.4); add(.flap(3), 0.4)
+        case .yawn:      flash = (.sleepy, now + 1.6); add(.mouth, 1.2)
+        case .happy:     flash = (.happy, now + 1.4); add(.wiggle(3), 0.4)
         case .annoyed:   flash = (.flat, now + 1.2); add(.shake, 0.3)
         }
     }
@@ -150,24 +158,33 @@ public final class TomoChick: ObservableObject {
         puffTarget = scale > 1 ? 1.05 : 1
     }
 
-    /// Grow up (or reset) to an age step.
+    /// Grow up (or reset) to an age step. Growing up evolves: squeeze, flash, pop out in the next form.
     public func grow(to target: CGFloat) {
         stir()
-        if target > growthTarget {
-            add(.flap(5), 0.7); add(.hop(0.3), 0.5)
+        let next = Self.ageStep(target)
+        if next > (swap?.age ?? age) {
+            evolve(to: next, look: swap?.look ?? look)
             emit(.sparkle, 8)
-            if growthTarget < 1 && target >= 1 { emit(.shell, 8) }
+        } else {
+            setGrowth(target)
         }
-        growthTarget = target
     }
 
     /// Jump straight to an age step (no animation).
     public func setGrowth(_ value: CGFloat) {
-        growth = value; growthTarget = value; growthVel = 0
+        age = Self.ageStep(value)
+        swap = nil
+    }
+
+    private static func ageStep(_ v: CGFloat) -> Int { min(max(Int(v.rounded()), 0), TomoLook.ages - 1) }
+
+    private func evolve(to next: Int, look next2: TomoLook) {
+        add(.evolve, 0.9)
+        swap = (clock() + 0.4, next, next2)
     }
 
     /// Something small Tomo does on its own between events, so it never sits frozen:
-    /// a glance, a peep, a wing stretch, a curious tilt, a shuffle, preening, or a little hop.
+    /// a glance, a peep, a stretch, a curious tilt, a shuffle, a little lean, or a hop.
     public func fidget() {
         let now = clock()
         switch Int.random(in: 0..<7) {
@@ -179,9 +196,9 @@ public final class TomoChick: ObservableObject {
         case 3: add(.tiltHold(Bool.random() ? 0.15 : -0.15), 1.4)
         case 4: add(.shuffle, 0.8)
         case 5:
-            add(.preen(Bool.random() ? 1 : -1), 1.0)
+            add(.lean(Bool.random() ? 1 : -1), 1.0)
             flash = (.sleep, now + 0.7)
-        default: add(.hop(0.12), 0.35); add(.flap(2), 0.35)
+        default: add(.hop(0.12), 0.35); add(.wiggle(2), 0.35)
         }
     }
 
@@ -205,12 +222,24 @@ public final class TomoChick: ObservableObject {
             born = now - .random(in: 0...4)
             lastTime = now; lastStir = now
             nextBlink = now + 1.5; nextFidget = now + .random(in: 2...4)
+            if fixedLook == nil { look = TomoLook.current }
         }
         // Real elapsed time: if macOS pauses the frame timer (screen asleep, window hidden),
         // particles and timers still catch up instead of freezing. Smoothing is stable for any step.
         let elapsed = max(0, now - lastTime)
         lastTime = now
         let dt = CGFloat(min(elapsed, 1))
+
+        // A different learner's Tomo (it synced in, or a new one hatched): pop into it.
+        if fixedLook == nil, TomoLook.current != (swap?.look ?? look) {
+            evolve(to: swap?.age ?? age, look: TomoLook.current)
+        }
+        if let s = swap, now >= s.at {
+            age = s.age; look = s.look; swap = nil
+            emit(.pop, 12)
+            jiggleVel += 6
+        }
+
         moves.removeAll { now > $0.start + $0.duration }
         if let f = flash, now > f.until { flash = nil }
         if let g = glance, now > g.until { glance = nil }
@@ -243,40 +272,41 @@ public final class TomoChick: ObservableObject {
         target.x += saccade.x
         target.y += saccade.y
         let kLook = 1 - pow(0.0005, dt), kSoft = 1 - pow(0.001, dt)
-        look.x += (target.x - look.x) * kLook
-        look.y += (target.y - look.y) * kLook
+        look2.x += (target.x - look2.x) * kLook
+        look2.y += (target.y - look2.y) * kLook
         tilt += (Self.tilt(for: state) - tilt) * kSoft
         puff += (puffTarget - puff) * kSoft
         blush += (0 - blush) * (1 - pow(0.4, dt))
 
-        // Springs, in small substeps: growth (a little overshoot, like a pop) and the head
-        // feathers, which lag behind the body's moves and wobble back.
+        // Springs, in small substeps: the sprout, which lags behind the body's moves and wobbles back,
+        // and the body's jelly wobble when it lands.
         if dt > 0 {
             let vy = (pose.dy - lastDy) / dt
             let vx = (pose.dx - lastDx) / dt
             let vr = (pose.rot + tilt - lastRot) / dt
-            let swingTarget = max(-0.6, min(0.6, -vr * 0.08 - vx * 0.6 - look.x * 0.1))
+            let swayTarget = max(-0.6, min(0.6, -vr * 0.08 - vx * 0.6 - look2.x * 0.1))
             var left = dt
             while left > 0 {
                 let h = min(left, 1.0 / 120)
-                let w: CGFloat = 9, zeta: CGFloat = 0.55
-                growthVel += (w * w * (growthTarget - growth) - 2 * zeta * w * growthVel) * h
-                growth += growthVel * h
                 let ws: CGFloat = 18, zs: CGFloat = 0.18
-                tuftVel += (ws * ws * (swingTarget - tuftSwing) - 2 * zs * ws * tuftVel - vy * 4) * h
-                tuftSwing += tuftVel * h
+                swayVel += (ws * ws * (swayTarget - sway) - 2 * zs * ws * swayVel - vy * 4) * h
+                sway += swayVel * h
+                let wj: CGFloat = 22, zj: CGFloat = 0.2
+                jiggleVel += (-wj * wj * jiggle - 2 * zj * wj * jiggleVel + vy * 0.9) * h
+                jiggle += jiggleVel * h
                 left -= h
             }
+            jiggle = max(-0.12, min(0.12, jiggle))
         }
         lastDy = pose.dy; lastDx = pose.dx; lastRot = pose.rot + tilt
 
-        // Blinks
+        // Blinks, at this Tomo's own pace
         if now > nextBlink {
             if state != .sleeping && state != .dizzy {
                 blinkAt = now
                 if Double.random(in: 0...1) < 0.22 { secondBlinkAt = now + 0.26 }
             }
-            nextBlink = now + .random(in: 2.2...5.4)
+            nextBlink = now + .random(in: 2.2...5.4) * look.blinkPace
         }
         if let b = secondBlinkAt, now > b { blinkAt = now; secondBlinkAt = nil }
 
@@ -311,32 +341,30 @@ public final class TomoChick: ObservableObject {
     public func draw(_ context: GraphicsContext, size: CGSize) {
         let now = clock()
         let p = started ? pose : pose(at: now)
-        let R = size.width * 0.3
-        let ry = R * Shape.bodyRY
+        let form = look.form(age)
+        let R = size.width * 0.27
+        let ground = form.bottom * R
         let t = CGFloat(now - born)
         // Lean toward the cursor; nod off when drowsy.
-        var rot = tilt + p.rot + look.x * 0.06
+        var rot = tilt + p.rot + look2.x * 0.06
         var dy = p.dy
         if drowsy { rot += sin(t * 0.8) * 0.05; dy += max(0, sin(t * 0.8)) * 0.03 }
-        let cx = size.width / 2 + (p.dx + look.x * 0.04) * R
-        let cy = size.height / 2 + particleOverhang / 2 + dy * R + R * 0.06
-        let g = 1 + 0.12 * max(0, growth)
-        let breath = 1 + sin(t * 1.7) * (state == .sleeping || drowsy ? 0.035 : 0.018)
-        let idleWing = 0.05 + 0.05 * sin(t * 1.7)
+        let cx = size.width / 2 + (p.dx + look2.x * 0.04) * R
+        let cy = size.height / 2 + particleOverhang / 2 + dy * R + R * 0.1
+        let g = form.scale
+        let rate = CGFloat(look.breathRate)
+        let breath = 1 + sin(t * rate) * (state == .sleeping || drowsy ? 0.035 : 0.018)
 
-        // Anchor scaling and rocking at Tomo's feet, so squashes stay on the ground.
+        // Anchor scaling and rocking at Tomo's base, so squashes stay on the ground.
         var ctx = context
-        ctx.translateBy(x: cx, y: cy + ry)
+        ctx.translateBy(x: cx, y: cy + ground)
         ctx.rotate(by: .radians(Double(rot)))
-        ctx.scaleBy(x: p.sx * puff * g, y: p.sy * puff * g * breath)
-        ctx.translateBy(x: 0, y: -ry)
+        ctx.scaleBy(x: p.sx * puff * g * (1 - jiggle * 0.5), y: p.sy * puff * g * breath * (1 + jiggle))
+        ctx.translateBy(x: 0, y: -ground)
 
-        drawTuft(ctx, R: R)
-        drawWings(ctx, R: R, left: max(p.wingL, idleWing), right: max(p.wingR, idleWing))
-        drawFeet(ctx, R: R)
-        drawBody(ctx, R: R)
-        drawFace(ctx, R: R, now: now, beak: p.beak)
-        drawShell(ctx, R: R)
+        if form.details.contains(.sprout) { drawSprout(ctx, form: form, R: R) }
+        drawBody(ctx, form: form, R: R, glow: p.glow)
+        drawFace(ctx, form: form, R: R, now: now, mouth: p.mouth)
 
         if !isMini {
             let center = CGPoint(x: cx, y: cy)
@@ -347,97 +375,89 @@ public final class TomoChick: ObservableObject {
 
     // MARK: - Parts
 
-    private enum Shape {
-        public static let bodyRX: CGFloat = 1.0
-        public static let bodyRY: CGFloat = 0.94
-    }
-
     private enum Palette {
-        public static let bodyTop = Color(hex: "#FFE68C")
-        public static let bodyBottom = Color(hex: "#FFC53A")
-        public static let belly = Color(hex: "#FFF5CC")
-        public static let wing = Color(hex: "#F6BA2C")
-        public static let tuft = Color(hex: "#F3B226")
-        public static let beakTop = Color(hex: "#F7982B")
-        public static let beakBottom = Color(hex: "#E2771A")
-        public static let mouth = Color(hex: "#8A3413")
-        public static let cheek = Color(hex: "#FF8E6E")
-        public static let ink = Color(hex: "#2B1B0E")
-        public static let feet = Color(hex: "#EF8A2A")
-        public static let shell = Color(hex: "#FFFBF1")
-        public static let shellLine = Color(hex: "#E3D3B2")
         public static let heart = Color(hex: "#FF5C8A")
+        public static let leaf = Color(hex: "#7FD36B")
+        public static let leafDark = Color(hex: "#4FA845")
     }
 
-    private func drawBody(_ ctx: GraphicsContext, R: CGFloat) {
-        let rx = R * Shape.bodyRX, ry = R * Shape.bodyRY
-        let body = Path(ellipseIn: CGRect(x: -rx, y: -ry, width: rx * 2, height: ry * 2))
-        ctx.fill(body, with: .linearGradient(Gradient(colors: [Palette.bodyTop, Palette.bodyBottom]),
-                                             startPoint: CGPoint(x: 0, y: -ry), endPoint: CGPoint(x: 0, y: ry)))
+    private func drawBody(_ ctx: GraphicsContext, form: TomoForm, R: CGFloat, glow: CGFloat) {
+        let body = form.path(R: R)
+        let top = -form.top * R, bottom = form.bottom * R
+        ctx.fill(body, with: .linearGradient(Gradient(colors: [look.bodyLight, look.body]),
+                                             startPoint: CGPoint(x: 0, y: top), endPoint: CGPoint(x: 0, y: bottom)))
         var inner = ctx
         inner.clip(to: body)
-        inner.fill(Path(ellipseIn: CGRect(x: -R * 0.55, y: R * 0.05, width: R * 1.1, height: R * 0.8)),
-                   with: .color(Palette.belly.opacity(0.55)))
-    }
-
-    /// Head feathers: one at 1さい, two at 2さい, three at 3さい.
-    private func drawTuft(_ ctx: GraphicsContext, R: CGFloat) {
-        let base = CGPoint(x: 0, y: -R * Shape.bodyRY * 0.9)
-        let a1 = min(1, max(0, growth)), a2 = min(1, max(0, growth - 1))
-        // One feather at 1さい; two splayed at 2さい; a fan of three at 3さい.
-        let feathers: [(angle: Double, amount: CGFloat)] = [
-            (Double(0.05 - 0.3 * a1 + 0.3 * a2), 1),
-            (Double(0.35 * a1 + 0.2 * a2), a1),
-            (-0.5, a2),
-        ]
-        for f in feathers where f.amount > 0.02 {
-            var c = ctx
-            c.translateBy(x: base.x, y: base.y)
-            c.rotate(by: .radians(f.angle + Double(tuftSwing) * (0.8 + 0.2 * f.angle.magnitude)))
-            let L = R * 0.32 * (0.4 + 0.6 * f.amount)
-            var path = Path()
-            path.move(to: .zero)
-            path.addQuadCurve(to: CGPoint(x: R * 0.09, y: -L), control: CGPoint(x: -R * 0.13, y: -L * 0.55))
-            c.stroke(path, with: .color(Palette.tuft.opacity(Double(f.amount))),
-                     style: StrokeStyle(lineWidth: R * 0.11, lineCap: .round))
+        // A soft shade along the bottom, so it sits on something.
+        inner.fill(Path(ellipseIn: CGRect(x: -R * 1.4, y: bottom - R * 0.35, width: R * 2.8, height: R * 0.9)),
+                   with: .color(.black.opacity(0.08)))
+        if form.details.contains(.spots) {
+            var rng = form.spotSeed
+            for _ in 0..<4 {
+                rng = (rng * 9301 + 0.4929).truncatingRemainder(dividingBy: 1)
+                let x = (CGFloat(rng) * 1.4 - 0.7) * form.rx
+                rng = (rng * 9301 + 0.4929).truncatingRemainder(dividingBy: 1)
+                let y = (CGFloat(rng) * 0.9 - 0.2) * form.ry
+                let r = R * (0.08 + 0.06 * CGFloat(rng))
+                guard abs(y - form.faceY) > 0.25 || abs(x) > form.faceW * 0.55 else { continue }
+                inner.fill(Path(ellipseIn: CGRect(x: x * R - r, y: y * R - r, width: r * 2, height: r * 2)),
+                           with: .color(.white.opacity(0.22)))
+            }
         }
+        if form.details.contains(.sheen) {
+            inner.fill(Path(ellipseIn: CGRect(x: -R * 0.62, y: top + R * 0.2, width: R * 0.36, height: R * 0.22))
+                        .applying(CGAffineTransform(rotationAngle: -0.5)),
+                       with: .color(.white.opacity(0.4)))
+        }
+        if glow > 0.01 { inner.fill(body, with: .color(.white.opacity(Double(glow)))) }
     }
 
-    private func drawWings(_ ctx: GraphicsContext, R: CGFloat, left: CGFloat, right: CGFloat) {
+    /// A little sprout on top that sways after every move.
+    private func drawSprout(_ ctx: GraphicsContext, form: TomoForm, R: CGFloat) {
+        var c = ctx
+        c.translateBy(x: 0, y: -form.top * R + R * 0.06)
+        c.rotate(by: .radians(Double(form.sproutLean + sway * 0.9)))
+        let L = R * 0.3
+        var stem = Path()
+        stem.move(to: .zero)
+        stem.addQuadCurve(to: CGPoint(x: 0, y: -L), control: CGPoint(x: -R * 0.08, y: -L * 0.5))
+        c.stroke(stem, with: .color(Palette.leafDark), style: StrokeStyle(lineWidth: R * 0.06, lineCap: .round))
         for side: CGFloat in [-1, 1] {
-            let lift = side < 0 ? left : right
-            var c = ctx
-            c.translateBy(x: side * R * 0.86, y: R * 0.02)
-            c.rotate(by: .radians(Double(-side * (0.22 + lift * 1.15))))
-            let wing = Path(ellipseIn: CGRect(x: -R * 0.16 + side * R * 0.05, y: -R * 0.04,
-                                              width: R * 0.32, height: R * 0.56))
-            c.fill(wing, with: .color(Palette.wing))
+            var leaf = Path()
+            leaf.move(to: CGPoint(x: 0, y: -L))
+            leaf.addQuadCurve(to: CGPoint(x: side * R * 0.24, y: -L - R * 0.1), control: CGPoint(x: side * R * 0.1, y: -L - R * 0.16))
+            leaf.addQuadCurve(to: CGPoint(x: 0, y: -L), control: CGPoint(x: side * R * 0.16, y: -L + R * 0.02))
+            c.fill(leaf, with: .color(Palette.leaf))
         }
     }
 
-    private func drawFeet(_ ctx: GraphicsContext, R: CGFloat) {
-        let a = min(1, max(0, growth))
-        guard a > 0.02 else { return }
-        for side: CGFloat in [-1, 1] {
-            let foot = Path(ellipseIn: CGRect(x: side * R * 0.3 - R * 0.15, y: R * Shape.bodyRY * 0.9,
-                                              width: R * 0.3, height: R * 0.15))
-            ctx.fill(foot, with: .color(Palette.feet.opacity(Double(a))))
-        }
-    }
-
-    private func drawFace(_ ctx: GraphicsContext, R: CGFloat, now: Double, beak: CGFloat) {
+    private func drawFace(_ ctx: GraphicsContext, form: TomoForm, R: CGFloat, now: Double, mouth: CGFloat) {
         let face = flash?.face ?? (drowsy ? .sleepy : baseFace)
-        // Inside the shell the face sits higher, so the shell's edge stays below the beak.
-        let inShell = 1 - min(1, max(0, growth))
-        let fx = look.x * R * 0.16, fy = -look.y * R * 0.1 - inShell * R * 0.1
-        let r = R * 0.105 * (isMini ? 1.5 : 1)
+        let fit = min(1, form.faceW / 0.8) * (isMini ? 1.4 : 1)       // a small face gets smaller eyes
+        let fx = look2.x * R * 0.16 * form.faceW, fy = -look2.y * R * 0.1 + form.faceY * R
+        let ew = look.eyeW * R * fit, eh = look.eyeH * R * fit
+        let gap = look.eyeGap * R * max(0.7, fit)
+        let eyeY = fy - eh * 0.2
 
-        // Cheeks
-        for side: CGFloat in [-1, 1] {
-            let far = 1 - 0.3 * max(0, -side * look.x)     // the cheek turning away gets narrower
-            let c = CGPoint(x: side * R * 0.56 + fx * 0.6, y: R * 0.12 + fy)
-            ctx.fill(Path(ellipseIn: CGRect(x: c.x - R * 0.12 * far, y: c.y - R * 0.07, width: R * 0.24 * far, height: R * 0.14)),
-                     with: .color(Palette.cheek.opacity(Double(0.42 + 0.45 * blush))))
+        // Cheeks: a blush when it's loved; some Tomos have rosy cheeks all the time.
+        let rosy: CGFloat = form.details.contains(.cheeks) ? 0.5 : 0
+        let cheekA = max(rosy, 0.9 * blush)
+        if cheekA > 0.02 {
+            for side: CGFloat in [-1, 1] {
+                let far = 1 - 0.3 * max(0, -side * look2.x)
+                let c = CGPoint(x: side * (gap + ew * 1.6) + fx * 0.6, y: eyeY + eh * 0.75)
+                ctx.fill(Path(ellipseIn: CGRect(x: c.x - R * 0.11 * far, y: c.y - R * 0.06, width: R * 0.22 * far, height: R * 0.12)),
+                         with: .color(look.cheek.opacity(Double(cheekA))))
+            }
+        }
+        if form.details.contains(.freckles) {
+            for side: CGFloat in [-1, 1] {
+                for (dx, dy) in [(-0.06, 0.0), (0.05, -0.02), (0.0, 0.06)] as [(CGFloat, CGFloat)] {
+                    let c = CGPoint(x: side * (gap + ew * 1.4) + fx * 0.6 + dx * R, y: eyeY + eh * 0.7 + dy * R)
+                    ctx.fill(Path(ellipseIn: CGRect(x: c.x - R * 0.018, y: c.y - R * 0.018, width: R * 0.036, height: R * 0.036)),
+                             with: .color(look.ink.opacity(0.35)))
+                }
+            }
         }
 
         // Eyes
@@ -446,123 +466,87 @@ public final class TomoChick: ObservableObject {
                           : since < 0.2 ? CGFloat((since - 0.09) / 0.11) : 1
         for side: CGFloat in [-1, 1] {
             var c = ctx
-            c.translateBy(x: side * R * 0.34 + fx, y: -R * 0.1 + fy)
-            c.scaleBy(x: 1 - 0.25 * max(0, -side * look.x), y: 1)   // the eye turning away narrows
-            drawEye(c, face: face, side: side, r: r, open: max(0.08, open), now: now)
+            c.translateBy(x: side * gap + fx, y: eyeY)
+            c.scaleBy(x: 1 - 0.25 * max(0, -side * look2.x), y: 1)   // the eye turning away narrows
+            drawEye(c, face: face, side: side, w: ew, h: eh, open: max(0.08, open), now: now)
         }
 
-        // Beak (opens to talk, eat, yawn, gasp)
-        let o = min(1, beak + (face == .surprised ? 0.35 : 0)) * R * 0.12
-        var b = ctx
-        b.translateBy(x: fx * 1.3, y: R * 0.07 + fy)
-        if o > R * 0.006 {
-            b.fill(Path(ellipseIn: CGRect(x: -R * 0.085, y: R * 0.06, width: R * 0.17, height: R * 0.05 + o * 1.25)),
-                   with: .color(Palette.mouth))
+        // Mouth: opens to talk, eat, yawn and gasp; hidden otherwise.
+        let o = min(1, mouth + (face == .surprised ? 0.4 : 0))
+        if o > 0.03 {
+            let mw = R * (0.07 + 0.05 * o), mh = R * 0.16 * o
+            let my = eyeY + eh * 0.75 + R * 0.06
+            ctx.fill(Path(roundedRect: CGRect(x: fx * 1.2 - mw, y: my, width: mw * 2, height: max(R * 0.03, mh)),
+                          cornerRadius: mw), with: .color(look.ink))
         }
-        let rounded = StrokeStyle(lineWidth: R * 0.03, lineJoin: .round)
-        let lower = triangle(CGPoint(x: -R * 0.08, y: R * 0.085 + o), CGPoint(x: R * 0.08, y: R * 0.085 + o),
-                             CGPoint(x: 0, y: R * 0.16 + o * 1.1))
-        b.fill(lower, with: .color(Palette.beakBottom))
-        b.stroke(lower, with: .color(Palette.beakBottom), style: rounded)
-        let upper = triangle(CGPoint(x: -R * 0.12, y: R * 0.015), CGPoint(x: R * 0.12, y: R * 0.015),
-                             CGPoint(x: 0, y: R * 0.13))
-        b.fill(upper, with: .color(Palette.beakTop))
-        b.stroke(upper, with: .color(Palette.beakTop), style: rounded)
     }
 
-    private func drawEye(_ ctx: GraphicsContext, face: Face, side: CGFloat, r: CGFloat, open: CGFloat, now: Double) {
-        let ink = GraphicsContext.Shading.color(Palette.ink)
-        let line = StrokeStyle(lineWidth: r * 0.55, lineCap: .round, lineJoin: .round)
-        func dot(_ size: CGFloat) {
-            ctx.fill(Path(ellipseIn: CGRect(x: -size, y: -size * open, width: size * 2, height: size * 2 * open)), with: ink)
+    private func drawEye(_ ctx: GraphicsContext, face: Face, side: CGFloat, w: CGFloat, h: CGFloat, open: CGFloat, now: Double) {
+        let ink = GraphicsContext.Shading.color(look.ink)
+        let line = StrokeStyle(lineWidth: w * 1.15, lineCap: .round, lineJoin: .round)
+        func bar(_ k: CGFloat, dy: CGFloat = 0) {
+            let rh = h * k * open
+            ctx.fill(TomoForm.superellipse(rx: w * k, ry: rh, n: look.eyeN).offsetBy(dx: 0, dy: dy), with: ink)
             if open > 0.6 {
-                let s = size * 0.34
-                ctx.fill(Path(ellipseIn: CGRect(x: size * 0.28 - s, y: -size * 0.36 - s, width: s * 2, height: s * 2)),
-                         with: .color(.white))
+                let s = w * k * 0.32
+                ctx.fill(Path(ellipseIn: CGRect(x: w * k * 0.15 - s, y: dy - rh * 0.5 - s, width: s * 2, height: s * 2)),
+                         with: .color(.white.opacity(0.85)))
             }
         }
-        switch face {
-        case .normal: dot(r)
-        case .surprised: dot(r * 1.3)
-        case .confused: dot(side < 0 ? r * 0.72 : r * 1.18)
-        case .happy, .wink where side > 0:
+        func smile() {
             var p = Path()
-            p.move(to: CGPoint(x: -r, y: r * 0.3))
-            p.addQuadCurve(to: CGPoint(x: r, y: r * 0.3), control: CGPoint(x: 0, y: -r * 1.3))
+            p.move(to: CGPoint(x: -w * 1.5, y: h * 0.25))
+            p.addQuadCurve(to: CGPoint(x: w * 1.5, y: h * 0.25), control: CGPoint(x: 0, y: -h * 0.85))
             ctx.stroke(p, with: ink, style: line)
-        case .wink: dot(r)
+        }
+        switch face {
+        case .normal: bar(1)
+        case .surprised: bar(1.22)
+        case .confused: side < 0 ? bar(0.72, dy: -h * 0.15) : bar(1.12)
+        case .happy: smile()
+        case .wink: side > 0 ? smile() : bar(1)
         case .sleep:
             var p = Path()
-            p.move(to: CGPoint(x: -r, y: 0))
-            p.addQuadCurve(to: CGPoint(x: r, y: 0), control: CGPoint(x: 0, y: r * 0.9))
+            p.move(to: CGPoint(x: -w * 1.5, y: 0))
+            p.addQuadCurve(to: CGPoint(x: w * 1.5, y: 0), control: CGPoint(x: 0, y: h * 0.6))
             ctx.stroke(p, with: ink, style: line)
         case .sleepy:
-            ctx.fill(Path(ellipseIn: CGRect(x: -r, y: 0, width: r * 2, height: r * 0.8)), with: ink)
+            ctx.fill(TomoForm.superellipse(rx: w * 1.15, ry: h * 0.3, n: look.eyeN).offsetBy(dx: 0, dy: h * 0.35), with: ink)
         case .flat:
-            var p = Path()
-            p.move(to: CGPoint(x: -r, y: 0)); p.addLine(to: CGPoint(x: r, y: 0))
-            ctx.stroke(p, with: ink, style: line)
+            ctx.fill(Path(roundedRect: CGRect(x: -w * 1.6, y: -w * 0.5, width: w * 3.2, height: w), cornerRadius: w * 0.5), with: ink)
         case .squeeze:
             var p = Path()
             let d = -side          // left eye ">", right eye "<"
-            p.move(to: CGPoint(x: -r * 0.8 * d, y: -r * 0.75))
-            p.addLine(to: CGPoint(x: r * 0.7 * d, y: 0))
-            p.addLine(to: CGPoint(x: -r * 0.8 * d, y: r * 0.75))
-            ctx.stroke(p, with: ink, style: line)
+            p.move(to: CGPoint(x: -w * 1.2 * d, y: -h * 0.55))
+            p.addLine(to: CGPoint(x: w * 1.1 * d, y: 0))
+            p.addLine(to: CGPoint(x: -w * 1.2 * d, y: h * 0.55))
+            ctx.stroke(p, with: ink, style: StrokeStyle(lineWidth: w * 0.95, lineCap: .round, lineJoin: .round))
         case .love:
-            ctx.fill(heart(size: r * 2.3), with: .color(Palette.heart))
+            ctx.fill(heart(size: h * 1.9), with: .color(Palette.heart))
         case .dizzy:
             let a = CGFloat(now * 7) * side
+            let r = max(w * 1.5, h * 0.6)
             var p = Path()
             p.addArc(center: .zero, radius: r * 0.95, startAngle: .radians(Double(a)),
                      endAngle: .radians(Double(a) + 5), clockwise: false)
             p.addArc(center: .zero, radius: r * 0.42, startAngle: .radians(Double(a) + 5),
                      endAngle: .radians(Double(a) + 9), clockwise: false)
-            ctx.stroke(p, with: ink, style: StrokeStyle(lineWidth: r * 0.4, lineCap: .round))
-        }
-    }
-
-    /// The bottom half of the eggshell. Falls away as Tomo hatches (growth 0 → 1).
-    private func drawShell(_ ctx: GraphicsContext, R: CGFloat) {
-        let hatched = min(1, max(0, growth))
-        guard hatched < 0.98 else { return }
-        var c = ctx
-        // Falls away like it has weight, solid until the very end.
-        c.translateBy(x: 0, y: hatched * hatched * R * 2.6)
-        c.opacity = Double(hatched < 0.85 ? 1 : (1 - hatched) / 0.15)
-        let rx = R * 1.07, top = R * 0.3, depth = R * 0.75
-        var shell = Path()
-        let teeth = 8
-        for i in 0...teeth {
-            let x = -rx + CGFloat(i) * (2 * rx / CGFloat(teeth))
-            let y = top - (i % 2 == 1 ? R * 0.13 : 0)
-            if i == 0 { shell.move(to: CGPoint(x: x, y: y)) } else { shell.addLine(to: CGPoint(x: x, y: y)) }
-        }
-        for k in 0...24 {
-            let a = Double(k) / 24 * .pi
-            shell.addLine(to: CGPoint(x: rx * CGFloat(cos(a)), y: top + depth * CGFloat(sin(a))))
-        }
-        shell.closeSubpath()
-        c.fill(shell, with: .color(Palette.shell))
-        c.stroke(shell, with: .color(Palette.shellLine), style: StrokeStyle(lineWidth: R * 0.025, lineJoin: .round))
-        for (x, y, s) in [(-0.5, 0.6, 0.05), (0.35, 0.8, 0.04), (0.62, 0.5, 0.035)] as [(CGFloat, CGFloat, CGFloat)] {
-            c.fill(Path(ellipseIn: CGRect(x: R * (x - s), y: R * (y - s), width: R * s * 2, height: R * s * 2)),
-                   with: .color(Palette.shellLine))
+            ctx.stroke(p, with: ink, style: StrokeStyle(lineWidth: w * 0.7, lineCap: .round))
         }
     }
 
     private func drawQuestionMark(_ ctx: GraphicsContext, center: CGPoint, R: CGFloat, t: CGFloat) {
         let mark = Text("?").font(.system(size: R * 0.55, weight: .heavy, design: .rounded))
             .foregroundColor(.white.opacity(0.9))
-        ctx.draw(mark, at: CGPoint(x: center.x + R * 1.0, y: center.y - R * 1.05 + sin(t * 3) * R * 0.05))
+        ctx.draw(mark, at: CGPoint(x: center.x + R * 1.05, y: center.y - R * 1.0 + sin(t * 3) * R * 0.05))
     }
 
     // MARK: - Particles
 
     private struct Bit {
         public enum Kind {
-            case sparkle, heart, z, shell
-            public var gravity: CGFloat { self == .shell ? 3.2 : self == .sparkle ? 0.6 : -0.15 }
+            case sparkle, heart, z, pop
+            public var gravity: CGFloat { self == .pop ? 2.6 : self == .sparkle ? 0.6 : -0.15 }
         }
         public let kind: Kind
         public var pos: CGPoint        // relative to Tomo's center, in body radii
@@ -588,12 +572,14 @@ public final class TomoChick: ObservableObject {
                                 vel: CGVector(dx: .random(in: -0.3...0.3), dy: .random(in: -0.9 ... -0.6)),
                                 life: .random(in: 1.0...1.4), size: .random(in: 0.22...0.3), spin: 0))
             case .z:
-                bits.append(Bit(kind: kind, pos: CGPoint(x: 0.55, y: -0.8),
+                bits.append(Bit(kind: kind, pos: CGPoint(x: 0.6, y: -0.8),
                                 vel: CGVector(dx: 0.25, dy: -0.45), life: 1.8, size: 0.3, spin: 0))
-            case .shell:
-                bits.append(Bit(kind: kind, pos: CGPoint(x: .random(in: -0.9...0.9), y: 0.3),
-                                vel: CGVector(dx: .random(in: -1.4...1.4), dy: .random(in: -1.6 ... -0.8)),
-                                life: 0.9, size: .random(in: 0.12...0.2), spin: .random(in: -8...8)))
+            case .pop:                         // drops of Tomo's own colour, flung out as it evolves
+                let a = CGFloat.random(in: 0...(2 * .pi))
+                let speed = CGFloat.random(in: 1.2...2.0)
+                bits.append(Bit(kind: kind, pos: CGPoint(x: cos(a) * 0.6, y: sin(a) * 0.6),
+                                vel: CGVector(dx: cos(a) * speed, dy: sin(a) * speed - 1.2),
+                                life: .random(in: 0.7...1.0), size: .random(in: 0.08...0.15), spin: 0))
             }
         }
     }
@@ -621,9 +607,8 @@ public final class TomoChick: ObservableObject {
             case .z:
                 c.draw(Text("z").font(.system(size: s * 1.4, weight: .bold, design: .rounded))
                     .foregroundColor(.white.opacity(0.8)), at: .zero)
-            case .shell:
-                c.fill(triangle(CGPoint(x: -s, y: s * 0.6), CGPoint(x: s, y: s * 0.5), CGPoint(x: 0, y: -s * 0.7)),
-                       with: .color(Palette.shell))
+            case .pop:
+                c.fill(Path(ellipseIn: CGRect(x: -s, y: -s, width: s * 2, height: s * 2)), with: .color(look.body))
             }
         }
     }
@@ -634,8 +619,8 @@ public final class TomoChick: ObservableObject {
 
     private struct Move {
         public enum Kind {
-            case hop(CGFloat), nudge, shake, flap(Int), peck, rock, squish, wobble, beak
-            case peep, stretch, tiltHold(CGFloat), shuffle, preen(CGFloat)
+            case hop(CGFloat), nudge, shake, wiggle(Int), gulp, rock, squish, wobble, mouth
+            case peep, stretch, tiltHold(CGFloat), shuffle, lean(CGFloat), evolve
         }
         public let kind: Kind
         public let start: Double
@@ -645,7 +630,7 @@ public final class TomoChick: ObservableObject {
     private struct Pose {
         public var dx: CGFloat = 0, dy: CGFloat = 0, rot: CGFloat = 0
         public var sx: CGFloat = 1, sy: CGFloat = 1
-        public var wingL: CGFloat = 0, wingR: CGFloat = 0, beak: CGFloat = 0
+        public var mouth: CGFloat = 0, glow: CGFloat = 0
     }
 
     private func add(_ kind: Move.Kind, _ duration: Double) {
@@ -659,38 +644,50 @@ public final class TomoChick: ObservableObject {
             let arc = sin(.pi * q)
             switch m.kind {
             case .hop(let h):
-                p.dy -= h * arc; p.sy *= 1 + 0.06 * arc; p.sx *= 1 - 0.04 * arc
+                p.dy -= h * arc; p.sy *= 1 + 0.08 * arc; p.sx *= 1 - 0.05 * arc
             case .nudge:
                 p.dy -= q < 0.55 ? 0.42 * sin(.pi * q / 0.55) : 0.2 * sin(.pi * (q - 0.55) / 0.45)
-                p.wingL = max(p.wingL, abs(sin(q * 4 * .pi))); p.wingR = p.wingL
+                let w = sin(q * 8 * .pi) * 0.06
+                p.sx *= 1 + w; p.sy *= 1 - w
             case .shake:
                 p.dx += sin(q * 6 * .pi) * 0.09 * (1 - q)
-            case .flap(let n):
-                let f = abs(sin(q * CGFloat(n) * .pi))
-                p.wingL = max(p.wingL, f); p.wingR = max(p.wingR, f)
-            case .peck:
-                p.dy += 0.14 * abs(sin(q * 2 * .pi)); p.beak = max(p.beak, max(0, sin(q * 4 * .pi)))
+            case .wiggle(let n):                   // a happy jelly wiggle: squash and stretch side to side
+                let w = sin(q * CGFloat(n) * .pi) * 0.07 * (1 - q * 0.5)
+                p.sx *= 1 + w; p.sy *= 1 - w; p.rot += w * 0.6
+            case .gulp:
+                p.dy += 0.1 * abs(sin(q * 2 * .pi)); p.mouth = max(p.mouth, max(0, sin(q * 4 * .pi)))
+                p.sy *= 1 - 0.06 * abs(sin(q * 2 * .pi))
             case .rock:
                 p.rot += sin(q * 4 * .pi) * 0.13 * (1 - q * 0.6)
             case .squish:
                 p.sy *= 1 - 0.2 * arc; p.sx *= 1 + 0.15 * arc
             case .wobble:
                 p.rot += sin(q * 7 * .pi) * 0.16 * (1 - q)
-            case .beak:
-                p.beak = max(p.beak, arc); p.dy -= 0.04 * arc
+            case .mouth:
+                p.mouth = max(p.mouth, arc); p.dy -= 0.04 * arc
             case .peep:
-                p.beak = max(p.beak, 0.55 * arc); p.dy -= 0.05 * arc
+                p.mouth = max(p.mouth, 0.55 * arc); p.dy -= 0.05 * arc
             case .stretch:
-                p.wingL = max(p.wingL, 0.85 * arc); p.wingR = max(p.wingR, 0.85 * arc)
-                p.sy *= 1 + 0.05 * arc; p.sx *= 1 - 0.03 * arc
+                p.sy *= 1 + 0.09 * arc; p.sx *= 1 - 0.05 * arc
             case .tiltHold(let a):
                 p.rot += a * Self.hold(q)
             case .shuffle:
                 p.dx += sin(q * 4 * .pi) * 0.05; p.rot += sin(q * 4 * .pi) * 0.05
-            case .preen(let side):
+            case .lean(let side):
                 let e = Self.hold(q)
-                p.rot += side * 0.16 * e; p.dy += 0.05 * e
-                if side < 0 { p.wingL = max(p.wingL, 0.45 * e) } else { p.wingR = max(p.wingR, 0.45 * e) }
+                p.rot += side * 0.16 * e; p.dy += 0.05 * e; p.sy *= 1 - 0.04 * e
+            case .evolve:                          // squeeze down glowing, then pop out in the next form
+                let swapAt: CGFloat = 0.45
+                if q < swapAt {
+                    let e = q / swapAt
+                    let s = 1 - 0.35 * e * e
+                    p.sx *= s; p.sy *= s; p.rot += sin(e * 6 * .pi) * 0.06 * e
+                } else {
+                    let e = (q - swapAt) / (1 - swapAt)
+                    let s = 1 - 0.35 * (1 - e) * (1 - e) + 0.18 * sin(.pi * e) * (1 - e)
+                    p.sx *= s; p.sy *= s
+                }
+                p.glow = max(p.glow, 0.85 * max(0, 1 - abs(q - swapAt) / 0.25))
             }
         }
         return p
@@ -723,12 +720,6 @@ public final class TomoChick: ObservableObject {
 
     // MARK: - Shapes
 
-    private func triangle(_ a: CGPoint, _ b: CGPoint, _ c: CGPoint) -> Path {
-        var p = Path()
-        p.move(to: a); p.addLine(to: b); p.addLine(to: c); p.closeSubpath()
-        return p
-    }
-
     private func heart(size s: CGFloat) -> Path {
         var p = Path()
         p.move(to: CGPoint(x: 0, y: s * 0.35))
@@ -748,13 +739,15 @@ public final class TomoChick: ObservableObject {
 // MARK: - Views
 
 /// Tomo on its own: a Canvas redrawn every frame. Shells that know where the pointer is set `gaze`.
-public struct TomoChickView: View {
-    @StateObject private var chick = TomoChick()
+/// `look`: nil for the learner's own Tomo.
+public struct TomoBlobView: View {
+    @StateObject private var blob: TomoBlob
     public var state: BotState
     public var growth: CGFloat
     public var gaze: (() -> CGPoint)?
 
-    public init(state: BotState = .idle, growth: CGFloat, gaze: (() -> CGPoint)? = nil) {
+    public init(state: BotState = .idle, growth: CGFloat, look: TomoLook? = nil, gaze: (() -> CGPoint)? = nil) {
+        _blob = StateObject(wrappedValue: TomoBlob(look: look))
         self.state = state
         self.growth = growth
         self.gaze = gaze
@@ -763,90 +756,93 @@ public struct TomoChickView: View {
     public var body: some View {
         TimelineView(.animation) { timeline in
             Canvas { context, size in
-                chick.frameDate = timeline.date
-                if let g = gaze?() { chick.lookX = g.x; chick.lookY = g.y }
-                chick.step()
-                chick.draw(context, size: size)
+                blob.frameDate = timeline.date
+                if let g = gaze?() { blob.lookX = g.x; blob.lookY = g.y }
+                blob.step()
+                blob.draw(context, size: size)
             }
         }
-        .onChange(of: state) { _, s in chick.setState(s) }
-        .onChange(of: growth) { _, g in chick.grow(to: g) }
+        .onChange(of: state) { _, s in blob.setState(s) }
+        .onChange(of: growth) { _, g in blob.grow(to: g) }
         .onAppear {
-            chick.setState(state, force: true)
-            chick.setGrowth(growth)
+            blob.setState(state, force: true)
+            blob.setGrowth(growth)
         }
-        .tomoReactions(chick)
+        .tomoReactions(blob)
     }
 }
 
 public extension View {
     /// Tomo reacts to the game's notifications (talk, nudge, greet, grow, emotes, pokes).
-    func tomoReactions(_ chick: TomoChick) -> some View {
-        modifier(TomoChickMoves(chick: chick)).modifier(TomoChickReactions(chick: chick))
+    func tomoReactions(_ blob: TomoBlob) -> some View {
+        modifier(TomoBlobMoves(blob: blob)).modifier(TomoBlobReactions(blob: blob))
     }
 }
 
-private struct TomoChickMoves: ViewModifier {
-    public let chick: TomoChick
+private struct TomoBlobMoves: ViewModifier {
+    public let blob: TomoBlob
 
     public func body(content: Content) -> some View {
         content
-            .onReceive(NotificationCenter.default.publisher(for: .botTalk)) { _ in chick.talk() }
-            .onReceive(NotificationCenter.default.publisher(for: .botNudge)) { _ in chick.nudge() }
-            .onReceive(NotificationCenter.default.publisher(for: .botGreet)) { _ in chick.greet() }
-            .onReceive(NotificationCenter.default.publisher(for: .botGulp)) { _ in chick.gulp() }
+            .onReceive(NotificationCenter.default.publisher(for: .botTalk)) { _ in blob.talk() }
+            .onReceive(NotificationCenter.default.publisher(for: .botNudge)) { _ in blob.nudge() }
+            .onReceive(NotificationCenter.default.publisher(for: .botGreet)) { _ in blob.greet() }
+            .onReceive(NotificationCenter.default.publisher(for: .botGulp)) { _ in blob.gulp() }
             .onReceive(NotificationCenter.default.publisher(for: .botGrow)) { n in
-                if let t = n.object as? CGFloat { chick.grow(to: t) }
+                if let t = n.object as? CGFloat { blob.grow(to: t) }
             }
             .onReceive(NotificationCenter.default.publisher(for: .botSetGrowth)) { n in
-                if let t = n.object as? CGFloat { chick.setGrowth(t) }
+                if let t = n.object as? CGFloat { blob.setGrowth(t) }
             }
     }
 }
 
-private struct TomoChickReactions: ViewModifier {
-    public let chick: TomoChick
+private struct TomoBlobReactions: ViewModifier {
+    public let blob: TomoBlob
 
     public func body(content: Content) -> some View {
         content
             .onReceive(NotificationCenter.default.publisher(for: .triggerEmote)) { n in
-                if let e = n.object as? BotEmote { chick.emote(e) }
+                if let e = n.object as? BotEmote { blob.emote(e) }
             }
-            .onReceive(NotificationCenter.default.publisher(for: .triggerSlap)) { _ in chick.poke() }
-            .onReceive(NotificationCenter.default.publisher(for: .botBlink)) { _ in chick.blink() }
+            .onReceive(NotificationCenter.default.publisher(for: .triggerSlap)) { _ in blob.poke() }
+            .onReceive(NotificationCenter.default.publisher(for: .botBlink)) { _ in blob.blink() }
             .onReceive(NotificationCenter.default.publisher(for: .botSetTgEs)) { n in
-                if let s = n.object as? CGFloat { chick.setHover(s) }
+                if let s = n.object as? CGFloat { blob.setHover(s) }
             }
     }
 }
 
 
 /// Tomo held in one pose, for places that can't animate: widgets and Live Activities only redraw when
-/// their content changes (decisions.md, 2026-10-06). Drawn by the same TomoChick, half a second into
-/// `state` (and `emote`), so it's never caught mid-blink and a win still has its sparkles.
-public struct TomoChickStill: View {
+/// their content changes (decisions.md, 2026-10-06). Drawn by the same TomoBlob, half a second into
+/// `state` (and `emote`), so it's never caught mid-blink and a win still has its sparkles. These places
+/// show the mascot unless given a look.
+public struct TomoBlobStill: View {
     var state: BotState
     var emote: BotEmote?
     var growth: CGFloat
+    var look: TomoLook
 
-    public init(state: BotState = .idle, emote: BotEmote? = nil, growth: CGFloat) {
+    public init(state: BotState = .idle, emote: BotEmote? = nil, growth: CGFloat, look: TomoLook = .mascot) {
         self.state = state
         self.emote = emote
         self.growth = growth
+        self.look = look
     }
 
     public var body: some View {
         Canvas { context, size in
-            let chick = TomoChick()
+            let blob = TomoBlob(look: look)
             var t = 100.0
-            chick.clock = { t }
-            chick.setGrowth(growth)
-            chick.step()
-            chick.setState(state, force: true)
-            if let emote { chick.emote(emote) }
+            blob.clock = { t }
+            blob.setGrowth(growth)
+            blob.step()
+            blob.setState(state, force: true)
+            if let emote { blob.emote(emote) }
             t += 0.5
-            chick.step()
-            chick.draw(context, size: size)
+            blob.step()
+            blob.draw(context, size: size)
         }
     }
 }
