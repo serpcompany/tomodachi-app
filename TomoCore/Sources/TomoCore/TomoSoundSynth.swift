@@ -4,8 +4,8 @@ import Foundation
 //
 // A sound is a few voices. A voice is a tone gliding through pitch points, with overtones, a soft attack, a
 // decaying tail, an optional wobble (pitch) and tremolo (loudness), and a puff of band-passed noise; a lowpass
-// keeps it soft. The palettes (TomoSoundPalettes.swift) say which voices each moment gets. Every finished sound
-// is set to its moment's loudness (K-weighted, like LUFS), so each palette and each age plays at the same level,
+// keeps it soft. TomoBlobSound.swift says which voices each moment gets. Every finished sound
+// is set to its moment's loudness (K-weighted, like LUFS), so each age plays at the same level,
 // and its peak stays under -3 dBFS. Noise comes from a seeded generator, so a sound renders the same every time.
 
 /// Tomo's age as sound: light and high at 1さい, lower and fuller by 6さい.
@@ -13,7 +13,7 @@ struct SoundAge: Sendable {
     let step: Int   // 0 = 1さい … 5 = 6さい
     /// Pitch, about a fifth lower by 6さい.
     var pitch: Double { [1.0, 0.9, 0.82, 0.76, 0.71, 0.67][step] }
-    /// 0 … 1: how much body a palette adds (a lower octave, more overtones, a longer ring).
+    /// 0 … 1: how much body a sound adds (a lower octave, more overtones, a longer ring).
     var body: Double { Double(step) / 5 }
     /// Tails ring a little longer as Tomo gets bigger.
     var ring: Double { 1 + 0.12 * body }

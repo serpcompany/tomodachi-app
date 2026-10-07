@@ -3,9 +3,8 @@ import AVFoundation
 // MARK: - Tomo's sound effects
 //
 // Synthesized in code when first needed (no audio files; TomoSoundSynth.swift): soft blob sounds for Tomo, which
-// get lower and fuller as it grows from 1さい to 6さい, and quiet blips for the island, which don't. While the
-// owner picks how a blob sounds, there are three palettes (TomoSoundPalettes.swift); `TOMO_SOUND_PALETTE` picks
-// one for a test run. Effects follow the same switch as Tomo's voice (`TomoGame.soundEnabled`). Triggers live in
+// get lower and fuller as it grows from 1さい to 6さい, and quiet blips for the island, which don't. How each
+// moment sounds is TomoBlobSound.swift (bubbly). Effects follow the same switch as Tomo's voice (`TomoGame.soundEnabled`). Triggers live in
 // one place, `TomoSounds.listen()`: game outcomes, the character notifications, and the island opening.
 
 @MainActor
@@ -31,7 +30,7 @@ public final class TomoSounds {
         /// The island's blips stay the same at every age; they're the island, not Tomo.
         var isIsland: Bool { self == .open || self == .close || self == .tick }
 
-        /// How loud each moment is (max momentary LUFS, before `volume`), the same in every palette: about the
+        /// How loud each moment is (max momentary LUFS, before `volume`), the same at every age: about the
         /// old chirps' levels, with Miss and eating a little louder now that they're lower sounds.
         var loudness: Double {
             switch self {
@@ -155,7 +154,7 @@ public final class TomoSounds {
     }
 
     private static func render(_ e: Effect, _ age: SoundAge) -> [Float] {
-        SoundSynth.render(SoundPalette.chosen.voices(e, e.isIsland ? SoundAge(step: 0) : age), loudness: e.loudness)
+        SoundSynth.render(BlobSound.voices(e, e.isIsland ? SoundAge(step: 0) : age), loudness: e.loudness)
     }
 
     private static func pcm(_ samples: [Float]) -> AVAudioPCMBuffer {
@@ -167,8 +166,8 @@ public final class TomoSounds {
 
     // MARK: - Debug
 
-    /// TOMO_RENDER_SOUNDS=<dir>: writes every effect at every age (`win-age1.wav` … `win-age6.wav`) in the palette
-    /// `TOMO_SOUND_PALETTE` picks, plus all-sounds.wav (each effect at 1さい, in order, with a gap), so they can be
+    /// TOMO_RENDER_SOUNDS=<dir>: writes every effect at every age (`win-age1.wav` … `win-age6.wav`), plus
+    /// all-sounds.wav (each effect at 1さい, in order, with a gap), so they can be
     /// listened to without the app.
     public static func renderFiles(to dir: URL) {
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
@@ -181,15 +180,13 @@ public final class TomoSounds {
             }
         }
         write(pcm(all), to: dir.appendingPathComponent("all-sounds.wav"))
-        print("TomoSounds palette: \(SoundPalette.chosen.rawValue)")
         // Self-test of the playback path, silently.
         shared.volume = 0
         shared.play(.win, force: true)
         print("TomoSounds engine running: \(shared.engine.isRunning)")
     }
 
-    /// For the self-test (TOMO_SELFTEST): every palette has a short, soft sound for every moment, lower for an older
-    /// Tomo, and as loud as the other palettes'.
+    /// For the self-test (TOMO_SELFTEST): every moment has a short, soft sound, lower for an older Tomo.
     public static func selfTest() -> Bool {
         var ok = true
         func check(_ c: Bool, _ what: String) {
@@ -198,28 +195,22 @@ public final class TomoSounds {
         }
         func list(_ names: [String]) -> String { names.isEmpty ? "" : ": " + names.joined(separator: ", ") }
         var missing: [String] = [], loud: [String] = [], long: [String] = [], higher: [String] = []
-        var levels: [String: [Double]] = [:]
-        for p in SoundPalette.allCases {
-            for e in Effect.allCases {
-                for step in [0, SoundAge.count - 1] {
-                    let s = SoundSynth.render(p.voices(e, SoundAge(step: step)), loudness: e.loudness)
-                    let peak = Double(s.reduce(0) { max($0, abs($1)) })
-                    let name = "\(p.rawValue) \(e.rawValue) age \(step + 1)"
-                    if peak == 0 { missing.append(name) }
-                    if peak > SoundSynth.peakLimit + 0.001 { loud.append(name) }
-                    if Double(s.count) / SoundSynth.rate > (e == .levelUp || e == .hatch ? 1.5 : 0.6) { long.append(name) }
-                    levels["\(e.rawValue) \(step)", default: []].append(SoundSynth.momentaryMax(s.map(Double.init)))
-                }
-                let pitch = { (step: Int) in p.voices(e, SoundAge(step: step)).map { $0.pitch[0].hz }.min() ?? 0 }
-                if !e.isIsland && pitch(SoundAge.count - 1) >= pitch(0) { higher.append("\(p.rawValue) \(e.rawValue)") }
+        for e in Effect.allCases {
+            for step in [0, SoundAge.count - 1] {
+                let s = SoundSynth.render(BlobSound.voices(e, SoundAge(step: step)), loudness: e.loudness)
+                let peak = Double(s.reduce(0) { max($0, abs($1)) })
+                let name = "\(e.rawValue) age \(step + 1)"
+                if peak == 0 { missing.append(name) }
+                if peak > SoundSynth.peakLimit + 0.001 { loud.append(name) }
+                if Double(s.count) / SoundSynth.rate > (e == .levelUp || e == .hatch ? 1.5 : 0.6) { long.append(name) }
             }
+            let pitch = { (step: Int) in BlobSound.voices(e, SoundAge(step: step)).map { $0.pitch[0].hz }.min() ?? 0 }
+            if !e.isIsland && pitch(SoundAge.count - 1) >= pitch(0) { higher.append(e.rawValue) }
         }
-        check(missing.isEmpty, "every palette has a sound for every moment\(list(missing))")
+        check(missing.isEmpty, "every moment has a sound\(list(missing))")
         check(loud.isEmpty, "no sound peaks above -3 dBFS\(list(loud))")
         check(long.isEmpty, "sounds are short: a level-up or birthday 1.5 s, the rest 0.6 s\(list(long))")
         check(higher.isEmpty, "Tomo's sounds are lower at 6 than at 1\(list(higher))")
-        let spread = levels.values.map { ($0.max() ?? 0) - ($0.min() ?? 0) }.max() ?? 0
-        check(spread <= 1.5, "each moment is about as loud in every palette (within \(String(format: "%.1f", spread)) dB)")
         return ok
     }
 

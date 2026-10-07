@@ -14,8 +14,7 @@ macOS CI yet: CI runs only the repo checks, so the build, the self-test and the 
 
 The self-test: `TOMO_SELFTEST=1 TOMO_DATA_DIR=$(mktemp -d) <app binary>` checks the word-stage, level,
 store, sync-merge and look rules, the island's (which screen, where, Esc), who sees the first run, when reminders
-come, and that every sound palette has a short, soft sound for every moment, lower for an older Tomo and as loud as
-the others; it prints each
+come, and that every moment has a short, soft sound, lower for an older Tomo; it prints each
 check and quits (exit code 1 on a failure). A new growth rule gets a new check in `TomoProgress.selfTest`, a new
 merge rule one in `TomoSync.selfTest`, an island rule one in `TomoIslandSelfTest`. It also checks growth end to end
 (`TomoGrowthCheck.swift`, about 20 s): every level of every pack can be finished (enough words a round can ask,
@@ -37,9 +36,9 @@ pack's age boundary. Each run prints a `pace` line: the days to Lv 2, 5 and 10 a
   menu, with their shortcuts; a headless run can't press them.
 - **Tomo's look or motion:** `TOMO_RENDER_SHEET` and `TOMO_RENDER_ANIM` frames, with `TOMO_SEED=<text>` for
   a known learner's Tomo (the mascot otherwise), and the self-test's look checks (`TomoLook.selfTest`).
-- **Sounds:** `TOMO_RENDER_SOUNDS` for each palette (`TOMO_SOUND_PALETTE`), and listen. An agent can't listen: check
-  each file with ffmpeg (`astats` or `volumedetect`: peaks at -3 dBFS or lower; `ebur128`: about the same loudness
-  in every palette) and look at a `showspectrumpic` sheet.
+- **Sounds:** `TOMO_RENDER_SOUNDS`, and listen. An agent can't listen: check each file with ffmpeg (`astats` or
+  `volumedetect`: peaks at -3 dBFS or lower; `ebur128`: about the same loudness at every age) and look at a
+  `showspectrumpic` sheet.
 - **Sync:** the self-test, and `TOMO_SYNC_CHECK` runs for the case it changes (below).
 - **The first run:** its window's snapshots at every step (`TOMO_ONBOARDING=1 TOMO_AUTOPLAY=1`), in English
   and Japanese, and `TOMO_ONBOARDING=welcomeBack`. On the iPhone, `simctl io` screenshots of every step on a
@@ -121,8 +120,6 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   the icons, every age and face, every sound (WAV), or a 16-second scene (20 fps frames), then quit. The
   sheet shows one Tomo at every age and with every face, then a crowd of other seeds. The sounds are
   `<effect>-age<N>.wav` for 1さい to 6さい, and `all-sounds.wav` (every effect at 1さい, in order).
-- `TOMO_SOUND_PALETTE=bubbly|squishy|kalimba`: how Tomo sounds in this run and in `TOMO_RENDER_SOUNDS`
-  (bubbly by default), while the owner picks one ([decisions.md](decisions.md)).
 - `TOMO_SEED=<text>`: the seed Tomo's look is made from, in place of the saved Tomo's.
 - `TOMO_ONBOARDING=1`: the first run, if the data folder has no Tomo (test runs skip it otherwise). A step
   name opens it there: `hatch`, `round`, `result`, `visits`, `rhythm`, `quiet`, `login`, `ready`, or
