@@ -4,8 +4,10 @@ import TomoCore
 
 // MARK: - Keeps Tomo's Lock Screen card (TomoVisitAttributes) in step with progress, and plays its rounds
 //
-// The shell calls `show(_:)` with every new TomoGlance. iOS only lets an app start a Live Activity from the
-// foreground, so the card starts while you play and is updated after; its stale date (`nextDue`) flips it
+// The shell calls `show(_:)` with every new TomoGlance. The card exists only once the learner said yes to it (the
+// first run's Lock Screen step, or Settings: TomoReminderSettings.lockScreen, `TomoPhoneShell.cardAllowed`); saying
+// no ends it. iOS only lets an app start a Live Activity from the foreground, so the card starts while you play and
+// is updated after; its stale date (`nextDue`) flips it
 // to "ready" on its own when new words come due. Play and the choices on the card come back through
 // TomoPlayIntent / TomoAnswerIntent (`play()`, `answer(_:)`), which run TomoGame with the card as Tomo's
 // screen: `isPlaying` keeps the game "open" while a round is on the card.
@@ -31,6 +33,12 @@ final class TomoLiveVisit {
 
     func show(_ glance: TomoGlance) {
         self.glance = glance
+        Task { await push() }
+    }
+
+    /// The learner turned the card on or off: start it (in the foreground) or end it.
+    func refresh() {
+        glance = glance ?? TomoPhoneShell.shared.currentGlance()
         Task { await push() }
     }
 
@@ -104,6 +112,7 @@ final class TomoLiveVisit {
     }
 
     private func push() async {
+        guard TomoPhoneShell.shared.cardAllowed else { await end(); return }
         guard let glance else { return }
         let stale: Date? = if round?.right == true { Date().addingTimeInterval(3) }      // back to inviting
             else if round != nil { Date().addingTimeInterval(10 * 60) }                     // an abandoned round
@@ -115,8 +124,23 @@ final class TomoLiveVisit {
             nonisolated(unsafe) let running = activity   // ActivityKit's Activity isn't marked Sendable
             await running.update(content)
         } else if ActivityAuthorizationInfo().areActivitiesEnabled {
-            do { activity = try Activity.request(attributes: TomoVisitAttributes(), content: content) }
+            do {
+                activity = try Activity.request(attributes: TomoVisitAttributes(), content: content)
+                NSLog("Tomo: the Lock Screen card started")
+            }
             catch { NSLog("Tomo: couldn't start the Lock Screen card: \(error)") }
+        }
+    }
+
+    /// No card: the learner hasn't said yes, or said no.
+    private func end() async {
+        round = nil
+        isPlaying = false
+        activity = nil
+        for running in Activity<TomoVisitAttributes>.activities {
+            nonisolated(unsafe) let card = running   // ActivityKit's Activity isn't marked Sendable
+            await card.end(nil, dismissalPolicy: .immediate)
+            NSLog("Tomo: the Lock Screen card ended")
         }
     }
 

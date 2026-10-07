@@ -13,7 +13,8 @@ macOS CI yet: CI runs only the repo checks, so the build, the self-test and the 
 | **Finish gate** | Build, self-test, repo checks, and the evidence below | Once, when the branch is done |
 
 The self-test: `TOMO_SELFTEST=1 TOMO_DATA_DIR=$(mktemp -d) <app binary>` checks the word-stage, level,
-store, sync-merge and look rules, the island's (which screen, where, Esc) and who sees the first run, prints each
+store, sync-merge and look rules, the island's (which screen, where, Esc), who sees the first run and when reminders
+come, prints each
 check and quits (exit code 1 on a failure). A new growth rule gets a new check in `TomoProgress.selfTest`, a new
 merge rule one in `TomoSync.selfTest`, an island rule one in `TomoIslandSelfTest`. It also checks growth end to end
 (`TomoGrowthCheck.swift`, about 20 s): every level of every pack can be finished (enough words a round can ask,
@@ -38,7 +39,10 @@ pack's age boundary. Each run prints a `pace` line: the days to Lv 2, 5 and 10 a
 - **Sounds:** `TOMO_RENDER_SOUNDS`, and listen.
 - **Sync:** the self-test, and `TOMO_SYNC_CHECK` runs for the case it changes (below).
 - **The first run:** its window's snapshots at every step (`TOMO_ONBOARDING=1 TOMO_AUTOPLAY=1`), in English
-  and Japanese, and `TOMO_ONBOARDING=welcomeBack`.
+  and Japanese, and `TOMO_ONBOARDING=welcomeBack`. On the iPhone, `simctl io` screenshots of every step on a
+  regular iPhone and an iPhone SE, in both languages ([ios-demo/README.md](../ios-demo/README.md)).
+- **Reminders:** the self-test (`TomoReminders.selfTest`), and the pending ones on a simulator
+  (`TOMO_REMINDERS_LOG=1`), checked against quiet hours.
 - **Esc, the keyboard, changing displays:** a headless run can't press keys or plug in a monitor. Put the rule
   in a pure function with a check in `TomoIslandSelfTest`, and say in the PR what wasn't tried by hand.
 
@@ -115,7 +119,8 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   sheet shows one Tomo at every age and with every face, then a crowd of other seeds.
 - `TOMO_SEED=<text>`: the seed Tomo's look is made from, in place of the saved Tomo's.
 - `TOMO_ONBOARDING=1`: the first run, if the data folder has no Tomo (test runs skip it otherwise). A step
-  name opens it there: `hatch`, `round`, `result`, `visits`, `rhythm`, `ready`, or `welcomeBack`. With
+  name opens it there: `hatch`, `round`, `result`, `visits`, `rhythm`, `ready`, or `welcomeBack` (the iPhone
+  also has `quiet`, `notify`, `widget` and `lockScreen`). With
   `TOMO_AUTOPLAY=1` it plays itself through; `TOMO_SNAPSHOT_DIR` captures its window (`onboarding-NNN.png`).
 - `TOMO_RENDER_VARIETY=<dir>`: the same eight Tomos at several `TomoLook.variety` settings, to judge how
   different Tomos should be.

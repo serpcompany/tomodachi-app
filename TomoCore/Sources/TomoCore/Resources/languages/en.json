@@ -64,6 +64,83 @@
       }
     }
   },
+  "reminders": [
+    {
+      "fromAge": 1,
+      "lines": [
+        {
+          "say": "Play!",
+          "translation": {
+            "ja": "あそぼ！"
+          }
+        },
+        {
+          "say": "Look!",
+          "translation": {
+            "ja": "みて！"
+          }
+        },
+        {
+          "say": "Hi!",
+          "translation": {
+            "ja": "やあ！"
+          }
+        },
+        {
+          "say": "Peekaboo!",
+          "translation": {
+            "ja": "いないいないばあ！"
+          }
+        }
+      ]
+    },
+    {
+      "fromAge": 2,
+      "lines": [
+        {
+          "say": "Play with me!",
+          "translation": {
+            "ja": "いっしょに あそぼ！"
+          }
+        },
+        {
+          "say": "Look at this!",
+          "translation": {
+            "ja": "これ みて！"
+          }
+        },
+        {
+          "say": "New word!",
+          "translation": {
+            "ja": "あたらしい ことば！"
+          }
+        }
+      ]
+    },
+    {
+      "fromAge": 3,
+      "lines": [
+        {
+          "say": "Hey, listen!",
+          "translation": {
+            "ja": "ねえ、きいて！"
+          }
+        },
+        {
+          "say": "I found a new word!",
+          "translation": {
+            "ja": "あたらしい ことばを みつけたよ！"
+          }
+        },
+        {
+          "say": "Can you play now?",
+          "translation": {
+            "ja": "いま あそべる？"
+          }
+        }
+      ]
+    }
+  ],
   "ai": {
     "persona": "a {age}-year-old child from the United States",
     "rules": [

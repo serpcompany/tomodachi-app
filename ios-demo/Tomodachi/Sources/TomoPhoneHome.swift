@@ -60,11 +60,8 @@ struct TomoPhoneHome: View {
 
     private var settings: some View {
         TomoSettingsScreen(afterStartOver: { tab = .play }) {
-            // ┌─ REMINDERS SLOT (#88) ───────────────────────────────────────────────────────────────────────────
-            // │ The iPhone's reminder settings go here, under how often Tomo visits: replace EmptyView() with
-            // │ TomoReminderSettingsView() (self-contained, built on the #88 / #92 branch) when the two merge.
-            // └──────────────────────────────────────────────────────────────────────────────────────────────────
-            EmptyView()
+            // The iPhone's own: reminders (on, how often, quiet hours) and Tomo's Lock Screen card (#88).
+            TomoReminderSettingsView.Sections()
         } more: {
             Section {
                 NavigationLink(value: TomoScreen.about) {

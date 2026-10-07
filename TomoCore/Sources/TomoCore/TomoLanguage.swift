@@ -57,6 +57,8 @@ public struct TargetPack: Codable, Sendable {
     }
     public struct AgeRules: Codable, Sendable { public let fromAge: Int; public let rules: [String] }
     public struct AgeStarters: Codable, Sendable { public let fromAge: Int; public let starters: [Starter] }
+    /// What Tomo says in a reminder (iPhone notifications), from an age on: it talks at its age there too.
+    public struct AgeLines: Codable, Sendable { public let fromAge: Int; public let lines: [SpokenLine] }
     public struct Round: Codable, Sendable {
         public let id: String          // "ja:wanwan" (later: Language Reference IDs)
         public let say: String
@@ -105,6 +107,7 @@ public struct TargetPack: Codable, Sendable {
     public let age: AgeFormat              // "{n}さい", "{n} años"
     public let labels: Labels
     public let lines: Lines
+    public let reminders: [AgeLines]?      // reminders (TomoReminders), by age; none: Tomo's `invite`
     public let ai: AIProfile
     public let levels: [Level]             // levels[0] = level 1. Each level's age marks when Tomo grows up
     public let startersByAge: [AgeStarters]?   // openers for ages past the levels (testing older Tomos)
@@ -131,6 +134,10 @@ public struct TargetPack: Codable, Sendable {
     public var allStarters: [Starter] {
         var seen = Set<String>()
         return (starters + (startersByAge ?? []).flatMap(\.starters)).filter { seen.insert($0.say).inserted }
+    }
+    /// Tomo's reminder lines at this age (the latest set that starts at or below it).
+    public func reminderLines(age: Int) -> [SpokenLine] {
+        (reminders ?? []).filter { $0.fromAge <= age }.max { $0.fromAge < $1.fromAge }?.lines ?? []
     }
     public func starters(age: Int) -> [Starter] {
         (startersByAge ?? []).filter { $0.fromAge <= age }.max { $0.fromAge < $1.fromAge }?.starters ?? starters
