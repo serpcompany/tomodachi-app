@@ -15,7 +15,12 @@ macOS CI yet: CI runs only the repo checks, so the build, the self-test and the 
 The self-test: `TOMO_SELFTEST=1 TOMO_DATA_DIR=$(mktemp -d) <app binary>` checks the word-stage, level,
 store, sync-merge and look rules, the island's (which screen, where, Esc) and who sees the first run, prints each
 check and quits (exit code 1 on a failure). A new growth rule gets a new check in `TomoProgress.selfTest`, a new
-merge rule one in `TomoSync.selfTest`, an island rule one in `TomoIslandSelfTest`.
+merge rule one in `TomoSync.selfTest`, an island rule one in `TomoIslandSelfTest`. It also checks growth end to end
+(`TomoGrowthCheck.swift`, about 20 s): every level of every pack can be finished (enough words a round can ask,
+each item in one level, ages never going down, talking on the first 3さい level, the last level holding), and a
+perfect and a realistic learner, simulated on a stopped clock with the real rules, grow from the first word to the
+first talking question with nothing going backwards, every level-up and birthday logged and each birthday on the
+pack's age boundary. Each run prints a `pace` line: the days to Lv 2, 5 and 10 and to each birthday.
 
 ## Evidence a change needs
 
@@ -94,6 +99,8 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   asking to start over; `tour` shows every screen for 3 s each, then the question. On the iPhone it picks the
   tab. `TOMO_OPEN_SETTINGS` is its old name. Seed a mid-level Tomo first (below), so the screens have content.
 - `TOMO_AUTOPLAY=1`: answers picture rounds by itself (one miss, then right) and picks Practice when Tomo rests.
+  `TOMO_AUTOPLAY=right` answers every round right the first time, so the answer counts in full: a level-up on cue
+  from a `seed-progress.py --edge` folder.
 - `TOMO_AUTOREOPEN=<seconds>`: that long after Tomo first tucks back in, it opens once, the way a click on
   small Tomo does (free play), to see what the learner gets then (the resting card, or what counts now).
 - `TOMO_STAGE=3 TOMO_AUTOCHAT="しごと してる|うん"`: a testing Tomo at that age, typing those answers. Testing
@@ -124,8 +131,10 @@ level 1 just learned, so nothing counts and Tomo rests:
 python3 mac-demo/scripts/seed-progress.py /tmp/tomo-test --through-level 1 --stage 1 --due 2
 ```
 
-Its docstring has the options. Snapshots of the real data are a copy away:
-`sqlite3 "<Application Support>/com.zenbujapanese.tomodachi/learner.sqlite" ".backup '<dir>/learner.sqlite'"`.
+`--edge N` is one word short of finishing level N (the word due now), with Tomo at that level's age: with
+`TOMO_AUTOPLAY=right`, the first answer levels up, so `--edge 15` shows the 2さい birthday and `--edge 60` the
+3さい one and the first talking question. Its docstring has the options. Snapshots of the real data are a copy away:
+`sqlite3 -readonly "<Application Support>/com.zenbujapanese.tomodachi/learner.sqlite" ".backup '<dir>/learner.sqlite'"`.
 
 ## Known flake
 
