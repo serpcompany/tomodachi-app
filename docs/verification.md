@@ -49,10 +49,15 @@ its data folder again every 5 minutes. When saves go through, the marking stops.
 
 - Progress is saved, so **every test run gets `TOMO_DATA_DIR=<a temp dir>`**. Without it, the run changes
   the owner's own Tomo.
-- Mute test runs: `defaults write com.zenbujapanese.tomodachi soundEnabled -bool false`, and afterwards
-  `defaults delete com.zenbujapanese.tomodachi soundEnabled`.
-- Debug builds share the owner's bundle ID and preferences, so starting a test run quits their copy.
-  Relaunch it with `mac-demo/run.sh` when you're done.
+- **Every test run gets `TOMO_HEADLESS=1`** too, so it never shows on the owner's screen: each window stays
+  transparent and click-through, none takes the keyboard (the owner's typing would land in it), the app
+  never activates, the menu bar icon is hidden and Tomo is silent, without touching the saved sound
+  setting. Snapshots still work: they draw the views, not the screen (`TomoHeadless.swift`).
+- Debug builds share the owner's bundle ID and preferences ([#54](https://github.com/serpcompany/tomodachi-app/issues/54)).
+  Launch test runs by their binary path and never `pkill` by name: that quits the owner's copy, and other
+  agents' runs. If one was quit, relaunch it with `mac-demo/run.sh`.
+- iPhone: boot the simulator with `xcrun simctl boot` and capture with `simctl io … screenshot`; never
+  open Simulator.app, which puts a window on the owner's screen.
 - The owner may be watching or clicking the live app. A click shows up in snapshots as an unexpected
   answer or restart.
 
@@ -60,6 +65,7 @@ its data folder again every 5 minutes. When saves go through, the marking stops.
 
 Set these in the app's environment (run the binary in `Tomodachi.app/Contents/MacOS/` directly):
 
+- `TOMO_HEADLESS=1`: nothing shows, sounds or takes focus (above). Use it on every test run.
 - `TOMO_SNAPSHOT_DIR=<dir>`: a PNG of the island every second. With `TOMO_OPEN_SETTINGS=<page>` (tomo,
   words, general, ai, testing, about) it opens Settings at that page and captures it too.
 - `TOMO_AUTOPLAY=1`: answers picture rounds by itself (one miss, then right) and accepts the practice offer.
