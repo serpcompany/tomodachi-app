@@ -2,6 +2,9 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident. The first day's decisions are in [decisions-2026-10-03.md](decisions-2026-10-03.md).
 
+### 2026-10-07: Tomo is never younger than its level, and growth is checked by simulated learners
+When a saved Tomo loads, its age is at least its level's age in the pack (saved and logged as a birthday), so each birthday lands on the pack's age boundary even after a pack's ages move. The self-test walks every level of every pack and simulates a perfect and a realistic learner, on a clock that only the check moves, from the first word to the first talking question ([verification.md](verification.md)). **Why:** the owner's "stays at full exp" (#89) was caught by hand; checking growth end to end found English Lv 25 had lost its ten words to a copy of Lv 26 (a `build-levels.py` bug, now fixed), the iPhone cut each evolution short, and a Mac never evolved for a birthday reached on the iPhone.
+
 ### 2026-10-07: Esc closes Tomo only when Tomo has the keyboard
 Esc is a local key monitor on the island: it works once the learner has clicked Tomo or opened it from the menu (the island takes the keyboard then, and gives it back when it closes), with no permission. During a visit Tomo drops in on its own, Esc stays with the learner's app; × closes the visit, or ignoring it does. **Why:** the old global monitor needed Accessibility, which Tomodachi never asks for, so Esc never worked. A Carbon hot key would have worked anywhere, but it takes Esc from every other app while Tomo is open (vim, dialogs, full-screen video), and Tomo opens by itself while people work.
 

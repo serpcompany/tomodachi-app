@@ -160,8 +160,11 @@ public final class TomoBlob: ObservableObject {
 
     /// Grow up (or reset) to an age step. Growing up evolves: squeeze, flash, pop out in the next form.
     public func grow(to target: CGFloat) {
-        stir()
         let next = Self.ageStep(target)
+        // Already there, or evolving into it: a shell can report one birthday twice (the iPhone's view sees the age
+        // change and the game's notification), and the second must not cut the evolution short.
+        if next == (swap?.age ?? age) { return }
+        stir()
         if next > (swap?.age ?? age) {
             evolve(to: next, look: swap?.look ?? look)
             emit(.sparkle, 8)
