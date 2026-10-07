@@ -233,8 +233,10 @@ public final class TomoGame: ObservableObject {
     private var taughtNew = false           // this visit already brought its one new item
     private var token = 0
 
-    /// Tomo's voice and sound effects (the speaker button, Settings → General).
-    @Published public var soundEnabled = UserDefaults.standard.object(forKey: "soundEnabled") as? Bool ?? true {
+    /// Tomo's voice and sound effects (the speaker button, Settings → General). A headless test run
+    /// (TOMO_HEADLESS) starts silent without saving it.
+    @Published public var soundEnabled = ProcessInfo.processInfo.environment["TOMO_HEADLESS"] == nil
+        && (UserDefaults.standard.object(forKey: "soundEnabled") as? Bool ?? true) {
         didSet { UserDefaults.standard.set(soundEnabled, forKey: "soundEnabled") }
     }
 
