@@ -32,10 +32,10 @@ struct TomoCharacterView: View {
 
     /// Cursor direction relative to Tomo, −1…1 (positive y = above).
     private func gaze() -> CGPoint {
-        let screen = NSScreen.main ?? NSScreen.screens[0]
+        // Both in the island screen's coordinates: the island is centred at its top.
         let (w, h) = islandSize(mode: state.mode, view: state.view, nw: state.notchWidth, nh: state.notchHeight)
         let (bx, by, _, _) = botPosition(mode: state.mode, view: state.view, islandW: w, islandH: h)
-        let screenX = screen.frame.midX - w / 2 + bx
+        let screenX = state.screenWidth / 2 - w / 2 + bx
         return CGPoint(x: tanh((state.mousePosition.x - screenX) / 260),
                        y: -tanh((state.mousePosition.y - by) / 200))
     }

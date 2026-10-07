@@ -4,7 +4,7 @@ import SwiftUI
 import TomoCore
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     var statusItem: NSStatusItem?
     private(set) var islandController: IslandWindowController?
 
@@ -26,33 +26,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         button.image?.size = NSSize(width: 24, height: 18)
         button.image?.accessibilityDescription = "Tomodachi"
         button.image?.isTemplate = true
-        rebuildMenu()
-        // Menu text follows the interface language, and "Skip to talking" shows the target's age label.
+        let menu = NSMenu()
+        menu.delegate = self
+        statusItem?.menu = menu
+        fillMenu(menu)
+        // The menu is filled again each time it opens, so its text follows the interface language.
         languageWatch = TomoLanguages.shared.objectWillChange
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.rebuildMenu()
                 self?.settingsWindow?.title = TomoLanguages.shared.learner("menu.settingsTitle")
             }
     }
 
     private var languageWatch: AnyCancellable?
 
-    private func rebuildMenu() {
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        TomoTestingTools.shared.menuOpening()   // ⌥-click shows the testing tools
+        fillMenu(menu)
+    }
+
+    private func fillMenu(_ menu: NSMenu) {
         let ui = TomoLanguages.shared.learner
-        let menu = NSMenu()
+        menu.removeAllItems()
         menu.addItem(withTitle: ui("menu.open"), action: #selector(openIsland), keyEquivalent: "")
         menu.addItem(withTitle: ui("menu.dropIn"), action: #selector(dropInNow), keyEquivalent: "d")
-        menu.addItem(withTitle: ui("menu.talk", ["age": TomoLanguages.shared.target.ageLabel(TomoGame.chatStage)]),
-                     action: #selector(skipToTalking), keyEquivalent: "3")
         menu.addItem(withTitle: ui("menu.words"), action: #selector(openWords), keyEquivalent: "w")
         menu.addItem(withTitle: ui("menu.restart"), action: #selector(restartDemo), keyEquivalent: "r")
+        if TomoTestingTools.shared.shown {
+            menu.addItem(.separator())
+            menu.addItem(withTitle: ui("menu.talk", ["age": TomoLanguages.shared.target.ageLabel(TomoGame.chatStage)]),
+                         action: #selector(skipToTalking), keyEquivalent: "3")
+        }
         menu.addItem(.separator())
         menu.addItem(withTitle: ui("menu.settings"), action: #selector(openSettings), keyEquivalent: ",")
         menu.addItem(.separator())
         menu.addItem(withTitle: ui("menu.quit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
-
-        statusItem?.menu = menu
     }
 
     // MARK: - Actions
@@ -60,6 +68,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func openIsland() {
         islandController?.fsm.openedExternally()
         islandController?.expand(to: .overview)
+        islandController?.takeKeyboard()   // opened on purpose: Esc closes it
     }
 
     @objc private func openWords() {
@@ -76,6 +85,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func dropInNow() {
         TomoGame.shared.dropIn(force: true)
+        islandController?.takeKeyboard()
     }
 
     private var settingsWindow: NSWindow?
@@ -102,9 +112,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// Centres the window horizontally and keeps its title bar clear of the island panel
-    /// (320 pt tall at the top of the notch screen), shrinking it to fit if needed.
+    /// (320 pt tall at the top of the island's screen), shrinking it to fit if needed.
     private func placeBelowIsland(_ win: NSWindow) {
-        let screen = IslandWindowController.notchScreen() ?? NSScreen.main ?? win.screen
+        let screen = islandController?.window?.screen ?? IslandWindowController.islandScreen() ?? win.screen
         guard let screen else { win.center(); return }
         let visible = screen.visibleFrame
         let islandBottom = screen.frame.maxY - 320 - 12   // island panel height + margin
@@ -172,6 +182,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         game.isPointerInside = { AppState.shared.mouseInIsland }
         game.onBotState = { AppState.shared.tomoState = $0 }
         game.onHelpChange = { AppState.shared.helpPanelHeight = $0 == nil ? 0 : TomoGrid.helpHeight }
+        // "Wait while you're typing": CGEventSource's idle times need no permission (checked on macOS 27 from an app
+        // with neither Accessibility nor Input Monitoring: the key-press time was real, apart from the mouse's).
         game.secondsSinceInput = { typing in
             let src = CGEventSourceStateID.combinedSessionState
             if typing { return CGEventSource.secondsSinceLastEventType(src, eventType: .keyDown) }
