@@ -72,6 +72,9 @@ birthdays, what to ask next, and whether a right answer counts. `TomoGame` asks;
 decides. Invariants:
 - An answer counts only when the word is due, or at least halfway through its wait.
 - Level and age never go down, and the experience bar never moves back (it uses each word's best stage).
+- The bar counts the level's best `levelNeeded` words, and its goal (`goalShare`, the last tenth) fills only
+  when the level is done. Every surface draws the same number (`TomoGrowthBar` on the card, the iPhone and
+  Settings; the glance for widgets).
 - Practice is a mode the learner picks, and it never moves the bar.
 
 `TomoClock` moves time for testing, and `TOMO_SELFTEST=1` checks the rules. Planned:
@@ -98,7 +101,9 @@ Production. The logs and settings stay on each device for now
 
 **Visits.** `TomoGame.tick()` with the `DropIn` constants. Tomo opens on its own when it has something
 that counts and you're at a natural break (not typing, not away). It tucks back in when ignored, leaving
-a red dot. Opening it yourself is free play, with no time limit. Planned: chattiness and back-off
+a red dot. Opening it yourself is free play, with no time limit. When nothing counts, Tomo rests
+(`TomoPhase.resting`, `TomoGame.rest`) in every shell until something counts, which the tick notices, or the
+learner picks Practice; opening Tomo again shows the rest, never a new offer. Planned: chattiness and back-off
 ([#19](https://github.com/serpcompany/tomodachi-app/issues/19)), busy detection
 ([#20](https://github.com/serpcompany/tomodachi-app/issues/20)).
 
