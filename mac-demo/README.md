@@ -25,7 +25,8 @@ for CloudKit's Production environment. Debug builds sync in Development, for tes
 Tomo drops in on its own (every 20 minutes by default) when it has words due or a new one to teach. In
 between it sits small beside the notch: click it to play any time, and press Esc (or ×) to close. It
 follows the notch when displays change. Progress is saved on this Mac and synced through iCloud; test runs
-use their own folder. Settings can open Tomodachi at login (off until you turn it on).
+use their own folder. Open at login is a switch in Settings; a new learner picks it in the first run, where it
+starts on.
 
 Tomodachi is a regular app with a Dock icon. Its window (the Dock icon, Tomo's age in the card, or opening
 the app again) has a sidebar: Tomo, Words, Settings and About, the same screens as the iPhone's tabs. While
@@ -70,6 +71,11 @@ mac-demo/scripts/release-beta.sh --owner         # the owner's copy in build/own
 - **What the script checks:** your Developer ID team, the hardened runtime, iCloud on CloudKit's
   Production environment with production push, and that no Coucou sounds are bundled. It checks again after notarizing, along with the stapled ticket and Gatekeeper.
 - **What to send testers:** the zip, plus [docs/beta-testing.md](../docs/beta-testing.md).
+
+## Mac App Store (not set up yet)
+
+No sandbox, no upload script, and macOS isn't on the App Store Connect record yet. The listing is drafted as if
+it were, in `metadata/`, with screenshots from `scripts/make-screenshots.py`: [app-store.md](app-store.md).
 
 ## App icon
 
