@@ -170,8 +170,10 @@ provider comes from the AI page (key in the Keychain; hidden for the first relea
 
 **Voice and sound.** Every spoken line goes through `TomoGame.speak` (the system voice for the pack's
 locale, pitched up); answers come in through `TomoListener` (on-device recognition). Sound effects are
-synthesized in `TomoSounds.swift`, with no audio files, and all triggered in one place (`listen()` and
-`outcome(_:)`). Planned: a voice that ages with Tomo
+synthesized in code, with no audio files, and all triggered in one place (`TomoSounds.listen()` and
+`outcome(_:)`). `TomoSoundSynth` mixes each sound's voices and sets it to its moment's loudness (K-weighted,
+peaks under -3 dBFS), so every age plays equally loud; `TomoBlobSound` (bubbly) says how each moment
+sounds, lower and fuller as Tomo grows. Planned: a voice that ages with Tomo
 ([#5](https://github.com/serpcompany/tomodachi-app/issues/5)), recognition hints
 ([#17](https://github.com/serpcompany/tomodachi-app/issues/17)), sound polish
 ([#21](https://github.com/serpcompany/tomodachi-app/issues/21)).
