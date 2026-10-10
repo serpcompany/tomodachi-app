@@ -40,7 +40,7 @@ public struct TomoAboutScreen: View {
         Form {
             Section {
                 VStack(spacing: 6) {
-                    TomoLiveAvatar(size: 96, look: .mascot, growth: 0)
+                    TomoLiveAvatar(size: 96, look: .mascot, material: .classic, growth: 0)
                     Text(appName).font(.title2.bold())
                     Text(lang.learner("about.by")).font(.callout.weight(.medium)).foregroundStyle(.secondary)
                     Text(lang.learner("about.version", ["v": version])).font(.callout).foregroundStyle(.secondary)

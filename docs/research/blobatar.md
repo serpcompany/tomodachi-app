@@ -82,8 +82,8 @@ learner a reason to look.
 - **The drawing:** `Palette` and the shape constants become a value built from the seed and passed to
   `TomoChick`. Nothing else in the seam changes: notifications and `TomoGame.onBotState` still drive it.
 - **Widgets and Live Activities:** the hard part. There Tomo moves through fonts of pre-rendered frames
-  (`TomoMovingChick`, made at build time by `ios-demo/scripts/make-frame-font.py`; decisions.md
-  2026-10-06). A font is bundled, so it can't be built per learner at run time. Options: a small fixed set
+  (`TomoMovingChick`, made at build time by `ios-demo/scripts/make-frame-font.py`;
+  [decisions-2026-10-06.md](../decisions-2026-10-06.md)). A font is bundled, so it can't be built per learner at run time. Options: a small fixed set
   of looks, each with its own font (for example 8 colours), with the widget using the nearest one; or the
   widget keeps the default chick. Decide this before building, because it limits how many traits are
   worth seeding.

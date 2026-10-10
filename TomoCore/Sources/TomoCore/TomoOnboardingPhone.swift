@@ -409,7 +409,7 @@ private struct PhoneScreenSketch: View {
             }
             .offset(y: -48)
             HStack(spacing: 6) {
-                TomoBlobView(state: .idle, growth: 0, look: .mascot).frame(width: 34, height: 34)
+                TomoBlobView(state: .idle, growth: 0, look: .mascot, material: .classic).frame(width: 34, height: 34)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(app).font(.system(size: 9, weight: .bold, design: .rounded))
                     Text(status).font(.system(size: 8, weight: .semibold)).foregroundStyle(Paint.soft)

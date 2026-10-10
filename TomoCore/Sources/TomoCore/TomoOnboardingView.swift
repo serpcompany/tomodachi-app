@@ -114,7 +114,7 @@ public struct TomoOnboardingView: View {
                         .onTapGesture { model.hatch() }
                         .transition(.identity)
                 }
-                TomoBlobView(state: model.botState, growth: game.growthStep, gaze: gaze)
+                TomoBlobView(state: model.botState, growth: game.growthStep, material: .own, gaze: gaze)
                     .frame(width: tomoSize * fit, height: tomoSize * fit)
                     .scaleEffect(model.hatched ? 1 : 0.2)
                     .opacity(model.hatched ? 1 : 0)

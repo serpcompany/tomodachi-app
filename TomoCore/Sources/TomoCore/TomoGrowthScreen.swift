@@ -60,7 +60,7 @@ public struct TomoGrowthScreen: View {
         #if os(iOS)
         // The iPhone's Tomo tab: Tomo big, over its numbers.
         VStack(spacing: 10) {
-            TomoLiveAvatar(size: 132)
+            TomoLiveAvatar(size: 132, material: .own)
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(game.age).font(.system(size: 28, weight: .bold, design: .rounded))
                 Text(lang.learner("level", ["n": "\(game.level)"])).font(.title3.weight(.semibold))
@@ -72,7 +72,7 @@ public struct TomoGrowthScreen: View {
         .frame(maxWidth: .infinity)
         #else
         HStack(spacing: 16) {
-            TomoLiveAvatar(size: 76)
+            TomoLiveAvatar(size: 76, material: .own)
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
                     Text(game.age).font(.system(size: 22, weight: .bold))
