@@ -37,6 +37,7 @@ extension TomoStats {
         var days: [Int: Day] = [:], levelAfter: [Int: Int] = [:], visits = 0, ignored = 0, n = 0
         var firstAnswer: Date?
         var stages: [String: [(at: Date, stage: Int)]] = [:]      // each word's stage after each answer, for the replay
+        var grewAt: [Int: Date] = [:]                              // when each level was reached, for the pillar
         func answer(_ id: String, day: Int, practice: Bool = false) {
             n += 1
             firstAnswer = firstAnswer ?? TomoClock.now
@@ -62,7 +63,7 @@ extension TomoStats {
             }
             days[day] = d
             stages[id, default: []].append((TomoClock.now, after))
-            _ = p.levelUpIfReady()
+            if let up = p.levelUpIfReady() { grewAt[up.level] = TomoClock.now }
             levelAfter[day] = p.level
             TomoClock.stopped = TomoClock.now.addingTimeInterval(15)
         }
@@ -244,6 +245,20 @@ extension TomoStats {
               && stats.rangeText(.week, ui) == "Oct 5–Oct 6",
               "stats: Copy recap says the range and its numbers: \(weekRecap.split(separator: "\n").prefix(2).joined(separator: " / "))")
 
+        // The height pillar: a mark for every level reached, dated when the learner reached it, birthdays where the
+        // pack's age goes up, and the next birthday ahead.
+        let marks = stats.marks()
+        check(marks.map(\.level) == Array(1...p.level) && marks.first?.at == p.metAt
+              && marks.dropFirst().allSatisfy { grewAt[$0.level] == $0.at }
+              && marks.allSatisfy { $0.birthday == ($0.level == 1 || pack.levels[$0.level - 1].age > pack.levels[$0.level - 2].age)
+                                    && $0.age == pack.levels[$0.level - 1].age },
+              "stats: the pillar has a mark per level (\(marks.count)), each dated when the learner reached it, birthdays where the age goes up")
+        let firstBirthday = (pack.levels.indices.first { pack.levels[$0].age > pack.levels[0].age } ?? 0) + 1
+        check(stats.nextBirthday?.level == firstBirthday && stats.nextBirthday?.age == pack.levels[firstBirthday - 1].age,
+              "stats: the next birthday on the pillar is \(pack.ageLabel(stats.nextBirthday?.age ?? 0)) at Lv \(firstBirthday)")
+        check((1...p.level).allSatisfy { lv in grewAt[lv].map { stats.level(at: $0) == lv && stats.level(at: $0.addingTimeInterval(-1)) == lv - 1 } ?? true },
+              "stats: sliding back in time, Tomo's level on each mark's day is that mark's level, and one less just before")
+
         // The learner's own log: JSON that reads back, and Markdown with a row for every week, word and answer.
         let json = stats.exportJSON(ui), log = TomoLogExport.decode(json)
         let answerRows = p.answerLog(from: start, to: at(21, 4)).count
@@ -284,6 +299,13 @@ extension TomoStats {
         check(none.weeks().isEmpty && none.since == nil && none.todayLine(ui) == ui("today.nothing") && none.garden().isEmpty
               && first.isFirst && first.facts.map(\.id) == ["first"] && first.message.hasPrefix(pack.lines.hello?.say ?? "-"),
               "stats: a brand-new Tomo has an empty garden, no weeks, nothing yet today, and a first postcard: \(first.message)")
+        check(none.marks().map(\.level) == [1] && none.marks().first?.at == fresh.metAt && none.marks().first?.birthday == true,
+              "stats: a brand-new Tomo's pillar has one mark, the day it hatched")
+        // A Tomo that grew on another device: its levels are on the pillar, undated here.
+        TomoStore(learner: "fr", target: pack.id, directory: dir)?.saveTomo(.init(metAt: at(0, 8), level: 12, age: 1))
+        let elsewhere = TomoStats(TomoProgress(pack: pack, learner: "fr", directory: dir)).marks()
+        check(elsewhere.count == 12 && elsewhere.dropFirst().allSatisfy { $0.at == nil },
+              "stats: levels grown on another device are on the pillar, without a day")
         if let id = fresh.visitItems(limit: 1).first {
             fresh.answeredRight(id, mode: "sim", wrongTries: 0, hint: false)
             check(TomoStats(fresh).todayLine(ui) == "1 answer · 1 new word", "stats: one answer: \"\(TomoStats(fresh).todayLine(ui))\"")

@@ -5,7 +5,8 @@ screens built in stages from [Stats, Take Two](reference/tomo/stats-take-two.htm
 item 2): Tomo's week as a postcard first, then the word garden, a height pillar for growing up and Tomo's
 diary, all on the same layer. The code: `TomoStats.swift` (the layer), `TomoStatsExport.swift` (the recap
 and the export), `TomoGarden.swift` (the garden), `TomoPostcard.swift` and `TomoPostcardView.swift` (Tomo's
-week), `TomoTogetherScreen.swift` (the Together screen).
+week), `TomoTogetherScreen.swift` (the Together screen), `TomoHeightPillar.swift` (growing up, on the Tomo
+screen).
 
 ## One layer
 
@@ -66,6 +67,21 @@ take a tab each; on the Monday a postcard comes, it moves to the top.
 - Under Reduce Motion nothing sways or falls and Tomo stays at the side, still breathing; watered words
   get a still drop.
 
+## Growing up: the height pillar
+
+On the Tomo screen's Growing up, since it's about Tomo rather than what you did: the way a Japanese family
+marks a child's height on a wooden pillar (柱のきず), Tomo gets a mark for every level it reaches
+(`TomoStats.marks`, from the growth log), with the day, and a big one at the hatch and each birthday. Tomo
+stands beside it at its age's form, bigger through each age.
+- **Levels:** this age's marks, from its birthday up (the newest ones when there are many), and the next
+  birthday dashed above them, with Tomo's next form asleep beside it. Slide back in time and Tomo shrinks to
+  that day's size and form, and later marks fade. Tap a mark for its day and the words of that level you've
+  met, each with its stage.
+- **Every age:** a band per age, each birthday at its foot, Tomo's level in its age's band, and each age with
+  what it brings (grown / now / later), the list the screen had before.
+- A level reached on another device is on the pillar without a day. A brand-new Tomo's pillar has one mark,
+  the day it hatched, and says what the marks will be.
+
 ## Today and Tomo's week
 
 - **The Today line** ("12 answers · 3 new words · 5 days in a row · Lv 61 → 62") is on the Tomo and
@@ -89,7 +105,9 @@ take a tab each; on the Monday a postcard comes, it moves to the top.
 The self-test plays a simulated learner for three weeks on a stopped clock and checks today, every week,
 the misses, the streak (across the 4 am boundary, broken by a quiet week, waiting on today), missed days,
 the garden (every word met at its stage, and the replay's stage of every word at the end of every day),
-the ranges, the recap, both exports (the JSON reads back; the Markdown has a row for everything), the Today
-line and the postcards against its own tally (`TomoStatsCheck.swift`), plus the visit log on the game
-(`TomoVisitCheck.swift`). Snapshots: `TOMO_OPEN_WINDOW=together` with a `seed-progress.py --history`
+the ranges, the recap, both exports (the JSON reads back; the Markdown has a row for everything), the
+pillar's marks (each dated when the level was reached; the level on each mark's day), the Today line and the
+postcards against its own tally (`TomoStatsCheck.swift`), plus the visit log on the game
+(`TomoVisitCheck.swift`). The growth simulations check each pillar's birthdays up to 3さい
+(`TomoGrowthCheck.swift`). Snapshots: `TOMO_OPEN_WINDOW=together` with a `seed-progress.py --history`
 folder ([debug-flags.md](debug-flags.md)).

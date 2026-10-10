@@ -4,8 +4,8 @@ import SwiftUI
 //
 // A live Tomo with its age and level, the experience bar (its goal fills only when the level is done) and what's left;
 // days together; the Today line ("12 answers · 3 new words", TomoStats), with, on a Monday, Tomo's week come as a
-// postcard; and each age with its levels and what it brings (grown / now / later). Everything shown comes from
-// TomoGame, TomoProgress and TomoStats, which decide it.
+// postcard; and growing up, as marks on a height pillar with each age and what it brings (TomoHeightPillar.swift).
+// Everything shown comes from TomoGame, TomoProgress and TomoStats, which decide it.
 
 public struct TomoGrowthScreen: View {
     @ObservedObject var game = TomoGame.shared
@@ -23,6 +23,21 @@ public struct TomoGrowthScreen: View {
     private var progress: TomoProgress { game.progress }
 
     public var body: some View {
+        #if os(iOS)
+        // Test runs that look at the pillar (TOMO_PILLAR) on the iPhone scroll to it; the Mac's use a taller window.
+        ScrollViewReader { proxy in
+            form.task {
+                guard ProcessInfo.processInfo.environment["TOMO_PILLAR"] != nil else { return }
+                try? await Task.sleep(for: .seconds(1.5))
+                proxy.scrollTo("pillar", anchor: .top)
+            }
+        }
+        #else
+        form
+        #endif
+    }
+
+    private var form: some View {
         Form {
             Section {
                 hero.padding(.vertical, 4)
@@ -65,7 +80,9 @@ public struct TomoGrowthScreen: View {
             .id(game.progressVersion)
 
             Section(lang.learner("growth.growingUp")) {
-                ForEach(progress.ageSpans, id: \.age) { ageRow($0) }
+                // Growing up, as marks on a height pillar, for the learner's own Tomo (TomoHeightPillar.swift).
+                TomoHeightPillar(progress: progress, look: TomoLook.current, material: .own, version: game.progressVersion)
+                    .id("pillar")
             }
         }
         .formStyle(.grouped)
@@ -128,31 +145,6 @@ public struct TomoGrowthScreen: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    // MARK: Growing up: each age, its levels and what it brings
-
-    private func ageRow(_ a: TomoProgress.AgeSpan) -> some View {
-        let state = a.age < game.stage ? "grown" : a.age == game.stage ? "now" : "later"
-        let levels = a.from == a.to ? lang.learner("level", ["n": "\(a.from)"])
-            : lang.learner("growth.levels", ["from": "\(a.from)", "to": "\(a.to)"])
-        return HStack(alignment: .top, spacing: 10) {
-            Image(systemName: state == "grown" ? "checkmark.circle.fill" : state == "now" ? "location.circle.fill" : "lock.circle")
-                .font(.system(size: 16))
-                .foregroundStyle(state == "grown" ? Color.teal : state == "now" ? Color.orange : Color.secondary)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(lang.target.ageLabel(a.age)).font(.headline)
-                    Text(levels).font(.caption).foregroundStyle(.secondary)
-                }
-                Text(lang.learner("growth.age.\(min(a.age, 6))")).font(.callout).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer()
-            Text(lang.learner("growth.state.\(state)")).font(.caption).foregroundStyle(.secondary)
-        }
-        .padding(.vertical, 2)
-        .opacity(state == "later" ? 0.65 : 1)
     }
 }
 

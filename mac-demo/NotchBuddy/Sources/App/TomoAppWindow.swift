@@ -12,7 +12,7 @@ import TomoCore
 // Closing it leaves Tomo in the notch and Tomodachi in the Dock (decisions.md).
 // TOMO_OPEN_WINDOW=<screen> opens it at launch, `tour` shows every screen in turn, and TOMO_SNAPSHOT_DIR captures it
 // (window-<screen>-NNN.png, and window-sheet-NNN.png for the start-over question); TOMO_APPEARANCE=light|dark draws it
-// in either (docs/debug-flags.md).
+// in either, and TOMO_WINDOW_HEIGHT makes it taller, for a long page (docs/debug-flags.md).
 
 @MainActor
 enum TomoAppWindow {
@@ -30,6 +30,11 @@ enum TomoAppWindow {
         if AppState.shared.mode == .expanded { TomoGame.shared.closeIsland?() }
         let win = window ?? make()
         if !win.isVisible { place(win) }
+        // TOMO_WINDOW_HEIGHT=<points>: a taller window for snapshots of a long page (a test run's window is never on
+        // screen, so it may be taller than the screen).
+        if let h = ProcessInfo.processInfo.environment["TOMO_WINDOW_HEIGHT"].flatMap(Double.init) {
+            win.setContentSize(NSSize(width: win.frame.width, height: h))
+        }
         win.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }

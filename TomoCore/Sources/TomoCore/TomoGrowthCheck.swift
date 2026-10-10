@@ -40,6 +40,12 @@ extension TomoProgress {
                                         directory: dir.appendingPathComponent("sim-\(pack.id)-\(who.name)"))
                 sim.run(toEnd: toEnd, maxDays: 1500)
                 sim.report(check)
+                // Its height pillar: a mark for every level it reached, the big ones exactly at its birthdays.
+                let marks = TomoStats(sim.p).marks()
+                let birthdays = Dictionary(uniqueKeysWithValues: marks.dropFirst().filter(\.birthday).map { ($0.age, $0.level) })
+                check(marks.count == sim.p.level && birthdays == sim.birthdays && marks.dropFirst().allSatisfy { $0.at != nil },
+                      "\(pack.id) \(who.name): the pillar has \(marks.count) marks, birthdays at "
+                      + birthdays.sorted { $0.key < $1.key }.map { "\(pack.ageLabel($0.key)) Lv \($0.value)" }.joined(separator: ", "))
             }
         }
     }
