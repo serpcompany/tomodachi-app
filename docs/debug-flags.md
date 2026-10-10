@@ -27,6 +27,10 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   tab. `TOMO_OPEN_SETTINGS` is its old name. Seed a mid-level Tomo first (below), so the screens have content.
 - `TOMO_POSTCARD=<n>`: Together shows the postcard n weeks before the newest. `TOMO_POSTCARD_TURN=<seconds>`: that
   long after it shows, it turns over.
+- `TOMO_PILLAR=levels|ages`: the Tomo screen's height pillar at that scale (on the iPhone, the screen scrolls to it).
+  `TOMO_PILLAR_BACK=<0…1>` slides back in time that share of the way; `TOMO_PILLAR_MARK=<level>` selects a mark (a
+  negative level: the next birthday). On the Mac, `TOMO_WINDOW_HEIGHT=<points>` makes the Tomodachi window that tall,
+  to see a long page (a test run's window is never on screen).
 - `TOMO_GARDEN=today|week|all`: the garden's range. `TOMO_GARDEN_REPLAY=<seconds>`: that long after it shows, the
   replay starts. `TOMO_GARDEN_WORD=newest`: the newest word's card shows. With `TOMO_SNAPSHOT_DIR`, Together also
   writes its exports and recaps there (`export.md`, `export.json`, `recap-<range>.txt`).
