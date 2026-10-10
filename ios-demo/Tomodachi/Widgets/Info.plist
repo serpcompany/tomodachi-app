@@ -25,6 +25,8 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.widgetkit-extension</string>
 	</dict>
+	<key>TomoAppGroup</key>
+	<string>$(TOMO_APP_GROUP)</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>TomoReady0.ttf</string>

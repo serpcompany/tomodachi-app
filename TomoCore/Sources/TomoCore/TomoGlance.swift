@@ -32,18 +32,20 @@ public struct TomoGlance: Codable, Sendable, Hashable {
                                                status: "", nextDue: nil, statusLater: "", about: "",
                                                invite: "", nextLabel: "", play: "", updated: .distantPast)
 
-    // Shared between the app and its widgets through an App Group.
-    public static let appGroup = "group.com.zenbujapanese.tomodachi"
+    // Shared between the app and its widgets through an App Group, which each of them names in its Info.plist
+    // (`TomoAppGroup`): the host app's identity, never TomoCore's. Nil where there's none (the Mac).
+    public static let appGroup = Bundle.main.object(forInfoDictionaryKey: "TomoAppGroup") as? String
+    private static var shared: UserDefaults? { appGroup.flatMap { UserDefaults(suiteName: $0) } }
     private static let key = "tomoGlance"
 
     public static func load() -> TomoGlance? {
-        guard let data = UserDefaults(suiteName: appGroup)?.data(forKey: key) else { return nil }
+        guard let data = shared?.data(forKey: key) else { return nil }
         return try? JSONDecoder().decode(TomoGlance.self, from: data)
     }
 
     public func save() {
         guard let data = try? JSONEncoder().encode(self) else { return }
-        UserDefaults(suiteName: Self.appGroup)?.set(data, forKey: Self.key)
+        Self.shared?.set(data, forKey: Self.key)
     }
 }
 
