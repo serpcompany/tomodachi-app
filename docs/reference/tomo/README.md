@@ -6,8 +6,8 @@ are on claude.ai (linked below). The Comment buttons only work there.
 
 They're prototypes, not specs. Tomo in them is a JavaScript port of `TomoLook.swift` and
 `TomoCharacter.swift`; the real Tomo stays in Swift. Pick a direction with the owner before building, one
-item per PR, and keep the rules every page keeps: Tomo is always alive, no counts, amber not red, the Mac
-card's fixed grid, text in the language packs, and room for several friends. Where each idea is tracked:
+item per PR, and keep the rules: Tomo is always alive, no growing count of things to do (2026-10-11: guilt, red and
+streaks are fine now, whatever a page says), the Mac card's fixed grid, text in the language packs, and room for several friends. Where each idea is tracked:
 [#137](https://github.com/serpcompany/tomodachi-app/issues/137) ("Design references").
 
 ## Kept for later, not only the picks
