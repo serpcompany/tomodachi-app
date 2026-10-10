@@ -13,7 +13,7 @@ Tomo is a little blob who lives next to your MacBook's notch and only speaks the
 
 ## What to try
 
-- **Answer Tomo's visits.** Tomo opens on its own (every 20 minutes by default, never in quiet hours: 9 PM to 8 AM unless you change them in Settings). Tap the right picture or meaning, or do what it asks: 🍙 feed, 😴 bed, 🤗 hug.
+- **Answer Tomo's visits.** Tomo opens on its own (every 20 minutes by default, never in quiet hours: 9 PM to 8 AM unless you change them in Settings). Tap the right picture or meaning, or do what it asks: 🍙 feed, 😴 bed, 🤗 hug. The thin amber line under the card shows how long Tomo stays if you leave it; pointing at Tomo holds it.
 - **Close it when it's in your way** with **×**, or Esc once you've clicked Tomo (Esc never leaves the app you're typing in). Small Tomo waits beside the notch; on its other side, あそぼ！ means a word is waiting, a dimmed time says when words are back, and the little ring is Tomo's level.
 - **Play any time:** click small Tomo next to the notch.
 - **Talk with Tomo:** hold **⌥** and click the menu bar icon → **Skip to talking (3さい)** (after that, a **Testing** menu is in Tomodachi's menu bar too). That's a test Tomo; yours comes back from **Back to my Tomo** in that menu, or when you relaunch. Tomo asks real questions; pick what it means, or later a reply that fits. Every answer shows **Win**, **Miss**, **No score**, or (when nothing counts) **Practice**.

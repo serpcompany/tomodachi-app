@@ -62,6 +62,15 @@ struct IslandContainer: View {
                     .allowsHitTesting(false)   // a click anywhere on the island opens it (IslandWindowController)
                     .transition(.opacity)
             }
+
+            // Open: when an ignored visit tucks back in, as an amber line under the card (never under the help panel).
+            if state.mode == .expanded {
+                TomoVisitCountdownLine(game: TomoGame.shared)
+                    .frame(width: max(0, islandWidth - TomoCountdownLine.inset * 2), height: TomoCountdownLine.height)
+                    .position(x: islandWidth / 2, y: TomoCountdownLine.centerY(cardHeight: IslandConst.layout(state.view).height))
+                    .allowsHitTesting(false)
+                    .transition(.opacity)
+            }
         }
         .frame(width: islandWidth, height: islandHeight, alignment: .topLeading)
         .onChange(of: state.mode) { oldMode, newMode in
