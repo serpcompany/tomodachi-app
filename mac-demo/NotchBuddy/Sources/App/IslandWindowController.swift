@@ -13,7 +13,9 @@ final class IslandWindowController: NSWindowController {
     let fsm = IslandStateMachine()
 
     private var wasInIsland = false
-    private var frameTimer: Timer?
+    private var pointerMonitors: [Any] = []
+    private var islandChanges: AnyCancellable?
+    private var pointerClock: Timer?   // 60 Hz, only while it's needed (setPointerClock)
     private var keyMonitor: Any?
 
     // Confused recovery timer (set by handleDizzy)
@@ -69,10 +71,10 @@ final class IslandWindowController: NSWindowController {
         container.addSubview(hosting)
         panel.contentView = container
 
-        startPolling()
         startKeyMonitor()
         followScreens()
         wireFSM()
+        followPointer()
     }
 
     // MARK: - Screens (the notch one if there is one; it can change while Tomo runs)
@@ -84,6 +86,7 @@ final class IslandWindowController: NSWindowController {
             Task { @MainActor in
                 guard let self, let screen = Self.islandScreen() else { return }
                 self.place(on: screen)
+                self.pollFrame()   // the island moved under a still pointer
             }
         }
         NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification,
@@ -147,14 +150,77 @@ final class IslandWindowController: NSWindowController {
         }
     }
 
-    // MARK: - 60 Hz polling loop
+    // MARK: - Following the pointer: its moves, and the island's changes (no clock while the pointer is away)
 
-    private func startPolling() {
-        frameTimer = Timer.scheduledTimer(withTimeInterval: 1.0/60.0, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            Task { @MainActor in self.pollFrame() }
+    /// Runs `pollFrame` whenever the pointer moves or the island changes, instead of 60 times a second all day.
+    /// Mouse events need no permission (only keys need Accessibility), sandboxed or not: checked on macOS 27 with an
+    /// ad-hoc signed, sandboxed test app with neither Input Monitoring nor Accessibility, which got the pointer's
+    /// moves all over the screen, the menu bar and the notch included, with no prompt.
+    private func followPointer() {
+        let moves: NSEvent.EventTypeMask = [.mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged]
+        // Moves sent to other apps: nearly all of them, since the panel is click-through outside the island.
+        // Delivered on the main thread. A button let go elsewhere (the end of a click or a drag) checks again too,
+        // in case some of the pointer's moves went unseen.
+        let ups: NSEvent.EventTypeMask = [.leftMouseUp, .rightMouseUp, .otherMouseUp]
+        if let m = NSEvent.addGlobalMonitorForEvents(matching: moves.union(ups), handler: { [weak self] _ in
+            MainActor.assumeIsolated { self?.pollFrame() }
+        }) { pointerMonitors.append(m) }
+        // Moves sent to Tomo's own windows.
+        if let m = NSEvent.addLocalMonitorForEvents(matching: moves, handler: { [weak self] event in
+            MainActor.assumeIsolated { self?.pollFrame() }
+            return event
+        }) { pointerMonitors.append(m) }
+        // The island changing under a still pointer (opening, closing, the help panel, the dizzy card, a new notch)
+        // moves its edge past the pointer with no event: check again once the change has landed.
+        islandChanges = state.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in MainActor.assumeIsolated { self?.pollFrame() } }
+        for name in [NSApplication.didBecomeActiveNotification, NSApplication.didResignActiveNotification] {
+            NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.pollFrame() }   // turns the clock on or off (setPointerClock)
+            }
         }
-        RunLoop.main.add(frameTimer!, forMode: .common)
+        DispatchQueue.main.async { [weak self] in self?.pollFrame() }   // where the pointer is at launch
+    }
+
+    /// The 60 Hz clock, kept only while the pointer's moves may not come as events: while the pointer is in the
+    /// island, where the panel takes it (its moves go to Tomo's non-activating panel, not to another app, so the global
+    /// monitor can't see them), so leaving is still noticed at once; and while Tomodachi is the active app, which
+    /// gets the moves itself. A headless run can't check either case, so they keep the clock they had.
+    nonisolated static func needsPointerClock(inIsland: Bool, appActive: Bool) -> Bool {
+        inIsland || appActive
+    }
+
+    private func setPointerClock(_ on: Bool) {
+        if on, pointerClock == nil {
+            let clock = Timer(timeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
+                MainActor.assumeIsolated { self?.pollFrame() }
+            }
+            RunLoop.main.add(clock, forMode: .common)
+            pointerClock = clock
+        } else if !on, let clock = pointerClock {
+            clock.invalidate()
+            pointerClock = nil
+        }
+    }
+
+    /// Whether the pointer at `point` (panel coordinates) is in the island: the panel takes clicks there and lets
+    /// them through everywhere else. 6 pt of slack, except around the resting bar on a screen without a notch, which
+    /// must not take the clicks meant for the window just below the menu bar. It's decided on each pointer move and
+    /// each change to the island, never on a clock, so a fast flick onto small Tomo takes the click that follows it
+    /// (TomoIslandSelfTest).
+    nonisolated static func pointerInIsland(_ point: CGPoint, island: CGRect, hasNotch: Bool, open: Bool) -> Bool {
+        let hoverRect = !hasNotch && !open ? island : island.insetBy(dx: -6, dy: -6)
+        return hoverRect.contains(point)
+    }
+
+    /// The island's frame in the panel (AppKit coordinates, origin bottom-left): glued to the top, centred, with
+    /// the help panel under an open card.
+    nonisolated static func islandFrame(panel: CGSize, mode: IslandMode, view: IslandView,
+                                        notch: CGSize, help: CGFloat) -> CGRect {
+        let (w, fixedH) = islandSize(mode: mode, view: view, nw: notch.width, nh: notch.height)
+        let h = fixedH + (mode == .expanded ? help : 0)
+        return CGRect(x: (panel.width - w) / 2, y: panel.height - h, width: w, height: h)
     }
 
     private func pollFrame() {
@@ -166,13 +232,9 @@ final class IslandWindowController: NSWindowController {
         let pf = panel.frame
         let local = CGPoint(x: mouse.x - pf.minX, y: mouse.y - pf.minY)
 
-        // Island rect in panel coords
-        let islandRect = panel.currentIslandFrame(nw: notchW, nh: notchH)
-        // On a screen without a notch, the resting bar must not intercept clicks
-        // in the app window immediately below the menu bar.
-        let hoverRect = !hasNotch && state.mode != .expanded
-            ? islandRect : islandRect.insetBy(dx: -6, dy: -6)
-        let inIsland = hoverRect.contains(local)
+        let inIsland = Self.pointerInIsland(local, island: panel.currentIslandFrame(nw: notchW, nh: notchH),
+                                            hasNotch: hasNotch, open: state.mode == .expanded)
+        setPointerClock(Self.needsPointerClock(inIsland: inIsland, appActive: NSApp.isActive))
 
         // Toggle click-through
         if panel.ignoresMouseEvents == inIsland {
@@ -415,9 +477,8 @@ final class IslandPanel: NSPanel {
 
     func currentIslandFrame(nw: CGFloat, nh: CGFloat) -> CGRect {
         let s = AppState.shared
-        let (w, fixedH) = islandSize(mode: s.mode, view: s.view, nw: nw, nh: nh)
-        let h = fixedH + (s.mode == .expanded ? s.helpPanelHeight : 0)
-        return CGRect(x: (frame.width - w) / 2, y: frame.height - h, width: w, height: h)
+        return IslandWindowController.islandFrame(panel: frame.size, mode: s.mode, view: s.view,
+                                                  notch: CGSize(width: nw, height: nh), help: s.helpPanelHeight)
     }
 }
 

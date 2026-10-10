@@ -1,8 +1,8 @@
 import AppKit
 import TomoCore
 
-/// The island shell's rules that a headless run can't show by hand (which screen, where, Esc, the resting right side),
-/// checked by TOMO_SELFTEST with TomoCore's (docs/verification.md).
+/// The island shell's rules that a headless run can't show by hand (which screen, where, Esc, the resting right
+/// side, click-through), checked by TOMO_SELFTEST with TomoCore's (docs/verification.md).
 @MainActor
 enum TomoIslandSelfTest {
     static func run() -> Bool {
@@ -87,6 +87,51 @@ enum TomoIslandSelfTest {
         check(!C.escCloses(keyCode: 53, inIsland: false, open: true), "Esc in another window (Settings) is left alone")
         check(!C.escCloses(keyCode: 53, inIsland: true, open: false), "Esc with the island closed is left alone")
         check(!C.escCloses(keyCode: 36, inIsland: true, open: true), "other keys pass on")
+
+        // Click-through follows the pointer's moves and the island's changes, with no clock between them.
+        let panel = C.panelSize
+        let notchSize = CGSize(width: notch.width, height: notch.height)
+        func island(_ mode: IslandMode, help: CGFloat = 0, notch: CGSize = notchSize) -> CGRect {
+            C.islandFrame(panel: panel, mode: mode, view: .overview, notch: notch, help: help)
+        }
+        func takes(_ p: CGPoint, _ mode: IslandMode, help: CGFloat = 0, hasNotch: Bool = true,
+                   notch: CGSize = notchSize) -> Bool {
+            C.pointerInIsland(p, island: island(mode, help: help, notch: notch), hasNotch: hasNotch,
+                              open: mode == .expanded)
+        }
+        // Small Tomo in the resting island, in panel coordinates (botPosition counts down from the island's top).
+        let rest = island(.compact)
+        let (bx, by, _, _) = botPosition(mode: .compact, view: .overview, islandW: rest.width, islandH: rest.height)
+        let smallTomo = CGPoint(x: rest.minX + bx, y: rest.maxY - by)
+        // A fast flick from the far corner of the screen below: about 1,000 pt in 50 ms, six moves at 120 Hz.
+        let start = CGPoint(x: smallTomo.x + 700, y: smallTomo.y - 700)
+        let flick = (1...6).map { i -> CGPoint in
+            let t = CGFloat(i) / 6
+            return CGPoint(x: start.x + (smallTomo.x - start.x) * t, y: start.y + (smallTomo.y - start.y) * t)
+        }
+        let onTheWay = flick.dropLast().map { takes($0, .compact) }
+        check(!onTheWay.contains(true) && !onTheWay.contains { C.needsPointerClock(inIsland: $0, appActive: false) },
+              "a flick toward small Tomo: on the way there the panel lets clicks through, with no clock running")
+        let landed = takes(flick.last!, .compact)
+        check(landed && C.needsPointerClock(inIsland: landed, appActive: false),
+              "the flick's last move lands on small Tomo: the panel takes clicks before the click that follows it")
+        check(C.needsPointerClock(inIsland: false, appActive: true),
+              "while Tomodachi is the active app, the clock runs")
+        // A still pointer, the island changing around it.
+        let inCard = CGPoint(x: panel.width / 2, y: panel.height - 120)
+        check(!takes(inCard, .compact) && takes(inCard, .expanded),
+              "a still pointer: the card opening over it takes it in, the resting island leaves it to the app below")
+        let underCard = CGPoint(x: panel.width / 2, y: island(.expanded).minY - 40)
+        check(!takes(underCard, .expanded) && takes(underCard, .expanded, help: TomoGrid.helpHeight),
+              "a still pointer just under the card: the help panel growing under it takes it in")
+        check(!takes(underCard, .compact, help: TomoGrid.helpHeight),
+              "the card closing lets a still pointer go")
+        // No notch: the resting bar never reaches below itself, so the window under the menu bar keeps its clicks.
+        let flatNotch = CGSize(width: flat.width, height: flat.height)
+        let bar = island(.compact, notch: flatNotch)
+        check(takes(CGPoint(x: bar.midX, y: bar.midY), .compact, hasNotch: false, notch: flatNotch)
+              && !takes(CGPoint(x: bar.midX, y: bar.minY - 3), .compact, hasNotch: false, notch: flatNotch),
+              "no notch: the resting bar takes clicks on itself, not 3 pt below it")
         return ok
     }
 }

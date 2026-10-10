@@ -44,10 +44,12 @@ out while you look at it, and so is a round open on the Lock Screen card (`TomoL
 card's Play and choice buttons are `LiveActivityIntent`s (`TomoPlayIntent`, `TomoAnswerIntent`) that iOS
 runs in the app's process, launching it in the background if needed; they reach the game through
 `TomoVisitHook`, set in the app's `init` ([#52](https://github.com/serpcompany/tomodachi-app/issues/52)).
-Invariants on the Mac: the island sits on the notch screen (else the main display) and moves when displays
-change; it needs no permission; it takes the keyboard only when the learner opens it (a click, the menu),
-so Esc works then and a visit never takes a keystroke (decisions.md). It's a non-activating panel that can't be
-hidden: Tomodachi is a regular app with a Dock icon, and the island never brings it to the front.
+Invariants on the Mac: the island sits on the notch screen (else the main display) and moves when
+displays change; it needs no permission; it follows the pointer through mouse event monitors (a
+sandboxed build gets them too), with no clock while the pointer is away from it; it takes the
+keyboard only when the learner opens it (a click, the menu), so Esc works then and a visit never
+takes a keystroke (decisions.md). It's a non-activating panel that can't be hidden: Tomodachi is a
+regular app with a Dock icon, and the island never brings it to the front.
 
 **Character.** `TomoBlob` in `TomoCharacter.swift`: a blob drawn every frame in code. Its look is a
 `TomoLook` (`TomoLook.swift`) hashed from a seed: a colour and eyes for life, and a form for each age
