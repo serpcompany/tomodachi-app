@@ -11,6 +11,8 @@ import TomoCore
 enum TomoGrid {
     static let content = CGSize(width: 620, height: 144)
     static let tomoColumn: CGFloat = 112         // BotPlacement draws Tomo here
+    /// Tomo's centre in the card, where the moment's light comes from (CardBackground)
+    static var tomoCenter: CGPoint { CGPoint(x: tomoColumn / 2, y: content.height / 2) }
     static let gap: CGFloat = 14                 // between columns, and the right margin
     static var column: CGFloat { content.width - tomoColumn - gap * 2 }   // 480
 
@@ -67,23 +69,10 @@ struct TomoView: View {
 
     private var cardKey: String { Self.cardKey(phase: game.phase, chat: game.isChat, word: game.round.word) }
 
+    /// The card's light tells the moment (TomoMoment): a win green, practice blue, a level-up or a birthday gold, and
+    /// nothing while asking, after a miss or resting. Never red.
     private var wash: CardBackground<EmptyView>.Wash {
-        if game.isChat, let o = game.outcome, game.phase != .thinking {
-            switch o {
-            case .win(let counted): return counted ? .green : .soft
-            case .loss:    return .red
-            case .neutral: return .soft
-            }
-        }
-        switch game.phase {
-        case .asking:   return .cyan
-        case .thinking: return .indigo
-        case .right where game.outcome == .win(counted: false): return .soft
-        case .right:    return game.round.need == .sleep ? .indigo : .green
-        case .wrong:    return .red
-        case .leveledUp, .grew: return .amber
-        case .resting: return .soft
-        }
+        .moment(TomoMoment.card(phase: game.phase, outcome: game.outcome, chat: game.isChat))
     }
 
     var body: some View {
@@ -112,7 +101,6 @@ struct TomoView: View {
     private var card: some View {
         ZStack {
             CardBackground(wash: wash)
-                .animation(.easeInOut(duration: 0.35), value: game.phase)
 
             HStack(alignment: .center, spacing: TomoGrid.gap) {
                 Color.clear.frame(width: TomoGrid.tomoColumn)    // Tomo sits here
@@ -839,12 +827,28 @@ struct TomoCountdownLine: View {
     }
 }
 
-/// A game's visit countdown as the line (`TomoGame.visitCountdown`). It observes only the game it's given, so the
-/// island doesn't redraw on every change to the game.
+/// A game's visit countdown as the line (`TomoGame.visitCountdown`). It reads only that, once each change to the game
+/// has landed (`onGameSettled`), so the island doesn't redraw on every change to the game, and a peek's line, drawn as
+/// the peek opens, still gets the countdown set in the same moment.
 struct TomoVisitCountdownLine: View {
-    @ObservedObject var game: TomoGame
+    let game: TomoGame
+    @State private var countdown: TomoCountdown?
 
-    var body: some View { TomoCountdownLine(countdown: game.visitCountdown) }
+    var body: some View {
+        TomoCountdownLine(countdown: countdown)
+            .onGameSettled(game) { countdown = game.visitCountdown }
+    }
+}
+
+extension View {
+    /// Calls `read` as the view appears and again once each change to `game` has landed, on the main queue's next
+    /// turn. For the island's views that read the game: one drawn while the island's animated change (a peek or the
+    /// card opening) and a change to the game come together would read the game from before the change and never
+    /// hear of it again, as an observed one does (a peek's countdown line stayed empty for the whole peek).
+    func onGameSettled(_ game: TomoGame, perform read: @escaping @MainActor () -> Void) -> some View {
+        onAppear { read() }
+            .onReceive(game.objectWillChange) { _ in Task { @MainActor in read() } }
+    }
 }
 
 // MARK: - The resting island's right side: あそぼ！ or when words are back, and Tomo's level ring

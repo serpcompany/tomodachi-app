@@ -135,6 +135,7 @@ enum TomoIslandSelfTest {
 
         peek(check, notch: notch, flat: flat, island: island, takes: takes)
         motion(check, notch: notch, flat: flat)
+        light(check)
         rules(check)
         TomoGame.offerSelfTest(check)
         return ok
@@ -195,6 +196,39 @@ enum TomoIslandSelfTest {
         check(path.first == 0 && peak > 1.02 && peak < 1.08 && (settledAt.map { Double($0) / 100 } ?? 9) <= 0.5
               && TomoWordFlight.progress(at: TomoWordFlight.duration) == 1,
               "the word slides in about 0.5 s with a small overshoot (\(Int((peak - 1) * 100))%), and sits still where the card's takes over")
+    }
+
+    /// The coloured light that tells the moment (#137, effect 3): TomoCore's rules, which moment each island shows,
+    /// how it comes and goes, and that the card's light and the island's come from the same Tomo.
+    private static func light(_ check: (Bool, String) -> Void) {
+        TomoMoment.selfTest(check)
+        typealias L = TomoIslandLight
+        let win = TomoMoment.card(phase: .right, outcome: .win(counted: true))
+        check(L.moment(mode: .compact, view: .overview, card: nil, somethingCounts: true) == .waiting
+              && L.moment(mode: .compact, view: .overview, card: nil, somethingCounts: false) == nil
+              && L.moment(mode: .hidden, view: .overview, card: win, somethingCounts: true) == nil,
+              "resting, the island glows amber around small Tomo while something counts, and is dark when nothing does")
+        check(L.moment(mode: .peek, view: .overview, card: nil, somethingCounts: true) == .waiting,
+              "a peek's bar glows amber: a visit offered, Tomo waiting to play")
+        check(L.moment(mode: .expanded, view: .overview, card: win, somethingCounts: true) == .win
+              && L.moment(mode: .expanded, view: .overview, card: nil, somethingCounts: true) == nil
+              && L.moment(mode: .expanded, view: .confused, card: win, somethingCounts: true) == nil,
+              "open, the island shows the card's moment around it (none while asking or on the dizzy card)")
+        typealias M = TomoMomentLight
+        check(M.fade(on: true, reduceMotion: false) < M.fade(on: false, reduceMotion: false)
+              && M.fade(on: false, reduceMotion: false) <= 1
+              && M.fade(on: true, reduceMotion: true) <= 0.15 && M.fade(on: false, reduceMotion: true) <= 0.15,
+              "the light comes quickly and goes more slowly; under Reduce Motion both take 0.15 s or less")
+        check(M.ripples(from: nil, to: .win, reduceMotion: false) && M.ripples(from: .win, to: .grown, reduceMotion: false)
+              && !M.ripples(from: nil, to: .waiting, reduceMotion: false) && !M.ripples(from: .win, to: .win, reduceMotion: false)
+              && !M.ripples(from: .win, to: nil, reduceMotion: false) && !M.ripples(from: nil, to: .win, reduceMotion: true)
+              && M.rippleDuration <= 2,
+              "a win, practice or level-up ripples out from Tomo once (under 2 s); waiting, an end and Reduce Motion don't")
+        let (bx, by, _, _) = botPosition(mode: .expanded, view: .overview, islandW: IslandConst.expandedWidth,
+                                         islandH: IslandConst.layout(.overview).height)
+        let cardOrigin = CGPoint(x: 10, y: 8 + 34 + TomoGrid.levelBar + TomoGrid.levelBarGap)   // IslandContentView, TomoView
+        check(bx - cardOrigin.x == TomoGrid.tomoCenter.x && by - cardOrigin.y == TomoGrid.tomoCenter.y,
+              "the card's light and the island's around it come from where Tomo sits, so their ripples travel as one")
     }
 
     /// Arrivals and motion (#130): what Tomo does as the island changes, and the resting island growing under the
