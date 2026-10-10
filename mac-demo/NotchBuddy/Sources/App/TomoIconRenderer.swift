@@ -80,8 +80,9 @@ enum TomoIconRenderer {
         .frame(width: size, height: size)
     }
 
-    /// TOMO_RENDER_ANIM=<dir>: a scripted 18-second scene, rendered frame by frame on a scripted clock
-    /// (frame-0000.png … at 20 fps), for checking motion. Join them into a GIF with any tool.
+    /// TOMO_RENDER_ANIM=<dir>: a scripted 20-second scene, rendered frame by frame on a scripted clock
+    /// (frame-0000.png … at 20 fps), for checking motion. Join them into a GIF with any tool. Its big moments: birthdays
+    /// at 2.2 s (2.6 s long) and 13.4 s, and a level-up at 17.6 s (2.1 s long).
     private static func renderAnimation(to out: URL) {
         try? FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
         var t = 0.0
@@ -93,19 +94,19 @@ enum TomoIconRenderer {
         let script: [(at: Double, run: (TomoBlob) -> Void)] = [
             (0.8, { $0.talk() }), (1.1, { $0.talk() }), (1.4, { $0.talk() }),
             (2.2, { $0.grow(to: 1) }),                                   // 2さい: its first evolution
-            (4.2, { $0.setState(.question) }),
-            (5.4, { $0.setState(.finished) }), (6.6, { $0.setState(.idle) }),
-            (7.2, { $0.setState(.error) }), (8.1, { $0.setState(.idle) }),
+            (5.0, { $0.setState(.question) }),
+            (6.0, { $0.setState(.finished) }), (7.0, { $0.setState(.idle) }),
+            (7.4, { $0.setState(.error) }), (8.2, { $0.setState(.idle) }),
             (9.6, { $0.emote(.love) }),
             (11.4, { $0.poke() }),
             (12.2, { $0.nudge() }),
             (13.4, { $0.grow(to: 2) }),                                  // 3さい
-            (15.0, { $0.emote(.yawn) }),
-            (16.0, { $0.setState(.finished); $0.emote(.proud); $0.levelUp() }),   // a level-up (TomoGame.celebrate)
+            (16.2, { $0.emote(.yawn) }),
+            (17.6, { $0.setState(.finished); $0.emote(.proud); $0.levelUp() }),   // a level-up (TomoGame.celebrate)
         ]
         var next = 0
         let fps = 20.0
-        for i in 0..<Int(fps * 18) {
+        for i in 0..<Int(fps * 20) {
             t = Double(i) / fps
             while next < script.count && script[next].at <= t { script[next].run(blob); next += 1 }
             blob.lookX = CGFloat(sin(t * 0.9)) * 0.9          // a cursor drifting around
@@ -172,8 +173,18 @@ enum TomoIconRenderer {
     }
 
     /// TOMO_RENDER_SHEET=<dir>: one Tomo at every age and with every face, then a crowd of other Tomos, on one
-    /// image for reviewing the character. TOMO_SEED picks the Tomo (the mascot otherwise).
+    /// image for reviewing the character. TOMO_SEED picks the Tomo (the mascot otherwise). A big moment's cell is that
+    /// many seconds into its script.
     private static var sheet: some View {
+        func moment(_ seconds: Double, _ start: @escaping (TomoBlob) -> Void) -> (TomoBlob) -> Void {
+            { blob in
+                var t = 100.0
+                blob.clock = { t }
+                blob.step()
+                start(blob)
+                while t < 100 + seconds { t = min(100 + seconds, t + 1.0 / 60); blob.step() }
+            }
+        }
         func cell(_ label: String, growth: CGFloat = 1, look l: TomoLook = look, _ setup: (TomoBlob) -> Void = { _ in }) -> some View {
             let blob = TomoBlob(look: l)
             blob.reduceMotion = TomoMotion.forced
@@ -200,7 +211,8 @@ enum TomoIconRenderer {
              AnyView(cell("wink", growth: 2) { $0.emote(.wink) }),
              AnyView(cell("annoyed") { $0.emote(.annoyed) }),
              AnyView(cell("dizzy") { $0.setState(.dizzy) }),
-             AnyView(cell("level up") { $0.levelUp() })],
+             AnyView(cell("level up", moment(1.0) { $0.levelUp() })),     // landing, star-eyed
+             AnyView(cell("birthday", moment(0.8) { $0.grow(to: 2) }))],
         ] + (0..<4).map { r in
             (r * 6..<r * 6 + 6).map { AnyView(cell(crowd[$0].form(3).silhouette.rawValue, growth: 3, look: crowd[$0])) }
         } + [
