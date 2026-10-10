@@ -19,6 +19,8 @@ struct TomoPhoneView: View {
     /// The screen's height inside the safe area.
     @State private var height: CGFloat = 780
     @ScaledMetric(relativeTo: .body) private var dynamicScale: CGFloat = 1
+    /// A long press on Tomo shows its love at most once every 6 s (TomoLoveCooldown, shared with the Mac).
+    @State private var love = TomoLoveCooldown()
 
     private var growth: CGFloat { game.growthStep }
     private var said: String { game.isChat ? game.line.say : game.round.say }
@@ -66,6 +68,11 @@ struct TomoPhoneView: View {
                     .frame(width: tomoSize, height: tomoSize)
                     .contentShape(Rectangle())
                     .onTapGesture { NotificationCenter.default.post(name: .triggerSlap, object: nil) }
+                    .onLongPressGesture {   // resting a finger on Tomo: love, like resting the pointer on the Mac
+                        if love.show(at: CACurrentMediaTime()) {
+                            NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.love)
+                        }
+                    }
                     .accessibilityElement()
                     .accessibilityLabel(ui("a11y.tomo", ["age": game.age]))
                     .accessibilityAddTraits(.isButton)
