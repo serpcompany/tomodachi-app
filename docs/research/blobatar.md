@@ -96,7 +96,7 @@ Not recommended, but here's what it would take: add `BlobatarKit` (Swift Package
 and blobatar's in the credits), seed it with the hatch ID, and map Tomo's states to its expressions
 (`.finished` → happy, `.question` → thinking/unsure, sleeping → sleepy, love → love). We'd lose the
 eggshell, the hatching, wings, beak and most moves, and we'd depend on a port with one maintainer. It
-also bends "Tomo is drawn and animated live in our own code" (decisions.md 2026-10-05): it's live, but
+also bends "Tomo is drawn and animated live in our own code" ([decisions-2026-10-05.md](../decisions-2026-10-05.md)): it's live, but
 it isn't ours.
 
 ## Sources
