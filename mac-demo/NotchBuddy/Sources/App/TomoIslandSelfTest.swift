@@ -91,12 +91,12 @@ enum TomoIslandSelfTest {
         // Click-through follows the pointer's moves and the island's changes, with no clock between them.
         let panel = C.panelSize
         let notchSize = CGSize(width: notch.width, height: notch.height)
-        func island(_ mode: IslandMode, help: CGFloat = 0, notch: CGSize = notchSize) -> CGRect {
-            C.islandFrame(panel: panel, mode: mode, view: .overview, notch: notch, help: help)
+        func island(_ mode: IslandMode, help: CGFloat = 0, notch: CGSize = notchSize, hasNotch: Bool = true) -> CGRect {
+            C.islandFrame(panel: panel, mode: mode, view: .overview, notch: notch, help: help, hasNotch: hasNotch)
         }
         func takes(_ p: CGPoint, _ mode: IslandMode, help: CGFloat = 0, hasNotch: Bool = true,
                    notch: CGSize = notchSize) -> Bool {
-            C.pointerInIsland(p, island: island(mode, help: help, notch: notch), hasNotch: hasNotch,
+            C.pointerInIsland(p, island: island(mode, help: help, notch: notch, hasNotch: hasNotch), hasNotch: hasNotch,
                               open: mode == .expanded)
         }
         // Small Tomo in the resting island, in panel coordinates (botPosition counts down from the island's top).
@@ -133,8 +133,67 @@ enum TomoIslandSelfTest {
               && !takes(CGPoint(x: bar.midX, y: bar.minY - 3), .compact, hasNotch: false, notch: flatNotch),
               "no notch: the resting bar takes clicks on itself, not 3 pt below it")
 
+        peek(check, notch: notch, flat: flat, island: island, takes: takes)
         rules(check)
+        TomoGame.offerSelfTest(check)
         return ok
+    }
+
+    /// A visit offered as a peek (TomoPeek.swift): the bar's fixed slots, its clicks, and the word's way into the card.
+    private static func peek(_ check: (Bool, String) -> Void, notch: IslandScreenGeometry, flat: IslandScreenGeometry,
+                             island: (IslandMode, CGFloat, CGSize, Bool) -> CGRect,
+                             takes: (CGPoint, IslandMode, CGFloat, Bool, CGSize) -> Bool) {
+        typealias C = IslandWindowController
+        // Words from the pack: a short one, and two of its longest lines together, twice as long as any it asks.
+        let target = TomoLanguages.shared.target
+        let short = target.lines.bye
+        let lines = (target.levels.flatMap { $0.rounds ?? [] }.map(\.say) + target.allStarters.map(\.say))
+            .sorted { $0.count > $1.count }
+        let long = lines.prefix(2).joined(separator: " ")
+        for (screen, name) in [(notch, "a notch"), (flat, "no notch")] {
+            let l = TomoPeekLayout(hasNotch: screen.hasNotch, notchHeight: screen.height)
+            let (w, h) = islandSize(mode: .peek, view: .overview, nw: screen.width, nh: screen.height, hasNotch: screen.hasNotch)
+            let bar = CGRect(x: 0, y: 0, width: w, height: h)
+            let lineTop = h - TomoCountdownLine.bottom - TomoCountdownLine.height
+            check(w == 520 && h == (screen.hasNotch ? 88 : 64) && l.size == CGSize(width: w, height: h),
+                  "with \(name), a peek widens the island to \(Int(w)) × \(Int(h))")
+            check(l.tomo.width == 72 && l.tomo.height == h && l.tomo.maxX <= (w - screen.width) / 2,
+                  "with \(name), Tomo sits at the left in 72 × \(Int(h)), clear of the notch")
+            check([l.invite, l.word].allSatisfy { bar.contains($0) && $0.minX >= l.tomo.maxX && $0.maxY <= lineTop }
+                  && l.invite.minY >= (screen.hasNotch ? screen.height : 0) && l.invite.maxY <= l.word.minY,
+                  "with \(name), the invite and the word sit right of Tomo, below the notch, above the countdown line")
+            let size = l.wordSize(long)
+            let fitted = (long as NSString).size(withAttributes: [.font: TomoWords.lineFont(size)]).width
+            check(l.wordSize(short) == 24 && size < 24 && fitted <= l.wordWidth && l.wordWidth > 200,
+                  "with \(name), the word is 24 pt, smaller only to fit one line beside the speaker (\(size) pt)")
+            let peekBar = island(.peek, 0, CGSize(width: screen.width, height: screen.height), screen.hasNotch)
+            let below = CGPoint(x: peekBar.midX, y: peekBar.minY - (screen.hasNotch ? 7 : 3))
+            check(takes(CGPoint(x: peekBar.midX, y: peekBar.midY), .peek, 0, screen.hasNotch,
+                        CGSize(width: screen.width, height: screen.height))
+                  && !takes(below, .peek, 0, screen.hasNotch, CGSize(width: screen.width, height: screen.height)),
+                  "with \(name), the peek takes clicks on itself and lets through the ones just below it")
+            if let f = TomoWordFlight(word: short, script: target.script, peek: l, panelWidth: C.panelSize.width) {
+                let slot = TomoWordFlight.cardWordSlot(panelWidth: C.panelSize.width)
+                let card = CGRect(x: (C.panelSize.width - IslandConst.expandedWidth) / 2, y: 0,
+                                  width: IslandConst.expandedWidth, height: IslandConst.layout(.overview).height)
+                let barInPanel = bar.offsetBy(dx: (C.panelSize.width - w) / 2, dy: 0)
+                check(barInPanel.contains(f.from) && f.fromSize == l.wordSize(short) && card.contains(slot)
+                      && f.to.x == slot.minX + TomoWords.wordPadding && f.to.y == slot.midY && f.toSize <= 30,
+                      "with \(name), opening the peek slides the word from the bar into the card's word slot")
+            } else {
+                check(false, "with \(name), opening the peek slides the word from the bar into the card's word slot")
+            }
+        }
+        check(C.countsAsOpen(.peek) && C.countsAsOpen(.expanded) && !C.countsAsOpen(.compact) && !C.countsAsOpen(.hidden),
+              "a peek counts as open for the game, like the card, so a visit offered in one isn't closed mid-visit")
+        check(TomoWordFlight(word: "", script: target.script, peek: TomoPeekLayout(hasNotch: true, notchHeight: 32),
+                             panelWidth: C.panelSize.width) == nil, "nothing to say: no word slides")
+        let path = stride(from: 0.0, through: 1.0, by: 0.01).map(TomoWordFlight.progress(at:))
+        let peak = path.max() ?? 0
+        let settledAt = path.indices.first { i in path[i...].allSatisfy { abs($0 - 1) < 0.01 } }
+        check(path.first == 0 && peak > 1.02 && peak < 1.08 && (settledAt.map { Double($0) / 100 } ?? 9) <= 0.5
+              && TomoWordFlight.progress(at: TomoWordFlight.duration) == 1,
+              "the word slides in about 0.5 s with a small overshoot (\(Int((peak - 1) * 100))%), and sits still where the card's takes over")
     }
 
     /// The island's rules (IslandStateMachine) on a stopped clock: each input gives the time, and says when the rules

@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Settings, the same on the Mac and the iPhone
 //
-// How often Tomo visits (the Mac's), new words a day, Tomo's voice and sounds; what only this device has (the `device`
+// How often Tomo visits and how a visit starts (the Mac's), new words a day, Tomo's voice and sounds; what only this device has (the `device`
 // slot: open at login on the Mac, reminders and the Lock Screen card on the iPhone); the language Tomodachi's text is in; and Start over, which always
 // asks first (`TomoScreenNav.confirmingStartOver`, so the Mac's menu bar item asks the same way). The "I'm learning"
 // picker shows only with the testing tools (TomoFeatures): the MVP is Japanese only. `more` goes at the end (the
@@ -14,6 +14,7 @@ public struct TomoSettingsScreen<Device: View, More: View>: View {
     @ObservedObject var nav = TomoScreenNav.shared
     @ObservedObject var features = TomoFeatures.shared
     @State private var visitEvery = DropIn.every
+    @State private var peekFirst = DropIn.peekFirst
     @State private var newPerDay = TomoProgress.newPerDay
     private let afterStartOver: (() -> Void)?
     private let device: Device
@@ -36,6 +37,13 @@ public struct TomoSettingsScreen<Device: View, More: View>: View {
                     ForEach(DropIn.choices, id: \.seconds) { Text(lang.learner($0.key)).tag($0.seconds) }
                 }
                 .onChange(of: visitEvery) { _, v in DropIn.setEvery(v); game.rescheduleVisits() }
+                // How a visit starts: a peek by the notch that opens when pointed at or clicked, or the card (the
+                // default; #19).
+                Picker(lang.learner("settings.visitStart"), selection: $peekFirst) {
+                    Text(lang.learner("settings.visitStart.peek")).tag(true)
+                    Text(lang.learner("settings.visitStart.open")).tag(false)
+                }
+                .onChange(of: peekFirst) { _, v in DropIn.setPeekFirst(v) }
                 #endif
                 Picker(lang.learner("settings.newPerDay"), selection: $newPerDay) {
                     ForEach(TomoProgress.newPerDayChoices, id: \.self) { Text("\($0)").tag($0) }

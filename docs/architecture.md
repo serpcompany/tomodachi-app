@@ -35,14 +35,15 @@ Island shell (Coucou)       notch window, open/close state machine, click-throug
 ## Systems
 
 **Island shell.** Coucou's notch window and state machine (`IslandWindowController`,
-`IslandStateMachine`, `IslandRootView`), cut down to what Tomo uses: it shows Tomo's card or the
-dizzy card, and nothing of Coucou's agent features is left ([coucou-fork.md](coucou-fork.md)). Its
+`IslandStateMachine`, `IslandRootView`), cut down to what Tomo uses: it shows Tomo's card, the
+dizzy card or a visit's peek (`TomoPeek.swift`: a bar Tomo calls from, which opens into the card
+with its word sliding into place), and nothing of Coucou's agent features is left ([coucou-fork.md](coucou-fork.md)). Its
 open and close rules (`IslandStateMachine`: hidden, resting, a peek, the card) are pure: each input
 takes the time and returns when the rules next need the clock, and the controller sets one timer for
 that, so `TomoIslandSelfTest` runs them on a stopped clock. Tomo reaches the shell only through four
 closures on `TomoGame` (`openIsland`, `closeIsland`, `isIslandOpen`, `focusInput`, plus
-`isPointerInside`, `onBotState`, `onHelpChange`, `onActivity` and `secondsSinceInput`), set in
-`AppDelegate`. Another shell sets the same closures: the iPhone app's `TomoPhoneShell` treats the
+`peeksFirst`, `peekIsland`, `isPointerInside`, `onBotState`, `onHelpChange`, `onActivity` and
+`secondsSinceInput`), set in `AppDelegate`, and calls `acceptOffer` whenever the card opens. Another shell sets the same closures: the iPhone app's `TomoPhoneShell` treats the
 app being on screen as open, so Tomo never times out while you look at it, and so is a round open on
 the Lock Screen card (`TomoLiveVisit.isPlaying`). The card's Play and choice buttons are
 `LiveActivityIntent`s (`TomoPlayIntent`, `TomoAnswerIntent`) that iOS runs in the app's process,
@@ -51,8 +52,8 @@ app's `init` ([#52](https://github.com/serpcompany/tomodachi-app/issues/52)). In
 the island sits on the notch screen (else the main display) and moves when displays change; it needs
 no permission; it follows the pointer through mouse event monitors (a sandboxed build gets them
 too), with no clock while the pointer is away from it; after a close, hovering doesn't reopen the
-island until the pointer has left it once; it takes the keyboard only when the learner opens it (a
-click, the menu), so Esc works then and a visit never takes a keystroke (decisions.md). It's a
+island until the pointer has left it once; a peek counts as open; it takes the keyboard only when the
+learner opens it (a click, the menu), so Esc works then and a visit or a peek never takes a keystroke (decisions.md). It's a
 non-activating panel that can't be hidden: Tomodachi is a regular app with a Dock icon, and the
 island never brings it to the front.
 
@@ -133,7 +134,9 @@ that counts and you're at a natural break (not typing, not away). It tucks back 
 now and then until you check in (`pending`). Its deadline is `TomoGame.visitCountdown`, an amber line under the Mac's
 card, nil while held (the pointer in the island, listening, help; on the iPhone, on screen) or in free play. Resting, the island's right side says あそぼ！ while something counts
 (`TomoGame.somethingCounts`, the same rule) or when it does again (`nextCountsAt`), never a count. Opening it
-yourself is free play, with no time limit. When nothing counts, Tomo rests
+yourself is free play, with no time limit. A visit can peek first (the Mac's setting, `DropIn.peekFirst`; off by
+default): it's `offered`, its first round shown in the peek with its countdown running, and asked only once the card
+opens (`acceptOffer`); ignored, it leaves like any visit. When nothing counts, Tomo rests
 (`TomoPhase.resting`, `TomoGame.rest`) in every shell until something counts, which the tick notices, or the
 learner picks Practice; opening Tomo again shows the rest, never a new offer. Quiet hours (`DropIn.quietEnds`, the
 reminders' setting) hold the visits, the launch visit (`launchVisit`) and small Tomo's bounces until morning;

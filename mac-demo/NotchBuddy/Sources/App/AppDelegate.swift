@@ -61,13 +61,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     // MARK: - Debug snapshots (TOMO_SNAPSHOT_DIR=/path): PNG of the island panel every second
+    // (TOMO_SNAPSHOT_EVERY=<seconds> for more often, to catch a motion mid-way)
 
     private var snapshotTimer: Timer?
 
     private func startDebugSnapshots() {
         guard let dir = ProcessInfo.processInfo.environment["TOMO_SNAPSHOT_DIR"] else { return }
+        let every = ProcessInfo.processInfo.environment["TOMO_SNAPSHOT_EVERY"].flatMap(TimeInterval.init) ?? 1
         var n = 0
-        snapshotTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+        snapshotTimer = Timer.scheduledTimer(withTimeInterval: max(0.05, every), repeats: true) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let view = self?.islandController?.window?.contentView,
                       let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return }
@@ -101,7 +103,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let game = TomoGame.shared
         game.openIsland = { [weak self] in self?.islandController?.open() }
         game.closeIsland = { [weak self] in self?.islandController?.collapse() }
-        game.isIslandOpen = { AppState.shared.mode == .expanded }
+        // A visit may peek first (Settings): the bar by the notch, which opens into the card and then asks.
+        game.peeksFirst = { DropIn.peekFirst }
+        game.peekIsland = { [weak self] in self?.islandController?.peek() }
+        islandController?.onOpen = { TomoGame.shared.acceptOffer() }
+        game.isIslandOpen = { IslandWindowController.countsAsOpen(AppState.shared.mode) }
         game.focusInput = { [weak self] in self?.islandController?.window?.makeKey() }
         game.isPointerInside = { AppState.shared.mouseInIsland }
         game.onBotState = { AppState.shared.tomoState = $0 }
