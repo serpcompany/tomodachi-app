@@ -24,6 +24,6 @@ file here: the Mochi character, its expressions and animations, and the media in
 | Folder | What it shows |
 |---|---|
 | [video/](video/) | `iphone-demo.mp4` (27 s): the iPhone companion app, approvals behind Face ID, messaging a session, widgets, Lock Screen and Live Activity. `mac-demo.mp4` (57 s): the notch from idle through work, a diff, a dashboard, chat, a file drop, upload, mail and the rate-limit card. |
-| [iphone/](iphone/) | Stills of the iPhone app: approval, Live Activity, a session, widgets. |
+| [iphone/](iphone/) | `demo-01`–`13`: one still per beat of `iphone-demo.mp4`, which Clipy didn't cut into key moments: idle character, home ("All quiet" and the Today strip), a request arriving, the approval sheet (Allow / Review / Deny, then Face ID), the Mac picking it up, the session chat, Home Screen widgets, the Lock Screen Live Activity running and done, the end card. `approval`, `live-activity`, `session`, `widgets`: Coucou's own iPhone stills. |
 | [captures/](captures/) | `01`–`16`: each notch screen (peek, compact, overview, approval, question, error, finished, confused, drag-over, uploading, choose, mail, prompt window, searching, result, empty). `char-state-*` and `char-emote-*`: one picture per character state and emote. `mac-*`: the README's Mac screenshots. `no-notch-*`: Macs without a notch. `outfits-sheet.png`: the outfit sheet. |
 | [prototypes/](prototypes/) | Coucou's HTML prototypes: the whole notch (`notch-buddy.html`), the greeting and the upload sequence. Open them in a browser to see the motion. |
