@@ -1,4 +1,5 @@
 import AppKit
+import Carbon.HIToolbox
 import TomoCore
 
 /// The island shell's rules that a headless run can't show by hand (which screen, where, Esc, the resting right
@@ -14,6 +15,7 @@ enum TomoIslandSelfTest {
         typealias C = IslandWindowController
 
         whichScreen(check)
+        shortcut(check)
         let external = NSRect(x: -1920, y: 200, width: 1920, height: 1080)
         let frame = C.panelFrame(on: external)
         check(frame.maxY == external.maxY && frame.midX == external.midX,
@@ -138,6 +140,66 @@ enum TomoIslandSelfTest {
         rules(check)
         TomoGame.offerSelfTest(check)
         return ok
+    }
+
+    /// The shortcut to play (#130, Settings: TomoShortcut): what can be recorded, what's macOS's or every app's, how
+    /// it's saved, and what a press does in each island state. A headless run can't press keys, or register a hot key.
+    private static func shortcut(_ check: (Bool, String) -> Void) {
+        typealias K = TomoShortcut
+        let t = UInt32(kVK_ANSI_T), space = UInt32(kVK_Space)
+        let ctrlOptT = K(keyCode: t, character: "T", carbonModifiers: K.control | K.option)
+        check(K.record(keyCode: t, modifiers: K.control | K.option, character: "t") == .set(ctrlOptT)
+              && K.record(keyCode: t, modifiers: K.option | K.command, character: "t")
+                == .set(K(keyCode: t, character: "T", carbonModifiers: K.option | K.command)),
+              "recording ⌃⌥T or ⌥⌘T sets it, named by its key")
+        check(K.record(keyCode: t, modifiers: 0, character: "t") == .rejected(.needsModifier)
+              && K.record(keyCode: t, modifiers: K.shift, character: "t") == .rejected(.needsModifier)
+              && K.record(keyCode: UInt32(kVK_Option), modifiers: K.option, character: "") == .rejected(.needsModifier),
+              "a key alone, with ⇧ alone, or a modifier key by itself is typing, not a shortcut")
+        check(K.record(keyCode: t, modifiers: K.command, character: "t") == .rejected(.common)
+              && K.record(keyCode: t, modifiers: K.command | K.shift, character: "t") == .rejected(.common)
+              && K.record(keyCode: UInt32(kVK_ANSI_D), modifiers: K.command, character: "d") == .rejected(.common),
+              "⌘ or ⌘⇧ with one key is every app's (and Tomodachi's own ⌘D, ⌘W), so it isn't offered")
+        let system: [(UInt32, UInt32)] = [(space, K.command), (space, K.control), (space, K.control | K.option),
+                                          (space, K.control | K.command), (UInt32(kVK_ANSI_Q), K.control | K.command),
+                                          (UInt32(kVK_UpArrow), K.control), (UInt32(kVK_Escape), K.option | K.command)]
+        check(system.allSatisfy {
+                  let r = K.record(keyCode: $0.0, modifiers: $0.1, character: " ")
+                  return r == .rejected(.system) || r == .rejected(.common)
+              },
+              "macOS's own are refused: Spotlight, switching input sources, emoji, the lock screen, Spaces, Force Quit")
+        check(K.record(keyCode: UInt32(kVK_Escape), modifiers: 0, character: "") == .cancel
+              && K.record(keyCode: UInt32(kVK_Delete), modifiers: 0, character: "") == .clear,
+              "while recording, Esc keeps the old shortcut and Delete removes it")
+        check(K(saved: ctrlOptT.saved) == ctrlOptT && K(saved: nil) == nil && K(saved: "") == nil
+              && K(saved: "{\"keyCode\":17}") == nil
+              && K(saved: K(keyCode: t, character: "T", carbonModifiers: K.shift).saved) == nil,
+              "it's saved and read back; nothing saved, anything broken, or one without ⌘, ⌃ or ⌥ is no shortcut")
+        let lang = TomoLanguages.shared
+        let spaced = K(keyCode: space, character: " ", carbonModifiers: K.control | K.option | K.shift | K.command)
+        check(ctrlOptT.label(lang) == "⌃⌥T" && spaced.label(lang) == "⌃⌥⇧⌘" + lang.learner("shortcut.space")
+              && K(keyCode: UInt32(kVK_F5), character: "", carbonModifiers: K.control).label(lang) == "⌃F5",
+              "it's shown as macOS shows shortcuts: ⌃⌥⇧⌘ then the key (\(ctrlOptT.label(lang)))")
+        check(K.press(mode: .compact, leaving: false, hasKeyboard: false) == .open
+              && K.press(mode: .hidden, leaving: false, hasKeyboard: false) == .open,
+              "pressed while Tomo rests: it opens to play and takes the keyboard, as a click does")
+        check(K.press(mode: .peek, leaving: false, hasKeyboard: false) == .open,
+              "pressed while a visit peeks: the peek opens into its card, as a click on it does")
+        check(K.press(mode: .expanded, leaving: false, hasKeyboard: false) == .takeKeyboard
+              && K.press(mode: .expanded, leaving: false, hasKeyboard: true) == .close,
+              "pressed while a visit's card is open: it takes the keyboard (Esc then closes); pressed again, it closes")
+        check(K.press(mode: .expanded, leaving: true, hasKeyboard: true) == .open,
+              "pressed while Tomo is being pulled up: it stays open")
+        check(["settings.shortcut", "settings.shortcut.record", "settings.shortcut.recording", "settings.shortcut.clear",
+               "settings.shortcut.needsModifier", "settings.shortcut.system", "settings.shortcut.common",
+               "settings.shortcut.taken", "settings.shortcutNote", "shortcut.space"].allSatisfy { key in
+                lang.learners.allSatisfy { !($0.strings[key] ?? "").isEmpty } },
+              "every interface language has the shortcut's labels")
+        typealias H = TomoHotKey
+        check(H.registers(ctrlOptT, headless: false, paused: false) && !H.registers(ctrlOptT, headless: true, paused: false)
+              && !H.registers(ctrlOptT, headless: false, paused: true) && !H.registers(nil, headless: false, paused: false)
+              && !H.registers(K(keyCode: t, character: "T", carbonModifiers: K.command), headless: false, paused: false),
+              "registered only when set and allowed: never in a headless run (it can't take the owner's), nor while Settings records")
     }
 
     /// Which screen Tomo lives on (#130, Settings: TomoScreenChoice): the notch screen, the main one, a display by name,

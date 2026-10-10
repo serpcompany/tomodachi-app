@@ -61,8 +61,9 @@ too), with no clock while the pointer is away from it; after a close, hovering d
 island until the pointer has left it once; a peek counts as open; the card or the peek folds once
 Tomo is pulled up out of it (`AppState.leaving`; closed for the game at once); the resting island
 and its click area grow together under the pointer (`islandSize`); it takes the keyboard only when
-the learner opens it (a click, the menu), so Esc works then and a visit or a peek never takes a
-keystroke (decisions.md). It's a non-activating panel that can't be hidden: Tomodachi is a regular
+the learner opens it (a click, the menu, their shortcut), so Esc works then and a visit or a peek never
+takes a keystroke (decisions.md). The shortcut (`TomoShortcut`) is a Carbon hot key, so no permission;
+there's none until the learner records one, and a test run never registers it. It's a non-activating panel that can't be hidden: Tomodachi is a regular
 app with a Dock icon, and the island never brings it to the front.
 
 **Character.** `TomoBlob` in `TomoCharacter.swift`: Tomo the blob, drawn every frame in code on a clock, so it can

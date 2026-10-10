@@ -490,6 +490,20 @@ final class IslandWindowController: NSWindowController {
         }
     }
 
+    // MARK: - The shortcut to play (TomoShortcut, Settings)
+
+    /// The learner pressed their shortcut, from any app: Tomo opens to play and takes the keyboard, as a click does (a
+    /// peek opens into its visit); open, it takes the keyboard, or closes if it has it (TomoShortcut.press).
+    func shortcutPressed() {
+        switch TomoShortcut.press(mode: state.mode, leaving: state.leaving, hasKeyboard: window?.isKeyWindow == true) {
+        case .open:
+            open()
+            takeKeyboard()
+        case .takeKeyboard: takeKeyboard()
+        case .close: collapse()
+        }
+    }
+
     // MARK: - Keyboard (Escape closes) and mouse
 
     /// The learner opened Tomo themselves (a click, the menu): the island takes the keyboard, so Esc closes it.
