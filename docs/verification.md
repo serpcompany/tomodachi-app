@@ -128,8 +128,8 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   page → "Skip ahead a day" moves the clock live, on a copy of Tomo in memory.
 - `TOMO_DROPIN_EVERY=8`, `TOMO_NUDGE_EVERY=5`: seconds between visits and between nudge bounces.
 - `TOMO_RENDER_ICON`, `TOMO_RENDER_SHEET`, `TOMO_RENDER_SOUNDS`, `TOMO_RENDER_ANIM`, `TOMO_RENDER_CARD_FRAMES` (`=<dir>`): render
-  the icons, every age and face, every sound (WAV), or a 27.5-second scene (20 fps frames, with the hello at 25.2 s),
-  then quit. The
+  the icons, every age and face, every sound (WAV), or a 32-second scene (20 fps frames, with the hello at 25.2 s and
+  small Tomo's badges from 27.6 s, drawn as the resting island draws them, 3 times as big), then quit. The
   sheet shows one Tomo at every age and with every face, then a crowd of other seeds. The sounds are
   `<effect>-age<N>.wav` for 1さい to 6さい, and `all-sounds.wav` (every effect at 1さい, in order).
 - `TOMO_SEED=<text>`: the seed Tomo's look is made from, in place of the saved Tomo's.
@@ -137,6 +137,9 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   The icons and the card frames are always classic.
 - `TOMO_HELLO=<seconds>`: that long after Tomo first shows, it says hello as it does when the Mac wakes (a test run
   can't sleep the Mac). The hello at launch needs no flag: the launch visit's card shows it.
+- `TOMO_BADGE=checking|dozing`: small Tomo wears that badge in the resting island. `checking` holds Tomo in its
+  thinking state (nothing makes it check an answer while small today: answers are choices); `dozing` lets it doze 2 s
+  after the pointer stops instead of 45 s (the real doze needs the owner's pointer to stay still).
 - `TOMO_REDUCE_MOTION=1`: Tomo honours Reduce Motion whatever the system says, in snapshots, `TOMO_RENDER_ANIM` and
   the sheet (on the iPhone, `SIMCTL_CHILD_TOMO_REDUCE_MOTION=1`). Without it a test run (`TOMO_HEADLESS`) ignores this
   Mac's setting, and the renders always do, so none depends on the Mac it runs on. `TOMO_RENDER_CARD_FRAMES` ignores
