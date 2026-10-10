@@ -57,22 +57,30 @@ non-activating panel that can't be hidden: Tomodachi is a regular app with a Doc
 island never brings it to the front.
 
 **Character.** `TomoBlob` in `TomoCharacter.swift`: a blob drawn every frame in code. Its look is a
-`TomoLook` (`TomoLook.swift`) hashed from a seed: a colour and eyes for life, and a form for each age
-(silhouette, size, details) that changes at every birthday. The learner's look is `TomoLook.current`,
-which `TomoGame` sets from the saved Tomo; the seed is the language pair and the second the Tomo first
-appeared, which is already synced, so every device draws the same Tomo. Places that can't draw it live
-(widgets, Live Activities, the icons) show `TomoLook.mascot`. It's driven by notifications (`.botGrow`,
-`.botLevelUp`, `.triggerEmote` and others, in `TomoSignals.swift`) and Tomo's state
-(`TomoGame.onBotState`), never called directly, so any screen can host it: `TomoBlobView` on the iPhone,
-`TomoCharacterView` in the island. Its time comes from a clock, so it can be rendered offline. Reduce Motion is
-an input (`TomoBlob.reduceMotion`): each shell sets `TomoMotion` from the system (`NSWorkspace` on the Mac,
-`UIAccessibility` on the iPhone) and follows changes, and every live host passes it on (`TomoBlobView`,
-`TomoLiveAvatar` on the screens, the island). Then hops, shakes, wiggles and the evolve pop become a face and a small
-puff, and particles are fewer and slower. Offline renders leave it off, so they never depend on the Mac that renders
-them (`TOMO_REDUCE_MOTION=1` turns it on); widgets and the Live Activity play their frame font regardless.
-Invariants: idle life never stops (under Reduce Motion it still breathes and blinks, and a birthday still changes its
-shape); TomoBlob never reads a system setting; a seed always gives the same Tomo. Trait keys can be added freely, but
-changing a range, a band or a list changes every learner's Tomo (`TomoLook.selfTest`). `TomoLook.variety` scales how different Tomos are. Planned: evolution that reads as growing up
+`TomoLook` (`TomoLook.swift`) hashed from a seed: a colour and eyes for life, and a form for each
+age (silhouette, size, details) that changes at every birthday. The learner's look is
+`TomoLook.current`, which `TomoGame` sets from the saved Tomo; the seed is the language pair and the
+second the Tomo first appeared, which is already synced, so every device draws the same Tomo. Places
+that can't draw it live (widgets, Live Activities, the icons) show `TomoLook.mascot`. It's driven by
+notifications (`.botGrow`, `.botLevelUp`, `.triggerEmote` and others, in `TomoSignals.swift`) and
+Tomo's state (`TomoGame.onBotState`), never called directly, so any screen can host it:
+`TomoBlobView` on the iPhone, `TomoCharacterView` in the island. Its time comes from a clock, so it
+can be rendered offline. Big moments (a level-up, a birthday, becoming another Tomo) are **cue
+scripts** (`Cue`): one timeline each, as data, played on that clock. While one plays it owns Tomo's
+body, face and particles, so what the game sends with it adds nothing; a newer one replaces it, and
+first closes what the old one opened (its pending shape swap). Reduce Motion is an input
+(`TomoBlob.reduceMotion`): each shell sets `TomoMotion` from the system (`NSWorkspace` on the Mac,
+`UIAccessibility` on the iPhone) and follows changes, and every live host passes it on
+(`TomoBlobView`, `TomoLiveAvatar` on the screens, the island). Then hops, shakes and wiggles become
+a face and a small puff, a cue script plays its calm version (a glow, star eyes and a puff), and
+particles are fewer and slower. Offline renders leave it off, so they never depend on the Mac that
+renders them (`TOMO_REDUCE_MOTION=1` turns it on); widgets and the Live Activity play their frame
+font regardless. Invariants: idle life never stops (under Reduce Motion it still breathes and
+blinks, and a birthday still changes its shape); a cue script's shape swap always happens, even when
+a newer script replaces it or nobody saw it play; TomoBlob never reads a system setting; a seed
+always gives the same Tomo. Trait keys can be added freely, but changing a range, a band or a list
+changes every learner's Tomo (`TomoLook.selfTest`). `TomoLook.variety` scales how different Tomos
+are. Planned: evolution that reads as growing up, as cue scripts
 ([#87](https://github.com/serpcompany/tomodachi-app/issues/87)).
 
 **Languages.** `TomoLanguage.swift`: the target pack (Tomo's words, voice, recognition, AI rules) and the
