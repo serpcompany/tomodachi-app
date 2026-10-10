@@ -208,6 +208,7 @@ private struct TomoAppView: View {
         case .settings: TomoSettingsScreen(device: {
             TomoLoginItemSection()
             TomoReminderSettingsView.QuietHours(forVisits: true)   // no visits at night (#88)
+            TomoScreenSection()                                    // which screen Tomo lives on (#130)
         }, more: { EmptyView() })
         case .about:    TomoAboutScreen()
         case .ai:       TomoAISettingsView()

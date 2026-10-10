@@ -27,7 +27,9 @@ Tomo is a little blob of jelly who lives next to your MacBook's notch and only s
 - **The voice is the Mac's built-in Japanese voice at a higher pitch.** Better voices come later.
 - **No AI setup in this version:** Tomodachi works offline, with no account. Word cards show the meaning from Tomo's words and the Mac's dictionary.
 - **No microphone:** you answer by clicking, so Tomodachi doesn't ask for it.
-- **Moving between displays:** Tomo follows the notch, or the main display's menu bar when the lid is closed. On a
+- **Moving between displays:** Tomo follows the notch, or the main display's menu bar when the lid is closed. To put
+  Tomo elsewhere, **Settings → Tomo lives on**: the main screen, a display by name, or the screen the pointer is on
+  (Tomo moves there once it's tucked in). On a
   Mac or display without a notch, Tomo lives in a small capsule just below the top of the screen.
 - **Reduce Motion** (System Settings → Accessibility → Display on the Mac, Accessibility → Motion on the iPhone): Tomo
   stays put and shows how it feels with its face and a small puff instead of hopping and shaking, and fades in and out
