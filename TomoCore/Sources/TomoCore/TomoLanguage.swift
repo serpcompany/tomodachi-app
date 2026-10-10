@@ -116,6 +116,7 @@ public struct TargetPack: Codable, Sendable {
     public let lines: Lines
     public let reminders: [AgeLines]?      // reminders (TomoReminders), by age; none: Tomo's `invite`
     public let postcard: PostcardLines?    // Tomo's week (TomoPostcard); none: its level-up and see-you lines
+    public let calendar: TomoCalendar?     // the language's year (TomoCalendar): the seasons' weather; none: no weather
     public let ai: AIProfile
     public let levels: [Level]             // levels[0] = level 1. Each level's age marks when Tomo grows up
     public let startersByAge: [AgeStarters]?   // openers for ages past the levels (testing older Tomos)

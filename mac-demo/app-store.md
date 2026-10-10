@@ -36,7 +36,7 @@ sky blue, a menu bar and a notch), puts the app's own snapshots on it and adds a
 which raw files each shot uses, are in its `SHOTS`. The notch is a 16" MacBook Pro's, where the snapshots were
 taken; the island snapshot is centred on the notch of the Mac that takes it.
 
-Each raw file is a `TOMO_SNAPSHOT_DIR` image ([docs/verification.md](../docs/verification.md)) from a run with
+Each raw file is a `TOMO_SNAPSHOT_DIR` image ([docs/debug-flags.md](../docs/debug-flags.md)) from a run with
 `TOMO_HEADLESS=1`, its own `TOMO_DATA_DIR`, `TOMO_SEED=variety-1` and `TZ=` a mid-morning zone, launched by path.
 The seeds are the iPhone's (`ios-demo/app-store.md`):
 

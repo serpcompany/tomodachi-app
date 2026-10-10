@@ -92,4 +92,4 @@ the garden (every word met at its stage, and the replay's stage of every word at
 the ranges, the recap, both exports (the JSON reads back; the Markdown has a row for everything), the Today
 line and the postcards against its own tally (`TomoStatsCheck.swift`), plus the visit log on the game
 (`TomoVisitCheck.swift`). Snapshots: `TOMO_OPEN_WINDOW=together` with a `seed-progress.py --history`
-folder ([verification.md](verification.md)).
+folder ([debug-flags.md](debug-flags.md)).

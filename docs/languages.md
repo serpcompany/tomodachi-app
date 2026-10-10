@@ -33,6 +33,7 @@ Change them in **Settings** (I speak / I'm learning; the first release is Japane
 | `romanization` | The name of the romanization (romaji), or `null` for Latin-script languages |
 | `age` | Age label format: `{n}さい`, `{n} año` / `{n} años` |
 | `labels`, `lines` | Tomo's own words: "again", "listening…", wrong, ouch, grew up, level up, resting ("let's play later"), bye, "say it in my language", "I don't understand" |
+| `calendar` | The language's year, as days ([TomoCalendar](../TomoCore/Sources/TomoCore/TomoCalendar.swift)): each entry a yearly range (`from`, `until`, "MM-DD", which may run across New Year) or, for a day that moves, a table by year (`years`), and what it brings: today `weather` in Tomo's card (`petals`, `snow`). Japanese: 桜 Mar 20 to Apr 15, snow Dec 15 to Feb 28; English: blossom in April, the same snow. No calendar: no weather. Holiday outfits can add their days here ([#130](https://github.com/serpcompany/tomodachi-app/issues/130)) |
 | `postcard` | Tomo's words on its weekly postcard ([stats.md](stats.md)): a level-up (やったー！), signing off (またね！) and a week it slept through (Zz… またね！), each with what it means |
 | `ai` | Persona (`"a {age}-year-old child from Spain"`) and language-specific rules (script, register), placed into a shared prompt template. `ai.rulesByAge` replaces the rules from an age on. Reply length and style follow Tomo's age |
 | `levels` | Tomo's levels, in order. Each has an `age` and either `rounds` or `starters` (conversation openers with example answers). A round is a **picture** round (`answer` emoji + 3 `choices`), a **need** round (`need`: eat / sleep / hug), or, with neither, a **meaning** round: the learner picks its meaning out of three, the other two taken from other words (a different `category` first, never a word that sounds the same). Every item has an `id` like `ja:wanwan` or `ja:talk-onaka-suita`. A level whose `age` is higher than the one before is a birthday. Japanese levels are generated: see below |
@@ -64,7 +65,7 @@ English is for learners who speak Japanese, so every English word needs a Japane
 **A new target language:**
 1. Copy `es.json` to `<id>.json`. Fill in the locales, script, labels, lines, AI persona and rules, and the levels (rounds and starters, each with an `id`).
 2. Check the Mac has a voice (System Settings → Accessibility → Spoken Content) and on-device dictation for it.
-3. Run the self-test: it fails unless every level can be finished (enough items a round can ask, each `id` in one level, ages never going down, talking on the first 3-year-old level) and a simulated learner grows through the pack. Then run `TOMO_TARGET=<id>` with `TOMO_AUTOPLAY=1`, and `TOMO_STAGE=3 TOMO_AUTOCHAT="<an English word>|<a target answer>"` (see [verification.md](verification.md)).
+3. Run the self-test: it fails unless every level can be finished (enough items a round can ask, each `id` in one level, ages never going down, talking on the first 3-year-old level) and a simulated learner grows through the pack. Then run `TOMO_TARGET=<id>` with `TOMO_AUTOPLAY=1`, and `TOMO_STAGE=3 TOMO_AUTOCHAT="<an English word>|<a target answer>"` (see [debug-flags.md](debug-flags.md)).
 4. Have a native speaker review it, then set `reviewedByNativeSpeaker: true`.
 
 **A new learner language:**

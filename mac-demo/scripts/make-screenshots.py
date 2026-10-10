@@ -4,7 +4,7 @@ desktop drawn here (the icon's sky blue, a menu bar and a MacBook notch), under 
 
 Usage: make-screenshots.py <raw dir> <out dir> (out: mac-demo/metadata/screenshots). Needs Pillow.
 
-The raw files are the app's own snapshots (TOMO_SNAPSHOT_DIR, docs/verification.md), at 2x: the island window
+The raw files are the app's own snapshots (TOMO_SNAPSHOT_DIR, docs/debug-flags.md), at 2x: the island window
 (`snap-NNN.png`, 720x560 pt, centred on the notch) and the Tomodachi window (`window-<screen>-NNN.png`) or the first
 run's (`onboarding-NNN.png`). SHOTS says which file each shot uses; mac-demo/app-store.md says how to capture them.
 The notch is a 16" MacBook Pro's (185 x 32 pt), the one the island snapshots were taken on.

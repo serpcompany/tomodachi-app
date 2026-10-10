@@ -54,7 +54,7 @@ public final class TomoScreenNav: ObservableObject {
     @Published public var confirmingStartOver: Bool
 
     /// TOMO_OPEN_WINDOW=<screen> (tomo, words, together, settings, about, ai, testing): a test run opens at that screen
-    /// (docs/verification.md). `startOver` opens Settings with the confirmation up; `tour` (the Mac) shows every
+    /// (docs/debug-flags.md). `startOver` opens Settings with the confirmation up; `tour` (the Mac) shows every
     /// screen in turn. TOMO_OPEN_SETTINGS is the older name (`general` was Settings).
     nonisolated public static let requested: String? = {
         let env = ProcessInfo.processInfo.environment
@@ -97,16 +97,19 @@ public final class TomoFeatures: ObservableObject {
 /// A small live Tomo for the screens. Tomo is never a still image: it breathes, blinks and fidgets here too, and follows
 /// Reduce Motion (`TomoMotion`).
 /// `look` nil is the learner's own Tomo at its age, with `material` `.own`; `.mascot` is the app's mascot (About), in
-/// `.classic` like the icon.
+/// `.classic` like the icon. `weather`: the season's, behind it (the Mac's Tomo screen; `TomoCalendar.weatherToday`).
 public struct TomoLiveAvatar: View {
     let size: CGFloat
     let fixedGrowth: CGFloat?
+    let weather: TomoWeather?
     @ObservedObject var game = TomoGame.shared
     @State private var blob: TomoBlob
 
-    public init(size: CGFloat, look: TomoLook? = nil, material: TomoMaterial, growth: CGFloat? = nil) {
+    public init(size: CGFloat, look: TomoLook? = nil, material: TomoMaterial, growth: CGFloat? = nil,
+                weather: TomoWeather? = nil) {
         self.size = size
         self.fixedGrowth = growth
+        self.weather = weather
         _blob = State(initialValue: TomoBlob(look: look, material: material, motion: .shared))
     }
 
@@ -116,6 +119,7 @@ public struct TomoLiveAvatar: View {
         TimelineView(.animation(minimumInterval: 1 / 30)) { timeline in
             Canvas { ctx, sz in
                 blob.frameDate = timeline.date
+                blob.weather = weather
                 blob.step()
                 blob.draw(ctx, size: sz)
             }

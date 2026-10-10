@@ -85,6 +85,20 @@
       }
     }
   },
+  "calendar": [
+    {
+      "id": "sakura",
+      "from": "03-20",
+      "until": "04-15",
+      "weather": "petals"
+    },
+    {
+      "id": "snow",
+      "from": "12-15",
+      "until": "02-28",
+      "weather": "snow"
+    }
+  ],
   "reminders": [
     {
       "fromAge": 1,

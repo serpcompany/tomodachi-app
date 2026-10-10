@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Seed saved progress for a test run, so a check starts from a known state (docs/verification.md).
+"""Seed saved progress for a test run, so a check starts from a known state (docs/debug-flags.md).
 
     python3 mac-demo/scripts/seed-progress.py <dir> [--pair en:ja] [--level N] [--age A]
         [--through-level N --stage S --due H] [--edge N] [--days D] [--history [--quiet A-B]]
