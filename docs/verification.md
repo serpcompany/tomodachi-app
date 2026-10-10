@@ -126,6 +126,9 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   the sheet (on the iPhone, `SIMCTL_CHILD_TOMO_REDUCE_MOTION=1`). Without it a test run (`TOMO_HEADLESS`) ignores this
   Mac's setting, and the renders always do, so none depends on the Mac it runs on. `TOMO_RENDER_CARD_FRAMES` ignores
   the flag too: its frames are the shipped font.
+- `TOMO_NO_NOTCH=1`: the island a Mac without a notch gets (the 80 × 24 strip, 240 × 24 resting), on any screen.
+  Snapshots of the resting island need both. A test run at night has no visits (quiet hours); `TZ=<a daytime zone>`
+  gives it one.
 - `TOMO_ONBOARDING=1`: the first run, if the data folder has no Tomo (test runs skip it otherwise). A step
   name opens it there: `hatch`, `round`, `result`, `visits`, `rhythm`, `quiet`, `login`, `ready`, or
   `welcomeBack` (the iPhone has `notify`, `widget` and `lockScreen` in place of `login`). `preview` opens the
@@ -153,5 +156,5 @@ python3 mac-demo/scripts/seed-progress.py /tmp/tomo-test --through-level 1 --sta
 
 ## Known flake
 
-After a force-quit, the launch visit sometimes doesn't open: the snapshots show small Tomo with a red
-dot. Run it again.
+After a force-quit, the launch visit sometimes doesn't open: the snapshots show small Tomo resting beside the
+notch. Run it again.

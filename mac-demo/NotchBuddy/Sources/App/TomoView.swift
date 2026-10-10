@@ -784,19 +784,57 @@ private struct TomoHelpPanel: View {
     }
 }
 
-// MARK: - Red dot on small Tomo while a visit is waiting
+// MARK: - The resting island's right side: あそぼ！ or when words are back, and Tomo's level ring
 
-struct TomoPendingDot: View {
+/// Right of the notch while Tomo rests small (IslandRestingLayout.rightSide). The notch never counts what's waiting
+/// (decisions.md, 2026-10-10): it says the pack's invite while anything would count (`TomoGame.somethingCounts`, the
+/// rule a visit uses), else when something does again, dimmed. Small Tomo's bounces (`pending`) do the calling.
+struct TomoRestingSide: View {
     @ObservedObject var game = TomoGame.shared
+    @ObservedObject var lang = TomoLanguages.shared
+
+    /// What it says: the invite (as the Lock Screen card reads it), or the next time, dimmed; nothing if no time is
+    /// known. Never a number of words.
+    static func label(counts: Bool, next: Date?, _ lang: TomoLanguages) -> (text: String, dimmed: Bool)? {
+        if counts { return (lang.target.lines.invite ?? lang.target.lines.practice, false) }
+        return next.map { (tomoNextTime($0, lang), true) }
+    }
 
     var body: some View {
-        Circle()
-            .fill(Color(hex: "#FF3B30"))
-            .frame(width: 7, height: 7)
-            .overlay(Circle().stroke(Color.black, lineWidth: 1.5))
-            .scaleEffect(game.pending ? 1 : 0.2)
-            .opacity(game.pending ? 1 : 0)
-            .animation(.spring(response: 0.35, dampingFraction: 0.6), value: game.pending)
+        let label = Self.label(counts: game.somethingCounts, next: game.nextCountsAt, lang)
+        HStack(spacing: IslandRestingLayout.ringGap) {
+            Text(label?.text ?? "")
+                .font(.system(size: 11.5, weight: .bold, design: .rounded))
+                .foregroundColor(Color.white.opacity(label?.dimmed == true ? 0.62 : 1))
+                .lineLimit(1).minimumScaleFactor(0.7)
+                .frame(width: IslandRestingLayout.textWidth, alignment: .trailing)
+                .id(label?.text)
+                .transition(.opacity)
+            TomoLevelRing(progress: game.levelProgress, color: TomoLook.current.body)
+                .frame(width: IslandRestingLayout.ring, height: IslandRestingLayout.ring)
+        }
+        .animation(.easeInOut(duration: 0.3), value: label?.text)
+    }
+}
+
+/// Tomo's level as a small ring: the experience bar's number (`levelProgress`, as `TomoGrowthBar` draws it), in
+/// Tomo's own colour on a faint track. Never a warning colour.
+private struct TomoLevelRing: View {
+    let progress: Double
+    let color: Color
+
+    var body: some View {
+        GeometryReader { g in
+            let line = g.size.width * 0.15
+            ZStack {
+                Circle().stroke(Color.white.opacity(0.18), lineWidth: line)
+                Circle().trim(from: 0, to: min(max(progress, 0), 1))
+                    .stroke(color, style: StrokeStyle(lineWidth: line, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+            }
+            .padding(g.size.width / 8)
+        }
+        .animation(.spring(response: 0.5, dampingFraction: 0.7), value: progress)
     }
 }
 

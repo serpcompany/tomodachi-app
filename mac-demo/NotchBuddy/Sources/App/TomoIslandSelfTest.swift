@@ -1,7 +1,8 @@
 import AppKit
+import TomoCore
 
-/// The island shell's rules that a headless run can't show by hand (which screen, where, Esc), checked by
-/// TOMO_SELFTEST with TomoCore's (docs/verification.md).
+/// The island shell's rules that a headless run can't show by hand (which screen, where, Esc, the resting right side),
+/// checked by TOMO_SELFTEST with TomoCore's (docs/verification.md).
 @MainActor
 enum TomoIslandSelfTest {
     static func run() -> Bool {
@@ -25,6 +26,29 @@ enum TomoIslandSelfTest {
         let flat = IslandScreenGeometry(screenWidth: 1920, safeAreaTop: 0, auxiliaryLeftWidth: nil,
                                         auxiliaryRightWidth: nil, menuBarHeight: 25)
         check(!flat.hasNotch && flat.width == 80 && flat.height == 24, "without a notch it's a small bar under the menu bar")
+
+        // The resting island's right side (TomoRestingSide): in the right ear, never under the notch, never a count.
+        for (screen, name) in [(notch, "a notch"), (flat, "no notch")] {
+            let (w, h) = islandSize(mode: .compact, view: .overview, nw: screen.width, nh: screen.height)
+            let side = IslandRestingLayout(width: w, height: h).rightSide
+            check(side.minX >= (w + screen.width) / 2 && side.maxX <= w && side.minY >= 0 && side.maxY <= h,
+                  "with \(name), the resting island's right side fits right of the notch: \(side) in \(w) × \(h)")
+        }
+        let lang = TomoLanguages.shared
+        let invite = TomoRestingSide.label(counts: true, next: nil, lang)
+        check(invite?.text == (lang.target.lines.invite ?? lang.target.lines.practice) && invite?.dimmed == false
+              && invite?.text.contains(where: \.isNumber) == false,
+              "something counts: the right side says the pack's invite, with no number")
+        let soon = TomoClock.now.addingTimeInterval(20 * 3600), later = TomoClock.now.addingTimeInterval(3 * 86400)
+        let timeOnly = DateFormatter()
+        timeOnly.locale = Locale(identifier: lang.learner.id)
+        timeOnly.timeStyle = .short
+        let back = TomoRestingSide.label(counts: false, next: soon, lang)
+        check(back?.text == timeOnly.string(from: wallClock(soon)) && back?.dimmed == true,
+              "nothing counts: when words are back, dimmed, the time alone within a day (\(back?.text ?? "none"))")
+        let far = tomoNextTime(later, lang)
+        check(!far.contains(timeOnly.string(from: wallClock(later))), "further off, the day without the time (\(far))")
+        check(TomoRestingSide.label(counts: false, next: nil, lang) == nil, "no time known: only the level ring")
 
         check(C.escCloses(keyCode: 53, inIsland: true, open: true), "Esc in the open island closes it")
         check(!C.escCloses(keyCode: 53, inIsland: false, open: true), "Esc in another window (Settings) is left alone")

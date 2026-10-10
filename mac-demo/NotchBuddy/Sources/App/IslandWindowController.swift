@@ -389,8 +389,10 @@ final class IslandWindowController: NSWindowController {
         // small resting bar when menus auto-hide or the app is in full screen.
         let menuBarHeight = visibleMenuBarHeight > 0
             ? visibleMenuBarHeight : NSStatusBar.system.thickness
+        // TOMO_NO_NOTCH (snapshots): the island a Mac without a notch gets, on any screen.
+        let noNotch = ProcessInfo.processInfo.environment["TOMO_NO_NOTCH"] != nil
         return IslandScreenGeometry(
-            screenWidth: screen.frame.width, safeAreaTop: screen.safeAreaInsets.top,
+            screenWidth: screen.frame.width, safeAreaTop: noNotch ? 0 : screen.safeAreaInsets.top,
             auxiliaryLeftWidth: screen.auxiliaryTopLeftArea?.width,
             auxiliaryRightWidth: screen.auxiliaryTopRightArea?.width,
             menuBarHeight: menuBarHeight
@@ -427,7 +429,7 @@ func islandSize(mode: IslandMode, view: IslandView,
                 nh: CGFloat = IslandConst.notchHeight) -> (CGFloat, CGFloat) {
     switch mode {
     case .hidden:   return (nw, nh)
-    case .compact:  return (nw + 160, nh)
+    case .compact:  return (nw + IslandRestingLayout.ear * 2, nh)
     case .expanded: return (IslandConst.expandedWidth, IslandConst.layout(view).height)
     }
 }

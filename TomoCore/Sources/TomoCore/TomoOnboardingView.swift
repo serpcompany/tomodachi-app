@@ -103,7 +103,7 @@ public struct TomoOnboardingView: View {
         GeometryReader { geo in
             ZStack {
                 if step == .visits && !isPhone {
-                    NotchSketch(pending: true, invite: lang.target.lines.invite ?? "").transition(.opacity)
+                    NotchSketch(invite: lang.target.lines.invite ?? "").transition(.opacity)
                 }
                 if isPhone || step == .quiet || step == .login { phoneSketch(in: geo.size).transition(.opacity) }
                 // The egg stays until its halves have flown off (it draws nothing after); not when opened past it.
@@ -648,7 +648,6 @@ struct RhythmRow: View {
 
 private struct NotchSketch: View {
     static let notch = CGSize(width: 132, height: 30)
-    var pending: Bool
     var invite: String           // what Tomo calls out ("あそぼ！")
     @State private var pulse = false
 
@@ -664,15 +663,6 @@ private struct NotchSketch: View {
                                    topTrailingRadius: 0)
                 .fill(Color.black)
                 .frame(width: Self.notch.width, height: Self.notch.height)
-            if pending {
-                Circle().fill(Paint.red)
-                    .frame(width: 9, height: 9)
-                    .scaleEffect(pulse ? 1.25 : 0.9)
-                    .offset(x: Self.notch.width / 2 + 50, y: 5)
-                    .onAppear {
-                        withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) { pulse = true }
-                    }
-            }
             if !invite.isEmpty {
                 Text(invite)
                     .font(.system(size: 15, weight: .bold, design: .rounded))
@@ -681,6 +671,9 @@ private struct NotchSketch: View {
                     .background(Paint.text, in: RoundedRectangle(cornerRadius: 12))
                     .offset(x: Self.notch.width / 2 + 34, y: Self.notch.height + 28)
                     .scaleEffect(pulse ? 1.04 : 0.98)
+                    .onAppear {
+                        withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) { pulse = true }
+                    }
             }
         }
     }
