@@ -111,6 +111,13 @@ final class IslandWindowController: NSWindowController {
         if state.notchHeight != notchH { state.notchHeight = notchH }
         if state.hasNotch != hasNotch { state.hasNotch = hasNotch }
         if state.screenWidth != screen.frame.width { state.screenWidth = screen.frame.width }
+        if state.mode == .hidden { setMode(.hidden) }   // without a notch, Tomo rests in its capsule instead
+    }
+
+    /// The mode the island shows for `mode`: the same, except that without a notch it never hides. There's no notch
+    /// to fold into, so it rests as the capsule, with Tomo in it (#130).
+    nonisolated static func shownMode(_ mode: IslandMode, hasNotch: Bool) -> IslandMode {
+        mode == .hidden && !hasNotch ? .compact : mode
     }
 
     /// The screen Tomo lives on: the one with a notch, else the main display (the one with the menu bar).
@@ -251,14 +258,15 @@ final class IslandWindowController: NSWindowController {
         return hoverRect.contains(point)
     }
 
-    /// The island's frame in the panel (AppKit coordinates, origin bottom-left): glued to the top, centred, with
-    /// the help panel under an open card.
+    /// The island's frame in the panel (AppKit coordinates, origin bottom-left): glued to the top (the capsule 4 pt
+    /// below it), centred, with the help panel under an open card.
     nonisolated static func islandFrame(panel: CGSize, mode: IslandMode, view: IslandView,
                                         notch: CGSize, help: CGFloat, hasNotch: Bool = true, grown: Bool = false) -> CGRect {
         let (w, fixedH) = islandSize(mode: mode, view: view, nw: notch.width, nh: notch.height, hasNotch: hasNotch,
                                      grown: grown)
         let h = fixedH + (mode == .expanded ? help : 0)
-        return CGRect(x: (panel.width - w) / 2, y: panel.height - h, width: w, height: h)
+        let top = IslandScreenGeometry.top(hasNotch: hasNotch)
+        return CGRect(x: (panel.width - w) / 2, y: panel.height - top - h, width: w, height: h)
     }
 
     private func pollFrame() {
@@ -370,7 +378,8 @@ final class IslandWindowController: NSWindowController {
         countsAsOpen(from) && !countsAsOpen(to) && !reduceMotion
     }
 
-    func setMode(_ mode: IslandMode) {
+    func setMode(_ requested: IslandMode) {
+        let mode = Self.shownMode(requested, hasNotch: hasNotch)
         let prev = state.mode
         if Self.countsAsOpen(mode) { stayOpen() }   // opened again while Tomo was leaving: it comes back
         guard mode != prev else { return }
@@ -555,9 +564,9 @@ final class IslandWindowController: NSWindowController {
                                                 islandW: islandW, islandH: islandH, hasNotch: s.hasNotch)
         let radius = (diameter / 0.6) / 2
         // botPosition cy is from island TOP; panel AppKit coords have y=0 at bottom
-        // island top in AppKit coords = panelH (island glued to top of panel/screen)
+        // island top in AppKit coords = panelH, less the capsule's gap without a notch
         let botX = islandMinX + cx
-        let botY = panelH - cy
+        let botY = panelH - IslandScreenGeometry.top(hasNotch: hasNotch) - cy
         let dx = windowPoint.x - botX
         let dy = windowPoint.y - botY
         return dx*dx + dy*dy <= radius * radius
@@ -566,18 +575,12 @@ final class IslandWindowController: NSWindowController {
     // MARK: - Notch detection (static)
 
     static func screenGeometry(for screen: NSScreen) -> IslandScreenGeometry {
-        let visibleMenuBarHeight = screen.frame.maxY - screen.visibleFrame.maxY
-        // visibleFrame includes the menu bar only while it is visible. Keep a
-        // small resting bar when menus auto-hide or the app is in full screen.
-        let menuBarHeight = visibleMenuBarHeight > 0
-            ? visibleMenuBarHeight : NSStatusBar.system.thickness
-        // TOMO_NO_NOTCH (snapshots): the island a Mac without a notch gets, on any screen.
+        // TOMO_NO_NOTCH (snapshots): the island a Mac without a notch gets (the capsule), on any screen.
         let noNotch = ProcessInfo.processInfo.environment["TOMO_NO_NOTCH"] != nil
         return IslandScreenGeometry(
             screenWidth: screen.frame.width, safeAreaTop: noNotch ? 0 : screen.safeAreaInsets.top,
             auxiliaryLeftWidth: screen.auxiliaryTopLeftArea?.width,
-            auxiliaryRightWidth: screen.auxiliaryTopRightArea?.width,
-            menuBarHeight: menuBarHeight
+            auxiliaryRightWidth: screen.auxiliaryTopRightArea?.width
         )
     }
 }
@@ -612,7 +615,7 @@ func islandSize(mode: IslandMode, view: IslandView,
                 nw: CGFloat = IslandConst.notchWidth,
                 nh: CGFloat = IslandConst.notchHeight, hasNotch: Bool = true, grown: Bool = false) -> (CGFloat, CGFloat) {
     switch mode {
-    case .hidden:   return (nw, nh)
+    case .hidden:   return hasNotch ? (nw, nh) : (nw + IslandRestingLayout.ear * 2, nh)   // the capsule never hides
     case .compact:
         let g = grown ? IslandRestingLayout.hoverGrowth : .zero
         return (nw + IslandRestingLayout.ear * 2 + g.width, nh + g.height)
