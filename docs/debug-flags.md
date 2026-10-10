@@ -51,6 +51,8 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
 - `TOMO_SEED=<text>`: the seed Tomo's look is made from, in place of the saved Tomo's.
 - `TOMO_SHORTCUT=<saved JSON>`: the shortcut to play, whatever Settings says, without saving it (a test run never
   registers a hot key). `TOMO_SHORTCUT_PRESS=<seconds,…>`: the shortcut pressed at those times after launch.
+- `TOMO_SCROLL_PROBE=1`: logs every scroll over the island to stderr, and which window got it, to check whether
+  swipes reach the panel without it taking the keyboard (#130). By hand only: a headless run can't swipe.
 - `TOMO_SCREEN=<notch|main|mouse|display:name>`: which screen Tomo lives on, whatever Settings says, without saving it.
   A headless run has only this Mac's screens, so the choices between screens are checked in `TomoIslandSelfTest`.
 - `TOMO_MATERIAL=classic|jelly`: the material of `TOMO_RENDER_ANIM` and the sheets (the learner's own, jelly, otherwise).
