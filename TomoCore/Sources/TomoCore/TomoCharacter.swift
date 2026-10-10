@@ -46,6 +46,11 @@ public final class TomoBlob: ObservableObject {
     public var callGlow: CGFloat = 0
     /// Pulled up into the notch (`pullUp`): nothing is drawn until `dripIn` or `appear`.
     public private(set) var isAway = false
+    /// Small Tomo's badges (#137): a "…" thought bubble while it checks an answer and a tiny Zz while it dozes (`badge`),
+    /// beside its head on its right, never a number. The shell turns them on where Tomo is small (the resting island)
+    /// and leaves room for them to the right of the canvas (`badgeFrame`); elsewhere Tomo's face and drifting z's say it.
+    /// Under Reduce Motion they show without bobbing.
+    public var showsBadges = false
 
     /// Whose Tomo this is. Nil: the learner's own (`TomoLook.current`), changing with a pop when it does.
     public let fixedLook: TomoLook?
@@ -86,6 +91,7 @@ public final class TomoBlob: ObservableObject {
     private var puffTarget: CGFloat = 1
     private var blush: CGFloat = 0
     private var callGlowShown: CGFloat = 0 // `callGlow`, eased
+    private var badgeShown: (badge: Badge, alpha: CGFloat) = (.dozing, 0)   // the badge on show, fading in or out
     private var sway: CGFloat = 0          // the sprout, lagging behind the body's moves
     private var swayVel: CGFloat = 0
     private var jiggle: CGFloat = 0        // the body's own wobble after a hop or a pop
@@ -353,6 +359,11 @@ public final class TomoBlob: ObservableObject {
         blush += (0 - blush) * (1 - pow(0.4, dt))
         callGlowShown += (min(max(callGlow, 0), 1) - callGlowShown) * (1 - pow(0.02, dt))
         if callGlowShown < 0.001 && callGlow <= 0 { callGlowShown = 0 }
+        let wears = showsBadges ? badge : nil              // a new badge fades in; none fades the last one out
+        if let wears, wears != badgeShown.badge, badgeShown.alpha < 0.05 { badgeShown.badge = wears }
+        let badgeTarget: CGFloat = wears == badgeShown.badge ? 1 : 0
+        badgeShown.alpha += (badgeTarget - badgeShown.alpha) * (1 - pow(0.0005, dt))
+        if badgeShown.alpha < 0.005 && badgeTarget == 0 { badgeShown.alpha = 0 }
 
         // Springs, in small substeps: the sprout, which lags behind the body's moves and wobbles back,
         // and the body's jelly wobble when it lands. How loose they are is the material's.
@@ -398,8 +409,8 @@ public final class TomoBlob: ObservableObject {
         if !isMini, state == .idle, !drowsy, now - lastStir > dozeAfter { drowsy = true }
         if state != .idle { drowsy = false }
 
-        // Sleeping z's
-        if (state == .sleeping || drowsy) && now - lastAmbient > (drowsy ? 3 : 1.4) {
+        // Sleeping z's (small Tomo wears its Zz badge instead)
+        if (state == .sleeping || drowsy) && !showsBadges && now - lastAmbient > (drowsy ? 3 : 1.4) {
             lastAmbient = now
             emit(.z, 1)
         }
@@ -472,6 +483,85 @@ public final class TomoBlob: ObservableObject {
             let center = CGPoint(x: cx, y: cy)
             if state == .question { drawQuestionMark(context, center: center, R: R * g, t: t) }
             drawBits(context, center: center, R: R * g)
+        }
+        if badgeShown.alpha > 0 {
+            drawBadge(context, badgeShown.badge, at: badgeAnchor(center: CGPoint(x: cx, y: cy), r: R * g), unit: badgeUnit(R * g),
+                      alpha: badgeShown.alpha * p.opacity, now: now)
+        }
+    }
+
+    // MARK: - Badges
+
+    /// Small Tomo's badges: what it's doing, never how many of anything.
+    public enum Badge: CaseIterable, Sendable {
+        case checking          // a "…" thought bubble: it's checking an answer (`.thinking`)
+        case dozing            // a tiny Zz: dozing off when ignored, or asleep
+    }
+
+    /// The badge Tomo would wear now (shown only with `showsBadges`): none while a big moment, an arrival or the hello
+    /// plays (they own its face), or while it's up in the notch.
+    public var badge: Badge? {
+        guard cue == nil, !isAway else { return nil }
+        if state == .thinking { return .checking }
+        if state == .sleeping || drowsy { return .dozing }
+        return nil
+    }
+
+    /// Where a badge sits for a canvas of `size` (Tomo drawn as `draw` draws it): beside its head on its right, the room
+    /// a host leaves for it, in the canvas's coordinates. It reaches past the canvas's right edge.
+    public func badgeFrame(size: CGSize) -> CGRect {
+        let form = look.form(age), R = size.width * 0.27, r = R * form.scale
+        let center = CGPoint(x: size.width / 2, y: size.height / 2 + particleOverhang / 2 + R * 0.1)
+        let a = badgeAnchor(center: center, r: r), u = badgeUnit(r)
+        return CGRect(x: a.x - u * 0.15, y: a.y - u * 0.8, width: u * 1.9, height: u * 1.45)
+    }
+
+    /// A badge's size: Tomo's radius, at most 11 pt.
+    private func badgeUnit(_ r: CGFloat) -> CGFloat { min(r, 11) }
+
+    /// Just off Tomo's body on its right, a little above its middle (the body's edge there is about 0.9 r out), low
+    /// enough that the badge stays under the top of a 24 pt island at every age.
+    private func badgeAnchor(center c: CGPoint, r: CGFloat) -> CGPoint {
+        CGPoint(x: c.x + r * 0.9 + badgeUnit(r) * 0.25, y: c.y - r * 0.3)
+    }
+
+    /// How far each part of a badge bobs now, in units: the bubble's three dots hop in turn, and the Z's float. Still
+    /// under Reduce Motion.
+    func badgeBob(_ part: Int, now: Double) -> CGFloat {
+        guard !reduceMotion else { return 0 }
+        switch badgeShown.badge {
+        case .checking: return 0.18 * max(0, CGFloat(sin(now * 6 - Double(part) * 0.9)))
+        case .dozing: return 0.1 * CGFloat(sin(now * 1.3)) * (part == 0 ? 1 : -0.6)
+        }
+    }
+
+    private func drawBadge(_ ctx: GraphicsContext, _ b: Badge, at a: CGPoint, unit u: CGFloat, alpha: CGFloat, now: Double) {
+        var c = ctx
+        c.opacity = Double(min(1, alpha))
+        switch b {
+        case .checking:                    // a thought bubble: two little puffs from Tomo's head, then "…"
+            let mid = CGPoint(x: a.x + u * 0.95, y: a.y - u * 0.2)
+            let soft = GraphicsContext.Shading.color(.white.opacity(0.2))
+            for (dx, dy, r) in [(0.0, 0.45, 0.09), (0.2, 0.25, 0.13)] as [(CGFloat, CGFloat, CGFloat)] {
+                c.fill(Path(ellipseIn: CGRect(x: a.x + dx * u - r * u, y: a.y + dy * u - r * u, width: r * u * 2, height: r * u * 2)),
+                       with: soft)
+            }
+            c.fill(Path(roundedRect: CGRect(x: mid.x - u * 0.72, y: mid.y - u * 0.5, width: u * 1.44, height: u),
+                        cornerRadius: u * 0.5), with: soft)
+            for i in 0..<3 {
+                let d = CGPoint(x: mid.x + CGFloat(i - 1) * u * 0.4, y: mid.y - badgeBob(i, now: now) * u)
+                c.fill(Path(ellipseIn: CGRect(x: d.x - u * 0.12, y: d.y - u * 0.12, width: u * 0.24, height: u * 0.24)),
+                       with: .color(.white.opacity(0.9)))
+            }
+        case .dozing:                      // Zz: a bigger Z, and a smaller one up and to its right
+            let line = StrokeStyle(lineWidth: u * 0.13, lineCap: .round, lineJoin: .round)
+            for (i, (dx, dy, k)) in ([(0.3, 0.05, 0.6), (0.98, -0.45, 0.4)] as [(CGFloat, CGFloat, CGFloat)]).enumerated() {
+                let o = CGPoint(x: a.x + dx * u, y: a.y + (dy + badgeBob(i, now: now)) * u), h = k * u
+                var z = Path()
+                z.move(to: CGPoint(x: o.x - h * 0.4, y: o.y - h * 0.5)); z.addLine(to: CGPoint(x: o.x + h * 0.4, y: o.y - h * 0.5))
+                z.addLine(to: CGPoint(x: o.x - h * 0.4, y: o.y + h * 0.5)); z.addLine(to: CGPoint(x: o.x + h * 0.4, y: o.y + h * 0.5))
+                c.stroke(z, with: .color(.white.opacity(0.8)), style: line)
+            }
         }
     }
 
@@ -1877,6 +1967,85 @@ extension TomoBlob {
     }
 }
 
+
+extension TomoBlob {
+    /// Small Tomo's badges (#137), on a clock only the check moves: a "…" bubble while it checks an answer and a Zz while
+    /// it dozes or sleeps, and nothing that counts; none while a script plays or it's away; with badges on, no drifting
+    /// z's; they fade in and out; under Reduce Motion they don't bob.
+    static func badgeSelfTest(_ check: (Bool, String) -> Void) {
+        var t = 100.0
+        func blob(badges: Bool = true, reduce: Bool = false) -> TomoBlob {
+            t = 100
+            let b = TomoBlob(look: .mascot, material: .own)
+            b.showsBadges = badges
+            b.reduceMotion = reduce
+            b.clock = { t }
+            b.step()
+            return b
+        }
+        func run(_ b: TomoBlob, _ seconds: Double) {
+            let end = t + seconds
+            while t < end - 1e-9 { t += 1.0 / 60; b.step() }
+        }
+
+        check(Badge.allCases == [.checking, .dozing], "small Tomo's badges are a \"…\" bubble and a Zz: nothing that counts")
+
+        let b = blob()
+        let awake = b.badge
+        b.setState(.thinking)
+        run(b, 0.1)
+        let early = b.badgeShown.alpha
+        run(b, 0.4)
+        let checking = b.badge, shown = b.badgeShown
+        b.setState(.idle)
+        run(b, 0.6)
+        let gone = b.badge == nil && b.badgeShown.alpha < 0.02
+        b.dozeAfter = 2
+        run(b, 2.6)
+        let dozing = b.badge
+        b.setState(.sleeping)
+        run(b, 0.5)
+        let asleep = b.badge
+        check(awake == nil && checking == .checking && shown.badge == .checking && early > 0.2 && early < 0.95
+              && shown.alpha > 0.95 && gone && dozing == .dozing && asleep == .dozing,
+              String(format: "a \"…\" bubble while Tomo checks an answer, a Zz while it dozes or sleeps, none awake; each fades in (%.0f%% at 0.1 s) and out",
+                     early * 100))
+
+        // During a big moment or the hello, and while it's up in the notch, no badge.
+        let m = blob()
+        m.setState(.thinking)
+        run(m, 0.5)
+        m.levelUp()
+        run(m, 0.2)
+        let moment = m.badge
+        run(m, 2.5)
+        let after = m.badge
+        m.pullUp()
+        run(m, 0.6)
+        check(moment == nil && after == .checking && m.isAway && m.badge == nil,
+              "no badge while a big moment plays (it owns Tomo's face) or while Tomo is up in the notch; back after")
+
+        // Badges on: no drifting z's while it dozes; off (the card, the iPhone): the z's as before.
+        func zs(_ badges: Bool) -> Int {
+            let z = blob(badges: badges)
+            z.dozeAfter = 1
+            var seen = 0
+            for _ in 0..<(60 * 8) { t += 1.0 / 60; z.step(); seen = max(seen, z.bits.filter { $0.kind == .z }.count) }
+            return seen
+        }
+        let withBadges = zs(true), without = zs(false)
+        check(withBadges == 0 && without > 0, "wearing its Zz, small Tomo has no drifting z's (\(without) without badges)")
+
+        // Reduce Motion: the bubble's dots and the Z's hold still; otherwise they hop and float.
+        let still = blob(reduce: true), lively = blob()
+        for x in [still, lively] { x.setState(.thinking); run(x, 0.5) }
+        let times = (0..<40).map { 100 + Double($0) * 0.05 }
+        let calmBob = times.flatMap { now in (0..<3).map { still.badgeBob($0, now: now) } }
+        let liveBob = times.flatMap { now in (0..<3).map { lively.badgeBob($0, now: now) } }
+        check(calmBob.allSatisfy { $0 == 0 } && (liveBob.max() ?? 0) > 0.15 && still.badgeShown.alpha > 0.95,
+              "under Reduce Motion the badges show without bobbing")
+    }
+}
 
 // MARK: - Views
 

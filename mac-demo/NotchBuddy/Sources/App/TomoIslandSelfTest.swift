@@ -288,6 +288,32 @@ enum TomoIslandSelfTest {
               && !T.saysHello(greeted: true, waking: false, mode: .compact) && T.saysHello(greeted: true, waking: true, mode: .compact)
               && !T.saysHello(greeted: true, waking: true, mode: .hidden),
               "Tomo says hello the first time it shows (resting, the launch visit's card or peek) and when the Mac wakes, never hidden")
+        check(T.wearsBadges(.compact) && !T.wearsBadges(.peek) && !T.wearsBadges(.expanded) && !T.wearsBadges(.hidden),
+              "small Tomo wears its badges resting beside the notch, not in the peek or the card")
+        // Its badge stays in the left ear, left of the notch and below the screen's top edge, at every age, in the room
+        // the canvas leaves right of its frame (BotPlacement's canvas: the diameter / 0.6, 72 pt of room above).
+        var fits: [String] = []
+        for (screen, name) in [(notch, "a notch"), (flat, "no notch")] {
+            let (w, h) = islandSize(mode: .compact, view: .overview, nw: screen.width, nh: screen.height)
+            let (cx, cy, d, _) = botPosition(mode: .compact, view: .overview, islandW: w, islandH: h, hasNotch: screen.hasNotch)
+            let side = d / 0.6, overhang: CGFloat = 72
+            let origin = CGPoint(x: cx - side / 2, y: cy - overhang / 2 - (side + overhang) / 2)   // the canvas, in the island
+            for look in [TomoLook.mascot] + (0..<12).map({ TomoLook(seed: "badge-\($0)") }) {
+                for age in 0..<TomoLook.ages {
+                    let blob = TomoBlob(look: look, material: .own)
+                    blob.particleOverhang = overhang
+                    blob.setGrowth(CGFloat(age))
+                    let f = blob.badgeFrame(size: CGSize(width: side, height: side + overhang))
+                    let inIsland = f.offsetBy(dx: origin.x, dy: origin.y)
+                    if f.maxX > side + T.badgeRoom || inIsland.maxX > (w - screen.width) / 2 - IslandRestingLayout.notchClearance
+                        || inIsland.minY < 0 || inIsland.minX < cx {
+                        fits.append("\(name) age \(age): \(inIsland)")
+                    }
+                }
+            }
+        }
+        check(fits.isEmpty, "small Tomo's badge fits the left ear beside it at every age, with a notch and without"
+              + (fits.isEmpty ? "" : " (\(fits.prefix(3).joined(separator: "; ")))"))
         check(C.foldWaits(from: .expanded, to: .compact, reduceMotion: false)
               && C.foldWaits(from: .peek, to: .compact, reduceMotion: false)
               && !C.foldWaits(from: .expanded, to: .compact, reduceMotion: true)
