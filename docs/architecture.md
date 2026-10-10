@@ -58,8 +58,11 @@ notch it's a capsule 4 pt below the top of the screen, rounded all round, that n
 (`IslandScreenGeometry`, `shownMode`); it needs
 no permission; it follows the pointer through mouse event monitors (a sandboxed build gets them
 too), with no clock while the pointer is away from it; after a close, hovering doesn't reopen the
-island until the pointer has left it once; a peek counts as open; the card or the peek folds once
-Tomo is pulled up out of it (`AppState.leaving`; closed for the game at once); the resting island
+island until the pointer has left it once; a peek counts as open; one Tomo travels between the
+island's states on a spring, never fading out in one place and in at another (`TomoTravel`: into the
+card on a click, from a peek into its card, back beside the notch as it tucks in; a visit still drips
+in), and the card or the peek waits for Tomo to be pulled up only when it folds away (hidden;
+`AppState.leaving`, closed for the game at once); the resting island
 and its click area grow together under the pointer (`islandSize`); it takes the keyboard only when
 the learner opens it (a click, the menu, their shortcut), so Esc works then and a visit or a peek never
 takes a keystroke (decisions.md). The shortcut (`TomoShortcut`) is a Carbon hot key, so no permission;

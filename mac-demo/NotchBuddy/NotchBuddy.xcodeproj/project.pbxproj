@@ -31,6 +31,7 @@
 		C940B651C6CA952D99388E04 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 192844E7299DEED5C2372067 /* AppDelegate.swift */; };
 		CA3321C14A11FED94E48B3E3 /* IslandRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15A1A8206F73376F4CAF2057 /* IslandRootView.swift */; };
 		CBA993E5601B7B59B91D2537 /* TomoMomentLight.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A61E1A5F71B1068AA5957A2 /* TomoMomentLight.swift */; };
+		CE3022C573427D65026627EF /* TomoTravel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0C947AFD1059574B01CA322 /* TomoTravel.swift */; };
 		DC71BBD15F2044AE17D7B17D /* TomoIconRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6DA49ECE3D13AC1934BC2AF /* TomoIconRenderer.swift */; };
 		DCAC390FF9EC65B945A15B24 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 506824380E9C80B9BC6DCE72 /* Assets.xcassets */; };
 		F2DC998C2135635C909A7118 /* TomoScrollProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63C0D2870741AADF2D7ED9EF /* TomoScrollProbe.swift */; };
@@ -65,6 +66,7 @@
 		D710BD7834228045869D0184 /* IslandWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandWindowController.swift; sourceTree = "<group>"; };
 		D8212018F09EA1E96FBD63CD /* IslandStateMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandStateMachine.swift; sourceTree = "<group>"; };
 		E792BF7FE7BE5C9B24045E83 /* TomoLineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoLineView.swift; sourceTree = "<group>"; };
+		F0C947AFD1059574B01CA322 /* TomoTravel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoTravel.swift; sourceTree = "<group>"; };
 		F1BD8F3CAA60CF37640759E1 /* NotchBuddyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchBuddyApp.swift; sourceTree = "<group>"; };
 		F21E005253055F79D071A7C1 /* TomoOnboardingWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoOnboardingWindow.swift; sourceTree = "<group>"; };
 		F22C8C7541439C619C8F1477 /* TomoIslandSelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoIslandSelfTest.swift; sourceTree = "<group>"; };
@@ -112,6 +114,7 @@
 				63C0D2870741AADF2D7ED9EF /* TomoScrollProbe.swift */,
 				29AF644AD72F5349660C66F4 /* TomoShortcut.swift */,
 				8108F2470030F4450F816A8A /* TomoTestingTools.swift */,
+				F0C947AFD1059574B01CA322 /* TomoTravel.swift */,
 				121E58044C07D5383C400BB8 /* TomoView.swift */,
 			);
 			path = App;
@@ -253,6 +256,7 @@
 				F2DC998C2135635C909A7118 /* TomoScrollProbe.swift in Sources */,
 				C5E75B16786D9D551C35701C /* TomoShortcut.swift in Sources */,
 				75086D1A425B7CBFEFBE56EA /* TomoTestingTools.swift in Sources */,
+				CE3022C573427D65026627EF /* TomoTravel.swift in Sources */,
 				065E4D62682B27B2292C605D /* TomoView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

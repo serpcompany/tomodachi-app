@@ -410,6 +410,57 @@ enum TomoIslandSelfTest {
               "it shrinks as it goes and melts into the bar as it lands")
     }
 
+    /// Tomo travelling between the island's states (#137, effect 1: TomoTravel): which move a change is, and each move's
+    /// path, squash and timing, sampled at 240 Hz.
+    private static func travel(_ check: (Bool, String) -> Void) {
+        typealias V = TomoTravel
+        check(V.style(modeChanged: true, closing: false, arrived: false, firstDrawn: true, reduceMotion: false) == .open
+              && V.style(modeChanged: true, closing: true, arrived: false, firstDrawn: true, reduceMotion: false) == .close
+              && V.style(modeChanged: false, closing: false, arrived: false, firstDrawn: true, reduceMotion: false) == .settle,
+              "a click opening the card, or a peek opening into it, travels in; tucking in travels back; a small change settles")
+        check(V.style(modeChanged: true, closing: false, arrived: true, firstDrawn: true, reduceMotion: false) == nil
+              && V.style(modeChanged: true, closing: false, arrived: false, firstDrawn: false, reduceMotion: false) == nil,
+              "a visit arriving from the notch doesn't travel (it drips in, #142), and nor does Tomo's first frame")
+        check(V.style(modeChanged: true, closing: false, arrived: false, firstDrawn: true, reduceMotion: true) == .fade
+              && V.style(modeChanged: true, closing: true, arrived: false, firstDrawn: true, reduceMotion: true) == .fade
+              && V.style(modeChanged: false, closing: false, arrived: false, firstDrawn: true, reduceMotion: true) == nil,
+              "under Reduce Motion there's no travel: a quick fade out and in, and nothing at all for a small change")
+        let rest = TomoSpot(center: CGPoint(x: 40, y: 16), diameter: 20, opacity: 1)
+        let peek = TomoSpot(center: CGPoint(x: TomoPeekLayout.tomoCenterX, y: 44), diameter: 56, opacity: 1)
+        let card = TomoSpot(center: CGPoint(x: 66, y: 126), diameter: 72, opacity: 1)
+        func samples(_ v: V) -> [TomoPose] { stride(from: 0.0, through: v.duration + 0.05, by: 1.0 / 240).map(v.pose(at:)) }
+        func dist(_ a: CGPoint, _ b: CGPoint) -> CGFloat { hypot(a.x - b.x, a.y - b.y) }
+        for (from, name) in [(rest, "beside the notch"), (peek, "the peek")] {
+            let v = V(from: from, to: card, style: .open), path = samples(v)
+            let span = dist(from.center, card.center)
+            let over = path.map { dist($0.spot.center, from.center) - span }.max() ?? 0
+            let steps = zip(path, path.dropFirst()).map { dist($0.spot.center, $1.spot.center) }.max() ?? 0
+            check(path.first?.spot == from && v.pose(at: v.duration) == TomoPose(spot: card) && over > 0 && over < span * 0.08
+                  && steps < span * 0.05,
+                  "from \(name) into the card: one Tomo on a spring, overshooting \(Int(over / span * 100))%, never jumping, landing exactly")
+            let sy = path.map(\.sy)
+            check((sy.max() ?? 1) > 1.1 && (sy.min() ?? 1) < 0.95 && abs(v.pose(at: v.duration - 0.01).sy - 1) < 0.02,
+                  "from \(name), it stretches as it goes and wobbles as it lands, still by the end (\(V.openDuration) s)")
+        }
+        let back = V(from: card, to: rest, style: .close), path = samples(back)
+        let foldAt = back.pose(at: V.fold)
+        // The island folds on the same curve (IslandContainer's close): Tomo's bottom stays inside it all the way.
+        let inside = stride(from: 0.0, through: V.fold, by: 1.0 / 240).allSatisfy { t in
+            let f = V.foldCurve(t / V.fold), p = back.pose(at: t).spot
+            return p.center.y + p.diameter / 2 <= 208 + (32 - 208) * f + 0.5 && p.center.x <= 640 + (345 - 640) * f
+        }
+        check(foldAt.spot.center == rest.center && path.allSatisfy { (0.85...1.2).contains($0.sy) } && inside
+              && back.pose(at: back.duration) == TomoPose(spot: rest),
+              "tucking in, it's back beside the notch when the island has folded (\(V.fold) s), inside it all the way, with a small wobble")
+        let fade = V(from: card, to: rest, style: .fade)
+        check(fade.pose(at: 0).spot == card && fade.pose(at: V.fadeHalf - 0.001).spot.opacity < 0.02
+              && fade.pose(at: V.fadeHalf + 0.001).spot.center == rest.center && fade.pose(at: fade.duration) == TomoPose(spot: rest)
+              && samples(fade).allSatisfy { $0.sx == 1 && $0.sy == 1 } && fade.duration <= 0.25,
+              "under Reduce Motion: out where it was, in where it goes, in \(fade.duration) s, never moving or squashing")
+        let hover = V(from: rest, to: TomoSpot(center: CGPoint(x: 40, y: 18), diameter: 20, opacity: 1), style: .settle)
+        check(samples(hover).allSatisfy { $0.sx == 1 && $0.sy == 1 }, "a small move within a state settles without squashing")
+    }
+
     /// Arrivals and motion (#130): what Tomo does as the island changes, and the resting island growing under the
     /// pointer, with the click area growing with it (both take the size from `islandSize`).
     private static func motion(_ check: (Bool, String) -> Void, notch: IslandScreenGeometry, flat: IslandScreenGeometry) {
@@ -423,11 +474,17 @@ enum TomoIslandSelfTest {
               && T.move(from: .peek, to: .expanded, arriving: false) == .none
               && T.move(from: .expanded, to: .expanded, arriving: true) == .none,
               "a click opens the card without a drip, and a peek opening into its card is the same visit")
-        check(T.move(from: .expanded, to: .compact, arriving: false) == .pullUp
-              && T.move(from: .peek, to: .compact, arriving: false) == .pullUp
-              && T.move(from: .expanded, to: .hidden, arriving: false) == .pullUp
+        check(T.move(from: .expanded, to: .compact, arriving: false) == .none
+              && T.move(from: .peek, to: .compact, arriving: false) == .none
+              && !C.foldWaits(from: .expanded, to: .compact, reduceMotion: false)
+              && !C.foldWaits(from: .peek, to: .compact, reduceMotion: false),
+              "the card or the peek tucking in: Tomo travels back beside the notch as the island folds, so nothing waits")
+        check(T.move(from: .expanded, to: .hidden, arriving: false) == .pullUp
+              && C.foldWaits(from: .expanded, to: .hidden, reduceMotion: false)
+              && !C.foldWaits(from: .expanded, to: .hidden, reduceMotion: true)
               && T.backAfter(pulledUp: true) >= 0.34 && T.backAfter(pulledUp: false) >= C.pullUpTime,
-              "the card or the peek closing pulls Tomo up into the notch, and it's back beside it once that's done")
+              "folding away with nowhere to rest (hidden), Tomo is pulled up into the notch first (not under Reduce Motion)")
+        travel(check)
         check(T.saysHello(greeted: false, waking: false, mode: .compact) && T.saysHello(greeted: false, waking: false, mode: .expanded)
               && T.saysHello(greeted: false, waking: false, mode: .peek) && !T.saysHello(greeted: false, waking: false, mode: .hidden)
               && !T.saysHello(greeted: true, waking: false, mode: .compact) && T.saysHello(greeted: true, waking: true, mode: .compact)
@@ -474,12 +531,12 @@ enum TomoIslandSelfTest {
               + (fits.isEmpty ? "" : " (\(fits.prefix(3).joined(separator: "; ")))"))
         check(glowCut.isEmpty, "small Tomo's call glow fits its canvas on every side at every age, so no edge cuts it"
               + (glowCut.isEmpty ? "" : " (cut: \(glowCut.prefix(3).joined(separator: "; ")))"))
-        check(C.foldWaits(from: .expanded, to: .compact, reduceMotion: false)
-              && C.foldWaits(from: .peek, to: .compact, reduceMotion: false)
-              && !C.foldWaits(from: .expanded, to: .compact, reduceMotion: true)
+        check(C.foldWaits(from: .expanded, to: .hidden, reduceMotion: false)
+              && C.foldWaits(from: .peek, to: .hidden, reduceMotion: false)
+              && !C.foldWaits(from: .expanded, to: .hidden, reduceMotion: true)
               && !C.foldWaits(from: .peek, to: .expanded, reduceMotion: false)
               && !C.foldWaits(from: .compact, to: .hidden, reduceMotion: false) && C.pullUpTime == 0.45,
-              "the card or the peek waits 0.45 s to fold while Tomo is pulled up out of it (under Reduce Motion it folds at once)")
+              "folding away (hidden), the card or the peek waits 0.45 s while Tomo is pulled up out of it (under Reduce Motion it folds at once)")
         let key = TomoView.cardKey
         let asked = key(.asking, false, "ja:wanwan")
         check(asked == key(.wrong("x"), false, "ja:wanwan") && asked == key(.right, false, "ja:wanwan")
