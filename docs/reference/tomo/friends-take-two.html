@@ -1,0 +1,1366 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Tomo Friends, Take Two</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a storyboard per direction. Its name and pitch, a row of flows, then a Mac and an iPhone drawn at real point size side by side, the numbered beats of the flow under them, and its answers last. */
+:root{
+  --bg:#E6ECE9; --surface:#F6F9F7; --ink:#16201C; --muted:#53615B; --line:#C7D3CD; --soft:#D9E3DE;
+  --accent:#1E5E5A; --accent-ink:#FFFFFF; --amber:#B86E08; --amber-ink:#7A4600; --amber-soft:#F3E1C0;
+  --win:#1F7F48; --proposed:#6B4FA3;
+  --wall-a:#9CB6C4; --wall-b:#CDBCD8; --mbar:#FFFFFF8C; --mbar-ink:#1C1D21; --sel:#B5D2FF;
+  --win-bg:#FBFBFC; --win-ink:#1C1D21; --win-muted:#6B6F7B; --win-line:#DFE1E6; --win-side:#EEF0F3;
+  --notch:#000000; --n-ink:#F4F5F7; --n-muted:#9EA3B0; --n-panel:#17181C; --n-tile:#24252B; --n-line:#33353D; --n-amber:#F2A93B; --n-win:#58C98A;
+  --rim:#121316; --ph-bg:#F2F4F7; --ph-ink:#15161A; --ph-muted:#6C7080; --ph-card:#FFFFFF; --ph-line:#E1E4EA; --ph-blue:#2F6FD8;
+  --twig-a:#A27E4E; --twig-b:#6F5532; --twig-c:#C9A673;
+  --f-display:"Zen Maru Gothic","Hiragino Maru Gothic ProN",ui-rounded,system-ui,sans-serif;
+  --f-body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,-apple-system,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --f-os:-apple-system,BlinkMacSystemFont,"SF Pro Text","Hiragino Sans",system-ui,sans-serif;
+  --f-tomo:ui-rounded,"SF Pro Rounded","Hiragino Maru Gothic ProN","Zen Maru Gothic",system-ui,sans-serif;
+  --ease:cubic-bezier(.3,1.25,.5,1);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1513; --surface:#17201D; --ink:#E7EEEA; --muted:#9AA9A2; --line:#2B3833; --soft:#1F2925;
+  --accent:#86CFC6; --accent-ink:#0D1715; --amber:#F0A63A; --amber-ink:#F5BC66; --amber-soft:#3A2A12;
+  --win:#5BC98B; --proposed:#B79CF0;
+  --wall-a:#22324A; --wall-b:#3E2C4C; --mbar:#1B1D248C; --mbar-ink:#ECEDF2; --sel:#2E4B7C;
+  --win-bg:#1E2027; --win-ink:#ECEDF2; --win-muted:#A0A4B2; --win-line:#31343E; --win-side:#262830;
+  --rim:#2A2C33; --ph-bg:#0E0F13; --ph-ink:#F0F1F4; --ph-muted:#9DA1AE; --ph-card:#1B1C22; --ph-line:#2C2E36; --ph-blue:#6EA2F5;
+  --twig-a:#8A6A40; --twig-b:#5A4428; --twig-c:#B08F5E; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0F1513; --surface:#17201D; --ink:#E7EEEA; --muted:#9AA9A2; --line:#2B3833; --soft:#1F2925;
+  --accent:#86CFC6; --accent-ink:#0D1715; --amber:#F0A63A; --amber-ink:#F5BC66; --amber-soft:#3A2A12;
+  --win:#5BC98B; --proposed:#B79CF0;
+  --wall-a:#22324A; --wall-b:#3E2C4C; --mbar:#1B1D248C; --mbar-ink:#ECEDF2; --sel:#2E4B7C;
+  --win-bg:#1E2027; --win-ink:#ECEDF2; --win-muted:#A0A4B2; --win-line:#31343E; --win-side:#262830;
+  --rim:#2A2C33; --ph-bg:#0E0F13; --ph-ink:#F0F1F4; --ph-muted:#9DA1AE; --ph-card:#1B1C22; --ph-line:#2C2E36; --ph-blue:#6EA2F5;
+  --twig-a:#8A6A40; --twig-b:#5A4428; --twig-c:#B08F5E; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.65 var(--f-body);margin:0}
+.page{max-width:1240px;margin:0 auto;padding-inline:clamp(16px,3vw,32px);padding-block:30px 72px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+p{margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.mono{font-family:var(--f-mono)}
+.eyebrow{font:500 11.5px/1.4 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.prop{text-decoration:underline dotted var(--proposed) 1.5px;text-underline-offset:3px}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:7px 15px;font-weight:700;font-size:13.5px;cursor:pointer;line-height:1.2}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--ink)}
+.hint{font-size:12.5px;color:var(--amber-ink)}
+
+/* header */
+.top{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(20px,4vw,48px);align-items:center;padding-bottom:28px;border-bottom:1px solid var(--line)}
+@media (max-width:860px){.top{grid-template-columns:minmax(0,1fr)}}
+.top h1{font-size:clamp(32px,5vw,52px);font-weight:900;letter-spacing:-.01em;margin-top:6px}
+.lede{max-width:60ch;margin-top:12px;color:var(--muted);font-size:15.5px}
+.lede b{color:var(--ink)}
+.rules{margin:16px 0 0;padding:0;list-style:none;display:grid;gap:4px;font-size:13.5px;color:var(--muted);max-width:62ch}
+.rules li{padding-left:16px;position:relative}
+.rules li::before{content:"";position:absolute;left:2px;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--amber)}
+.cast{display:grid;gap:10px;justify-items:center}
+.cast-stage{position:relative;width:100%;max-width:440px;aspect-ratio:440/250}
+.cast-stage .actor{position:absolute}
+.cast-cap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%;max-width:440px;text-align:center;font-size:12.5px;color:var(--muted);line-height:1.4}
+.cast-cap b{display:block;font-family:var(--f-display);color:var(--ink);font-size:14px}
+.cast-note{font-size:12px;color:var(--muted);text-align:center;max-width:44ch}
+
+/* direction sections */
+.concept{padding-block:46px 40px;border-bottom:1px solid var(--line);scroll-margin-top:12px}
+.c-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 24px;align-items:end}
+@media (max-width:640px){.c-head{grid-template-columns:minmax(0,1fr)}}
+.c-head h2{font-size:clamp(28px,4vw,40px);font-weight:900;margin-top:4px}
+.pitch{margin-top:6px;font-size:17px;max-width:62ch}
+.c-act{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.flows{display:flex;gap:6px;flex-wrap:wrap;margin-top:22px}
+.flow{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 13px;font-size:13.5px;cursor:pointer;color:var(--ink)}
+.flow:hover{border-color:var(--ink)}
+.flow[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:700}
+.theatre{display:grid;grid-template-columns:minmax(0,760fr) minmax(0,393fr);grid-template-areas:"m p" "s p";grid-template-rows:auto 1fr;gap:18px 24px;margin-top:18px;align-items:start}
+.mslot{grid-area:m;min-width:0}.pslot{grid-area:p;min-width:0}.theatre .story{grid-area:s}
+@media (max-width:900px){.theatre{grid-template-columns:minmax(0,1fr);grid-template-areas:"m" "p" "s";grid-template-rows:auto}.pslot{max-width:393px;justify-self:center;width:100%}}
+.dev-l{font:500 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.story{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px 24px;align-items:start;min-width:0}
+@media (max-width:640px){.story{grid-template-columns:minmax(0,1fr)}}
+.steps{margin:0;padding:0;list-style:none;counter-reset:s;display:grid;gap:6px;max-width:80ch}
+.steps li{counter-increment:s;display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;font-size:14.5px;color:var(--muted);transition:color .3s}
+.steps li::before{content:counter(s);width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font:500 11.5px var(--f-mono);margin-top:1px;transition:all .3s}
+.steps li.done::before{border-color:var(--accent);color:var(--accent)}
+.steps li.now{color:var(--ink)}
+.steps li.now::before{background:var(--amber);border-color:var(--amber);color:var(--accent-ink)}
+.ctl{display:grid;gap:8px;justify-items:end;min-width:12rem}
+@media (max-width:640px){.ctl{justify-items:start}}
+.ctl-row{display:flex;gap:8px}
+.tapnote{font-size:13px;color:var(--amber-ink);min-height:1.4em;text-align:right;max-width:18rem}
+@media (max-width:640px){.tapnote{text-align:left}}
+.answers{margin-top:26px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:0 28px;border-top:1px solid var(--line)}
+.answers div{padding:11px 0;border-bottom:1px solid var(--line);min-width:0}
+.answers dt{font:700 13px var(--f-display);color:var(--ink);margin-bottom:2px}
+.answers dd{margin:0;font-size:13.5px;color:var(--muted);line-height:1.6}
+.answers .wide{grid-column:1/-1}
+
+/* compare */
+.compare{padding-top:44px}
+.compare h2{font-size:clamp(24px,3vw,32px);font-weight:900}
+.compare>p{margin-top:8px;color:var(--muted);max-width:70ch}
+.tbl{overflow-x:auto;margin-top:18px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.tbl table{border-collapse:collapse;width:100%;min-width:760px;font-size:13.5px}
+.tbl th,.tbl td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+.tbl thead th{font:700 14px var(--f-display);background:var(--soft)}
+.tbl tbody th{font:700 13px var(--f-display);color:var(--muted);width:11rem}
+.tbl tr:last-child td,.tbl tr:last-child th{border-bottom:0}
+.lean{margin-top:18px;padding:16px 18px;border-radius:12px;background:var(--amber-soft);color:var(--ink);max-width:78ch;display:grid;gap:6px}
+.lean b{font-family:var(--f-display)}
+footer{margin-top:36px;color:var(--muted);font-size:13px;max-width:80ch;display:grid;gap:6px}
+
+/* ---------- devices: fixed point sizes, scaled to fit ---------- */
+.fit{position:relative;width:100%;max-width:calc(var(--w) * 1px)}
+.dev{position:absolute;left:0;top:0;width:calc(var(--w) * 1px);height:calc(var(--h) * 1px);transform-origin:0 0;transform:scale(var(--s,1));overflow:hidden;user-select:none;-webkit-user-select:none}
+.layer,.front{position:absolute;inset:0;pointer-events:none}
+.layer>*,.front>*{pointer-events:auto}
+.front{z-index:6}
+.layer{z-index:5}
+.actor{position:absolute}
+.actor canvas{width:100%;height:100%;display:block}
+.actor.flip{transform:rotate(180deg)}
+.actor.gone{opacity:0}
+.tapring{position:absolute;z-index:9;border:2.5px solid var(--n-amber);border-radius:16px;pointer-events:none;opacity:0;transition:opacity .25s}
+.tapring.on{opacity:1;animation:ring 1.3s ease-in-out infinite}
+@keyframes ring{0%,100%{box-shadow:0 0 0 0 #F2A93B66}50%{box-shadow:0 0 0 8px #F2A93B00}}
+.chip{position:absolute;z-index:8;transform:translate(-50%,-50%);padding:3px 9px;border-radius:999px;background:var(--n-amber);color:#1C1205;font:800 13px var(--f-tomo);white-space:nowrap;transition:left .9s var(--ease),top .9s var(--ease),opacity .4s,transform .9s;pointer-events:none}
+.floatsay{position:absolute;z-index:8;transform:translateX(-50%);font:800 18px var(--f-tomo);color:var(--ph-ink);white-space:nowrap;pointer-events:none;animation:floatup 1.9s ease-out forwards;text-shadow:0 1px 0 #ffffff80}
+.mac .floatsay{color:var(--n-ink);text-shadow:none}
+@keyframes floatup{0%{opacity:0;translate:0 6px}15%{opacity:1}75%{opacity:1}100%{opacity:0;translate:0 -26px}}
+.pop{position:absolute;z-index:8;background:var(--win-bg);color:var(--win-ink);border:1px solid var(--win-line);border-radius:10px;padding:5px;display:grid;gap:1px;min-width:180px;box-shadow:0 12px 30px -10px #0006;font:13px var(--f-os);animation:popin .18s ease-out}
+.pop button{border:0;background:none;text-align:left;padding:5px 10px;border-radius:6px;cursor:pointer;color:var(--win-ink)}
+.pop button:hover,.pop button.hl{background:var(--ph-blue);color:#fff}
+.pop hr{border:0;border-top:1px solid var(--win-line);margin:3px 4px}
+@keyframes popin{from{opacity:0;transform:scale(.96)}}
+.swap{animation:swap .32s ease-out}
+@keyframes swap{from{filter:blur(7px);opacity:.2}}
+
+/* Mac */
+.mac{background:linear-gradient(160deg,var(--wall-a),var(--wall-b));border-radius:14px;font-family:var(--f-os);color:var(--mbar-ink)}
+.mbar{position:absolute;left:0;right:0;top:0;height:32px;display:flex;justify-content:space-between;align-items:center;padding:0 14px;font-size:13px;background:var(--mbar);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.mbar span,.mbar b{margin-right:16px}
+.mb-r{display:flex;align-items:center}
+.mb-r span{margin:0 0 0 14px}
+.mb-tomo{width:18px;height:14px;border-radius:7px 7px 6px 6px;border:2px solid currentColor;position:relative;cursor:pointer}
+.mb-tomo::after{content:"";position:absolute;left:3px;top:3px;width:2px;height:4px;background:currentColor;border-radius:1px;box-shadow:6px 0 0 currentColor}
+.hw{position:absolute;left:285px;top:0;width:190px;height:32px;background:var(--notch);border-radius:0 0 11px 11px;z-index:3}
+.isl{position:absolute;top:0;left:205px;width:350px;height:32px;background:var(--notch);color:var(--n-ink);border-radius:0 0 13px 13px;z-index:2;transition:left .5s var(--ease),width .5s var(--ease),height .5s var(--ease),border-radius .5s;box-shadow:0 10px 30px -14px #000a}
+.isl.hidden{left:285px;width:190px}
+.isl.peek{left:120px;width:520px;height:88px;border-radius:0 0 24px 24px}
+.isl.card{left:56px;width:648px;height:212px;border-radius:0 0 26px 26px}
+.isl.card.help{height:432px}
+.isl .p{position:absolute;opacity:0;pointer-events:none;transition:opacity .25s}
+.isl.rest .p-rest,.isl.peek .p-peek,.isl.card .p-card,.isl.help .p-help{opacity:1;pointer-events:auto;transition-delay:.18s}
+.p-rest{right:12px;top:0;height:32px;display:flex;align-items:center;gap:6px;font:700 11.5px var(--f-tomo)}
+.r-call{color:var(--n-amber)} .r-dim{color:var(--n-muted);font:500 11px var(--f-os)}
+.ring-lv{width:15px;height:15px;border-radius:50%;background:conic-gradient(var(--ring-c,#f5c35b) var(--ring,40%),#ffffff22 0);-webkit-mask:radial-gradient(circle,transparent 4px,#000 4.5px);mask:radial-gradient(circle,transparent 4px,#000 4.5px)}
+.p-peek{left:84px;top:34px;right:20px;height:50px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.p-peek .pk-call{font:700 11px var(--f-tomo);color:var(--n-amber);display:block}
+.p-peek .pk-word{font:800 24px/1.1 var(--f-tomo)}
+.spk{display:inline-block;width:24px;height:24px;border-radius:50%;background:var(--n-tile);vertical-align:middle;position:relative}
+.spk::after{content:"";position:absolute;left:8px;top:7px;border-left:8px solid var(--n-muted);border-top:5px solid transparent;border-bottom:5px solid transparent}
+.p-card{inset:0}
+.k-head{position:absolute;left:14px;right:14px;top:0;height:32px;display:flex;justify-content:space-between;align-items:center;font:500 12px var(--f-os);color:var(--n-muted)}
+.k-head b{font:800 13px var(--f-tomo);color:var(--n-ink)}
+.c-x{width:20px;height:20px;border-radius:50%;background:var(--n-tile);display:grid;place-items:center;font-size:12px}
+.c-bar{position:absolute;left:14px;right:14px;top:38px;height:5px;border-radius:999px;background:#ffffff1c;overflow:hidden}
+.c-bar i{position:absolute;left:0;top:0;bottom:0;width:var(--w,40%);background:var(--bar-c,#f5c35b);border-radius:999px;transition:width .6s}
+.c-body{position:absolute;left:140px;top:52px;width:480px;height:144px}
+.cb{display:grid;grid-template-columns:222px 244px;gap:14px;height:100%;align-items:center}
+.cb-l{display:grid;grid-template-rows:44px 40px 16px;gap:7px;align-content:center;min-width:0}
+.say{font:800 24px/44px var(--f-tomo);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prompt{font-size:12.5px;line-height:1.35;color:var(--n-muted);align-self:center}
+.prompt .ok{color:var(--n-win)}
+.prompt b{color:var(--n-ink)}
+.goal{font-size:11px;color:var(--n-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tiles{display:flex;gap:8px}
+.tile{width:76px;height:84px;border-radius:14px;border:0;background:var(--n-tile);color:var(--n-ink);font-size:36px;cursor:pointer;display:grid;place-items:center;transition:background .2s,transform .2s}
+.tile.kana{font:800 38px var(--f-tomo)}
+.tile:hover{background:#30323a}
+.tile.yes{background:#1E4A33;box-shadow:inset 0 0 0 2px var(--n-win)}
+.tile.no,.pill.no{animation:no .4s}
+@keyframes no{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.pills{display:grid;gap:8px}
+.pill{width:244px;height:30px;border-radius:999px;border:0;background:var(--n-tile);color:var(--n-ink);font:700 14px var(--f-tomo);cursor:pointer}
+.pill.yes{background:#1E4A33;box-shadow:inset 0 0 0 2px var(--n-win)}
+.rest-l{display:grid;gap:4px}
+.p-help{left:0;top:222px;width:648px;height:210px;background:var(--n-panel);border-radius:20px;padding:14px 18px 14px 128px;font-size:13px;color:var(--n-ink)}
+.win{position:absolute;z-index:1;background:var(--win-bg);color:var(--win-ink);border:1px solid var(--win-line);border-radius:12px;box-shadow:0 20px 40px -20px #0008;overflow:hidden;animation:popin .25s ease-out}
+.win-bar{height:28px;display:flex;align-items:center;gap:7px;padding:0 11px;background:var(--win-side);border-bottom:1px solid var(--win-line);font-size:12px;color:var(--win-muted)}
+.win-bar i{width:11px;height:11px;border-radius:50%;background:#FF5F57}
+.win-bar i:nth-child(2){background:#FEBC2E}.win-bar i:nth-child(3){background:#28C840}
+.win-bar span{margin-left:6px;font-weight:600}
+.win-in{padding:14px 16px;display:grid;gap:6px}
+.win-in .jp{font:700 21px var(--f-tomo)}
+.sel-line{cursor:pointer;justify-self:start}
+.sel-line.sel{background:var(--sel);border-radius:3px}
+.win-in .sm{font-size:12px;color:var(--win-muted)}
+
+/* sensei's answer, shared by the help panel and the iPhone sheet */
+.sp{display:grid;gap:6px}
+.sp-who{font:700 11px var(--f-tomo);color:var(--n-amber)}
+.sp-line{display:flex;gap:6px;flex-wrap:wrap;font:800 20px var(--f-tomo)}
+.sp-line .w{padding:0 4px;border-radius:5px;border-bottom:2px solid #ffffff30}
+.sp-line .known{border-color:var(--n-win)}
+.sp-line .new{border-color:var(--n-amber)}
+.sp-tr{font-size:12.5px;color:var(--n-muted)}
+.sp-dl{display:grid;grid-template-columns:1fr 1fr;gap:3px 16px;margin:0;font-size:12px;line-height:1.4}
+.sp-dl div{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px}
+.sp-dl dt{font:800 12.5px var(--f-tomo)}
+.sp-dl dd{margin:0;color:var(--n-muted)}
+.sp-dl em{font-style:normal;color:var(--n-win)}
+.sp-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:4px}
+.sp-src{font:500 10.5px var(--f-mono);color:var(--n-muted);letter-spacing:.02em}
+.sp-keep{border:0;border-radius:999px;padding:6px 13px;background:var(--n-amber);color:#1C1205;font:700 12.5px var(--f-os);cursor:pointer}
+.sp-keep.done{background:var(--n-tile);color:var(--n-win)}
+.aside{display:grid;grid-template-columns:112px minmax(0,1fr);gap:16px;align-items:center;height:100%}
+.aside .sp{gap:4px}
+.aside .tiles{gap:6px}
+.aside .tile{width:54px;height:50px;border-radius:12px;font-size:26px}
+.trace{width:112px;height:112px;border-radius:16px;background:var(--n-tile);display:grid;place-items:center;font:800 84px/1 var(--f-tomo);color:var(--n-ink);position:relative;overflow:hidden}
+.trace span{animation:trace 1.6s ease-in-out both}
+@keyframes trace{from{clip-path:inset(0 100% 100% 0)}50%{clip-path:inset(0 0 55% 0)}to{clip-path:inset(0 0 0 0)}}
+.aside h4{margin:0;font:800 20px var(--f-tomo)}
+.aside p{font-size:12.5px;color:var(--n-muted);line-height:1.45}
+.book{display:grid;grid-template-columns:1fr 1fr;height:100%;background:#F3EAD6;border-radius:10px;color:#2A2216;position:relative;perspective:900px}
+.book::after{content:"";position:absolute;left:50%;top:6px;bottom:6px;width:2px;background:#0000001f}
+.book .pg{padding:10px 14px;display:grid;gap:4px;align-content:start}
+.book .pg h5{margin:0;font:800 18px var(--f-tomo)}
+.book .pg p{font-size:11.5px;color:#5C4D35;line-height:1.4}
+.book .pic{font-size:30px;line-height:1}
+.book .turn{position:absolute;right:0;top:0;bottom:0;width:50%;background:#F7F0E0;border-radius:0 10px 10px 0;transform-origin:left center;animation:turn .9s ease-in-out forwards}
+@keyframes turn{to{transform:rotateY(-180deg);opacity:.2}}
+.book .add{justify-self:start;border:0;border-radius:999px;padding:5px 12px;background:#2A2216;color:#F3EAD6;font:700 12px var(--f-os);cursor:pointer}
+.ctx-eyes{position:absolute;z-index:4}
+
+/* iPhone */
+.iph{background:var(--rim);border-radius:56px;padding:0}
+.iph .scr{position:absolute;inset:10px;border-radius:47px;background:var(--ph-bg);color:var(--ph-ink);overflow:hidden;font-family:var(--f-os)}
+.iph .layer,.iph .front{inset:10px;border-radius:47px;overflow:hidden}
+.ph-status{position:absolute;left:10px;right:10px;top:10px;height:50px;display:flex;justify-content:space-between;align-items:center;padding:0 34px 0 40px;font:600 16px var(--f-os);color:var(--ph-ink);z-index:7;pointer-events:none}
+.ph-status.light{color:#fff}
+.ph-sig{width:58px;height:12px;background:linear-gradient(90deg,currentColor 0 18px,transparent 18px 24px,currentColor 24px 40px,transparent 40px 44px,currentColor 44px);border-radius:3px;opacity:.85}
+.di{position:absolute;left:133px;top:21px;width:127px;height:37px;border-radius:20px;background:#000;z-index:5;transition:all .45s var(--ease);cursor:default}
+.di.wide{left:76px;width:241px;height:44px;border-radius:24px}
+.di.crack::after{content:"";position:absolute;left:50%;top:50%;width:46px;height:4px;margin:-2px 0 0 -23px;border-radius:2px;background:#FFE7A8;box-shadow:0 0 12px 3px #FFC85E;animation:slit 1.2s ease-in-out infinite}
+@keyframes slit{50%{opacity:.4;width:30px;margin-left:-15px}}
+.ph-tabs{position:absolute;left:10px;right:10px;bottom:10px;height:84px;border-radius:0 0 47px 47px;display:grid;grid-template-columns:repeat(4,1fr);padding:10px 18px 0;background:color-mix(in srgb,var(--ph-bg) 86%,transparent);border-top:1px solid var(--ph-line);z-index:4;font:500 10.5px var(--f-os);color:var(--ph-muted);text-align:center}
+.ph-tabs div{display:grid;justify-items:center;gap:4px}
+.ph-tabs i{width:24px;height:24px;border-radius:8px;background:currentColor;opacity:.5}
+.ph-tabs .on{color:var(--ph-blue);font-weight:700}
+.ph-tabs .on i{opacity:1}
+.pv{position:absolute;inset:0;padding:66px 22px 100px;animation:swap .32s ease-out}
+.pv-head{display:flex;justify-content:space-between;font:500 13px var(--f-os);color:var(--ph-muted)}
+.pv-head b{font:800 15px var(--f-tomo);color:var(--ph-ink)}
+.pv-bar{height:6px;border-radius:999px;background:var(--ph-line);margin-top:8px;overflow:hidden}
+.pv-bar i{display:block;height:100%;width:var(--w,40%);background:var(--bar-c,#f5c35b);border-radius:999px}
+.pv-play{position:absolute;left:22px;right:22px;top:368px;display:grid;gap:8px;justify-items:center;text-align:center}
+.pv-play .say{font-size:32px;line-height:1.2;white-space:normal}
+.pv-play .prompt{font-size:14px;color:var(--ph-muted)}
+.pv-play .prompt .ok{color:var(--win)}
+.pv-play .prompt b{color:var(--ph-ink)}
+.pv-play .goal{font-size:12.5px;color:var(--ph-muted)}
+.pv-play .tiles{gap:12px;margin-top:6px}
+.pv-play .tile{width:104px;height:108px;border-radius:20px;background:var(--ph-card);color:var(--ph-ink);box-shadow:0 1px 0 var(--ph-line),0 6px 16px -10px #0004;font-size:44px}
+.pv-play .tile.kana{font-size:48px}
+.pv-play .tile.yes{background:color-mix(in srgb,var(--win) 18%,var(--ph-card));box-shadow:inset 0 0 0 2px var(--win)}
+.pv-play .pill{width:300px;height:44px;background:var(--ph-card);color:var(--ph-ink);box-shadow:0 1px 0 var(--ph-line);font-size:17px}
+.pv-play .pill.yes{background:color-mix(in srgb,var(--win) 18%,var(--ph-card));box-shadow:inset 0 0 0 2px var(--win)}
+.pv h3{font:900 30px var(--f-display);color:var(--ph-ink)}
+.pv .sub{font-size:13.5px;color:var(--ph-muted);margin-top:2px}
+.pv-note{position:absolute;left:22px;right:22px;top:420px;display:grid;gap:10px;font-size:14px;line-height:1.5;color:var(--ph-muted)}
+.pv-note b{color:var(--ph-ink);font-family:var(--f-tomo)}
+.pv-note .row{background:var(--ph-card);border-radius:16px;padding:12px 14px;box-shadow:0 1px 0 var(--ph-line)}
+.nest{position:absolute;border-radius:50% / 46%;background:repeating-linear-gradient(28deg,var(--twig-a) 0 3px,var(--twig-b) 3px 5px,var(--twig-c) 5px 7px),var(--twig-b);box-shadow:inset 0 6px 10px #0004}
+.nest.nf{clip-path:inset(42% 0 0 0);box-shadow:0 8px 14px -8px #0006}
+.nest.nb{filter:brightness(.72)}
+.futon{position:absolute;height:22px;border-radius:10px;background:repeating-linear-gradient(90deg,#E9B8C4 0 12px,#F4D3DA 12px 24px);box-shadow:0 4px 8px -4px #0005}
+.lock{position:absolute;inset:0;background:linear-gradient(170deg,var(--wall-a),var(--wall-b));animation:swap .32s ease-out}
+.lock-time{position:absolute;left:0;right:0;top:110px;text-align:center;color:#fff;font:700 82px/1 var(--f-os);letter-spacing:-.02em}
+.lock-date{position:absolute;left:0;right:0;top:86px;text-align:center;color:#ffffffde;font:600 18px var(--f-os)}
+.ph-banner{position:absolute;left:22px;right:22px;top:66px;z-index:6;background:color-mix(in srgb,var(--ph-card) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:22px;padding:12px 14px 12px 64px;min-height:72px;box-shadow:0 10px 30px -12px #0006;transform:translateY(-220%);opacity:0;transition:transform .45s var(--ease),opacity .3s;cursor:pointer;color:var(--ph-ink)}
+.ph-banner.on{transform:none;opacity:1}
+.ph-banner .t{font-size:12.5px;color:var(--ph-muted);display:flex;justify-content:space-between}
+.ph-banner .b{font:800 17px var(--f-tomo)}
+.ph-banner .s{font-size:13px;color:var(--ph-muted)}
+.ph-banner .ic{position:absolute;left:12px;top:14px;width:42px;height:42px;border-radius:11px;background:#000}
+.ph-sheet{position:absolute;left:10px;right:10px;bottom:10px;height:470px;z-index:5;background:var(--ph-card);border-radius:30px 30px 47px 47px;box-shadow:0 -10px 40px -20px #0007;transform:translateY(105%);transition:transform .45s var(--ease);color:var(--ph-ink);padding:22px 20px 30px}
+.ph-sheet.on{transform:none}
+.ph-sheet::before{content:"";position:absolute;left:50%;top:8px;width:40px;height:5px;margin-left:-20px;border-radius:3px;background:var(--ph-line)}
+.sh-prev{background:var(--ph-bg);border-radius:14px;padding:10px 12px;font:700 18px var(--f-tomo)}
+.sh-prev small{display:block;font:500 12px var(--f-os);color:var(--ph-muted)}
+.sh-apps{display:flex;gap:16px;margin:18px 0 14px}
+.sh-apps div{display:grid;justify-items:center;gap:5px;font-size:11px;color:var(--ph-muted)}
+.sh-apps i{width:58px;height:58px;border-radius:15px;background:var(--ph-line)}
+.sh-apps .us i{background:#000;box-shadow:0 0 0 3px var(--n-amber)}
+.sh-acts{display:grid;background:var(--ph-bg);border-radius:14px;overflow:hidden}
+.sh-acts button{border:0;background:none;text-align:left;padding:13px 14px;font:500 16px var(--f-os);border-bottom:1px solid var(--ph-line);cursor:pointer;color:var(--ph-ink)}
+.sh-acts button:last-child{border-bottom:0}
+.sh-acts button.us{font-weight:700}
+.sh-ans{position:absolute;inset:22px 18px 30px;background:var(--notch);border-radius:24px;padding:16px 16px 16px;color:var(--n-ink);display:grid;align-content:start;gap:8px;animation:swap .32s ease-out}
+.sh-ans .sp-dl{grid-template-columns:1fr}
+.sh-ans .sp-who{padding-left:96px;min-height:78px;display:flex;align-items:center;font-size:13px}
+.dark-strip{position:absolute;left:22px;right:22px;top:400px;height:120px;border-radius:24px;background:#000}
+@media (prefers-reduced-motion: reduce){.swap,.pv,.lock,.sh-ans{animation:none}.tapring.on{animation:none}.trace span{animation:none}.floatsay{animation-duration:2.4s}}
+</style>
+
+<div class="page">
+  <header class="top">
+    <div>
+      <p class="eyebrow">Tomodachi · friends · second pass · 11 October 2026</p>
+      <h1>Tomo Friends, Take Two</h1>
+      <p class="lede">Four ways for several Tomos to share your day, each built from the nest in #137. Pick a flow under a direction to watch it in the notch and on the iPhone; the steps that need you wait for a click. Then press <b>Comment</b> on the direction, or comment on any part of the page.</p>
+      <ul class="rules">
+        <li>Every Tomo is drawn live by a port of <span class="mono">TomoLook</span> and <span class="mono">TomoCharacter</span>. Eggs, strands and the eyes-only friend are sketches added for this page.</li>
+        <li>No counts and nothing red. Amber means someone wants to play.</li>
+        <li>Words come from the Japanese pack. A <span class="prop">dotted underline</span> marks a line the pack doesn't have yet.</li>
+      </ul>
+    </div>
+    <div class="cast">
+      <div class="cast-stage" id="cast"></div>
+      <div class="cast-cap"><div><b>Your Tomo</b>said ワンワン through its shell and was picked</div><div><b>The ニャンニャン egg</b>letters (かな) in every direction</div><div><b>The ブーブー egg</b>customs: manners, meals, seasons</div></div>
+      <p class="cast-note">Example learner, not real progress: 41 days together, your Tomo is 2さい · Lv 23. Tap an egg to hear it.</p>
+    </div>
+  </header>
+  <main id="main"></main>
+  <section class="compare" id="compare">
+    <h2>Side by side</h2>
+    <p>The same open questions, as each direction answers them.</p>
+    <div class="tbl"><table id="cmp"></table></div>
+    <div class="lean" id="lean"></div>
+  </section>
+  <footer>
+    <p>Drawn at point size: the Mac is a 760 × 470 pt strip of a notched MacBook screen, the island and card at their real sizes (the card is TomoGrid's 620 × 144 content); the iPhone is 393 × 852 pt. Both scale down together on narrow screens.</p>
+    <p>The sensei's answers use what the Zenbu data already holds offline: the word splitter (Sudachi), the dictionary (JMdict), Tatoeba examples and KANJIDIC2 and KanjiVG for characters. Release builds have no AI (#106).</p>
+  </footer>
+</div>
+<script>
+"use strict";
+/* ---------- Tomo's look: a port of TomoLook.swift ---------- */
+const TAU=Math.PI*2, T=()=>performance.now()/1000;
+const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
+const rand=(a,b)=>a+Math.random()*(b-a);
+const enc=new TextEncoder();
+function feed(h,bytes){for(const b of bytes){h=Math.imul((h^b)>>>0,3432918353)>>>0;h=((h<<13)|(h>>>19))>>>0;}return h;}
+function fmix(h){h=Math.imul((h^(h>>>16))>>>0,2246822507)>>>0;h=Math.imul((h^(h>>>13))>>>0,3266489909)>>>0;return (h^(h>>>16))>>>0;}
+class Traits{
+  constructor(seed,ovr={}){const s=seed.normalize('NFC').trim().toLowerCase();const b=enc.encode(s);this.st=feed((1779033703^b.length)>>>0,b);this.ovr=ovr;}
+  v(k){if(k in this.ovr)return clamp(this.ovr[k],0,.999999);return fmix(feed(feed(this.st,[255]),enc.encode(k)))/4294967296;}
+  num(k,lo,hi){return (lo+hi)/2+(this.v(k)-.5)*(hi-lo);}
+  jit(k,a){return (this.v(k)*2-1)*a;}
+  chance(k,p){return this.v(k)<Math.min(.5,p);}
+  band(k,bands){const v=this.v(k);for(const [x,e] of bands)if(v<e)return x;return bands[bands.length-1][0];}
+}
+function okLinear(l,c,h){const r=h*Math.PI/180,a=c*Math.cos(r),b=c*Math.sin(r);
+  const l_=l+.3963377774*a+.2158037573*b,m_=l-.1055613458*a-.0638541728*b,s_=l-.0894841775*a-1.291485548*b;
+  const L=l_*l_*l_,M=m_*m_*m_,S=s_*s_*s_;
+  return [4.0767416621*L-3.3077115913*M+.2309699292*S,-1.2684380046*L+2.6097574011*M-.3413193965*S,-.0041960863*L-.7034186147*M+1.707614701*S];}
+function okRGB(o){const ok=v=>v.every(x=>x>=-1e-4&&x<=1+1e-4);let v=okLinear(o.l,o.c,o.h);
+  if(!ok(v)){let lo=0,hi=o.c;for(let i=0;i<12;i++){const m=(lo+hi)/2;if(ok(okLinear(o.l,m,o.h)))lo=m;else hi=m;}v=okLinear(o.l,lo,o.h);}
+  return v.map(x=>clamp(x,0,1));}
+function lum(o){const v=okRGB(o);return .2126*v[0]+.7152*v[1]+.0722*v[2];}
+function contrast(a,b){const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);}
+function ensure(o,bg,target){if(contrast(o,bg)>=target)return o;const lean=o.l>=bg.l?1:-1;
+  for(const dir of [lean,-lean]){const p={...o};for(let i=0;i<60;i++){p.l=clamp(p.l+dir*.02,0,1);if(contrast(p,bg)>=target)return p;if(p.l===0||p.l===1)break;}}return o;}
+function css(o,a=1){const v=okRGB(o).map(x=>x<=.0031308?12.92*x:1.055*Math.pow(x,1/2.4)-.055);return `rgba(${Math.round(v[0]*255)},${Math.round(v[1]*255)},${Math.round(v[2]*255)},${a})`;}
+const NOTCH={l:.145,c:0,h:0};
+const TONES=[[{l:.86,c:.09},.3],[{l:.75,c:.13},.6],[{l:.87,c:.16},.82],[{l:.66,c:.16},.97],[{l:.93,c:.03},1]];
+const TONE_NAMES=['Pastel','Mid','Bright','Deep','Pale'];
+const SHAPEB=[['round',.22],['organic',.46],['boxy',.58],['capsule',.68],['nub',.78],['cloud',.86],['droplet',.915],['hexagon',.95],['sun',.98],['triangle',1]];
+const BABY=[['round',.45],['organic',.8],['nub',1]];
+const SHAPE_NAMES={round:'Round',organic:'Pebble',boxy:'Boxy',capsule:'Capsule',nub:'Nub',cloud:'Cloud',droplet:'Droplet',hexagon:'Hexagon',sun:'Sun',triangle:'Triangle'};
+function bandIdx(v,b){for(let i=0;i<b.length;i++)if(v<b[i][1])return i;return b.length-1;}
+
+function makeForm(t,ka,det,after,forced,sa){
+  const k='age'+ka+'.',bands=ka===0?BABY:SHAPEB;
+  let sil=forced||t.band(k+'shape',bands);
+  if(!forced){if(sil===after)sil=t.band(k+'shape.again',bands);if(sil===after){const i=bands.findIndex(b=>b[0]===sil);sil=bands[(i+1)%bands.length][0];}}
+  const ratio=t.num(k+'body.ratio',.78,1.22);
+  let rx=1,ry=ratio,n=t.num(k+'body.n',1.9,2.5),rot=0,radii=[],petals=[],sides=0,corner=0,tip=0,faceY=-.05,faceW=1;
+  switch(sil){
+    case 'organic':{const c=Math.floor(t.num(k+'body.pts',6,8.99));radii=[...Array(c)].map((_,i)=>1+t.jit(k+'body.r'+i,.14));faceW=Math.min(...radii)*.95;break;}
+    case 'boxy':rx=.9;ry=.9*ratio;n=t.num(k+'boxy.n',3.4,6);rot=t.jit(k+'boxy.rot',.25);break;
+    case 'capsule':rx=1.05;ry=1.05*t.num(k+'capsule.squat',.6,.72);petals=[{x:-(rx-ry),y:0,r:ry},{x:rx-ry,y:0,r:ry}];faceY=0;break;
+    case 'nub':{rx=.9;ry=.9*ratio;const cnt=t.v(k+'nub.count')<.5?1:2;for(let i=0;i<cnt;i++){const a=-Math.PI/2+t.jit(k+'nub.a'+i,1.3);petals.push({x:rx*.85*Math.cos(a),y:ry*.85*Math.sin(a),r:rx*t.num(k+'nub.r'+i,.24,.36)});}break;}
+    case 'cloud':{rx=.85;ry=.8;const cnt=Math.floor(t.num(k+'cloud.n',4,6.99));radii=[...Array(8)].map((_,i)=>1+t.jit(k+'body.r'+i,.08));for(let i=0;i<cnt;i++){const a=Math.PI+Math.PI*(i+.5)/cnt;petals.push({x:rx*.8*Math.cos(a),y:ry*.55*Math.sin(a),r:rx*t.num(k+'cloud.r'+i,.4,.56)});}faceY=.05;faceW=.85;break;}
+    case 'droplet':rx=.82;ry=.82;n=2;tip=t.num(k+'droplet.tip',1.4,1.65);faceY=.04;faceW=.88;break;
+    case 'hexagon':rx=1.04;ry=1.04*ratio;sides=6;corner=t.num(k+'poly.round',.25,.5);rot=t.jit(k+'poly.rot',.2);faceW=.84;break;
+    case 'sun':{rx=.74;ry=.74;const cnt=Math.floor(t.num(k+'sun.n',6,9.99)),dist=rx*t.num(k+'sun.dist',1,1.08),pr=rx*t.num(k+'sun.r',.2,.26),off=t.num(k+'sun.rot',0,TAU);for(let i=0;i<cnt;i++){const a=off+TAU*i/cnt;petals.push({x:dist*Math.cos(a),y:dist*Math.sin(a),r:pr});}break;}
+    case 'triangle':rx=1.18;ry=1.1;sides=3;corner=t.num(k+'poly.round',.35,.55);rot=t.jit(k+'poly.rot',.06);faceY=.22;faceW=.55;break;
+  }
+  if(sil==='droplet')faceY+=.18;
+  let top=ry;if(tip>0)top=ry*tip*.95-.18;for(const c of petals)top=Math.max(top,-c.y+c.r);
+  let bottom=ry+(sil==='droplet'?.18:0);for(const c of petals)bottom=Math.max(bottom,c.y+c.r);
+  return {sil,scale:1+.07*sa,det,sproutLean:t.jit(k+'sprout',.35),rx,ry,n,rot,radii,petals,sides,corner,tip,faceY,faceW,top,bottom};
+}
+/* picks pin a trait the way TomoLook's overrides do; o.lock keeps the 1さい shape for life. */
+function makeLook(seed,picks={},o={}){
+  const t=new Traits(seed,o.ovr||{});
+  let hue=85+(t.v('hue')-.5)*360;hue=((hue%360)+360)%360;if(picks.hue!=null)hue=picks.hue;
+  const toneIdx=picks.tone!=null?picks.tone:bandIdx(t.v('tone'),TONES);
+  const tone=TONES[toneIdx][0];
+  const head=ensure({l:tone.l,c:tone.c,h:hue},NOTCH,3);
+  const eye=head.l>=.5?{l:.2,c:.03,h:hue}:{l:.97,c:.012,h:hue};
+  const L={seed,hue,toneIdx,head};
+  L.body=css(head);L.bodyLight=css({l:Math.min(1,head.l+.07),c:head.c*.85,h:hue});
+  L.ink=css(ensure(eye,head,4.5));L.cheek={l:.72,c:.15,h:12};
+  L.pattern=picks.pattern??t.band('pattern',[['none',.3],['belly',.46],['cap',.6],['spots',.74],['stripes',.86],['twoTone',1]]);
+  const shift=t.num('accent.hue',40,160)*(t.v('accent.dir')<.5?-1:1),darker=head.l>.6?-.13:.13;
+  L.accentOk=L.pattern==='belly'?{l:Math.min(.97,head.l+.1),c:head.c*.35,h:hue}:L.pattern==='twoTone'?{l:head.l,c:Math.max(head.c,.1),h:hue+shift*.45}:{l:head.l+darker,c:Math.max(head.c,.11),h:hue+shift*.5};
+  L.accent=css(L.accentOk);
+  L.eyeStyle=picks.eye??t.band('eye.style',[['bar',.3],['dot',.55],['big',.72],['lidded',.87],['bead',1]]);
+  L.cyclops=picks.cyclops??t.chance('eye.cyclops',.05);
+  switch(L.eyeStyle){
+    case 'bar':L.eyeW=t.num('eye.w',.085,.11);L.eyeH=L.eyeW*t.num('eye.ratio',1.7,2.6);L.eyeN=t.num('eye.n',3.5,6);break;
+    case 'dot':L.eyeW=t.num('eye.w',.085,.115);L.eyeH=L.eyeW*t.num('eye.ratio',1,1.15);L.eyeN=2;break;
+    case 'big':L.eyeW=t.num('eye.w',.13,.16);L.eyeH=L.eyeW*t.num('eye.ratio',1.15,1.35);L.eyeN=2;break;
+    case 'lidded':L.eyeW=t.num('eye.w',.11,.14);L.eyeH=L.eyeW*t.num('eye.ratio',1,1.2);L.eyeN=2;break;
+    default:L.eyeW=t.num('eye.w',.05,.065);L.eyeH=L.eyeW*t.num('eye.ratio',1,1.2);L.eyeN=2;
+  }
+  L.eyeGap=Math.max(t.num('eye.gap',.2,.42),L.eyeW*1.7);L.eyeY=t.num('eye.y',-.16,.1);
+  L.mouth=picks.mouth??t.band('mouth',[['none',.35],['smile',.58],['cat',.74],['o',.84],['fang',.93],['flat',1]]);
+  L.topper=picks.topper??t.band('topper',[['none',.3],['cat',.44],['bunny',.56],['bear',.7],['horns',.8],['antenna',.9],['sprout',1]]);
+  L.markSeed=t.v('mark');L.breath=t.num('motion.breath',1.45,1.95);L.blinkPace=t.num('motion.blink',.8,1.25);
+  const pool=['cheeks','freckles','sheen','mark'],order=[];
+  for(let i=0;i<4;i++){const k=Math.floor(t.v('detail.'+i)*pool.length);order.push(pool.splice(Math.min(k,pool.length-1),1)[0]);}
+  L.forms=[];
+  for(let age=0;age<6;age++){
+    const det=new Set(order.slice(0,Math.min(3,Math.floor((age+1)/2))));
+    if(o.lock)L.forms.push(makeForm(t,0,det,null,picks.shape||null,age));
+    else L.forms.push(makeForm(t,age,det,o.noEvolve?null:(L.forms[age-1]?.sil??null),age===0?(picks.shape||null):null,age));
+  }
+  return L;
+}
+const lookCache=new Map();
+function lookFor(seed,picks={},o={}){const key=seed+'|'+JSON.stringify(picks)+'|'+(o.lock?1:0)+(o.noEvolve?1:0);let L=lookCache.get(key);if(!L){if(lookCache.size>400)lookCache.clear();L=makeLook(seed,picks,o);lookCache.set(key,L);}return L;}
+const MASCOT_OVR={hue:.5,tone:.7,'eye.style':.1,'eye.cyclops':.9,'eye.w':.8,'eye.ratio':.5,'eye.n':.4,'eye.gap':.5,'eye.y':.4,mouth:.1,pattern:.1,topper:.1};
+for(let a=0;a<6;a++){MASCOT_OVR[`age${a}.body.ratio`]=.45;MASCOT_OVR[`age${a}.shape`]=.1;}
+const MASCOT=makeLook('tomodachi',{},{ovr:MASCOT_OVR,noEvolve:true});
+
+/* ---------- Paths: blobatar's primitives, as in TomoForm ---------- */
+function seP(P,a,b,n,rot,oy){const k=Math.min(1,(8*Math.pow(2,-1/n)-4)/3);
+  const pts=[[a,0],[a,b*k],[a*k,b],[0,b],[-a*k,b],[-a,b*k],[-a,0],[-a,-b*k],[-a*k,-b],[0,-b],[a*k,-b],[a,-b*k],[a,0]];
+  const c=Math.cos(rot),s=Math.sin(rot),at=i=>[pts[i][0]*c-pts[i][1]*s,pts[i][0]*s+pts[i][1]*c+oy];
+  const p0=at(0);P.moveTo(p0[0],p0[1]);
+  for(let i=1;i<13;i+=3){const a1=at(i),a2=at(i+1),a3=at(i+2);P.bezierCurveTo(a1[0],a1[1],a2[0],a2[1],a3[0],a3[1]);}P.closePath();}
+function splineP(P,rx,ry,radii,oy){const n=radii.length;const pts=radii.map((m,i)=>{const a=TAU*i/n;return [rx*m*Math.cos(a),ry*m*Math.sin(a)+oy];});
+  const at=i=>pts[((i%n)+n)%n];P.moveTo(at(0)[0],at(0)[1]);
+  for(let i=0;i<n;i++){const p0=at(i-1),p1=at(i),p2=at(i+1),p3=at(i+2);
+    P.bezierCurveTo(p1[0]+(p2[0]-p0[0])/6,p1[1]+(p2[1]-p0[1])/6,p2[0]-(p3[0]-p1[0])/6,p2[1]-(p3[1]-p1[1])/6,p2[0],p2[1]);}P.closePath();}
+function polyP(P,rx,ry,sides,round,rot,oy){const k=Math.min(.5,Math.max(0,round/2));
+  const v=[...Array(sides)].map((_,i)=>{const a=rot-Math.PI/2+TAU*i/sides;return [rx*Math.cos(a),ry*Math.sin(a)+oy];});
+  const at=i=>v[((i%sides)+sides)%sides],cut=(i,j)=>{const a=at(i),b=at(j);return [a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k];};
+  const s=cut(0,-1);P.moveTo(s[0],s[1]);
+  for(let i=0;i<sides;i++){const c=at(i),e=cut(i,i+1);P.quadraticCurveTo(c[0],c[1],e[0],e[1]);if(k<.5){const l=cut(i+1,i);P.lineTo(l[0],l[1]);}}P.closePath();}
+function taperP(P,rx,ry,tip,oy){const t=Math.max(1.05,tip),tx=rx*Math.sqrt(1-1/(t*t)),ty=-ry/t,apex=-t*ry,px=tx*.14,py=ty+.86*(apex-ty);
+  P.moveTo(-tx,ty+oy);P.lineTo(-px,py+oy);P.quadraticCurveTo(0,apex+oy,px,py+oy);P.lineTo(tx,ty+oy);P.closePath();}
+function formPath(F,R){const P=new Path2D(),oy=F.sil==='droplet'?.18*R:0,rx=F.rx*R,ry=F.ry*R;
+  if(F.sides>0)polyP(P,rx,ry,F.sides,F.corner,F.rot,oy);else if(F.radii.length)splineP(P,rx,ry,F.radii,oy);
+  else if(F.sil==='capsule')P.rect(-(rx-ry),-ry+oy,2*(rx-ry),2*ry);else seP(P,rx,ry,F.n,F.rot,oy);
+  for(const c of F.petals){P.moveTo(c.x*R+c.r*R,c.y*R+oy);P.arc(c.x*R,c.y*R+oy,c.r*R,0,TAU);}
+  if(F.tip>0)taperP(P,rx,ry,F.tip,oy);return P;}
+function heartPath(s){const P=new Path2D();P.moveTo(0,s*.35);P.bezierCurveTo(-s*.1,s*.2,-s*.5,s*.12,-s*.5,-s*.1);
+  P.arc(-s*.25,-s*.12,s*.25,Math.PI,0,false);P.arc(s*.25,-s*.12,s*.25,Math.PI,0,false);P.bezierCurveTo(s*.5,s*.12,s*.1,s*.2,0,s*.35);P.closePath();return P;}
+function starPath(r,inner,pts){const P=new Path2D();for(let i=0;i<pts*2;i++){const a=i*Math.PI/pts-Math.PI/2,rr=i%2===0?r:r*inner;if(i===0)P.moveTo(Math.cos(a)*rr,Math.sin(a)*rr);else P.lineTo(Math.cos(a)*rr,Math.sin(a)*rr);}P.closePath();return P;}
+function triPath(b,h){const P=new Path2D();P.moveTo(-b,b*.4);P.quadraticCurveTo(-b*.6,-h*.5,0,-h);P.quadraticCurveTo(b*.6,-h*.5,b,b*.4);P.closePath();return P;}
+function ell(ctx,cx,cy,rx,ry,rot=0){ctx.beginPath();ctx.ellipse(cx,cy,Math.max(.01,rx),Math.max(.01,ry),rot,0,TAU);ctx.fill();}
+function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+/* the outline as polar samples, for the fluffy sketch */
+const probe=Object.assign(document.createElement('canvas'),{width:4,height:4}).getContext('2d');
+const fluffCache=new WeakMap();
+function outline(F,R){let c=fluffCache.get(F);if(c&&Math.abs(c.R-R)<.5)return c.pts;
+  const P=formPath(F,R),cy0=F.sil==='droplet'?.18*R:0,pts=[],N=96;
+  for(let i=0;i<N;i++){const a=TAU*i/N,dx=Math.cos(a),dy=Math.sin(a);let r=R*2.4;
+    for(;r>0;r-=R*.015){if(probe.isPointInPath(P,dx*r,cy0+dy*r))break;}pts.push([dx*r,cy0+dy*r,a]);}
+  fluffCache.set(F,{R,pts});return pts;}
+
+/* ---------- Tomo alive: a port of TomoBlob ---------- */
+const PTR={x:0,y:0,on:false};
+addEventListener('pointermove',e=>{PTR.x=e.clientX;PTR.y=e.clientY;PTR.on=true;},{passive:true});
+const NEUTRAL={dx:0,dy:0,rot:0,sx:1,sy:1,mouth:0,glow:0};
+const hold=q=>{const e=Math.min(1,Math.min(q,1-q)*4);return e*e*(3-2*e);};
+const BODY_MOVES=new Set(['hop','nudge','shake','wiggle','rock','squish','wobble','stretch','tilt','shuffle','lean','stomp','sigh']);
+class Blob{
+  constructor(cv,o){this.cv=cv;this.o=o;this.ctx=cv.getContext('2d');const now=T();
+    this.born=o.static?now:now-Math.random()*4;this.last=now;this.flash=null;this.moves=[];this.bits=[];
+    this.blinkAt=-10;this.second=null;this.nextBlink=now+rand(1,2.5);this.nextFidget=now+rand(1.5,3.5);
+    this.look2={x:0,y:0};this.wander={x:0,y:0};this.nextWander=0;this.sac={x:0,y:0};this.nextSac=0;this.glance=null;
+    this.tilt=0;this.puff=1;this.blush=0;this.sway=0;this.swayVel=0;this.jig=0;this.jigVel=0;this.lastDy=0;this.lastDx=0;this.lastRot=0;
+    this.visible=false;this.p=NEUTRAL;this.lastAmb=0;this.waveUntil=0;}
+  get look(){const l=this.o.look;return typeof l==='function'?l():(l||MASCOT);}
+  get age(){const a=this.o.age;return clamp(typeof a==='function'?a():(a||0),0,5);}
+  get mood(){const m=this.o.mood;return typeof m==='function'?m():(m||null);}
+  get hands(){const h=this.o.hands;return typeof h==='function'?h():!!h;}
+  add(kind,dur,arg){const now=T();
+    if(REDUCED&&BODY_MOVES.has(kind)){if(!this.moves.some(m=>m.kind==='puff'&&now-m.start<.3))this.moves.push({kind:'puff',start:now,dur:.5});return;}
+    this.moves.push({kind,start:now,dur,arg});}
+  setFlash(face,s){this.flash={face,until:T()+s};}
+  react(kind){const now=T();this.nextFidget=Math.max(this.nextFidget,now+2.5);
+    switch(kind){
+      case 'happy':this.add('hop',.45,.22);this.add('wiggle',.6,4);this.setFlash('happy',1.1);this.emit('sparkle',3);break;
+      case 'star':this.add('hop',.45,.3);this.add('wiggle',.5,4);this.add('rock',.9);this.setFlash('star',1.8);this.emit('sparkle',8);break;
+      case 'levelup':this.add('hop',.45,.3);this.add('wiggle',.5,4);this.add('rock',.9);this.setFlash('star',1.6);this.emit('sparkle',10);this.emit('confetti',14);break;
+      case 'love':this.setFlash('love',1.6);this.blush=1;this.emit('heart',4);break;
+      case 'poke':this.add('squish',.35);this.setFlash('squeeze',.5);if(!REDUCED){this.swayVel+=(Math.random()<.5?1:-1)*16;this.jigVel+=5;}break;
+      case 'wave':this.waveUntil=now+1.7;this.add('hop',.4,.14);this.setFlash('happy',1.5);break;
+      case 'think':this.glance={x:.6,y:.6,until:now+1.4};this.setFlash('confused',1.3);this.add('tilt',1.4,.15);break;
+    }}
+  emit(kind,n){if(this.o.static)return;n=REDUCED?Math.max(1,Math.round(n/3)):n;const pace=REDUCED?.4:1;
+    for(let i=0;i<n;i++){let b;
+      if(kind==='sparkle'){const a=rand(0,TAU),sp=rand(.7,1.2);b={pos:{x:Math.cos(a)*.9,y:Math.sin(a)*.9-.1},vel:{x:Math.cos(a)*sp,y:Math.sin(a)*sp-.5},life:rand(.6,.9),size:rand(.12,.2),spin:rand(-4,4),g:.6};}
+      else if(kind==='heart'){b={pos:{x:rand(-.6,.6),y:-.9},vel:{x:rand(-.3,.3),y:rand(-.9,-.6)},life:rand(1,1.4),size:rand(.22,.3),spin:0,g:-.15};}
+      else if(kind==='z'){b={pos:{x:.6,y:-.8},vel:{x:.25,y:-.45},life:1.8,size:.3,spin:0,g:-.15};}
+      else if(kind==='confetti'){const a=rand(-Math.PI*.9,-Math.PI*.1),sp=rand(1.4,2.4);b={pos:{x:rand(-.3,.3),y:-.4},vel:{x:Math.cos(a)*sp,y:Math.sin(a)*sp},life:rand(1,1.5),size:rand(.07,.11),spin:rand(-8,8),g:2.2,col:[this.look.body,this.look.accent,'#FFC83D','#FFF3B0'][i%4]};}
+      else if(kind==='rain'){b={pos:{x:rand(-.35,.35),y:-1.05},vel:{x:0,y:1.1},life:.55,size:.05,spin:0,g:.8};}
+      if(b){b.kind=kind;b.age=0;b.pace=pace;this.bits.push(b);}}}
+  pose(now){const p={...NEUTRAL},body=REDUCED?0:1;
+    for(const m of this.moves){const q=clamp((now-m.start)/m.dur,0,1),arc=Math.sin(Math.PI*q);
+      switch(m.kind){
+        case 'hop':p.dy-=m.arg*arc;p.sy*=1+.08*arc;p.sx*=1-.05*arc;break;
+        case 'nudge':p.dy-=q<.55?.42*Math.sin(Math.PI*q/.55):.2*Math.sin(Math.PI*(q-.55)/.45);{const w=Math.sin(q*8*Math.PI)*.06;p.sx*=1+w;p.sy*=1-w;}break;
+        case 'shake':p.dx+=Math.sin(q*6*Math.PI)*.09*(1-q);break;
+        case 'wiggle':{const w=Math.sin(q*m.arg*Math.PI)*.07*(1-q*.5);p.sx*=1+w;p.sy*=1-w;p.rot+=w*.6;}break;
+        case 'rock':p.rot+=Math.sin(q*4*Math.PI)*.13*(1-q*.6);break;
+        case 'squish':p.sy*=1-.2*arc;p.sx*=1+.15*arc;break;
+        case 'wobble':p.rot+=Math.sin(q*7*Math.PI)*.16*(1-q);break;
+        case 'mouth':p.mouth=Math.max(p.mouth,arc);p.dy-=.04*arc*body;break;
+        case 'peep':p.mouth=Math.max(p.mouth,.55*arc);p.dy-=.05*arc*body;break;
+        case 'stretch':p.sy*=1+.09*arc;p.sx*=1-.05*arc;break;
+        case 'tilt':p.rot+=m.arg*hold(q);break;
+        case 'shuffle':p.dx+=Math.sin(q*4*Math.PI)*.05;p.rot+=Math.sin(q*4*Math.PI)*.05;break;
+        case 'lean':{const e=hold(q);p.rot+=m.arg*.16*e;p.dy+=.05*e;p.sy*=1-.04*e;}break;
+        case 'stomp':{const s=Math.abs(Math.sin(q*2*Math.PI));p.dy+=.05*s;p.sy*=1-.07*s;p.sx*=1+.05*s;p.rot+=Math.sin(q*2*Math.PI)*.04;}break;
+        case 'sigh':p.sy*=1-.06*arc;p.dy+=.04*arc;p.mouth=Math.max(p.mouth,.25*arc);break;
+        case 'puff':p.sx*=1+.045*arc;p.sy*=1+.045*arc;p.glow=Math.max(p.glow,.16*arc);break;
+      }}return p;}
+  step(now){const dt=Math.min(Math.max(0,now-this.last),1);this.last=now;
+    this.moves=this.moves.filter(m=>now<=m.start+m.dur);
+    if(this.flash&&now>this.flash.until)this.flash=null;
+    if(this.glance&&now>this.glance.until)this.glance=null;
+    const p=this.pose(now);this.p=p;const mood=this.mood;
+    let tx,ty;
+    if(this.o.follow&&PTR.on){const r=this.cv.getBoundingClientRect();tx=clamp((PTR.x-(r.left+r.width/2))/320,-1,1);ty=clamp(((r.top+r.height/2)-PTR.y)/320,-1,1);}
+    else{if(now>this.nextWander){this.wander={x:rand(-.8,.8),y:rand(-.4,.4)};this.nextWander=now+rand(.9,2.6);}tx=this.wander.x;ty=this.wander.y;}
+    if(this.glance){tx=this.glance.x;ty=this.glance.y;}
+    if(mood==='lonely'){tx=-.85;ty=-.4;}
+    if(now>this.nextSac){this.sac={x:rand(-.12,.12),y:rand(-.08,.08)};this.nextSac=now+rand(.8,2.4);}
+    tx+=this.sac.x;ty+=this.sac.y;
+    const kL=1-Math.pow(.0005,dt),kS=1-Math.pow(.001,dt);
+    this.look2.x+=(tx-this.look2.x)*kL;this.look2.y+=(ty-this.look2.y)*kL;
+    this.tilt+=((mood==='lonely'?-.12:0)-this.tilt)*kS;
+    this.puff+=((mood==='pouty'?1.05:1)-this.puff)*kS;
+    this.blush+=(0-this.blush)*(1-Math.pow(.4,dt));
+    if(dt>0){const vy=(p.dy-this.lastDy)/dt,vx=(p.dx-this.lastDx)/dt,vr=(p.rot+this.tilt-this.lastRot)/dt;
+      const st=clamp(-vr*.08-vx*.6-this.look2.x*.1,-.6,.6);let left=dt;
+      while(left>0){const h=Math.min(left,1/120);
+        this.swayVel+=(18*18*(st-this.sway)-2*.18*18*this.swayVel-vy*4)*h;this.sway+=this.swayVel*h;
+        this.jigVel+=(-22*22*this.jig-2*.2*22*this.jigVel+vy*.9)*h;this.jig+=this.jigVel*h;left-=h;}
+      this.jig=clamp(this.jig,-.12,.12);}
+    this.lastDy=p.dy;this.lastDx=p.dx;this.lastRot=p.rot+this.tilt;
+    if(now>this.nextBlink){if(this.o.face!=='sleep'){this.blinkAt=now;if(Math.random()<.22)this.second=now+.26;}this.nextBlink=now+rand(2.2,5.4)*this.look.blinkPace;}
+    if(this.second&&now>this.second){this.blinkAt=now;this.second=null;}
+    const calm=!this.flash&&!this.moves.length&&!this.glance;
+    if(calm&&now>this.nextFidget&&!this.o.still){this.fidget(now,mood);}
+    if(mood==='lonely'&&now-this.lastAmb>.22){this.lastAmb=now;this.emit('rain',1);}
+    if(this.o.face==='sleep'&&now-this.lastAmb>1.4){this.lastAmb=now;this.emit('z',1);}
+    for(const b of this.bits){b.age+=dt;b.pos.x+=b.vel.x*dt*b.pace;b.pos.y+=b.vel.y*dt*b.pace;b.vel.y+=b.g*dt*b.pace;}
+    this.bits=this.bits.filter(b=>b.age<b.life);
+    if(this.o.onFrame)this.o.onFrame(this,now);}
+  fidget(now,mood){const r=Math.floor(Math.random()*7);
+    if(this.o.eager||mood==='eager'){this.add('nudge',.75);this.nextFidget=now+2.6;return;}
+    if(mood==='restless'){if(Math.random()<.6)this.add('nudge',.75);else this.glance={x:(Math.random()<.5?-1:1)*rand(.6,1),y:rand(-.2,.5),until:now+.8};this.nextFidget=now+rand(1.1,2.2);return;}
+    if(mood==='pouty'){this.add('stomp',.7);this.nextFidget=now+rand(2.6,4);return;}
+    if(mood==='lonely'){this.add('sigh',1.6);this.nextFidget=now+rand(3.6,5.2);return;}
+    switch(r){
+      case 0:this.glance={x:(Math.random()<.5?-1:1)*rand(.6,1),y:rand(-.3,.5),until:now+rand(.7,1.3)};break;
+      case 1:this.add('peep',.35);break;
+      case 2:this.add('stretch',.9);break;
+      case 3:this.add('tilt',1.4,Math.random()<.5?.15:-.15);break;
+      case 4:this.add('shuffle',.8);break;
+      case 5:this.add('lean',1,Math.random()<.5?1:-1);this.setFlash('sleep',.7);break;
+      default:this.add('hop',.35,.12);this.add('wiggle',.35,2);}
+    this.nextFidget=now+rand(2.5,6);}
+  fit(){const dpr=Math.min(2,devicePixelRatio||1),w=this.cv.clientWidth,h=this.cv.clientHeight;
+    if(!w||!h)return null;const W=Math.round(w*dpr),H=Math.round(h*dpr);
+    if(this.cv.width!==W||this.cv.height!==H){this.cv.width=W;this.cv.height=H;}return {w,h,dpr};}
+  render(now){const f=this.fit();if(!f)return;const {w:W,h:H,dpr}=f,ctx=this.ctx;
+    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+    const L=this.look,age=this.age,F=L.forms[age],p=this.o.static?NEUTRAL:this.p,R=Math.min(W,H*1.15)*.27*(this.o.size||1);
+    const ground=F.bottom*R,t=now-this.born,mood=this.mood;
+    const rot=this.tilt+p.rot+this.look2.x*.06,dy=p.dy;
+    const cx=W/2+(p.dx+this.look2.x*.04)*R+(this.o.dx||0)*W,cy=H*(this.o.cy??.5)+dy*R+R*.1;
+    const g=F.scale,breath=this.o.static?1:1+Math.sin(t*L.breath)*(this.o.face==='sleep'?.035:.018);
+    const glow=typeof this.o.glow==='function'?this.o.glow():this.o.glow;
+    if(glow){const a=glow*(REDUCED?.8:.62+.38*Math.sin(t*TAU/2.6));const gr=ctx.createRadialGradient(cx,cy,R*.3,cx,cy,R*2);
+      gr.addColorStop(0,`rgba(245,175,70,${.42*a})`);gr.addColorStop(1,'rgba(245,175,70,0)');ctx.fillStyle=gr;ctx.fillRect(0,0,W,H);}
+    if(this.o.shadow!==false){ctx.fillStyle='rgba(0,0,0,.16)';ell(ctx,cx,cy+ground*g+R*.04,R*.75*g*(1-Math.min(.5,-dy*.6)),R*.09*g);}
+    ctx.save();ctx.translate(cx,cy+ground);ctx.rotate(rot);
+    ctx.scale(p.sx*this.puff*g*(1-this.jig*.5),p.sy*this.puff*g*breath*(1+this.jig));ctx.translate(0,-ground);
+    this.drawTopper(ctx,F,R,L,age);
+    this.drawBody(ctx,F,R,L,p.glow);
+    this.drawFace(ctx,F,R,L,now,p.mouth);
+    if(this.hands)this.drawHands(ctx,F,R,L,t,now);
+    ctx.restore();
+    if(mood==='lonely')this.drawCloud(ctx,cx-R*.15,cy-(F.top*g+.75)*R,R*.42);
+    this.drawBits(ctx,cx,cy,R*g,L);}
+  drawTopper(ctx,F,R,L,age){if(!(age>=1||this.o.showTopper)||L.topper==='none')return;
+    const grow=.8+.06*age,lift=(F.sil==='droplet'?.18:0)-F.ry*.74,spread=F.rx*(F.sil==='triangle'?.3:.58);
+    const fill=L.bodyLight,inside=css(L.cheek,.55),sway=this.sway;
+    const pair=fn=>{for(const side of [-1,1]){ctx.save();ctx.translate(side*spread*R,lift*R);ctx.rotate(side*.3+sway*.5);fn(side);ctx.restore();}};
+    switch(L.topper){
+      case 'cat':pair(()=>{const h=R*.48*grow,b=R*.24;ctx.fillStyle=fill;ctx.fill(triPath(b,h));ctx.fillStyle=inside;ctx.fill(triPath(b*.55,h*.62));});break;
+      case 'bunny':pair(()=>{const h=R*.8*grow;ctx.fillStyle=fill;ell(ctx,0,-h+(h+R*.1)/2,R*.13,(h+R*.1)/2);ctx.fillStyle=inside;ell(ctx,0,-h*.85+h*.375,R*.065,h*.375);});break;
+      case 'bear':pair(()=>{const r=R*.21*grow;ctx.fillStyle=fill;ell(ctx,0,-r*.5,r,r);ctx.fillStyle=inside;ell(ctx,0,-r*.5,r*.5,r*.5);});break;
+      case 'horns':pair(()=>{ctx.fillStyle='#FFF1D6';ctx.fill(triPath(R*.11,R*.36*grow));});break;
+      case 'antenna':{ctx.save();ctx.translate(0,-F.top*R+R*.08);ctx.rotate(F.sproutLean+sway*.9);const Ln=R*.42*grow;
+        ctx.strokeStyle=L.ink;ctx.globalAlpha=.7;ctx.lineWidth=R*.04;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(R*.1,-Ln*.5,0,-Ln);ctx.stroke();ctx.globalAlpha=1;
+        ctx.fillStyle=L.pattern==='none'?css(L.cheek):L.accent;ell(ctx,0,-Ln,R*.09,R*.09);ctx.restore();break;}
+      case 'sprout':{ctx.save();ctx.translate(0,-F.top*R+R*.06);ctx.rotate(F.sproutLean+sway*.9);const Ln=R*.3*grow;
+        ctx.strokeStyle='#4FA845';ctx.lineWidth=R*.06;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(-R*.08,-Ln*.5,0,-Ln);ctx.stroke();
+        ctx.fillStyle='#7FD36B';for(const s of [-1,1]){ctx.beginPath();ctx.moveTo(0,-Ln);ctx.quadraticCurveTo(s*R*.1,-Ln-R*.16,s*R*.24,-Ln-R*.1);ctx.quadraticCurveTo(s*R*.16,-Ln+R*.02,0,-Ln);ctx.fill();}
+        ctx.restore();break;}
+    }}
+  drawBody(ctx,F,R,L,glow){const body=formPath(F,R),top=-F.top*R,bottom=F.bottom*R;
+    const gr=ctx.createLinearGradient(0,top,0,bottom);gr.addColorStop(0,L.bodyLight);gr.addColorStop(1,L.body);
+    const fluffy=typeof this.o.fluffy==='function'?this.o.fluffy():this.o.fluffy;
+    if(fluffy){const pts=outline(F,R);ctx.fillStyle=gr;
+      pts.forEach(([x,y,a],i)=>{const k=(i%3===0?1.15:i%3===1?.9:1);ctx.beginPath();ctx.ellipse(x+Math.cos(a)*R*.03,y+Math.sin(a)*R*.03,R*.075*k,R*.05*k,a+Math.PI/2,0,TAU);ctx.fill();});}
+    ctx.fillStyle=gr;ctx.fill(body);
+    ctx.save();ctx.clip(body);
+    this.drawPattern(ctx,F,R,L,top,bottom);
+    ctx.fillStyle='rgba(0,0,0,.08)';ell(ctx,0,bottom-R*.35+R*.45,R*1.4,R*.45);
+    if(F.det.has('sheen')){ctx.save();ctx.rotate(-.5);ctx.fillStyle='rgba(255,255,255,.4)';ell(ctx,-R*.62+R*.18,top+R*.2+R*.11,R*.18,R*.11);ctx.restore();}
+    if(F.det.has('mark')){const side=L.markSeed<.5?-1:1;ctx.save();ctx.translate(side*F.rx*R*.48,(F.faceY-.42)*R);ctx.rotate(side*.3);const s=R*.16;
+      ctx.fillStyle='rgba(255,255,255,.6)';ctx.fill((L.markSeed%.5)<.25?heartPath(s):starPath(s*.55,.45,5));ctx.restore();}
+    if(fluffy){ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=R*.018;ctx.lineCap='round';let s=L.markSeed;
+      for(let i=0;i<70;i++){s=(s*9301+.4929)%1;const x=(s*2-1)*F.rx*R;s=(s*9301+.4929)%1;const y=(s*2-1)*F.ry*R;s=(s*9301+.4929)%1;const a=-Math.PI/2+(s-.5)*1.4;
+        ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.cos(a)*R*.07,y+Math.sin(a)*R*.07);ctx.stroke();}}
+    if(glow>.01){ctx.fillStyle=`rgba(255,255,255,${glow})`;ctx.fill(body);}
+    ctx.restore();}
+  drawPattern(ctx,F,R,L,top,bottom){const w=F.rx*R;ctx.fillStyle=L.accent;
+    switch(L.pattern){
+      case 'belly':ell(ctx,0,bottom-R*.72+R*.55,w*.62,R*.55);break;
+      case 'cap':ell(ctx,0,top-R*1.3+R*.875,w*1.5,R*.875);break;
+      case 'spots':{let r=L.markSeed;for(let i=0;i<7;i++){r=(r*9301+.4929)%1;const x=(r*2-1)*F.rx*.85;r=(r*9301+.4929)%1;const y=(r*1.7-.85)*F.ry;const rad=R*(.09+.07*r);
+        if(!(Math.abs(y-F.faceY-L.eyeY)>.3||Math.abs(x)>.55))continue;ell(ctx,x*R,y*R,rad,rad);}break;}
+      case 'stripes':ctx.strokeStyle=L.accent;ctx.lineWidth=R*.075;ctx.lineCap='round';
+        for(let i=0;i<3;i++){const y=top+R*(.1+.17*i);ctx.beginPath();ctx.moveTo(-w*1.5,y);ctx.quadraticCurveTo(0,y-R*.12,w*1.5,y);ctx.stroke();}break;
+      case 'twoTone':{const g=ctx.createLinearGradient(-w,top,w*.4,bottom);g.addColorStop(0,css(L.accentOk,1));g.addColorStop(1,css(L.accentOk,0));ctx.fillStyle=g;ctx.fillRect(-w*2,top-R,w*4,bottom-top+R*2);break;}
+    }}
+  faceNow(){if(this.flash)return this.flash.face;if(this.o.face)return this.o.face;const m=this.mood;return m==='pouty'?'pouty':m==='lonely'?'sad':'normal';}
+  drawFace(ctx,F,R,L,now,mouthOpen){const face=this.faceNow(),mini=!!this.o.mini;
+    const fit=Math.min(1,F.faceW/.8)*(mini?1.4:1),one=L.cyclops?1.55:1,lx=this.o.static?0:this.look2.x,ly=this.o.static?0:this.look2.y;
+    const fx=lx*R*.16*F.faceW,fy=-ly*R*.1+(F.faceY+L.eyeY*fit)*R;
+    const ew=L.eyeW*R*fit*one,eh=L.eyeH*R*fit*one,unit=R*.095*fit*one,gap=L.cyclops?0:L.eyeGap*R*Math.max(.7,fit);
+    const eyeY=fy-eh*.2,cheekX=L.cyclops?ew*1.9:gap+Math.max(ew,unit)*1.4,low=eyeY+Math.max(eh,unit*1.4)*.75;
+    let cheekA=Math.max(F.det.has('cheeks')?.5:0,.9*this.blush);const big=face==='pouty'?1.4:1;if(face==='pouty')cheekA=Math.max(cheekA,.85);
+    if(cheekA>.02){ctx.fillStyle=css(L.cheek,cheekA);for(const side of [-1,1]){const far=1-.3*Math.max(0,-side*lx);ell(ctx,side*cheekX+fx*.6,low,R*.11*far*big,R*.06*big);}}
+    if(F.det.has('freckles')){ctx.fillStyle=L.ink;ctx.globalAlpha=.35;for(const side of [-1,1])for(const [dx,dy] of [[-.06,0],[.05,-.02],[0,.06]])ell(ctx,side*cheekX+fx*.6+dx*R,low+dy*R,R*.018,R*.018);ctx.globalAlpha=1;}
+    const since=now-this.blinkAt,open=this.o.static?1:(since<.09?1-since/.09:since<.2?(since-.09)/.11:1);
+    for(const side of (L.cyclops?[1]:[-1,1])){ctx.save();ctx.translate(side*gap+fx,eyeY);if(!L.cyclops)ctx.scale(1-.25*Math.max(0,-side*lx),1);
+      this.drawEye(ctx,L,face,side,ew,eh,unit,Math.max(.08,open),now);ctx.restore();}
+    const o=Math.min(1,mouthOpen+(face==='surprised'?.4:0)),my=low+R*.04;
+    ctx.fillStyle=L.ink;ctx.strokeStyle=L.ink;
+    if(o>.03){const mw=R*(.07+.05*o),mh=R*.16*o;rr(ctx,fx*1.2-mw,my,mw*2,Math.max(R*.03,mh),mw);ctx.fill();return;}
+    ctx.save();ctx.translate(fx*1.2,my+R*.02);ctx.lineWidth=R*.032;ctx.lineCap='round';ctx.lineJoin='round';
+    const m=(face==='pouty'||face==='sad')?'frown':L.mouth;ctx.beginPath();
+    switch(m){
+      case 'frown':ctx.moveTo(-R*.055,R*.04);ctx.quadraticCurveTo(0,-R*.02,R*.055,R*.04);ctx.stroke();break;
+      case 'smile':case 'fang':ctx.moveTo(-R*.075,0);ctx.quadraticCurveTo(0,R*.08,R*.075,0);ctx.stroke();
+        if(m==='fang'){ctx.beginPath();ctx.moveTo(R*.015,R*.035);ctx.lineTo(R*.06,R*.025);ctx.lineTo(R*.04,R*.075);ctx.closePath();ctx.fillStyle='#fff';ctx.fill();}break;
+      case 'cat':ctx.moveTo(-R*.08,0);ctx.quadraticCurveTo(-R*.04,R*.06,0,0);ctx.quadraticCurveTo(R*.04,R*.06,R*.08,0);ctx.stroke();break;
+      case 'o':ctx.ellipse(0,R*.025,R*.032,R*.035,0,0,TAU);ctx.stroke();break;
+      case 'flat':ctx.moveTo(-R*.05,R*.02);ctx.lineTo(R*.05,R*.02);ctx.stroke();break;
+    }ctx.restore();}
+  drawEye(ctx,L,face,side,w,h,u,open,now){const ink=L.ink;ctx.fillStyle=ink;ctx.strokeStyle=ink;
+    const eye=(k,dy=0,lid=null)=>{const rw=w*k,rh=h*k*open,P=new Path2D();seP(P,rw,rh,L.eyeN,0,dy);
+      if(L.eyeStyle==='lidded'||lid){ctx.save();const c=new Path2D();
+        if(lid==='pouty')c.rect(-rw*2,dy-rh*.05,rw*4,rh*3);
+        else if(lid==='sad'){c.moveTo(-rw*2,dy-rh*.15+side*rw*.5);c.lineTo(rw*2,dy-rh*.15-side*rw*.5);c.lineTo(rw*2,dy+rh*3);c.lineTo(-rw*2,dy+rh*3);c.closePath();}
+        else c.rect(-rw*2,dy-rh*.25,rw*4,rh*3);
+        ctx.clip(c);ctx.fill(P);ctx.restore();}else ctx.fill(P);
+      if(open<=.6||(L.eyeStyle==='bead'&&k<=1))return;
+      const s=rw*(L.eyeStyle==='big'?.38:.3),gy=(L.eyeStyle==='lidded'||lid)?dy+rh*.2:dy-rh*.45;
+      ctx.fillStyle='rgba(255,255,255,.9)';ell(ctx,rw*.2,gy,s,s);
+      if(L.eyeStyle==='big'){ctx.fillStyle='rgba(255,255,255,.7)';ell(ctx,-rw*.35,dy+rh*.35,s*.45,s*.45);}ctx.fillStyle=ink;};
+    const arcLine=(up)=>{ctx.lineWidth=u*1.05;ctx.lineCap='round';ctx.beginPath();if(up){ctx.moveTo(-u*1.5,u*.5);ctx.quadraticCurveTo(0,-u*1.7,u*1.5,u*.5);}else{ctx.moveTo(-u*1.5,0);ctx.quadraticCurveTo(0,u*1.2,u*1.5,0);}ctx.stroke();};
+    switch(face){
+      case 'normal':eye(1);break;
+      case 'surprised':eye(1.22);break;
+      case 'confused':side<0?eye(.72,-h*.15):eye(1.12);break;
+      case 'happy':arcLine(true);break;
+      case 'wink':side>0?arcLine(true):eye(1);break;
+      case 'sleep':arcLine(false);break;
+      case 'pouty':eye(1,0,'pouty');break;
+      case 'sad':eye(.92,h*.08,'sad');break;
+      case 'squeeze':{const d=-side;ctx.lineWidth=u*.95;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(-u*1.2*d,-u*1.1);ctx.lineTo(u*1.1*d,0);ctx.lineTo(-u*1.2*d,u*1.1);ctx.stroke();break;}
+      case 'love':ctx.fillStyle='#FF5C8A';ctx.fill(heartPath(u*3.6));break;
+      case 'star':{ctx.save();ctx.rotate(REDUCED?0:Math.sin(now*5)*.2);const s=starPath(u*2.5,.5,5);ctx.strokeStyle='#B5630C';ctx.lineWidth=u*.5;ctx.lineJoin='round';ctx.stroke(s);ctx.fillStyle='#FFC83D';ctx.fill(s);ctx.restore();break;}
+      default:eye(1);
+    }}
+  drawHands(ctx,F,R,L,t,now){const waving=now<this.waveUntil;
+    for(const side of [-1,1]){const bob=REDUCED?0:Math.sin(t*2.2+side)*.05;let x=side*(F.rx+.28)*R,y=(.18+bob)*R,rot=side*.3;
+      if(side>0&&waving){y=(-.32)*R;rot=Math.sin(now*14)*.55-.2;}
+      ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.fillStyle=L.bodyLight;ctx.strokeStyle='rgba(0,0,0,.18)';ctx.lineWidth=R*.02;
+      ctx.beginPath();ctx.ellipse(0,0,R*.17,R*.14,0,0,TAU);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.ellipse(-side*R*.12,-R*.07,R*.065,R*.055,-side*.6,0,TAU);ctx.fill();ctx.stroke();ctx.restore();}}
+  drawCloud(ctx,x,y,s){ctx.fillStyle='rgba(176,190,214,.92)';for(const [dx,dy,r] of [[-.5,.1,.42],[0,-.12,.55],[.52,.08,.4],[.05,.22,.42]])ell(ctx,x+dx*s,y+dy*s,r*s,r*s);}
+  drawBits(ctx,cx,cy,R,L){for(const b of this.bits){ctx.save();ctx.globalAlpha=Math.max(0,1-b.age/b.life);ctx.translate(cx+b.pos.x*R,cy+b.pos.y*R);ctx.rotate(b.spin*b.pace*b.age);const s=b.size*R;
+      if(b.kind==='sparkle'){const P=new Path2D();for(let i=0;i<8;i++){const a=i*Math.PI/4,r=i%2===0?s:s*.3;if(i===0)P.moveTo(Math.cos(a)*r,Math.sin(a)*r);else P.lineTo(Math.cos(a)*r,Math.sin(a)*r);}P.closePath();ctx.fillStyle='#FFF3B0';ctx.fill(P);}
+      else if(b.kind==='heart'){ctx.fillStyle='#FF5C8A';ctx.fill(heartPath(s*2));}
+      else if(b.kind==='z'){ctx.fillStyle='rgba(255,255,255,.8)';ctx.font=`700 ${s*1.4}px ${getComputedStyle(document.body).fontFamily}`;ctx.textAlign='center';ctx.fillText('z',0,0);}
+      else if(b.kind==='confetti'){ctx.fillStyle=b.col;ctx.fillRect(-s,-s*.5,s*2,s);}
+      else if(b.kind==='rain'){ctx.fillStyle='rgba(130,170,240,.9)';ell(ctx,0,0,s*.6,s*1.4);}
+      ctx.restore();}}
+}
+/* registry: every live Tomo animates while it's on screen */
+const LIVE=new Set();let PENDING=new Map(),uid=0;
+const io=new IntersectionObserver(es=>{for(const e of es){const b=e.target.__blob;if(b)b.visible=e.isIntersecting;}},{rootMargin:'120px'});
+function tomo(spec,cls='cv'){const id='t'+(++uid);PENDING.set(id,spec);return `<canvas class="tomo ${cls}" data-tomo="${id}" aria-hidden="true"></canvas>`;}
+function mountTomos(root){root.querySelectorAll('canvas[data-tomo]').forEach(cv=>{const spec=PENDING.get(cv.dataset.tomo);if(!spec||cv.__blob)return;PENDING.delete(cv.dataset.tomo);
+  const b=new Blob(cv,spec);cv.__blob=b;if(spec.ref)spec.ref(b);b.render(T());if(!spec.static){LIVE.add(b);io.observe(cv);}
+  if(spec.poke!==false&&!spec.static){cv.style.cursor='pointer';cv.addEventListener('click',()=>b.react('poke'));}});}
+function loop(){const now=T();for(const b of LIVE){if(!b.cv.isConnected){LIVE.delete(b);io.unobserve(b.cv);continue;}if(b.visible){b.step(now);b.render(now);}}requestAnimationFrame(loop);}
+
+/* =====================================================================
+   Take Two additions. The engine above is the lab's port, unchanged.
+   Friend extends Blob with what friends need: an egg that rocks, cracks
+   and hatches; a drip from the notch on a goo strand and a pull back up
+   (#142's numbers); hanging upside down from a strand; an eyes-only
+   friend for the black of the notch; and glasses for a grown-up.
+   ===================================================================== */
+const easeBack=q=>1+2.70158*Math.pow(q-1,3)+1.70158*Math.pow(q-1,2);
+class Friend extends Blob{
+  constructor(cv,o){super(cv,o);this.cueS=null;this.hidden=!!o.hidden;this.egg=!!o.egg;this.crack=0;this.eggRock=o.rock??1;this.strand=0;this.fade=1;this.shells=[];}
+  get look(){const L=super.look;if(!this.o.ghost)return L;if(!L.__ghost)L.__ghost={...L,ink:L.bodyLight,mouth:'none'};return L.__ghost;}
+  cue(kind){this.cueS={kind,start:T(),dur:kind==='drip'?.75:.45};if(kind==='drip')this.hidden=false;}
+  pose(now){const p=super.pose(now);this.strand=0;this.fade=1;
+    if(this.egg&&!REDUCED)p.rot+=Math.sin((now-this.born)*1.7*this.eggRock)*.07*this.eggRock;
+    const c=this.cueS;if(!c)return p;const q=clamp((now-c.start)/c.dur,0,1);
+    if(q>=1){this.cueS=null;if(c.kind==='pull')this.hidden=true;return p;}
+    if(REDUCED){this.fade=c.kind==='drip'?q:1-q;return p;}
+    if(c.kind==='drip'){const e=easeBack(q),k=Math.pow(1-q,2);p.dy+=-1.9*(1-e);p.sy*=1+.55*k;p.sx*=1-.28*k;this.strand=q<.75?1-q/.75:0;}
+    else{const e=q*q;p.dy+=-2.6*e;p.sy*=1+.5*e;p.sx*=1-.25*e;this.strand=1;}
+    return p;}
+  react(kind){
+    if(kind==='crack'){this.crack++;this.add('shake',.4);this.emit('sparkle',2);return;}
+    if(kind==='hatch'){this.egg=false;this.crack=0;this.emitShells(9);this.emit('sparkle',6);this.add('hop',.45,.3);this.setFlash('happy',1.4);return;}
+    if(kind==='intoEgg'){this.egg=true;this.crack=1;this.add('squish',.35);return;}
+    if(kind==='wobble'){this.add('wobble',.6);return;}
+    if(kind==='bow'){this.add('tilt',1.3,.22);this.add('lean',1.3,1);this.setFlash('happy',1.3);return;}
+    super.react(kind);}
+  emitShells(n){if(this.o.static)return;n=REDUCED?3:n;for(let i=0;i<n;i++){const a=rand(-Math.PI*.95,-Math.PI*.05),sp=rand(1,1.9);this.shells.push({x:rand(-.3,.3),y:-.6,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,age:0,life:rand(.8,1.2),spin:rand(-7,7),s:rand(.12,.2)});}}
+  step(now){const before=this.last;super.step(now);const dt=Math.min(Math.max(0,now-before),1),pace=REDUCED?.4:1;
+    for(const s of this.shells){s.age+=dt;s.x+=s.vx*dt*pace;s.y+=s.vy*dt*pace;s.vy+=2.4*dt*pace;}this.shells=this.shells.filter(s=>s.age<s.life);}
+  drawTopper(...a){if(!this.o.ghost)super.drawTopper(...a);}
+  drawBody(...a){if(!this.o.ghost)super.drawBody(...a);}
+  drawFace(ctx,F,R,L,now,mouth){super.drawFace(ctx,F,R,L,now,mouth);if(!this.o.glasses)return;
+    const fit=Math.min(1,F.faceW/.8),one=L.cyclops?1.55:1,lx=this.look2.x,ly=this.look2.y,fx=lx*R*.16*F.faceW,fy=-ly*R*.1+(F.faceY+L.eyeY*fit)*R;
+    const ew=L.eyeW*R*fit*one,eh=L.eyeH*R*fit*one,gap=L.cyclops?0:L.eyeGap*R*Math.max(.7,fit),y=fy-eh*.2,r=Math.max(ew,eh)*1.25+R*.05;
+    ctx.save();ctx.strokeStyle=L.ink;ctx.lineWidth=R*.035;ctx.globalAlpha=.85;
+    for(const side of (L.cyclops?[0]:[-1,1])){ctx.beginPath();ctx.arc(side*gap+fx,y,r,0,TAU);ctx.stroke();}
+    if(!L.cyclops){ctx.beginPath();ctx.moveTo(-gap+fx+r,y);ctx.quadraticCurveTo(fx,y-r*.35,gap+fx-r,y);ctx.stroke();}ctx.restore();}
+  render(now){const f=this.fit();if(!f)return;
+    if(this.hidden&&!this.cueS){this.ctx.setTransform(f.dpr,0,0,f.dpr,0,0);this.ctx.clearRect(0,0,f.w,f.h);return;}
+    this.cv.style.opacity=this.fade<1?String(this.fade):'';
+    if(this.egg){this.renderEgg(now,f);return;}
+    super.render(now);
+    if((this.strand>0||this.o.hang)&&!this.o.ghost)this.drawStrand(f);
+    if(this.shells.length)this.drawShells(f);}
+  geo(f){const {w:W,h:H}=f,F=this.look.forms[this.age],p=this.o.static?NEUTRAL:this.p,R=Math.min(W,H*1.15)*.27*(this.o.size||1);
+    return {F,p,R,cx:W/2+(p.dx+this.look2.x*.04)*R+(this.o.dx||0)*W,cy:H*(this.o.cy??.5)+p.dy*R+R*.1,W,H};}
+  drawStrand(f){const {F,p,R,cx,cy,H}=this.geo(f),ctx=this.ctx,L=this.look,ground=F.bottom*R,s=p.sy*F.scale;
+    ctx.fillStyle=L.bodyLight;
+    if(this.o.hang){const y0=cy+ground*.92;ctx.beginPath();ctx.moveTo(cx-R*.05,y0);ctx.lineTo(cx-R*.025,H);ctx.lineTo(cx+R*.025,H);ctx.lineTo(cx+R*.05,y0);ctx.fill();return;}
+    const top=cy+ground-(ground+F.top*R)*s,w=R*.16*this.strand+R*.025;
+    ctx.beginPath();ctx.moveTo(cx-w*.3,0);ctx.lineTo(cx+w*.3,0);ctx.quadraticCurveTo(cx+w*.15,top*.7,cx+w,top+R*.14);ctx.lineTo(cx-w,top+R*.14);ctx.quadraticCurveTo(cx-w*.15,top*.7,cx-w*.3,0);ctx.fill();}
+  drawShells(f){const {R,cx,cy}=this.geo(f),ctx=this.ctx,L=this.look;
+    for(const s of this.shells){ctx.save();ctx.globalAlpha=Math.max(0,1-s.age/s.life);ctx.translate(cx+s.x*R,cy+s.y*R);ctx.rotate(s.spin*s.age);const z=s.s*R;
+      ctx.fillStyle=L.bodyLight;ctx.beginPath();ctx.moveTo(-z,z*.6);ctx.lineTo(0,-z);ctx.lineTo(z,z*.5);ctx.closePath();ctx.fill();ctx.restore();}}
+  renderEgg(now,f){const {w:W,h:H,dpr}=f,ctx=this.ctx;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+    const L=this.look,p=this.p||NEUTRAL,R=Math.min(W,H*1.15)*.27*(this.o.size||1),ew=R*.8,eh=R*1.04,cx=W/2+p.dx*R,base=H*(this.o.cy??.5)+R+p.dy*R;
+    ctx.fillStyle='rgba(0,0,0,.16)';ell(ctx,cx,base+R*.03,R*.6,R*.08);
+    ctx.save();ctx.translate(cx,base);ctx.rotate(p.rot);ctx.scale(p.sx,p.sy*(1+Math.sin((now-this.born)*L.breath)*.012));
+    const P=new Path2D();P.moveTo(0,-2*eh);P.bezierCurveTo(ew*.62,-2*eh,ew,-eh*1.05,ew,-eh*.6);P.bezierCurveTo(ew,-eh*.18,ew*.56,0,0,0);P.bezierCurveTo(-ew*.56,0,-ew,-eh*.18,-ew,-eh*.6);P.bezierCurveTo(-ew,-eh*1.05,-ew*.62,-2*eh,0,-2*eh);P.closePath();
+    const g=ctx.createLinearGradient(0,-2*eh,0,0);g.addColorStop(0,L.bodyLight);g.addColorStop(1,L.body);ctx.fillStyle=g;ctx.fill(P);
+    ctx.save();ctx.clip(P);ctx.fillStyle=L.accent;
+    if(L.markSeed<.5){const y=-eh*1.02,a=eh*.12,n=6;ctx.beginPath();ctx.moveTo(-ew*1.1,y);for(let i=0;i<=n;i++)ctx.lineTo(-ew*1.1+i*ew*2.2/n,y+(i%2?a:-a));for(let i=n;i>=0;i--)ctx.lineTo(-ew*1.1+i*ew*2.2/n,y+eh*.26+(i%2?a:-a));ctx.closePath();ctx.fill();}
+    else{let s=L.markSeed;for(let i=0;i<7;i++){s=(s*9301+.4929)%1;const x=(s*2-1)*ew*.72;s=(s*9301+.4929)%1;const y=-eh*(.3+s*1.4),r=R*(.08+.06*s);ell(ctx,x,y,r,r);}}
+    ctx.fillStyle='rgba(255,255,255,.34)';ell(ctx,-ew*.38,-eh*1.45,ew*.15,eh*.25,-.4);
+    ctx.fillStyle='rgba(0,0,0,.08)';ell(ctx,0,0,ew*1.2,eh*.42);ctx.restore();
+    if(this.crack>0){const pts=[[-ew*.6,-eh*1.22],[-ew*.32,-eh*1.1],[-ew*.12,-eh*1.3],[ew*.1,-eh*1.08],[ew*.32,-eh*1.28],[ew*.62,-eh*1.12]];
+      ctx.strokeStyle=L.ink;ctx.globalAlpha=.6;ctx.lineWidth=R*.04;ctx.lineJoin='round';ctx.lineCap='round';ctx.beginPath();ctx.moveTo(...pts[0]);
+      for(let i=1;i<Math.min(pts.length,1+this.crack*2);i++)ctx.lineTo(...pts[i]);ctx.stroke();ctx.globalAlpha=1;}
+    if(L.cyclops){ctx.save();ctx.translate(ew*.42,-eh*1.58);ctx.globalAlpha=REDUCED?.8:(Math.sin((now-this.born)*2.3)+1)/2;ctx.fillStyle='#FFF3B0';ctx.fill(starPath(R*.13,.4,4));ctx.restore();}
+    ctx.restore();this.drawBits(ctx,cx,base-eh,R,L);}
+}
+/* the same as mountTomos, building Friends */
+function mountAll(root){root.querySelectorAll('canvas[data-tomo]').forEach(cv=>{const spec=PENDING.get(cv.dataset.tomo);if(!spec||cv.__blob)return;PENDING.delete(cv.dataset.tomo);
+  const b=new Friend(cv,spec);cv.__blob=b;if(spec.ref)spec.ref(b);b.render(T());if(!spec.static){LIVE.add(b);io.observe(cv);}
+  if(spec.poke!==false&&!spec.static){cv.style.cursor='pointer';cv.addEventListener('click',()=>b.react(b.egg?'wobble':'poke'));}});}
+
+/* ---------- the cast: example seeds (an egg index on the learner's seed) ---------- */
+const SEED={tomo:'en-ja-1791100800',cat:'en-ja-1791100800-2',car:'en-ja-1791100800.egg1',sensei:'en-ja-sensei'};
+const LK={};for(const k in SEED)LK[k]=lookFor(SEED[k]);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const mk=(tag,cls,html)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;};
+const P_=t=>`<span class="prop">${t}</span>`;   // a line the pack doesn't have yet
+
+/* ---------- devices drawn at point size ---------- */
+class Dev{
+  constructor(w,h,cls){this.w=w;this.h=h;this.s=1;this.fitEl=mk('div','fit '+cls+'-fit');this.fitEl.style.setProperty('--w',w);this.fitEl.style.setProperty('--h',h);
+    this.root=mk('div','dev '+cls);this.root.__dev=this;this.fitEl.append(this.root);new ResizeObserver(()=>this.resize()).observe(this.fitEl);}
+  finish(){this.layer=mk('div','layer');this.front=mk('div','front');this.ring=mk('div','tapring');this.root.append(this.layer,this.front,this.ring);}
+  resize(){const s=Math.min(1,(this.fitEl.clientWidth||this.w)/this.w);this.s=s;this.root.style.setProperty('--s',s);this.fitEl.style.height=this.h*s+'px';}
+  q(sel){return this.root.querySelector(sel);}
+  actor(spec,box,{flip=false,front=false}={}){const w=mk('div','actor'+(flip?' flip':''));w.innerHTML=tomo({follow:true,...spec});(front?this.front:this.layer).append(w);
+    const a={el:w,dev:this,box:null};place(a,box);mountAll(w);a.b=w.firstElementChild.__blob;return a;}
+  rel(el,base){const r=el.getBoundingClientRect(),b=(base||this.front).getBoundingClientRect(),s=this.s||1;return {x:(r.left-b.left)/s,y:(r.top-b.top)/s,w:r.width/s,h:r.height/s};}
+}
+function place(a,box,ms=0){a.box=box;const st=a.el.style;st.transition=ms&&!REDUCED?`left ${ms}ms var(--ease),top ${ms}ms var(--ease),width ${ms}ms var(--ease),height ${ms}ms var(--ease),opacity .3s`:'opacity .3s';
+  Object.assign(st,{left:box.x+'px',top:box.y+'px',width:box.w+'px',height:box.h+'px'});}
+const gone=(a,on=true)=>a.el.classList.toggle('gone',on);
+function center(dev,t){if(t&&t.box)return {x:t.box.x+t.box.w/2,y:t.box.y+t.box.h*.45};if(t instanceof Element){const r=dev.rel(t);return {x:r.x+r.w/2,y:r.y+r.h/2};}return t;}
+function chip(dev,text,from,to,ms=900){const a=center(dev,from),b=center(dev,to),c=mk('div','chip',esc(text));Object.assign(c.style,{left:a.x+'px',top:a.y+'px'});dev.front.append(c);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{Object.assign(c.style,{left:b.x+'px',top:b.y+'px',transform:'translate(-50%,-50%) scale(.8)'});}));
+  setTimeout(()=>{c.style.opacity='0';},ms);setTimeout(()=>c.remove(),ms+500);}
+function floatSay(dev,t,text,dy=0){const p=center(dev,t),box=t.box,e=mk('div','floatsay',text);Object.assign(e.style,{left:p.x+'px',top:(box?box.y-6:p.y-30)+dy+'px'});dev.front.append(e);setTimeout(()=>e.remove(),2000);}
+function popMenu(dev,x,y,items){const m=mk('div','pop');m.innerHTML=items.map((t,i)=>t==='-'?'<hr>':`<button type="button" data-i="${i}">${t}</button>`).join('');Object.assign(m.style,{left:x+'px',top:y+'px'});dev.front.append(m);return m;}
+
+/* Mac: a strip of a notched MacBook screen. The island's sizes follow TomoGrid and #143. */
+const MB={rest:{x:222,y:1,w:32,h:31},rest2:{x:252,y:8,w:24,h:24},peek:{x:124,y:2,w:72,h:86},card:{x:68,y:34,w:116,h:176},
+  cardA:{x:58,y:38,w:104,h:172},cardB:{x:128,y:104,w:62,h:104},help:{x:62,y:232,w:116,h:190},
+  notchR:{x:408,y:1,w:58,h:30},notchC:{x:322,y:-1,w:116,h:34},peek2:{x:180,y:44,w:40,h:42}};
+const SZ={rest:{size:1.35,cy:.5},peek:{size:1.25,cy:.55},card:{size:1.45,cy:.55},cardA:{size:1.35,cy:.52},cardB:{size:1.3,cy:.55},help:{size:1.3,cy:.52}};
+class Mac extends Dev{
+  constructor(){super(760,470,'mac');
+    this.root.innerHTML=`<div class="mbar"><span class="mb-l"><b>Finder</b><span>File</span><span>Edit</span><span>View</span></span><span class="mb-r"><span class="mb-tomo" aria-label="Tomodachi menu"></span><span class="clock"></span></span></div><div class="hw"></div><div class="isl rest"><div class="p p-rest"></div><div class="p p-peek"></div><div class="p p-card"></div><div class="p p-help"></div></div>`;
+    this.finish();this.isl=this.q('.isl');this.reset();}
+  reset(){this.layer.innerHTML='';this.front.innerHTML='';this.root.querySelectorAll('.win').forEach(e=>e.remove());this.state('rest');
+    for(const s of ['.p-rest','.p-peek','.p-card','.p-help'])this.q(s).innerHTML='';this.q('.p-help').style.paddingLeft='';this.clock('Sun 2:10 PM');}
+  state(s,help=false){this.isl.className='isl '+s+(help?' help':'');}
+  clock(t){this.q('.clock').textContent=t;}
+  rest(html){this.q('.p-rest').innerHTML=html;}
+  peek({call='あそぼ！',word}){this.q('.p-peek').innerHTML=`<div><span class="pk-call">${call}</span><span class="pk-word">${word}</span></div><span class="spk"></span>`;}
+  card({head,bar=40,look,body}){const el=this.q('.p-card');el.innerHTML=`<div class="k-head"><span><b>${head}</b></span><span class="c-x">×</span></div><div class="c-bar" style="--w:${bar}%;--bar-c:${look?look.body:'#f5c35b'}"><i></i></div><div class="c-body swap">${body}</div>`;return el;}
+  body(html){const b=this.q('.c-body');b.classList.remove('swap');void b.offsetWidth;b.classList.add('swap');b.innerHTML=html;return b;}
+  help(html){const h=this.q('.p-help');h.innerHTML=html||'';return h;}
+  win({title,html,box}){const w=mk('div','win',`<div class="win-bar"><i></i><i></i><i></i><span>${title}</span></div><div class="win-in">${html}</div>`);
+    Object.assign(w.style,{left:box.x+'px',top:box.y+'px',width:box.w+'px'});this.root.append(w);return w;}
+}
+const restRight=(kind,look,ring=55)=>`${kind==='call'?'<span class="r-call">あそぼ！</span>':'<span class="r-dim">2:30 PM</span>'}<i class="ring-lv" style="--ring:${ring}%;--ring-c:${look.body}"></i>`;
+
+/* iPhone: 393 × 852 pt. Coordinates below are the screen's (inside the rim). */
+const PB={play:{x:86,y:112,w:200,h:240},playA:{x:26,y:126,w:184,h:226},playB:{x:206,y:200,w:138,h:150},tomo:{x:14,y:150,w:172,h:200},
+  egg1:{x:198,y:226,w:74,h:96},egg2:{x:268,y:226,w:74,h:96},di:{x:158,y:10,w:58,h:39},sheet:{x:30,y:398,w:92,h:110}};
+const NEST={x:186,y:268,w:170,h:64};
+class Phone extends Dev{
+  constructor(){super(393,852,'iph');
+    this.root.innerHTML=`<div class="scr"><div class="pvwrap"></div></div><div class="ph-status"><span>2:10</span><span class="ph-sig"></span></div><div class="di"></div><div class="ph-tabs">${['Play','Tomo','Words','Settings'].map(t=>`<div><i></i>${t}</div>`).join('')}</div><div class="ph-banner"></div><div class="ph-sheet"></div>`;
+    this.finish();this.reset();}
+  reset(){this.layer.innerHTML='';this.front.innerHTML='';this.view('');this.tabs(0);this.banner(null);this.sheet(null);this.di('');this.q('.ph-status').classList.remove('light');}
+  view(html){if(this.idleA){this.idleA.el.remove();this.idleA=null;}const w=this.q('.pvwrap');w.innerHTML=html;return w;}
+  resting(){this.view(phoneRound({say:'また あとで あそぼ！',prompt:'Your Tomo is resting. Back at 2:30 PM',goal:'2 more words to Lv 24 · back at 2:30 PM'}));this.idleA=this.actor({look:LK.tomo,age:1,size:1.2},PB.play);}
+  tabs(i){const t=this.q('.ph-tabs');t.hidden=i==null;[...t.children].forEach((d,k)=>d.classList.toggle('on',k===i));}
+  banner(o){const b=this.q('.ph-banner'),k=this.bk=(this.bk||0)+1;if(!o){b.classList.remove('on');return b;}
+    b.innerHTML=`<span class="ic"></span><div class="t"><span>TOMODACHI</span><span>now</span></div><div class="b">${o.say}</div><div class="s">${o.sub}</div>`;
+    requestAnimationFrame(()=>{if(k===this.bk)b.classList.add('on');});return b;}
+  sheet(html){const s=this.q('.ph-sheet'),k=this.sk=(this.sk||0)+1;if(html==null){s.classList.remove('on');return s;}s.innerHTML=html;requestAnimationFrame(()=>{if(k===this.sk)s.classList.add('on');});return s;}
+  di(cls){this.q('.di').className='di '+(cls||'');}
+  nest(box=NEST){const st=`left:${box.x}px;top:${box.y}px;width:${box.w}px;height:${box.h}px`;this.q('.pvwrap').insertAdjacentHTML('beforeend',`<div class="nest nb" style="${st}"></div>`);this.front.insertAdjacentHTML('afterbegin',`<div class="nest nf" style="${st};pointer-events:none"></div>`);}
+}
+function tiles(ch,kana){return `<div class="tiles">${ch.map((c,i)=>`<button type="button" class="tile${kana?' kana':''}" data-i="${i}">${c}</button>`).join('')}</div>`;}
+function pills(ch){return `<div class="pills">${ch.map((c,i)=>`<button type="button" class="pill" data-i="${i}">${c}</button>`).join('')}</div>`;}
+const choicesHTML=o=>o.choices?(o.pill?pills(o.choices):tiles(o.choices,o.kana)):'';
+const macRound=o=>`<div class="cb"><div class="cb-l"><p class="say">${o.say} <span class="spk"></span></p><p class="prompt">${o.prompt||''}</p><p class="goal">${o.goal||'2 more words to Lv 24 · ready now'}</p></div><div class="cb-r">${choicesHTML(o)}</div></div>`;
+const phoneTop=(head,bar,look)=>`<div class="pv-head"><b>${head}</b><span>Practice</span></div><div class="pv-bar" style="--w:${bar}%;--bar-c:${look?look.body:'#f5c35b'}"><i></i></div>`;
+const phoneRound=o=>`<div class="pv">${phoneTop(o.head||'2さい · Lv 23',o.bar??58,o.look||LK.tomo)}<div class="pv-play"><p class="say">${o.say}</p><p class="prompt">${o.prompt||''}</p>${choicesHTML(o)}<p class="goal">${o.goal||'2 more words to Lv 24 · ready now'}</p></div></div>`;
+const phoneTomo=o=>`<div class="pv"><h3>${o.title||'Tomo'}</h3><p class="sub">${o.sub||'2さい · Lv 23 · 41 days together'}</p><div class="pv-note">${o.note||''}</div></div>`;
+const lockView=()=>`<div class="lock"><p class="lock-date">Sunday, October 11</p><p class="lock-time">2:10</p></div>`;
+const SUIKA={say:'すいか！',prompt:'Pick the picture',choices:['🚒','🍉','🐷']};
+const SUIKA_OK='<b class="ok">✓ Win +1</b> watermelon';
+
+/* the sensei's offline answer: word splitter → dictionary, marked from the shared memory */
+function senseiAnswer({who,keep,src='Word splitter · Zenbu dictionary · offline'}){return `<div class="sp"><p class="sp-who">${who}</p><div class="sp-line"><span class="w known">でんしゃ</span><span class="w">が</span><span class="w new">おくれて</span><span class="w">います</span></div><p class="sp-tr">The train is running late.</p>
+  <dl class="sp-dl"><div><dt>でんしゃ</dt><dd>train · <em>you know it: Tomo taught it at 1さい</em></dd></div><div><dt>が</dt><dd>marks who or what the sentence is about</dd></div><div><dt>おくれて</dt><dd>遅れる, to be late · new to you</dd></div><div><dt>います</dt><dd>after a て form: it's happening now</dd></div></dl>
+  <div class="sp-foot"><span class="sp-src">${src}</span><button type="button" class="sp-keep">${keep}</button></div></div>`;}
+const NOTE_WIN=`<p class="sm">Station sign, copied this morning</p><p class="jp sel-line">でんしゃが おくれています</p><p class="sm">Example text, as a learner might copy it.</p>`;
+const shareSheet=(action)=>`<div class="sh-prev">でんしゃが おくれています<small>Selected text · Safari</small></div><div class="sh-apps"><div><i></i>Messages</div><div><i></i>Mail</div><div class="us"><i></i>Tomodachi</div><div><i></i>Notes</div></div><div class="sh-acts"><button type="button">Copy</button><button type="button" class="us">${action}</button><button type="button">Translate</button></div>`;
+
+/* ---------- the flow runner ---------- */
+const STOP=Symbol('stop');
+class Concept{
+  constructor(def,n){this.def=def;this.n=n;this.tok=0;this.pending=null;this.cur=-1;this.started=false;this.ended=false;
+    this.mac=new Mac();this.ph=new Phone();
+    const s=mk('section','concept');s.id='f-'+n;s.setAttribute('data-comment-target','');this.sec=s;
+    s.innerHTML=`<div class="c-head"><div><p class="eyebrow">F${n} · ${def.model}</p><h2>${def.name}</h2><p class="pitch">${def.pitch}</p></div><div class="c-act"><button type="button" class="btn js-comment">Comment</button><span class="hint" aria-live="polite"></span></div></div>
+      <div class="flows" role="tablist" aria-label="Flows">${def.flows.map((f,i)=>`<button type="button" class="flow" role="tab" aria-selected="false" data-i="${i}">${f.label}</button>`).join('')}</div>
+      <div class="theatre"><div class="mslot"></div><div class="pslot"></div>
+      <div class="story"><ol class="steps"></ol><div class="ctl"><div class="ctl-row"><button type="button" class="btn ghost js-replay">Replay</button><button type="button" class="btn js-next">Next</button></div><p class="tapnote" aria-live="polite"></p></div></div></div>
+      <dl class="answers">${def.answers.map(([k,v,w])=>`<div${w?' class="wide"':''}><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
+    s.querySelector('.mslot').append(this.mac.fitEl,mk('p','dev-l','MacBook notch · drawn at point size'));
+    s.querySelector('.pslot').append(this.ph.fitEl,mk('p','dev-l','iPhone · drawn at point size'));
+    this.steps=s.querySelector('.steps');this.tap=s.querySelector('.tapnote');
+    s.querySelector('.flows').addEventListener('click',e=>{const b=e.target.closest('.flow');if(b)this.play(+b.dataset.i);});
+    s.querySelector('.js-replay').addEventListener('click',()=>this.play(Math.max(0,this.cur)));
+    s.querySelector('.js-next').addEventListener('click',()=>{if(this.pending)this.pending.next();else if(this.ended)this.play((this.cur+1)%def.flows.length);else if(this.cur<0)this.play(0);});
+    s.querySelector('.js-comment').addEventListener('click',()=>openComment(s));
+    this.showSteps(0,-1);this.idle();}
+  idle(){const m=this.mac,p=this.ph;m.reset();p.reset();m.rest(restRight('dim',LK.tomo));m.actor({look:LK.tomo,age:1,...SZ.rest},MB.rest);
+    p.view(phoneRound({...SUIKA,prompt:'Pick the picture'}));p.actor({look:LK.tomo,age:1,size:1.2},PB.play);}
+  showSteps(i,now){const f=this.def.flows[i];this.steps.innerHTML=f.steps.map(t=>`<li>${t}</li>`).join('');
+    this.sec.querySelectorAll('.flow').forEach((b,k)=>b.setAttribute('aria-selected',String(k===i)));}
+  note(t){this.tap.textContent=t||'';}
+  async play(i){const tok=++this.tok;if(this.pending){this.pending.cancel();this.pending=null;}this.cur=i;this.ended=false;this.started=true;
+    this.showSteps(i);this.note('');this.mac.reset();this.ph.reset();this.ph.resting();
+    try{await this.def.flows[i].run(this.ctx(tok));if(tok===this.tok){[...this.steps.children].forEach(li=>li.className='done');this.ended=true;this.note('Done. Replay it, or press Next for the next flow.');}}
+    catch(e){if(e!==STOP)console.error(e);}}
+  ctx(tok){const C=this,alive=()=>{if(tok!==C.tok)throw STOP;};
+    return {m:C.mac,p:C.ph,
+      wait:ms=>new Promise((res,rej)=>setTimeout(()=>tok===C.tok?res():rej(STOP),ms)),
+      step:i=>{alive();[...C.steps.children].forEach((li,k)=>li.className=k<i?'done':k===i?'now':'');},
+      tap:(t,hint)=>C.waitTap(tok,t,hint),
+      pick:(box,ok,actors,prompt,html)=>C.waitPick(tok,box,ok,actors,prompt,html),
+      say:(a,text,dy)=>{alive();floatSay(a.dev,a,text,dy);},
+      chip:(dev,text,from,to,ms)=>{alive();chip(dev,text,from,to,ms);}};}
+  ringOn(el){const dev=el.closest('.dev').__dev,ring=dev.ring,pos=()=>{if(!el.isConnected)return;const r=dev.rel(el,dev.root);Object.assign(ring.style,{left:r.x-6+'px',top:r.y-6+'px',width:r.w+12+'px',height:r.h+12+'px'});};
+    pos();ring.classList.add('on');const iv=setInterval(pos,140);return ()=>{clearInterval(iv);ring.classList.remove('on');};}
+  waitTap(tok,target,hint){return new Promise((res,rej)=>{if(tok!==this.tok)return rej(STOP);const el=target.el||target,off=this.ringOn(el);this.note(hint);
+    const end=()=>{off();el.removeEventListener('click',go);this.pending=null;this.note('');},go=()=>{end();tok===this.tok?res():rej(STOP);};
+    el.addEventListener('click',go);this.pending={next:go,cancel:()=>{end();rej(STOP);}};});}
+  waitPick(tok,box,ok,actors,prompt,html){actors=[].concat(actors||[]);return new Promise((res,rej)=>{if(tok!==this.tok)return rej(STOP);
+    const btns=[...box.querySelectorAll('[data-i]')],group=btns[0].parentElement,off=this.ringOn(group);this.note('Pick the right one.');const was=prompt?prompt.innerHTML:'';
+    const end=()=>{off();group.removeEventListener('click',on);this.pending=null;this.note('');};
+    const finish=()=>{end();btns[ok].classList.add('yes');actors.forEach(a=>a.b.react('happy'));if(prompt)prompt.innerHTML=html;tok===this.tok?res():rej(STOP);};
+    const on=e=>{const b=e.target.closest('[data-i]');if(!b)return;if(+b.dataset.i===ok)return finish();b.classList.remove('no');void b.offsetWidth;b.classList.add('no');
+      actors.forEach(a=>{a.b.add('shake',.5);a.b.setFlash('squeeze',.6);});if(prompt){prompt.innerHTML='ちがう〜 · try another';setTimeout(()=>{if(prompt.isConnected&&this.pending)prompt.innerHTML=was;},1400);}};
+    group.addEventListener('click',on);this.pending={next:finish,cancel:()=>{end();rej(STOP);}};});}
+}
+
+/* shared beats */
+async function macOpenVisit(S,a,{word,call='あそぼ！'}){const m=S.m;m.state('peek');m.peek({call,word});place(a,MB.peek,500);a.b.o.glow=0;a.b.add('mouth',.5);await S.wait(700);
+  await S.tap(m.q('.p-peek'),'Point at the peek on the Mac, or click it.');m.state('card');}
+async function hatchEgg(S,e,word,hint){await S.tap(e,hint);S.say(e,word);e.b.react('crack');await S.wait(800);e.b.react('crack');await S.wait(650);e.b.react('crack');await S.wait(450);e.b.react('hatch');}
+
+/* =====================================================================
+   The four directions
+   ===================================================================== */
+const DIRECTIONS=[
+/* ---------------------------------------------------------------- F1 */
+{name:'The Relay',model:'Model a · separate characters, taking turns',
+ pitch:'Three full Tomos share the notch and take turns visiting. Each one grows on its own subject, and whoever goes next is handed what you just did.',
+ flows:[
+ {label:'A friend hatches',steps:[
+   'Your Tomo turns 2さい, and the two eggs left in the nest start to rock.',
+   'Tap an egg to hear it through the shell, like on the first day.',
+   'It hatches as a 1さい baby: a whole Tomo with its own age, level and growing up. This one is for letters.',
+   'It starts from what you already know. The shared memory gives it your words, so its first letters come from them.',
+   'On the Mac, it takes its first turn: it drips into the resting island and glows amber.'],
+  run:async S=>{const {m,p}=S;p.view(phoneTomo({note:'<div class="row">The nest. Two eggs are still waiting.</div>'}));p.tabs(1);p.nest();
+   const t=p.actor({look:LK.tomo,age:1,size:1.15},PB.tomo),e1=p.actor({look:LK.cat,age:0,egg:true,size:1.4,poke:false},PB.egg1),e2=p.actor({look:LK.car,age:0,egg:true,size:1.4,poke:false},PB.egg2);
+   const mt=m.actor({look:LK.tomo,age:1,...SZ.rest},MB.rest);m.rest(restRight('dim',LK.tomo));
+   S.step(0);t.b.react('levelup');e1.b.eggRock=1.8;e2.b.eggRock=1.5;await S.wait(1900);
+   S.step(1);await hatchEgg(S,e1,'ニャンニャン','Tap the left egg on the iPhone.');
+   S.step(2);S.say(e1,'ばあ！',-14);p.view(phoneTomo({note:'<div class="row"><b>The ニャンニャン friend</b> · 1さい · Lv 1<br>Letters: hiragana and katakana</div>'}));p.nest();await S.wait(2300);
+   S.step(3);for(const w of ['すいか','ワンワン','でんしゃ']){S.chip(p,w,t,e1);await S.wait(420);}await S.wait(700);e1.b.react('happy');
+   p.view(phoneTomo({note:'<div class="row"><b>The ニャンニャン friend</b> · 1さい · Lv 1<br>Its first letters: す from すいか, ワ from ワンワン, で from でんしゃ</div>'}));p.nest();await S.wait(2200);
+   S.step(4);mt.b.cue('pull');await S.wait(650);const mf=m.actor({look:LK.cat,age:0,...SZ.rest,glow:1,hidden:true},MB.rest);mf.b.cue('drip');m.rest(restRight('call',LK.cat,8));await S.wait(1800);}},
+ {label:'A visit',steps:[
+   'It\'s the ニャンニャン friend\'s turn. The resting island shows whoever visits next, glowing amber, with no name and no count.',
+   'It peeks: あそぼ！ over its letter.',
+   'Point at the peek to open the card.',
+   'Its round: which one is す? It uses すいか, a word you already know, as the example.',
+   'On the iPhone the same friend comes as a notification, in its own words at its own age.',
+   'Tapping it opens the Play screen, which belongs to whoever\'s turn it is.'],
+  run:async S=>{const {m,p}=S;m.rest(restRight('call',LK.cat,8));const f=m.actor({look:LK.cat,age:0,...SZ.rest,glow:1},MB.rest);p.view(lockView());p.tabs(null);p.q('.ph-status').classList.add('light');
+   S.step(0);await S.wait(1700);
+   S.step(1);m.state('peek');m.peek({word:'す'});place(f,MB.peek,500);f.b.o.size=SZ.peek.size;f.b.o.glow=0;f.b.add('mouth',.5);await S.wait(900);
+   S.step(2);await S.tap(m.q('.p-peek'),'Point at the peek on the Mac, or click it.');m.state('card');
+   const c=m.card({head:'1さい · Lv 1',bar:14,look:LK.cat,body:macRound({say:P_('す！'),prompt:'Which one is す?',goal:'4 more letters to Lv 2 · ready now',choices:['む','す','あ'],kana:true})});place(f,MB.card,550);f.b.o.size=SZ.card.size;
+   S.step(3);await S.pick(c,1,f,c.querySelector('.prompt'),'<b class="ok">✓ Win +1</b> す · su, the first sound of すいか');await S.wait(1300);
+   S.step(4);const bn=p.banner({say:'あそぼ！',sub:'asobo! · Let\'s play!'});const ic=p.actor({look:LK.cat,age:0,size:1.5,shadow:false},{x:24,y:70,w:42,h:42},{front:true});
+   await S.tap(bn,'Tap the notification on the iPhone.');
+   S.step(5);p.banner(null);ic.el.remove();p.q('.ph-status').classList.remove('light');p.tabs(0);
+   const pc=p.view(phoneRound({head:'1さい · Lv 1',bar:20,look:LK.cat,say:P_('ワ！'),prompt:'Which one is ワ?',choices:['ワ','ウ','フ'],kana:true,goal:'3 more letters to Lv 2 · ready now'}));
+   const pf=p.actor({look:LK.cat,age:0,size:1.2,hidden:true},PB.play);pf.b.cue('drip');await S.wait(600);
+   await S.pick(pc,0,pf,pc.querySelector('.prompt'),'<b class="ok">✓ Win +1</b> ワ · wa, as in ワンワン');await S.wait(1200);}},
+ {label:'The hand-off',steps:[
+   'When its turn is over, the ニャンニャン friend says またね！ and is pulled back up into the notch.',
+   'It hands on what you just did: すいか rides up into the notch, and the resting island now shows the ブーブー friend, dimmed until its turn.',
+   'Twenty minutes later it\'s the ブーブー friend\'s turn, and it already knows you had すいか.',
+   'Its round is a custom: what do you say before eating?',
+   'Back on the iPhone, the Play screen is the ブーブー friend\'s too.'],
+  run:async S=>{const {m,p}=S;m.state('card');m.card({head:'1さい · Lv 1',bar:24,look:LK.cat,body:macRound({say:'またね！',prompt:'<b class="ok">✓ Win +1</b> す · su',goal:'3 more letters to Lv 2 · back at 3:10 PM'})});
+   const f=m.actor({look:LK.cat,age:0,...SZ.card},MB.card);p.view(phoneRound({...SUIKA,prompt:SUIKA_OK}));const pt=p.actor({look:LK.tomo,age:1,size:1.2},PB.play);
+   S.step(0);f.b.react('happy');await S.wait(1200);f.b.cue('pull');await S.wait(500);m.state('rest');m.rest('');
+   S.step(1);S.chip(m,'すいか',{x:300,y:120},{x:380,y:10});await S.wait(1100);const g=m.actor({look:LK.car,age:1,...SZ.rest,hidden:true},MB.rest);g.b.cue('drip');m.rest(restRight('dim',LK.car,30));await S.wait(1700);
+   S.step(2);m.clock('Sun 2:30 PM');m.rest(restRight('call',LK.car,30));g.b.o.glow=1;await S.wait(1200);await macOpenVisit(S,g,{word:'いただきます'});
+   const c=m.card({head:'2さい · Lv 18',bar:46,look:LK.car,body:macRound({say:'いただきます！',prompt:'You had すいか. What do you say before eating?',pill:true,choices:['ごちそうさま','いただきます','おやすみ'],goal:'5 more customs to Lv 19 · ready now'})});place(g,MB.card,550);g.b.o.size=SZ.card.size;
+   S.step(3);await S.pick(c,1,g,c.querySelector('.prompt'),'<b class="ok">✓ Win +1</b> Said before every meal, palms together. ごちそうさま is for after.');g.b.react('bow');await S.wait(1600);
+   S.step(4);pt.b.cue('pull');await S.wait(500);const pc=p.view(phoneRound({head:'2さい · Lv 18',bar:50,look:LK.car,say:'ごちそうさま！',prompt:'When do you say it?',pill:true,choices:['After eating','Before eating','At bedtime'],goal:'4 more customs to Lv 19 · ready now'}));
+   const pg=p.actor({look:LK.car,age:1,size:1.2,hidden:true},PB.play);pg.b.cue('drip');await S.wait(500);await S.pick(pc,0,pg,pc.querySelector('.prompt'),'<b class="ok">✓ Win +1</b> Thanks for the meal, said when you finish.');await S.wait(1000);}},
+ {label:'Ask the sensei',steps:[
+   'The sensei is a Tomo who\'s already 6さい. It never takes a turn; it comes when you call it.',
+   'Select a line anywhere, then choose Ask Sensei from the Tomodachi menu.',
+   'The sensei drips down, and the help panel opens under the card.',
+   'It splits the line and looks each word up offline. What you know is marked from the shared memory.',
+   'Keep a new word for your Tomo: おくれる joins your Tomo\'s words, inside today\'s new-word limit.',
+   'On the iPhone it\'s the Share button: Share, then Ask Sensei.'],
+  run:async S=>{const {m,p}=S;const mt=m.actor({look:LK.tomo,age:1,...SZ.rest},MB.rest);m.rest(restRight('dim',LK.tomo));const w=m.win({title:'Notes',box:{x:40,y:250,w:330},html:NOTE_WIN});
+   S.step(0);await S.wait(1500);
+   S.step(1);const line=w.querySelector('.sel-line');await S.tap(line,'Click the line in the Notes window to select it.');line.classList.add('sel');
+   await S.tap(m.q('.mb-tomo'),'Now click the Tomodachi icon in the menu bar.');const r=m.rel(m.q('.mb-tomo'));const mn=popMenu(m,r.x-150,r.y+22,['Play with Tomo','Ask Sensei…','-','Open Tomodachi…']);
+   await S.tap(mn.querySelector('[data-i="1"]'),'Choose Ask Sensei.');mn.remove();
+   S.step(2);w.remove();mt.b.cue('pull');m.state('card',true);m.card({head:'6さい · sensei',bar:100,look:LK.sensei,body:macRound({say:P_('どれどれ？'),prompt:'Sensei reads the line you selected.',goal:'Sensei answers from what\'s on this Mac'})});
+   const s=m.actor({look:LK.sensei,age:5,...SZ.card,hidden:true},MB.card);s.b.cue('drip');await S.wait(900);
+   S.step(3);const h=m.help(senseiAnswer({who:'Sensei, offline',keep:'Keep おくれる for Tomo'}));h.style.paddingLeft='22px';s.b.react('think');await S.wait(2400);
+   S.step(4);const k=h.querySelector('.sp-keep');await S.tap(k,'Click Keep おくれる for Tomo.');k.textContent='Tomo will bring it';k.classList.add('done');s.b.react('happy');
+   S.chip(m,'おくれる',k,{x:380,y:8});await S.wait(1100);s.b.cue('pull');await S.wait(500);m.state('rest');const back=m.actor({look:LK.tomo,age:1,...SZ.rest,hidden:true},MB.rest);back.b.cue('drip');await S.wait(900);
+   S.step(5);p.view(phoneRound({...SUIKA}));const pt=p.actor({look:LK.tomo,age:1,size:1.2},PB.play);gone(pt);const sh=p.sheet(shareSheet('Ask Sensei'));await S.wait(500);
+   await S.tap(sh.querySelector('.sh-acts .us'),'Tap Ask Sensei in the share sheet.');sh.insertAdjacentHTML('beforeend',`<div class="sh-ans">${senseiAnswer({who:'Sensei, offline',keep:'Keep おくれる for Tomo'})}</div>`);
+   const ps=p.actor({look:LK.sensei,age:5,size:1.25,hidden:true},PB.sheet);ps.b.cue('drip');await S.wait(1600);}},
+ {label:'Turn a friend off',steps:[
+   'Every friend has a place on the Tomo screen, sitting on its old egg in the nest.',
+   'Hold the ブーブー friend, then choose Take a break.',
+   'It climbs back into its egg and dozes. Its turns are skipped; its age, level and words wait.',
+   'On the Mac it just stops coming. The household has one mood, shown only by whoever visits, so a friend on a break can\'t sulk.',
+   'Tap the egg to wake it. It hatches straight back as it was.'],
+  run:async S=>{const {m,p}=S;p.view(phoneTomo({note:'<div class="row"><b>Your Tomo</b> · 2さい · Lv 23 · words<br><b>The ニャンニャン friend</b> · 1さい · Lv 3 · letters<br><b>The ブーブー friend</b> · 2さい · Lv 18 · customs</div>'}));p.tabs(1);p.nest();
+   p.actor({look:LK.tomo,age:1,size:1.15},PB.tomo);p.actor({look:LK.cat,age:0,size:1.25},PB.egg1);const g=p.actor({look:LK.car,age:1,size:1.25},PB.egg2);
+   const mg=m.actor({look:LK.car,age:1,...SZ.rest},MB.rest);m.rest(restRight('dim',LK.car,30));
+   S.step(0);await S.wait(1500);
+   S.step(1);await S.tap(g,'Hold (click) the ブーブー friend on the iPhone.');const mn=popMenu(p,170,236,['Take a break','Play with it now']);await S.tap(mn.querySelector('[data-i="0"]'),'Choose Take a break.');mn.remove();
+   S.step(2);g.b.react('intoEgg');g.b.o.face='sleep';g.b.eggRock=.35;await S.wait(1900);
+   S.step(3);mg.b.cue('pull');await S.wait(600);const mt=m.actor({look:LK.tomo,age:1,...SZ.rest,hidden:true},MB.rest);mt.b.cue('drip');m.rest(restRight('dim',LK.tomo));await S.wait(2000);
+   S.step(4);await S.tap(g,'Tap the sleeping egg to wake it.');g.b.o.face=null;g.b.react('hatch');S.say(g,'ばあ！',-14);await S.wait(1600);}}
+ ],
+ answers:[
+  ['Grows, and misses you?','Each friend grows on its own subject, with its own levels and birthdays. Each can miss you, but the household shows one mood, worn only by whoever visits next, so three friends never mean three sulks.'],
+  ['Sensei and your own material','Separate. The sensei is a 6さい Tomo that never takes a turn. What you keep from it goes to your Tomo\'s words. Later, a friend could take your own list as its subject.'],
+  ['What powers the sensei','Offline: the word splitter, the Zenbu dictionary, Tatoeba examples, KANJIDIC2 and KanjiVG. When a line won\'t split, it says so plainly. AI stays a Debug-only extra (#106).'],
+  ['Start over','Per friend: that friend goes back to its egg and starts at 1さい, and what you know stays. Starting everything over is separate, and asks first.'],
+  ['New words a day','One limit, shared by the household. A new letter or a new custom counts as a new thing. The next visitor is whoever has something that counts.'],
+  ['On and off','A friend on a break climbs into its egg. Its turns are skipped and its progress waits.'],
+  ['How it fits today\'s code','Each friend is a seed (the egg index from #137) and a TomoBlob, which already takes its look. TomoStore\'s key gains a friend, (learner, target, friend), so tomo rows multiply; item rows stay keyed by word, which is the shared memory. TomoGame.tick() picks the visitor, the content source seam (#10) gives each friend its own source, and the mood ladder in #130 keeps one memory for the household.',1],
+  ['Risks','Three bars to fill reads as three courses. Pacing (#38) has to be tuned per subject. Visits feel less like one friend, and the sync key changes (Francis).'],
+  ['Asks of the language packs','A kana track (each kana with example words picked from what you know), a customs track (manners and seasons; #130\'s holiday calendar is a start), every friend\'s lines at each age, and a 6さい sensei\'s lines.']]},
+
+/* ---------------------------------------------------------------- F2 */
+{name:'Playdates',model:'Model c · your Tomo, plus lighter friends',
+ pitch:'Only your Tomo lives in the notch and grows. Now and then it brings a friend over, and the friend shows it something while you play along.',
+ flows:[
+ {label:'A friend hatches',steps:[
+   'The nest stays on the Tomo screen, and your Tomo checks on it now and then.',
+   'At 2さい it calls one of the eggs: たまご！ Tap the egg with it.',
+   'The friend hatches looking the way it will stay. Friends don\'t grow up and never miss you; they come over to play.',
+   'The two greet each other. A friend keeps no memory of its own: it uses the shared one, so it already knows what you know.',
+   'On the Mac, a playdate shows as a second little Tomo beside yours in the resting island.'],
+  run:async S=>{const {m,p}=S;p.view(phoneTomo({note:'<div class="row">The nest. Your Tomo looks in on it.</div>'}));p.tabs(1);p.nest();
+   const t=p.actor({look:LK.tomo,age:1,size:1.15},PB.tomo),e1=p.actor({look:LK.cat,age:1,egg:true,size:1.4,poke:false},PB.egg1);p.actor({look:LK.car,age:1,egg:true,size:1.4,poke:false},PB.egg2);
+   m.actor({look:LK.tomo,age:1,...SZ.rest},MB.rest);m.rest(restRight('dim',LK.tomo));
+   S.step(0);place(t,{x:60,y:150,w:172,h:200},900);t.b.glance={x:1,y:-.3,until:T()+2};await S.wait(1700);
+   S.step(1);S.say(t,'たまご！');t.b.add('hop',.4,.2);e1.b.eggRock=1.8;await S.wait(900);await hatchEgg(S,e1,'ニャンニャン','Tap the left egg with your Tomo.');
+   S.step(2);S.say(e1,'ばあ！',-14);p.view(phoneTomo({note:'<div class="row"><b>The ニャンニャン friend</b> came to play.<br>It loves letters, and it stays just as it hatched.</div>'}));p.nest();await S.wait(2100);
+   S.step(3);t.b.react('love');e1.b.react('love');S.say(t,P_('ニャンニャン！'));await S.wait(2000);
+   S.step(4);m.actor({look:LK.cat,age:1,...SZ.rest,size:1.2,hidden:true},MB.rest2).b.cue('drip');await S.wait(1900);}},
+ {label:'A playdate',steps:[
+   'A playdate starts like any visit, with your Tomo\'s peek. The friend peeks over its shoulder.',
+   'Open it. Both drip into the card\'s Tomo column, each on its own strand.',
+   'Your Tomo asks its own word first: すいか！',
+   'Then the friend holds up a letter, and your Tomo says it at its own age: す！ Which one is す?',
+   'Both cheer. The friend\'s round is one more round in your Tomo\'s visit, and it counts toward your Tomo\'s level.'],
+  run:async S=>{const {m,p}=S;m.rest(restRight('call',LK.tomo));const t=m.actor({look:LK.tomo,age:1,...SZ.rest,glow:1},MB.rest),f=m.actor({look:LK.cat,age:1,...SZ.rest,size:1.2},MB.rest2);
+   S.step(0);await S.wait(1200);m.state('peek');m.peek({word:'すいか'});place(t,MB.peek,500);place(f,MB.peek2,600);t.b.o.glow=0;t.b.add('mouth',.5);await S.wait(700);
+   await S.tap(m.q('.p-peek'),'Point at the peek on the Mac, or click it.');
+   S.step(1);m.state('card');t.b.o.size=SZ.cardA.size;f.b.o.size=SZ.cardB.size;place(t,MB.cardA);place(f,MB.cardB);t.b.cue('drip');setTimeout(()=>f.b.cue('drip'),250);
+   const c=m.card({head:'2さい · Lv 23',bar:58,look:LK.tomo,body:macRound(SUIKA)});await S.wait(900);
+   S.step(2);await S.pick(c,1,t,c.querySelector('.prompt'),SUIKA_OK);await S.wait(1100);
+   S.step(3);f.b.react('star');const c2=m.body(macRound({say:P_('す！'),prompt:'The ニャンニャン friend shows a letter. Which one is す?',choices:['あ','む','す'],kana:true}));await S.wait(500);
+   await S.pick(c2,2,[t,f],c2.querySelector('.prompt'),'<b class="ok">✓ Win +1</b> す · su, the first sound of すいか');
+   S.step(4);t.b.react('star');f.b.react('happy');await S.wait(1800);}},
+ {label:'The hand-off',steps:[
+   'On the iPhone, the Play screen has room for two.',
+   'The ブーブー friend brings a custom. It bows before eating, and your Tomo copies it: いただきます！',
+   'Pick what it means.',
+   'Then the friend says バイバイ！ and goes home, and your Tomo waves it off with a hop.',
+   'Your Tomo carries on alone with its next word, as in any visit.'],
+  run:async S=>{const {m,p}=S;m.actor({look:LK.tomo,age:1,...SZ.rest},MB.rest);m.rest(restRight('dim',LK.tomo));
+   const pc=p.view(phoneRound({say:'いただきます！',prompt:'The ブーブー friend bows before eating. What does it mean?',pill:true,choices:['Let\'s eat (thanks for this food)','I\'m full','Good night']}));
+   const t=p.actor({look:LK.tomo,age:1,size:1.15},PB.playA),g=p.actor({look:LK.car,age:1,size:1.15,hidden:true},PB.playB);
+   S.step(0);g.b.cue('drip');await S.wait(1300);
+   S.step(1);g.b.react('bow');await S.wait(900);t.b.react('bow');S.say(t,'いただきます！');await S.wait(1300);
+   S.step(2);await S.pick(pc,0,[t,g],pc.querySelector('.prompt'),'<b class="ok">✓ Win +1</b> Palms together, before every meal.');await S.wait(1000);
+   S.step(3);S.say(g,'バイバイ！');g.b.add('hop',.4,.2);await S.wait(700);place(g,{x:420,y:150,w:138,h:150},900);t.b.react('wave');S.say(t,'バイバイ！',30);await S.wait(1400);g.el.remove();
+   S.step(4);place(t,PB.play,700);const p2=p.view(phoneRound({say:'とうふ！',prompt:'Pick the picture',choices:['🫘','🍙','🧈']}));await S.wait(800);
+   await S.pick(p2,2,t,p2.querySelector('.prompt'),'<b class="ok">✓ Win +1</b> tofu');await S.wait(900);}},
+ {label:'Ask the sensei',steps:[
+   'Drag a line onto your Tomo in the notch.',
+   'Your Tomo catches it, but can\'t explain it, so it calls the sensei: せんせい！',
+   'The sensei is a grown-up who wears めがね. It leans into the help panel and explains, offline.',
+   'Keep the line: the sensei is also where your own material goes. Your Tomo brings its new words on visits.',
+   'On the iPhone, share text to Tomodachi and choose Give to Tomo; the sensei takes it the same way.'],
+  run:async S=>{const {m,p}=S;const t=m.actor({look:LK.tomo,age:1,...SZ.rest},MB.rest);m.rest(restRight('dim',LK.tomo));const w=m.win({title:'Notes',box:{x:40,y:250,w:330},html:NOTE_WIN});
+   S.step(0);const line=w.querySelector('.sel-line');await S.tap(line,'Click the line to drag it onto your Tomo.');line.classList.add('sel');S.chip(m,'でんしゃが おくれています',line,t,800);await S.wait(900);w.remove();
+   S.step(1);m.state('card',true);place(t,MB.card,550);t.b.o.size=SZ.card.size;t.b.react('think');m.card({head:'2さい · Lv 23',bar:58,look:LK.tomo,body:macRound({say:'なあに？',prompt:'Your Tomo can\'t read this yet.',goal:'Your Tomo calls the sensei'})});
+   await S.wait(1300);m.body(macRound({say:'せんせい！',prompt:'Your Tomo calls the sensei.',goal:'The sensei answers in the help panel'}));t.b.add('hop',.4,.2);
+   S.step(2);const s=m.actor({look:LK.sensei,age:5,...SZ.help,glasses:true,hidden:true},MB.help);s.b.cue('drip');const h=m.help(senseiAnswer({who:P_('いい しつもん ですね。')+' · Sensei',keep:'Keep for Tomo'}));await S.wait(2600);
+   S.step(3);const k=h.querySelector('.sp-keep');await S.tap(k,'Click Keep for Tomo.');k.textContent='In the sensei\'s notebook';k.classList.add('done');s.b.react('happy');S.chip(m,'おくれる',k,t);await S.wait(900);t.b.react('happy');await S.wait(900);
+   S.step(4);p.view(phoneRound({...SUIKA}));gone(p.actor({look:LK.tomo,age:1,size:1.2},PB.play));const sh=p.sheet(shareSheet('Give to Tomo'));await S.wait(500);
+   await S.tap(sh.querySelector('.sh-acts .us'),'Tap Give to Tomo.');sh.insertAdjacentHTML('beforeend',`<div class="sh-ans">${senseiAnswer({who:P_('いい しつもん ですね。')+' · Sensei',keep:'Keep for Tomo'})}</div>`);
+   p.actor({look:LK.sensei,age:5,size:1.2,glasses:true,hidden:true},PB.sheet).b.cue('drip');await S.wait(1600);}},
+ {label:'Turn a friend off',steps:[
+   'Between playdates, friends live in the nest on the Tomo screen.',
+   'Tap the ブーブー friend, then No playdates for now.',
+   'It curls up for a nap in the nest, and your Tomo stops bringing it. It holds nothing, so nothing is lost.',
+   'Your Tomo doesn\'t mind. Only your Tomo can miss you, and only for itself.',
+   'Tap the napping friend to wake it. It stretches, ready for the next playdate.'],
+  run:async S=>{const {m,p}=S;p.view(phoneTomo({note:'<div class="row"><b>The ニャンニャン friend</b> loves letters<br><b>The ブーブー friend</b> knows customs</div>'}));p.tabs(1);p.nest();
+   const t=p.actor({look:LK.tomo,age:1,size:1.15},PB.tomo);p.actor({look:LK.cat,age:1,size:1.25},PB.egg1);const g=p.actor({look:LK.car,age:1,size:1.25},PB.egg2);
+   m.actor({look:LK.tomo,age:1,...SZ.rest},MB.rest);m.rest(restRight('dim',LK.tomo));
+   S.step(0);await S.wait(1400);
+   S.step(1);await S.tap(g,'Tap the ブーブー friend on the iPhone.');const mn=popMenu(p,160,236,['No playdates for now','Bring it on the next visit']);await S.tap(mn.querySelector('[data-i="0"]'),'Choose No playdates for now.');mn.remove();
+   S.step(2);g.b.o.face='sleep';g.b.add('sigh',1.6);await S.wait(2000);
+   S.step(3);t.b.react('happy');S.say(t,'おやすみ！');await S.wait(1900);
+   S.step(4);await S.tap(g,'Tap the napping friend to wake it.');g.b.o.face=null;g.b.add('stretch',.9);S.say(g,'おはよう！');await S.wait(1500);}}
+ ],
+ answers:[
+  ['Grows, and misses you?','Only your Tomo. Friends hatch the way they\'ll stay, never grow, and never miss you.'],
+  ['Sensei and your own material','The same character. The sensei is a grown-up in めがね who lives in the help panel. Anything you push in goes into its notebook, and your Tomo brings the new words.'],
+  ['What powers the sensei','The same offline stack. The sensei speaks grown-up Japanese, so it\'s the first voice in the app that isn\'t a child: a new register in the pack.'],
+  ['Start over','Your Tomo only, as today. Friends hold nothing, so they stay as they are, and so does the sensei\'s notebook: it\'s your material.'],
+  ['New words a day','Your Tomo\'s one limit. A friend\'s round is a round in your Tomo\'s visit and counts toward its level.'],
+  ['On and off','A friend you turn off naps in the nest and stops coming over.'],
+  ['How it fits today\'s code','Closest to today: one TomoGame and one progress. A friend is a second TomoBlob in the card\'s Tomo column, and its rounds are new round kinds (a kana round, a custom round) from a friend content source mixed into the visit. The help panel (TomoGame.help) hosts the sensei. The only new store is the notebook of kept lines.',1],
+  ['Risks','Friends can feel like props. Two Tomos in the 112 pt column is tight. Letters and customs inside your Tomo\'s level blur what a level means.'],
+  ['Asks of the language packs','Friend rounds (kana and customs, with their example words), your Tomo\'s lines for greeting and copying a friend at each age, and the sensei\'s grown-up lines.']]},
+
+/* ---------------------------------------------------------------- F3 */
+{name:'Little Siblings',model:'Model c, grown from the nest · your Tomo becomes the big one',
+ pitch:'The two eggs you didn\'t pick hatch later as your Tomo\'s little siblings, and you teach them what you already know.',
+ flows:[
+ {label:'A sibling hatches',steps:[
+   'Your Tomo turns 2さい. On its next visit it brings something along on its strand: みてみて！',
+   'It\'s the egg that said ニャンニャン on the first day. Tap it.',
+   'Out comes a 1さい little sibling: ばあ！ It\'s tiny, and it knows nothing yet.',
+   'Your Tomo is the big one now, and it shows the baby off: あかちゃん！',
+   'The third egg waits in the nest for your Tomo\'s 3さい birthday.'],
+  run:async S=>{const {m,p}=S;m.state('card');m.card({head:'2さい · Lv 16',bar:6,look:LK.tomo,body:macRound({say:'みてみて！',prompt:'Your Tomo brought something.',goal:'10 more words to Lv 17 · ready now'})});
+   const t=m.actor({look:LK.tomo,age:1,...SZ.cardA},MB.cardA),e=m.actor({look:LK.cat,age:0,egg:true,size:1.35,poke:false,hidden:true},MB.cardB);
+   S.step(0);t.b.react('star');await S.wait(600);e.b.cue('drip');await S.wait(1200);
+   S.step(1);await hatchEgg(S,e,'ニャンニャン','Tap the egg in the card.');
+   S.step(2);e.b.o.size=1.05;S.say(e,'ばあ！');m.body(macRound({say:'ばあ！',prompt:'A little sibling hatched.',goal:'It learns from you'}));await S.wait(2000);
+   S.step(3);t.b.react('love');m.body(macRound({say:'あかちゃん！',prompt:'baby · your Tomo shows it off',goal:'10 more words to Lv 17 · ready now'}));await S.wait(2200);
+   S.step(4);p.view(phoneTomo({note:'<div class="row"><b>Your Tomo</b> · 2さい · the big one<br><b>The ニャンニャン baby</b> · 1さい<br>One egg left, for 3さい</div>'}));p.tabs(1);p.nest();
+   p.actor({look:LK.tomo,age:1,size:1.15},PB.tomo);p.actor({look:LK.cat,age:0,size:.95},PB.egg1);p.actor({look:LK.car,age:0,egg:true,size:1.4,poke:false},PB.egg2);await S.wait(1800);}},
+ {label:'Teach the baby',steps:[
+   'New words still come from your Tomo. Reviews go to the baby.',
+   'The baby asks for a word you already know: ワンワン？',
+   'Show it. Teaching it is your review, and it counts like one.',
+   'The baby grows only from what you teach it, so it can never pass your Tomo.',
+   'On the iPhone the baby sits beside your Tomo on the Play screen and asks the same way.'],
+  run:async S=>{const {m,p}=S;m.state('card');const t=m.actor({look:LK.tomo,age:1,...SZ.cardA},MB.cardA),b=m.actor({look:LK.cat,age:0,...SZ.cardB,size:1.05},MB.cardB);
+   m.card({head:'2さい · Lv 23',bar:58,look:LK.tomo,body:macRound({say:'すいか！',prompt:SUIKA_OK})});
+   S.step(0);await S.wait(1500);
+   S.step(1);b.b.react('think');const c=m.body(macRound({say:'ワンワン？',prompt:'The baby asks. Show it ワンワン.',choices:['🐱','🚗','🐶'],goal:'Review · the baby is 1さい · Lv 4'}));await S.wait(600);
+   S.step(2);await S.pick(c,2,b,c.querySelector('.prompt'),'<b class="ok">✓ Win +1</b> ワンワン · you taught it');t.b.react('star');await S.wait(1300);
+   S.step(3);b.b.react('levelup');m.body(macRound({say:'じょうず！',prompt:'Your Tomo is proud of you both.',goal:'The baby grows from the words you know'}));await S.wait(2000);
+   S.step(4);const pc=p.view(phoneRound({say:'ニャンニャン？',prompt:'The baby asks. Show it ニャンニャン.',choices:['🐱','🐸','🐼'],goal:'Review · the baby is 1さい · Lv 4'}));
+   const pt=p.actor({look:LK.tomo,age:1,size:1.15},PB.playA),pb=p.actor({look:LK.cat,age:0,size:.95},PB.playB);pb.b.react('think');await S.wait(500);
+   await S.pick(pc,0,pb,pc.querySelector('.prompt'),'<b class="ok">✓ Win +1</b> ニャンニャン · you taught it');pt.b.react('happy');await S.wait(1200);}},
+ {label:'The hand-off',steps:[
+   'The baby can\'t visit on its own. It rides on your Tomo: おんぶ！',
+   'Open the visit, and they drip in together on one strand.',
+   'Your Tomo asks its new word first.',
+   'Then it hands over: the baby slides down for a review.',
+   'Visit over: the baby climbs back on, and both are pulled up together.'],
+  run:async S=>{const {m,p}=S;m.rest(restRight('call',LK.tomo));const t=m.actor({look:LK.tomo,age:1,...SZ.rest,glow:1},MB.rest),b=m.actor({look:LK.cat,age:0,...SZ.rest,size:1},{x:226,y:-4,w:22,h:20});
+   S.step(0);await S.wait(1300);m.state('peek');m.peek({call:'おんぶ！',word:'すいか'});place(t,MB.peek,500);place(b,{x:142,y:-2,w:36,h:34},500);t.b.o.glow=0;await S.wait(700);
+   await S.tap(m.q('.p-peek'),'Point at the peek on the Mac, or click it.');
+   S.step(1);m.state('card');t.b.o.size=SZ.cardA.size;place(t,MB.cardA);place(b,{x:82,y:34,w:56,h:50});t.b.cue('drip');b.b.cue('drip');const c=m.card({head:'2さい · Lv 23',bar:58,look:LK.tomo,body:macRound(SUIKA)});await S.wait(900);
+   S.step(2);await S.pick(c,1,t,c.querySelector('.prompt'),SUIKA_OK);await S.wait(1000);
+   S.step(3);place(b,MB.cardB,700);b.b.o.size=1.05;b.b.add('hop',.4,.2);await S.wait(800);b.b.react('think');const c2=m.body(macRound({say:'ブーブー？',prompt:'The baby asks. Show it ブーブー.',choices:['🚗','🐷','🍉'],goal:'Review · the baby is 1さい · Lv 4'}));
+   await S.pick(c2,0,b,c2.querySelector('.prompt'),'<b class="ok">✓ Win +1</b> ブーブー · vroom (a car)');await S.wait(1100);
+   S.step(4);m.body(macRound({say:'バイバイ！',prompt:'See you next visit.',goal:'2 more words to Lv 24 · back at 3:10 PM'}));place(b,{x:82,y:34,w:56,h:50},700);await S.wait(900);t.b.cue('pull');b.b.cue('pull');await S.wait(600);m.state('rest');m.rest(restRight('dim',LK.tomo));
+   const t2=m.actor({look:LK.tomo,age:1,...SZ.rest,hidden:true},MB.rest);t2.b.cue('drip');await S.wait(1200);}},
+ {label:'Ask the book',steps:[
+   'There\'s no sensei character in this one. Your Tomo has a picture book: えほん！',
+   'Drop a line onto the notch. The help panel opens as the book, and your Tomo and the baby lean over it.',
+   'The book reads the line offline. Words you know show the picture your Tomo taught you with.',
+   'Add the page: the book keeps your own material, your Tomo brings its new words, and later you teach them to the baby.',
+   'On the iPhone, it\'s Share, then Add to Tomo\'s book.'],
+  run:async S=>{const {m,p}=S;const t=m.actor({look:LK.tomo,age:1,...SZ.rest},MB.rest);m.rest(restRight('dim',LK.tomo));const w=m.win({title:'Notes',box:{x:40,y:250,w:330},html:NOTE_WIN});
+   S.step(0);await S.wait(1200);
+   S.step(1);const line=w.querySelector('.sel-line');await S.tap(line,'Click the line to drop it onto the notch.');line.classList.add('sel');S.chip(m,'でんしゃが おくれています',line,{x:380,y:12},800);await S.wait(900);w.remove();
+   m.state('card',true);place(t,MB.cardA,550);t.b.o.size=SZ.cardA.size;const b=m.actor({look:LK.cat,age:0,...SZ.cardB,size:1.05,hidden:true},MB.cardB);b.b.cue('drip');
+   m.card({head:'2さい · Lv 23',bar:58,look:LK.tomo,body:macRound({say:'えほん！',prompt:'picture book · your Tomo opens it',goal:'The book reads what you dropped'})});
+   const h=m.help(`<div class="book"><div class="pg"><h5>でんしゃ</h5><span class="pic">🚃</span><p>train · you know it, from 1さい</p></div><div class="pg"><h5>おくれて · 遅れる</h5><p>to be late · new to you</p><p>でんしゃが おくれています: the train is running late. が marks what it's about; ています means it's happening now.</p><button type="button" class="add">Add this page</button></div></div>`);
+   h.style.paddingLeft='18px';await S.wait(800);
+   S.step(2);t.b.glance={x:.3,y:-.9,until:T()+2.5};b.b.glance={x:.2,y:-.9,until:T()+2.5};await S.wait(2400);
+   S.step(3);const add=h.querySelector('.add');await S.tap(add,'Click Add this page.');h.querySelector('.book').insertAdjacentHTML('beforeend','<div class="turn"></div>');add.textContent='Added to Tomo\'s book';t.b.react('happy');b.b.react('happy');await S.wait(1600);
+   S.step(4);p.view(phoneRound({...SUIKA}));gone(p.actor({look:LK.tomo,age:1,size:1.2},PB.play));const sh=p.sheet(shareSheet('Add to Tomo\'s book'));await S.wait(500);
+   await S.tap(sh.querySelector('.sh-acts .us'),'Tap Add to Tomo\'s book.');p.sheet(null);await S.wait(450);p.view(phoneTomo({title:'Tomo\'s book',sub:'Pages you added, and the words in them',note:'<div class="row"><b>でんしゃが おくれています</b><br>New for your Tomo: おくれる. Known: でんしゃ</div>'}));p.tabs(1);
+   const pt=p.actor({look:LK.tomo,age:1,size:1.1},PB.tomo);pt.b.react('happy');await S.wait(1400);}},
+ {label:'Bedtime',steps:[
+   'The family lives on the Tomo screen.',
+   'Tap the baby, then Bedtime for now.',
+   'It gets its ふとん and falls asleep. It stops riding along on visits.',
+   'Asleep, it doesn\'t miss you. The family has one mood, your Tomo\'s, so turning a sibling off never adds guilt.',
+   'Tap it to wake it: おはよう！'],
+  run:async S=>{const {m,p}=S;p.view(phoneTomo({note:'<div class="row"><b>Your Tomo</b> · 2さい · Lv 23<br><b>The ニャンニャン baby</b> · 1さい · Lv 4<br>One egg left, for 3さい</div>'}));p.tabs(1);p.nest();
+   p.actor({look:LK.tomo,age:1,size:1.15},PB.tomo);const b=p.actor({look:LK.cat,age:0,size:.95},PB.egg1);p.actor({look:LK.car,age:0,egg:true,size:1.4,poke:false},PB.egg2);
+   m.actor({look:LK.tomo,age:1,...SZ.rest},MB.rest);m.rest(restRight('dim',LK.tomo));
+   S.step(0);await S.wait(1300);
+   S.step(1);await S.tap(b,'Tap the baby on the iPhone.');const mn=popMenu(p,150,236,['Bedtime for now','Bring it along']);await S.tap(mn.querySelector('[data-i="0"]'),'Choose Bedtime for now.');mn.remove();
+   S.step(2);const fu=mk('div','futon');Object.assign(fu.style,{left:'40px',top:'420px',width:'120px'});place(b,{x:52,y:352,w:96,h:90},800);await S.wait(700);p.q('.pvwrap').append(fu);b.b.o.face='sleep';await S.wait(1600);
+   S.step(3);await S.wait(1900);
+   S.step(4);await S.tap(b,'Tap the sleeping baby.');b.b.o.face=null;b.b.add('stretch',.9);S.say(b,'おはよう！');await S.wait(900);fu.remove();place(b,PB.egg1,800);await S.wait(1000);}}
+ ],
+ answers:[
+  ['Grows, and misses you?','Siblings grow only from what you teach them, so they never pass your Tomo. The family has one mood, your Tomo\'s; a sibling never misses you.'],
+  ['Sensei and your own material','No sensei character. Your Tomo has a picture book. You ask the book, and the pages you add are your own material.'],
+  ['What powers the sensei','The same offline stack, laid out as picture-book pages. A word you know shows the picture your Tomo taught it with.'],
+  ['Start over','The whole family: a new nest of three eggs. What you know is kept unless you choose to forget it too.'],
+  ['New words a day','Only your Tomo brings new words, inside today\'s limit. Siblings only review, so they never add any.'],
+  ['On and off','Bedtime: the sibling sleeps on its ふとん and stops riding along.'],
+  ['How it fits today\'s code','Siblings are TomoBlobs from the egg seeds. A sibling\'s level is worked out from your word stages, with no word stages of its own. A review round gets one new field, who asks it, and a cue script for riding along. The book is a new kind of help in the panel.',1],
+  ['Risks','More babies may feel more childish than you want. Teaching is still reviewing, so it can read as a reskin. Letters and customs are weakest here: they only come from the book and from a sibling growing into them (the ニャンニャン sibling reaches letters at 4さい, about when Japanese children start hiragana).'],
+  ['Asks of the language packs','Baby asking forms (ワンワン？), your Tomo\'s big-sibling lines (じょうず！, みてみて！), and templates for book pages.']]},
+
+/* ---------------------------------------------------------------- F4 */
+{name:'Eyes in the Dark',model:'Your Tomo, plus friends who live inside the notch',
+ pitch:'Friends live in the black of the notch, and only their eyes show. When a word has more to it, a pair of eyes opens, and you can let that friend lean out and tell you.',
+ flows:[
+ {label:'A friend moves in',steps:[
+   'When your Tomo turns 2さい, an egg rolls out of the nest and up into the dark.',
+   'It hatches inside the Dynamic Island. Tap it.',
+   'Only its eyes show. It\'s the ニャンニャン friend, and it knows letters.',
+   'On the Mac it lives in the notch: a pair of eyes in the black, beside the camera.',
+   'It only comes out when a word has something for it. It never visits on its own, so it adds no visits and nothing to keep up with.'],
+  run:async S=>{const {m,p}=S;p.view(phoneTomo({note:'<div class="row">The nest. Two eggs are still waiting.</div>'}));p.tabs(1);p.nest();p.actor({look:LK.tomo,age:1,size:1.15},PB.tomo);
+   const e=p.actor({look:LK.cat,age:1,egg:true,size:1.4,poke:false},PB.egg1);p.actor({look:LK.car,age:1,egg:true,size:1.4,poke:false},PB.egg2);m.actor({look:LK.tomo,age:1,...SZ.rest},MB.rest);m.rest(restRight('dim',LK.tomo));
+   S.step(0);e.b.eggRock=1.8;await S.wait(900);place(e,{x:170,y:6,w:34,h:44},1300);await S.wait(1350);gone(e);p.di('crack');
+   S.step(1);await S.tap(p.q('.di'),'Tap the Dynamic Island.');p.di('wide');e.el.remove();
+   S.step(2);const g=p.actor({look:LK.cat,age:1,ghost:true,shadow:false,size:3.4,poke:false},{x:146,y:13,w:80,h:40});S.say(g,P_('ニャ？'),44);await S.wait(2200);p.di('');place(g,PB.di,400);
+   S.step(3);const mg=m.actor({look:LK.cat,age:1,ghost:true,shadow:false,size:4},MB.notchR);await S.wait(2200);
+   S.step(4);mg.b.glance={x:-1,y:-.2,until:T()+2};await S.wait(2400);}},
+ {label:'A visit, with eyes',steps:[
+   'Your Tomo\'s visit, as today: すいか！',
+   'すいか starts with す, so a pair of eyes opens in the black above the card.',
+   'Point at the eyes if you want more. The ニャンニャン friend lowers itself upside down into the help panel and traces す.',
+   'Its one round: find す.',
+   'It climbs back up. Ignored eyes simply close when the visit ends, and nothing counts as missed.'],
+  run:async S=>{const {m,p}=S;m.state('card');const t=m.actor({look:LK.tomo,age:1,...SZ.card},MB.card);const c=m.card({head:'2さい · Lv 23',bar:58,look:LK.tomo,body:macRound(SUIKA)});
+   S.step(0);await S.pick(c,1,t,c.querySelector('.prompt'),SUIKA_OK);await S.wait(600);
+   S.step(1);const g=m.actor({look:LK.cat,age:1,ghost:true,shadow:false,size:4,hidden:true},MB.notchR);g.b.hidden=false;g.b.blinkAt=T();g.b.glance={x:-.6,y:-1,until:T()+3};t.b.glance={x:.7,y:1,until:T()+2};await S.wait(1600);
+   S.step(2);await S.tap(g,'Point at the eyes in the notch, or click them.');m.state('card',true);gone(g);
+   const f=m.actor({look:LK.cat,age:1,size:1.3,hang:true,shadow:false,hidden:true},{x:62,y:224,w:116,h:150},{flip:true});f.b.cue('drip');
+   const h=m.help(`<div class="aside"><div class="trace"><span>す</span></div><div class="sp"><p class="sp-who">The ニャンニャン friend · letters</p><h4>す · su</h4><p>The first sound of すいか. Two strokes: across, then down with a loop. Stroke order from KanjiVG.</p><div class="sp-foot"><span class="sp-src">Find す</span></div>${tiles(['ず','す','む'],true)}</div></div>`);
+   await S.wait(1600);
+   S.step(3);await S.pick(h,1,f,h.querySelector('.sp-src'),'<span style="color:var(--n-win)">✓ す · it doesn\'t add a new word</span>');await S.wait(1200);
+   S.step(4);f.b.cue('pull');await S.wait(500);m.state('card');m.help('');g.b.o.face='sleep';gone(g,false);await S.wait(1600);g.b.cue('pull');await S.wait(900);}},
+ {label:'The hand-off',steps:[
+   'On the iPhone, the dark is the Dynamic Island. Your Tomo asks いただきます, and eyes open up there.',
+   'Tap the island.',
+   'The ブーブー friend hangs down from it on a strand and bows: palms together, before every meal.',
+   'Then it climbs back into the dark, and your Tomo carries on.'],
+  run:async S=>{const {m,p}=S;m.actor({look:LK.tomo,age:1,...SZ.rest},MB.rest);m.rest(restRight('dim',LK.tomo));
+   const pc=p.view(phoneRound({say:'いただきます！',prompt:'What does it mean?',pill:true,choices:['Let\'s eat (thanks for this food)','I\'m full','Good night']}));const t=p.actor({look:LK.tomo,age:1,size:1.2},PB.play);
+   S.step(0);await S.pick(pc,0,t,pc.querySelector('.prompt'),'<b class="ok">✓ Win +1</b> Let\'s eat');const g=p.actor({look:LK.car,age:1,ghost:true,shadow:false,size:3.4,poke:false},PB.di);t.b.glance={x:0,y:1,until:T()+3};await S.wait(1500);
+   S.step(1);await S.tap(p.q('.di'),'Tap the Dynamic Island.');gone(g);
+   S.step(2);const f=p.actor({look:LK.car,age:1,size:1.2,hang:true,shadow:false,hidden:true},{x:126,y:36,w:120,h:150},{flip:true});f.b.cue('drip');await S.wait(800);
+   p.view(phoneRound({say:'いただきます！',prompt:'<b>The ブーブー friend:</b> said with palms together, before every meal. After eating, it\'s ごちそうさま.',goal:'A custom about a word you know'}));place(t,{x:8,y:168,w:176,h:200},600);f.b.react('happy');await S.wait(2600);
+   S.step(3);f.b.cue('pull');await S.wait(500);gone(g,false);place(t,PB.play,600);await S.wait(700);const p2=p.view(phoneRound({say:'ごはん！',prompt:'Pick the picture',choices:['🍚','🍞','🍵']}));
+   await S.pick(p2,0,t,p2.querySelector('.prompt'),'<b class="ok">✓ Win +1</b> rice, a meal');await S.wait(900);}},
+ {label:'Ask the sensei',steps:[
+   'The biggest eyes in the notch are the sensei\'s. Drag a line onto the notch.',
+   'The notch opens its eyes: big, slow, grown-up.',
+   'It answers in the help panel, offline, and marks what you already know.',
+   'Keep it in the sensei\'s pocket: your own material. Your Tomo brings the new words on its visits.',
+   'On the iPhone: Share, then Ask the dark. The Dynamic Island opens the same eyes.'],
+  run:async S=>{const {m,p}=S;const t=m.actor({look:LK.tomo,age:1,...SZ.rest},MB.rest);m.rest(restRight('dim',LK.tomo));const w=m.win({title:'Notes',box:{x:40,y:250,w:330},html:NOTE_WIN});
+   S.step(0);const line=w.querySelector('.sel-line');await S.tap(line,'Click the line to drag it onto the notch.');line.classList.add('sel');S.chip(m,'でんしゃが おくれています',line,{x:380,y:14},800);await S.wait(900);w.remove();
+   S.step(1);const se=m.actor({look:LK.sensei,age:5,ghost:true,shadow:false,size:4.2,poke:false},MB.notchC);se.b.setFlash('sleep',.9);await S.wait(1300);se.b.react('think');
+   S.step(2);m.state('card',true);m.card({head:'Sensei',bar:100,look:LK.sensei,body:macRound({say:P_('ふむ。'),prompt:'The sensei reads the line you dropped.',goal:'Answers from what\'s on this Mac'})});place(t,MB.card,550);t.b.o.size=SZ.card.size;t.b.glance={x:.5,y:1,until:T()+3};
+   const h=m.help(senseiAnswer({who:'Sensei, from the dark',keep:'Keep in the pocket'}));h.style.paddingLeft='22px';await S.wait(2400);
+   S.step(3);const k=h.querySelector('.sp-keep');await S.tap(k,'Click Keep in the pocket.');k.textContent='Tomo will bring おくれる';k.classList.add('done');S.chip(m,'おくれる',k,t);se.b.react('happy');await S.wait(1500);
+   S.step(4);p.view(phoneRound({...SUIKA}));gone(p.actor({look:LK.tomo,age:1,size:1.2},PB.play));const sh=p.sheet(shareSheet('Ask the dark'));await S.wait(500);
+   await S.tap(sh.querySelector('.sh-acts .us'),'Tap Ask the dark.');p.di('wide');const pe=p.actor({look:LK.sensei,age:5,ghost:true,shadow:false,size:3.8,poke:false},{x:136,y:12,w:100,h:44});
+   sh.insertAdjacentHTML('beforeend',`<div class="sh-ans">${senseiAnswer({who:'Sensei, from the dark',keep:'Keep in the pocket'})}</div>`);sh.querySelector('.sh-ans .sp-who').style.paddingLeft='0';sh.querySelector('.sh-ans .sp-who').style.minHeight='0';pe.b.react('think');await S.wait(1800);}},
+ {label:'Let a friend sleep',steps:[
+   'Right-click the eyes in the notch.',
+   'Choose Let it sleep.',
+   'The eyes close into sleepy arcs and sink into the black. They won\'t open for letters until you wake them.',
+   'On the iPhone, the Tomo screen has a strip of the dark with every friend\'s eyes. A sleeping friend\'s are closed.',
+   'Tap them to wake it.'],
+  run:async S=>{const {m,p}=S;m.actor({look:LK.tomo,age:1,...SZ.rest},MB.rest);m.rest(restRight('dim',LK.tomo));const g=m.actor({look:LK.cat,age:1,ghost:true,shadow:false,size:4},MB.notchR);
+   p.view(phoneTomo({note:'<div class="row">Friends in the dark. Their eyes open when a word has something for them.</div>'})+'');p.tabs(1);p.q('.pvwrap').insertAdjacentHTML('beforeend','<div class="dark-strip"></div>');p.actor({look:LK.tomo,age:1,size:1.15},PB.tomo);
+   const pg1=p.actor({look:LK.cat,age:1,ghost:true,shadow:false,size:2.2},{x:60,y:420,w:110,h:80}),pg2=p.actor({look:LK.car,age:1,ghost:true,shadow:false,size:2.2},{x:200,y:420,w:110,h:80});
+   const pv=p.q('.pv-note');pv.style.top='540px';
+   S.step(0);await S.tap(g,'Right-click (click) the eyes in the notch.');const mn=popMenu(m,350,40,['Let it sleep','Show me what it knows','-','About friends in the dark']);
+   S.step(1);await S.tap(mn.querySelector('[data-i="0"]'),'Choose Let it sleep.');mn.remove();
+   S.step(2);g.b.o.face='sleep';pg1.b.o.face='sleep';await S.wait(1500);g.b.cue('pull');await S.wait(1200);
+   S.step(3);await S.wait(1800);
+   S.step(4);await S.tap(pg1,'Tap the closed eyes on the iPhone.');pg1.b.o.face=null;pg1.b.blinkAt=T();pg1.b.react('happy');const g2=m.actor({look:LK.cat,age:1,ghost:true,shadow:false,size:4,hidden:true},MB.notchR);g2.b.cue('drip');await S.wait(1500);}}
+ ],
+ answers:[
+  ['Grows, and misses you?','Friends don\'t grow, and they never visit on their own, so they can\'t be ignored and can\'t miss you. What they\'ve shown you goes into the shared memory.'],
+  ['Sensei and your own material','The same. The sensei is the biggest pair of eyes in the notch. Drop a line on the notch and it answers; what you keep goes into its pocket, and your Tomo brings the new words.'],
+  ['What powers the sensei','The same offline stack. A friend\'s aside is authored with the word in the pack, so it needs no lookup at all.'],
+  ['Start over','Your Tomo only. Friends and the sensei\'s pocket stay.'],
+  ['New words a day','Your Tomo\'s limit only. A friend\'s aside is about a word you\'re already learning, so it isn\'t a new word.'],
+  ['On and off','Right-click the eyes and choose Let it sleep. They close and sink.'],
+  ['How it fits today\'s code','A friend\'s aside is a new kind of help (TomoGame.help) in the panel under the card, triggered by fields on a round in the pack (its first kana, a custom note). The eyes are a TomoBlob drawn face-only. The iPhone\'s Dynamic Island is a Live Activity, so eyes there need one running and move as a frame font; otherwise they sit at the top of the Play screen.',1],
+  ['Risks','Eyes in the notch could read as a notification. The Mac has to hit-test the physical notch. Some learners will never point at the eyes, and the Dynamic Island depends on Live Activity rules.'],
+  ['Asks of the language packs','Notes on rounds: a word\'s first kana (with KanjiVG strokes), customs notes, and later grammar notes on 2さい and 3さい phrases. Plus each friend\'s few lines and the sensei\'s.']]}
+];
+
+/* ---------- compare table and lean ---------- */
+const CMP=[
+ ['Character model','Separate, equal Tomos','Your Tomo plus light guests','Your Tomo plus little siblings','Your Tomo plus eyes in the notch'],
+ ['Who visits','Whoever\'s turn it is','Your Tomo, sometimes with a guest','Your Tomo, with a baby on its back','Your Tomo; friends lean out on request'],
+ ['Each friend grows','Yes, on its own subject','No','Yes, only from what you teach','No'],
+ ['Misses you','One household mood, worn by the next visitor','Only your Tomo','Only your Tomo','Only your Tomo'],
+ ['Sensei','A 6さい Tomo you call','A grown-up in めがね','A picture book, not a character','The biggest eyes in the notch'],
+ ['Your own material','Goes to your Tomo\'s words','The sensei\'s notebook','Pages in the book','The sensei\'s pocket'],
+ ['New words a day','One shared limit','Your Tomo\'s limit','Your Tomo\'s limit; siblings only review','Your Tomo\'s limit; asides are free'],
+ ['Start over','Per friend, or everything','Your Tomo only','The whole family','Your Tomo only'],
+ ['Biggest risk','Feels like three courses','Friends feel like props','Childish, and weak on letters and customs','Eyes go unnoticed']];
+
+/* ---------- comments ---------- */
+let COMMENTS=null,commentsTried=false;
+async function initComments(){try{COMMENTS=window.claude?.use?await window.claude.use('comments'):null;}catch(e){COMMENTS=null;}commentsTried=true;}
+function hint(sec,t){const h=sec.querySelector('.hint');if(!h)return;h.textContent=t;clearTimeout(h.__t);h.__t=setTimeout(()=>h.textContent='',5000);}
+async function openComment(sec){
+  if(!COMMENTS){hint(sec,commentsTried?'Use comment mode in the toolbar, then click this direction.':'Still connecting. Try again in a moment.');return;}
+  try{const r=await COMMENTS.openComposer({element:sec});if(!r||!r.opened)hint(sec,'Click on the page first, then press Comment again.');}
+  catch(e){hint(sec,'Use comment mode in the toolbar instead.');}}
+
+/* ---------- build ---------- */
+function buildCast(){const d=new Dev(440,250,'cast');d.finish();document.getElementById('cast').append(d.fitEl);d.resize();
+  const nb=`left:200px;top:166px;width:214px;height:72px`;d.root.insertAdjacentHTML('afterbegin',`<div class="nest nb" style="${nb}"></div>`);d.front.insertAdjacentHTML('afterbegin',`<div class="nest nf" style="${nb};pointer-events:none"></div>`);
+  d.actor({look:LK.tomo,age:1,size:1.15},{x:16,y:40,w:160,h:200});
+  [['cat','ニャンニャン',{x:222,y:128,w:84,h:110}],['car','ブーブー',{x:308,y:128,w:84,h:110}]].forEach(([k,w,box])=>{const e=d.actor({look:LK[k],age:0,egg:true,size:1.4,poke:false},box);
+    e.el.style.cursor='pointer';e.el.addEventListener('click',()=>{e.b.react('wobble');floatSay(d,e,w);});});}
+const CONCEPTS=[];
+function build(){const main=document.getElementById('main');
+  DIRECTIONS.forEach((def,i)=>{const c=new Concept(def,i+1);CONCEPTS.push(c);main.append(c.sec);c.mac.resize();c.ph.resize();});
+  document.getElementById('cmp').innerHTML=`<thead><tr><th></th>${DIRECTIONS.map((d,i)=>`<th>F${i+1} · ${d.name}</th>`).join('')}</tr></thead><tbody>${CMP.map(r=>`<tr><th>${r[0]}</th>${r.slice(1).map(v=>`<td>${v}</td>`).join('')}</tr>`).join('')}</tbody>`;
+  document.getElementById('lean').innerHTML=`<p><b>Where Claude leans:</b> build F4, Eyes in the Dark, first. It gets letters, customs, the sensei and your own material working without a second growth system, a second mood or a new store key, which fits "getting all the concepts working is first".</p><p>Its pieces carry over: the asides are content that F2's playdates or F1's turns could deliver later, so choosing F4 now doesn't close off model a or c. Decide that once the concepts work.</p>`;
+  const seen=new IntersectionObserver(es=>{for(const e of es){if(!e.isIntersecting)continue;const c=CONCEPTS.find(x=>x.sec===e.target);if(c&&!c.started)c.play(0);seen.unobserve(e.target);}},{threshold:.35});
+  CONCEPTS.forEach(c=>seen.observe(c.sec));
+  buildCast();}
+build();initComments();requestAnimationFrame(loop);
+</script>
+
+</body></html>
