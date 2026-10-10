@@ -80,7 +80,7 @@ enum TomoIconRenderer {
         .frame(width: size, height: size)
     }
 
-    /// TOMO_RENDER_ANIM=<dir>: a scripted 16-second scene, rendered frame by frame on a scripted clock
+    /// TOMO_RENDER_ANIM=<dir>: a scripted 18-second scene, rendered frame by frame on a scripted clock
     /// (frame-0000.png … at 20 fps), for checking motion. Join them into a GIF with any tool.
     private static func renderAnimation(to out: URL) {
         try? FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
@@ -101,10 +101,11 @@ enum TomoIconRenderer {
             (12.2, { $0.nudge() }),
             (13.4, { $0.grow(to: 2) }),                                  // 3さい
             (15.0, { $0.emote(.yawn) }),
+            (16.0, { $0.setState(.finished); $0.emote(.proud); $0.levelUp() }),   // a level-up (TomoGame.celebrate)
         ]
         var next = 0
         let fps = 20.0
-        for i in 0..<Int(fps * 16) {
+        for i in 0..<Int(fps * 18) {
             t = Double(i) / fps
             while next < script.count && script[next].at <= t { script[next].run(blob); next += 1 }
             blob.lookX = CGFloat(sin(t * 0.9)) * 0.9          // a cursor drifting around
@@ -198,7 +199,8 @@ enum TomoIconRenderer {
              AnyView(cell("yawn", growth: 0) { $0.emote(.yawn) }),
              AnyView(cell("wink", growth: 2) { $0.emote(.wink) }),
              AnyView(cell("annoyed") { $0.emote(.annoyed) }),
-             AnyView(cell("dizzy") { $0.setState(.dizzy) })],
+             AnyView(cell("dizzy") { $0.setState(.dizzy) }),
+             AnyView(cell("level up") { $0.levelUp() })],
         ] + (0..<4).map { r in
             (r * 6..<r * 6 + 6).map { AnyView(cell(crowd[$0].form(3).silhouette.rawValue, growth: 3, look: crowd[$0])) }
         } + [

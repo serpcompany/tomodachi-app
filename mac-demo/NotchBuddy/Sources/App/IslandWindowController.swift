@@ -22,7 +22,7 @@ final class IslandWindowController: NSWindowController {
     // Bot-head hover (love emote)
     private var botHoverTimer: DispatchWorkItem?
     private var botHovering: Bool = false
-    private var lastLoveTime: Double = 0
+    private var love = TomoLoveCooldown()   // the love emote at most once every 6 s, like the iPhone's long press
     private var botHoverStartPos: CGPoint = .zero
 
     private var pendingIslandClick = false   // any island click → expand on mouseUp
@@ -216,7 +216,7 @@ final class IslandWindowController: NSWindowController {
 
     private func botHoverIn(mousePos: CGPoint) {
         guard state.mode == .expanded, state.stateOverride == nil else { return }
-        guard CACurrentMediaTime() - lastLoveTime > 6 else { return }
+        guard love.ready(at: CACurrentMediaTime()) else { return }
         botHoverStartPos = mousePos
         NotificationCenter.default.post(name: .botBlink, object: nil)
         NotificationCenter.default.post(name: .botSetTgEs, object: CGFloat(1.08))
@@ -232,8 +232,7 @@ final class IslandWindowController: NSWindowController {
         botHoverTimer?.cancel()
         let item = DispatchWorkItem { [weak self] in
             guard let self, self.botHovering, self.state.stateOverride == nil else { return }
-            guard CACurrentMediaTime() - self.lastLoveTime > 6 else { return }
-            self.lastLoveTime = CACurrentMediaTime()
+            guard self.love.show(at: CACurrentMediaTime()) else { return }
             NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.love)
         }
         botHoverTimer = item

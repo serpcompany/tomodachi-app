@@ -7,7 +7,7 @@ import SwiftUI
 // birthday. Growth is an age step, 0 = 1さい … 5 = 6さい; each birthday it squeezes down, flashes and pops out
 // in its next form.
 // The app drives it through notifications (docs/architecture.md, "Character"): the task state
-// (`AppState.effectiveState`), `.botTalk`, `.botNudge`, `.botGrow`, `.botGreet`, `.botGulp`,
+// (`AppState.effectiveState`), `.botTalk`, `.botNudge`, `.botGrow`, `.botLevelUp`, `.botGreet`, `.botGulp`,
 // `.triggerEmote`, `.triggerSlap`, `.botBlink`, `.botSetTgEs`.
 // Reduce Motion is an input (`reduceMotion`): a live Tomo follows its shell's setting (`TomoMotion`), and offline
 // renders leave it off, so they never depend on the Mac that renders them.
@@ -138,18 +138,26 @@ public final class TomoBlob: ObservableObject {
     /// Eating (feed): two gulps.
     public func gulp() { stir(); add(.gulp, 0.6) }
 
-    /// Clicked on Tomo. Three pokes in a row make it dizzy.
+    /// Clicked on Tomo: a squish that flops its ears or sprout (not under Reduce Motion). Three pokes in a row make it
+    /// dizzy.
     public func poke() {
         stir()
         let now = clock()
         add(.squish, 0.35)
         flash = (.squeeze, now + 0.5)
+        if !reduceMotion {
+            swayVel += (Bool.random() ? 1 : -1) * 16
+            jiggleVel += 5
+        }
         pokes = pokes.filter { now - $0 < 2.5 } + [now]
         if pokes.count >= 3 {
             pokes = []
             NotificationCenter.default.post(name: .botDizzy, object: nil)
         }
     }
+
+    /// A new level: star eyes. The game's win and `.proud` bring the hop and the sparkles.
+    public func levelUp() { stir(); flash = (.star, clock() + 1.8) }
 
     public func emote(_ e: BotEmote) {
         stir()
@@ -400,6 +408,8 @@ public final class TomoBlob: ObservableObject {
         public static let leaf = Color(hex: "#7FD36B")
         public static let leafDark = Color(hex: "#4FA845")
         public static let horn = Color(hex: "#FFF1D6")
+        public static let gold = Color(hex: "#FFC83D")
+        public static let goldEdge = Color(hex: "#B5630C")
     }
 
     private func drawBody(_ ctx: GraphicsContext, form: TomoForm, R: CGFloat, glow: CGFloat) {
@@ -699,6 +709,12 @@ public final class TomoBlob: ObservableObject {
             ctx.stroke(p, with: ink, style: StrokeStyle(lineWidth: u * 0.95, lineCap: .round, lineJoin: .round))
         case .love:
             ctx.fill(heart(size: u * 3.6), with: .color(Palette.heart))
+        case .star:                        // a gold star per eye, rocking a little
+            var c = ctx
+            c.rotate(by: .radians(Double(starRock(now))))
+            let s = star(u * 2.5, inner: 0.5, points: 5)
+            c.stroke(s, with: .color(Palette.goldEdge), style: StrokeStyle(lineWidth: u * 0.5, lineJoin: .round))
+            c.fill(s, with: .color(Palette.gold))
         case .dizzy:
             let a = CGFloat(now * 7) * side
             let r = u * 1.5
@@ -799,7 +815,10 @@ public final class TomoBlob: ObservableObject {
 
     // MARK: - Moves
 
-    private enum Face { case normal, happy, sleep, sleepy, squeeze, surprised, love, confused, dizzy, wink, flat }
+    private enum Face { case normal, happy, sleep, sleepy, squeeze, surprised, love, confused, dizzy, wink, flat, star }
+
+    /// The star eyes' rock, in radians: still under Reduce Motion (it's a face, so the stars stay).
+    private func starRock(_ now: Double) -> CGFloat { reduceMotion ? 0 : CGFloat(sin(now * 5)) * 0.2 }
 
     private struct Move {
         public enum Kind {
@@ -993,6 +1012,51 @@ extension TomoBlob {
         check(calm.sparkles == 2 && lively.sparkles == 6, "under Reduce Motion a win has a third of the sparkles (6 → 2)")
         check(calm.blinks > 0, "under Reduce Motion Tomo still blinks")
     }
+
+    /// The small touches: a poke flops the ears or sprout (not under Reduce Motion), a level-up shows star eyes that
+    /// rock (still under Reduce Motion), and love from resting on Tomo waits 6 s between shows.
+    static func touchesSelfTest(_ check: (Bool, String) -> Void) {
+        func flop(reduce: Bool) -> (sway: CGFloat, jiggle: CGFloat) {
+            let blob = TomoBlob(look: .mascot)
+            blob.reduceMotion = reduce
+            var t = 100.0
+            blob.clock = { t }
+            blob.step()
+            blob.poke()
+            var most: (sway: CGFloat, jiggle: CGFloat) = (0, 0)
+            for i in 1...30 {
+                t = 100 + Double(i) / 60
+                blob.step()
+                most = (max(most.sway, abs(blob.sway)), max(most.jiggle, abs(blob.jiggle)))
+            }
+            return most
+        }
+        let lively = flop(reduce: false), calm = flop(reduce: true)
+        check(lively.sway > 0.3 && lively.jiggle > 0.05,
+              String(format: "a poke flops Tomo's ears or sprout (%.2f rad) and wobbles it", lively.sway))
+        // What sway is left follows the eyes' small darts (a few hundredths), not the poke.
+        check(calm.sway < 0.05 && calm.jiggle == 0,
+              String(format: "under Reduce Motion a poke doesn't flop (%.3f rad) or wobble", calm.sway))
+
+        let blob = TomoBlob(look: .mascot)
+        var t = 100.0
+        blob.clock = { t }
+        blob.step()
+        blob.levelUp()
+        let rocks = Set((0..<8).map { blob.starRock(t + Double($0) * 0.1) }).count > 1
+        blob.reduceMotion = true
+        let still = (0..<8).allSatisfy { blob.starRock(t + Double($0) * 0.1) == 0 }
+        t += 1
+        blob.step()
+        check(blob.flash?.face == .star && rocks && still,
+              "a level-up shows star eyes, rocking (still under Reduce Motion)")
+
+        var love = TomoLoveCooldown()
+        let first = love.show(at: 50), soon = love.show(at: 53), waiting = love.ready(at: 55.9)
+        let later = love.show(at: 56.5), again = love.show(at: 60)
+        check(first && !soon && !waiting && later && !again,
+              "love from resting on Tomo (Mac pointer, iPhone long press) shows at most once every 6 s")
+    }
 }
 
 
@@ -1056,7 +1120,7 @@ public final class TomoMotion: ObservableObject {
 }
 
 public extension View {
-    /// Tomo reacts to the game's notifications (talk, nudge, greet, grow, emotes, pokes).
+    /// Tomo reacts to the game's notifications (talk, nudge, greet, grow, level-ups, emotes, pokes).
     func tomoReactions(_ blob: TomoBlob) -> some View {
         modifier(TomoBlobMoves(blob: blob)).modifier(TomoBlobReactions(blob: blob))
     }
@@ -1071,6 +1135,7 @@ private struct TomoBlobMoves: ViewModifier {
             .onReceive(NotificationCenter.default.publisher(for: .botNudge)) { _ in blob.nudge() }
             .onReceive(NotificationCenter.default.publisher(for: .botGreet)) { _ in blob.greet() }
             .onReceive(NotificationCenter.default.publisher(for: .botGulp)) { _ in blob.gulp() }
+            .onReceive(NotificationCenter.default.publisher(for: .botLevelUp)) { _ in blob.levelUp() }
             .onReceive(NotificationCenter.default.publisher(for: .botGrow)) { n in
                 if let t = n.object as? CGFloat { blob.grow(to: t) }
             }
