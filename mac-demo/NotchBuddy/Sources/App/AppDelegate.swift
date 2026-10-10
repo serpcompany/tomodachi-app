@@ -101,13 +101,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // Between visits Tomo hangs out small beside the notch (click to play anytime): never auto-hide.
         islandController?.fsm.petitToHiddenDelay = 365 * 24 * 3600
         let game = TomoGame.shared
-        game.openIsland = { [weak self] in self?.islandController?.open() }
+        game.openIsland = { [weak self] in self?.islandController?.open(arriving: true) }   // Tomo drips in
         game.closeIsland = { [weak self] in self?.islandController?.collapse() }
         // A visit may peek first (Settings): the bar by the notch, which opens into the card and then asks.
         game.peeksFirst = { DropIn.peekFirst }
         game.peekIsland = { [weak self] in self?.islandController?.peek() }
         islandController?.onOpen = { TomoGame.shared.acceptOffer() }
-        game.isIslandOpen = { IslandWindowController.countsAsOpen(AppState.shared.mode) }
+        game.isIslandOpen = { IslandWindowController.countsAsOpen(AppState.shared.mode) && !AppState.shared.leaving }
         game.focusInput = { [weak self] in self?.islandController?.window?.makeKey() }
         game.isPointerInside = { AppState.shared.mouseInIsland }
         game.onBotState = { AppState.shared.tomoState = $0 }

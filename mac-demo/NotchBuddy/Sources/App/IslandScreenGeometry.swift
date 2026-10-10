@@ -39,6 +39,8 @@ struct IslandRestingLayout {
     static let ringInset: CGFloat = 11          // from the island's right edge
     static let ringGap: CGFloat = 6             // between the words and the ring
     static let notchClearance: CGFloat = 3
+    /// How much the resting island grows under the pointer (#130), wider and taller, centred under the notch.
+    static let hoverGrowth = CGSize(width: 8, height: 4)
     /// The widest the right side's words get; longer ones shrink to fit (あそぼ！ is about 43 pt at 11.5 pt bold).
     static var textWidth: CGFloat { ear - ringInset - ring - ringGap - notchClearance }   // 45
 
