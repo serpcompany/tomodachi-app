@@ -35,6 +35,9 @@ final class IslandWindowController: NSWindowController {
     private var notchW: CGFloat = IslandConst.notchWidth
     private var notchH: CGFloat = IslandConst.notchHeight
     private var hasNotch = true
+    /// TOMO_DESKTOP: where the pointer pressed on small Tomo, and whether it's dragging Tomo out of the island.
+    private var desktopPress: CGPoint?
+    private var desktopDragging = false
     /// The screen the island is on, and the learner's choice of screen (read again when it changes).
     private var placedFrame = CGRect.zero
     private var screenChoice = TomoScreenChoice.current
@@ -304,13 +307,14 @@ final class IslandWindowController: NSWindowController {
 
         let mouse = NSEvent.mouseLocation
         followPointerScreen(mouse)   // following the pointer, Tomo moves to its screen first
+        followDesktopDrag(mouse)     // TOMO_DESKTOP: small Tomo pulled out of the island, or out there
 
         // Convert mouse to panel-local coords (macOS: origin bottom-left)
         let pf = panel.frame
         let local = CGPoint(x: mouse.x - pf.minX, y: mouse.y - pf.minY)
 
-        let inIsland = Self.pointerInIsland(local, island: panel.currentIslandFrame(nw: notchW, nh: notchH),
-                                            hasNotch: hasNotch, open: state.mode == .expanded)
+        let inIsland = desktopDragging || Self.pointerInIsland(local, island: panel.currentIslandFrame(nw: notchW, nh: notchH),
+                                                               hasNotch: hasNotch, open: state.mode == .expanded)
         setPointerClock(Self.needsPointerClock(inIsland: inIsland, appActive: NSApp.isActive))
 
         // Toggle click-through
@@ -412,6 +416,11 @@ final class IslandWindowController: NSWindowController {
 
     func setMode(_ requested: IslandMode) {
         let mode = Self.shownMode(requested, hasNotch: hasNotch)
+        // Tomo out on the desktop (TOMO_DESKTOP): it flies home first, then the island opens around it.
+        if TomoDesktopRules.fliesHomeFirst(opening: mode, out: TomoDesktop.out) {
+            TomoDesktop.shared.flyHome { [weak self] in self?.setMode(requested) }
+            return
+        }
         let prev = state.mode
         if Self.countsAsOpen(mode) { stayOpen() }   // opened again while Tomo was leaving: it comes back
         guard mode != prev else { return }
@@ -470,7 +479,8 @@ final class IslandWindowController: NSWindowController {
     /// `arriving`: Tomo came out on its own (a visit), so it drips in from the notch (`AppState.arrivals`).
     func open(arriving: Bool = false) {
         checkRules(at: fsm.openedExternally(at: Self.clock))
-        if arriving, !Self.countsAsOpen(state.mode) { state.arrivals += 1 }
+        // Out on the desktop, Tomo flies home and travels in: not a drip.
+        if arriving, !Self.countsAsOpen(state.mode), !TomoDesktop.out { state.arrivals += 1 }
         expand(to: .overview)
     }
 
@@ -480,7 +490,7 @@ final class IslandWindowController: NSWindowController {
     func peek() {
         guard state.mode != .expanded else { return }
         checkRules(at: fsm.peekedExternally(at: Self.clock))
-        if state.mode != .peek { state.arrivals += 1 }   // Tomo drips into the bar
+        if state.mode != .peek, !TomoDesktop.out { state.arrivals += 1 }   // Tomo drips into the bar
         setMode(.peek)
         // TOMO_PEEK_OPEN=<seconds> (snapshots): that long after it shows, the peek opens as a click on it would, but
         // without taking the keyboard, so a test run can see the word slide into the card.
@@ -490,6 +500,48 @@ final class IslandWindowController: NSWindowController {
                 self.checkRules(at: self.fsm.click(at: Self.clock))
             }
         }
+    }
+
+    // MARK: - Tomo on the desktop (TOMO_DESKTOP, a prototype: TomoDesktop)
+
+    /// A press on small Tomo that moved past the drag threshold pulls it out of the island; then it follows the pointer
+    /// until the button is up (the island's own drag events and the global monitors both come here). The desktop Tomo
+    /// hears every move, for its hit test.
+    private func followDesktopDrag(_ mouse: CGPoint) {
+        guard TomoDesktop.enabled else { return }
+        let held = NSEvent.pressedMouseButtons & 1 != 0
+        if let press = desktopPress {
+            if !held { desktopPress = nil }
+            else if TomoDesktopRules.dragStarts(from: press, to: mouse) {
+                desktopPress = nil
+                desktopDragging = true
+                pendingIslandClick = false
+                TomoDesktop.shared.beginDrag(at: mouse)
+            }
+        }
+        if desktopDragging {
+            if held { TomoDesktop.shared.drag(to: mouse) } else {
+                desktopDragging = false
+                TomoDesktop.shared.drop(at: mouse)
+            }
+        }
+        TomoDesktop.shared.pointerMoved(mouse)
+    }
+
+    /// Where small Tomo rests beside the notch, and the island's frame, in global coordinates (TomoDesktop flies home
+    /// there).
+    func restingTomoSpot() -> CGPoint {
+        guard let panel = window else { return .zero }
+        let (w, h) = islandSize(mode: .compact, view: .overview, nw: notchW, nh: notchH, hasNotch: hasNotch)
+        let (bx, by, _, _) = botPosition(mode: .compact, view: .overview, islandW: w, islandH: h, hasNotch: hasNotch)
+        let island = Self.islandFrame(panel: panel.frame.size, mode: .compact, view: .overview,
+                                      notch: CGSize(width: notchW, height: notchH), help: 0, hasNotch: hasNotch)
+        return CGPoint(x: panel.frame.minX + island.minX + bx, y: panel.frame.minY + island.maxY - by)
+    }
+
+    func islandFrameOnScreen() -> CGRect {
+        guard let panel = window as? IslandPanel else { return .zero }
+        return panel.currentIslandFrame(nw: notchW, nh: notchH).offsetBy(dx: panel.frame.minX, dy: panel.frame.minY)
     }
 
     // MARK: - The shortcut to play (TomoShortcut, Settings)
@@ -554,6 +606,11 @@ final class IslandWindowController: NSWindowController {
             MainActor.assumeIsolated {
                 guard self.wasInIsland else { return }
                 self.pendingIslandClick = true
+                // TOMO_DESKTOP: a press on small Tomo becomes a drag onto the desktop once the pointer moves.
+                if TomoDesktop.enabled, self.state.mode == .compact, !TomoDesktop.out,
+                   self.isBotHit(event.locationInWindow) {
+                    self.desktopPress = NSEvent.mouseLocation
+                }
                 self.botHoverTimer?.cancel()
                 self.botHovering = false
                 // A poke only lands on Tomo, and only when the island is open
@@ -565,6 +622,12 @@ final class IslandWindowController: NSWindowController {
         NSEvent.addLocalMonitorForEvents(matching: .leftMouseUp) { [weak self] event in
             guard let self else { return event }
             MainActor.assumeIsolated {
+                self.desktopPress = nil
+                if self.desktopDragging {   // let go of Tomo dragged out of the island: no click
+                    self.desktopDragging = false
+                    self.pendingIslandClick = false
+                    TomoDesktop.shared.drop(at: NSEvent.mouseLocation)
+                }
                 let hadPendingClick = self.pendingIslandClick
                 self.pendingIslandClick = false
                 if hadPendingClick && self.state.mode != .expanded {

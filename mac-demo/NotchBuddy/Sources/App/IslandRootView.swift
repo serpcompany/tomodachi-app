@@ -286,7 +286,7 @@ struct BotPlacement: View {
                         .frame(width: side, height: side + overhang)
                         // Squashed and stretched about Tomo's bottom (its middle is `overhang` + half the side down).
                         .scaleEffect(x: pose.sx, y: pose.sy, anchor: UnitPoint(x: 0.5, y: (overhang + side * 0.8) / (side + overhang)))
-                        .opacity(pose.spot.opacity)
+                        .opacity(state.tomoOnDesktop ? 0 : pose.spot.opacity)   // out on the desktop (TOMO_DESKTOP)
                         .position(x: pose.spot.center.x, y: pose.spot.center.y - overhang / 2)
                 }
             }

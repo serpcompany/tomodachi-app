@@ -410,6 +410,81 @@ enum TomoIslandSelfTest {
               "it shrinks as it goes and melts into the bar as it lands")
     }
 
+    /// Tomo on the desktop (#130 batch 4, a prototype behind TOMO_DESKTOP: TomoDesktop): when a press becomes a drag,
+    /// where Tomo lands, the hit test on its real outline, its gaze across screens, the doze, and the flight home.
+    /// A headless run can't drag or open the window, so the rules are checked here and TOMO_RENDER_DESKTOP draws them.
+    private static func desktop(_ check: (Bool, String) -> Void) {
+        typealias D = TomoDesktopRules
+        let press = CGPoint(x: 600, y: 970)
+        check(!D.dragStarts(from: press, to: CGPoint(x: 604, y: 966)) && D.dragStarts(from: press, to: CGPoint(x: 600, y: 963)),
+              "a press on small Tomo is a click until the pointer moves past \(D.dragStart) pt, then a drag out of the notch")
+        check(!TomoDesktop.enabled || !TomoHeadless.isOn, "a headless run never opens the desktop Tomo")
+        // Two screens: the main one (its usable area below the menu bar, above a Dock) and one to its left, higher up.
+        let main = CGRect(x: 0, y: 70, width: 1512, height: 880), left = CGRect(x: -1920, y: 200, width: 1920, height: 1050)
+        let r = D.diameter / 2, screens = [main, left]
+        let mid = D.landing(drop: CGPoint(x: 900, y: 400), screens: screens, radius: r)
+        let corner = D.landing(drop: CGPoint(x: 1510, y: 72), screens: screens, radius: r)
+        let other = D.landing(drop: CGPoint(x: -300, y: 1200), screens: screens, radius: r)
+        let gap = D.landing(drop: CGPoint(x: 700, y: 20), screens: screens, radius: r)
+        let inside: (CGPoint?, CGRect) -> Bool = { p, s in
+            p.map { s.insetBy(dx: r, dy: r).contains($0) } ?? false
+        }
+        check(mid == CGPoint(x: 900, y: 400) && inside(corner, main) && inside(other, left) && inside(gap, main)
+              && D.landing(drop: .zero, screens: [], radius: r) == nil,
+              "let go on the desktop, it lands there, fully inside that screen (another screen too); off every screen, on the nearest")
+        let island = CGRect(x: 583, y: 950, width: 345, height: 32)
+        check(D.goesHome(drop: CGPoint(x: 700, y: 960), island: island) && D.goesHome(drop: CGPoint(x: 570, y: 935), island: island)
+              && !D.goesHome(drop: CGPoint(x: 700, y: 900), island: island),
+              "let go on the notch (or within \(Int(D.homeMargin)) pt of the island), it goes home")
+        // The hit test follows the body's outline, for every shape it can grow into.
+        let canvas = D.canvas(diameter: D.diameter), c = D.tomoCenter(in: canvas)
+        var outline = true
+        for seed in ["desk-1", "desk-2", "desk-3", "desk-4", "desk-5", "desk-6"] {
+            let look = TomoLook(seed: seed)
+            for age in 0..<TomoLook.ages {
+                let form = look.form(age)
+                let R = canvas.width * 0.27
+                if !D.hits(c, canvas: canvas, form: form)
+                    || D.hits(CGPoint(x: c.x + R * 2.4 * form.scale, y: c.y), canvas: canvas, form: form)
+                    || D.hits(CGPoint(x: 1, y: 1), canvas: canvas, form: form) { outline = false }
+            }
+        }
+        check(outline, "the desktop Tomo takes a click on its body and lets through the ones beside it, at every age and shape")
+        check(D.gaze(pointer: CGPoint(x: 200, y: 500), tomo: CGPoint(x: -400, y: 500)).x > 0.9
+              && D.gaze(pointer: CGPoint(x: -400, y: 900), tomo: CGPoint(x: -400, y: 500)).y > 0.9
+              && abs(D.gaze(pointer: CGPoint(x: -400, y: 500), tomo: CGPoint(x: -400, y: 500)).x) < 0.001,
+              "its eyes follow the pointer onto another screen: one coordinate space for all of them")
+        var clock = TomoDozeClock()
+        // The pointer last near at 0 s, then away (sampled every half second, as the desktop Tomo checks).
+        let awake = !clock.dozes(pointerNear: true, now: 0) && !clock.dozes(pointerNear: false, now: 0.5)
+            && !clock.dozes(pointerNear: false, now: D.dozeAfter - 0.1)
+        let asleep = clock.dozes(pointerNear: false, now: D.dozeAfter)
+        let woke = !clock.dozes(pointerNear: true, now: 20) && !clock.dozes(pointerNear: false, now: 21)
+        check(awake && asleep && woke,
+              "with the pointer away \(Int(D.dozeAfter)) s it dozes (not before); the pointer near wakes it at once and starts over")
+        let from = CGPoint(x: 1000, y: 400), home = CGPoint(x: 623, y: 966)
+        let arc = TomoReturnArc(from: from, to: home)
+        let path = stride(from: 0.0, through: TomoReturnArc.duration + 0.02, by: 1.0 / 240).map(arc.pose(at:))
+        let span = hypot(home.x - from.x, home.y - from.y)
+        let bend = path.map { p -> CGFloat in   // how far it bows from the straight line, to the right of it going home
+            let dx = home.x - from.x, dy = home.y - from.y
+            return ((p.center.x - from.x) * dy - (p.center.y - from.y) * dx) / span
+        }.max() ?? 0
+        let steps = zip(path, path.dropFirst()).map { hypot($0.center.x - $1.center.x, $0.center.y - $1.center.y) }.max() ?? 0
+        check(TomoReturnArc.duration == 0.95 && path.first?.center == from && arc.pose(at: 0.95).center == home
+              && arc.pose(at: 0.95).diameter == 20 && bend > span * 0.15 && steps < span * 0.03
+              && path.allSatisfy { $0.center.y <= home.y + 0.5 },
+              "a visit due: it flies home along an arc in 0.95 s (bowing \(Int(bend / span * 100))% of the way), shrinking to its resting size, never above the notch")
+        let calm = TomoReturnArc(from: from, to: home, reduceMotion: true)
+        check(calm.duration <= 0.3 && calm.pose(at: 0).center == from && calm.pose(at: TomoReturnArc.fadeHalf - 0.001).opacity < 0.01
+              && calm.pose(at: TomoReturnArc.fadeHalf + 0.001).center == home && calm.pose(at: calm.duration).opacity == 1
+              && stride(from: 0.0, through: calm.duration, by: 0.01).allSatisfy { let p = calm.pose(at: $0); return p.sx == 1 && p.sy == 1 },
+              "under Reduce Motion there's no arc: it fades out where it was and in beside the notch, in \(calm.duration) s")
+        check(D.fliesHomeFirst(opening: .expanded, out: true) && D.fliesHomeFirst(opening: .peek, out: true)
+              && !D.fliesHomeFirst(opening: .compact, out: true) && !D.fliesHomeFirst(opening: .expanded, out: false),
+              "the island opening (a visit, a click, the menu, the shortcut) while Tomo is out: it flies home first")
+    }
+
     /// Tomo travelling between the island's states (#137, effect 1: TomoTravel): which move a change is, and each move's
     /// path, squash and timing, sampled at 240 Hz.
     private static func travel(_ check: (Bool, String) -> Void) {
@@ -485,6 +560,7 @@ enum TomoIslandSelfTest {
               && T.backAfter(pulledUp: true) >= 0.34 && T.backAfter(pulledUp: false) >= C.pullUpTime,
               "folding away with nowhere to rest (hidden), Tomo is pulled up into the notch first (not under Reduce Motion)")
         travel(check)
+        desktop(check)
         check(T.saysHello(greeted: false, waking: false, mode: .compact) && T.saysHello(greeted: false, waking: false, mode: .expanded)
               && T.saysHello(greeted: false, waking: false, mode: .peek) && !T.saysHello(greeted: false, waking: false, mode: .hidden)
               && !T.saysHello(greeted: true, waking: false, mode: .compact) && T.saysHello(greeted: true, waking: true, mode: .compact)

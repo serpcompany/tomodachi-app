@@ -35,6 +35,10 @@ enum TomoIconRenderer {
             TomoSounds.renderFiles(to: URL(fileURLWithPath: dir))
             NSApp.terminate(nil)
         }
+        if let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_DESKTOP"] {   // Tomo on the desktop (a prototype)
+            TomoDesktop.renderScene(to: URL(fileURLWithPath: dir), look: look)
+            NSApp.terminate(nil)
+        }
         if let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_ANIM"] {
             renderAnimation(to: URL(fileURLWithPath: dir))
             NSApp.terminate(nil)
