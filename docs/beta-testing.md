@@ -18,7 +18,7 @@ Tomo is a little blob of jelly who lives next to your MacBook's notch and only s
 - **Play any time:** click small Tomo next to the notch.
 - **Say hello:** when Tomodachi starts, and when your Mac wakes, Tomo says hello: a drop falls from the notch and gathers into Tomo. Poke Tomo and watch it wobble. Tell us if the jelly look or the hello gets tiresome.
 - **Talk with Tomo:** hold **⌥** and click the menu bar icon → **Skip to talking (3さい)** (after that, a **Testing** menu is in Tomodachi's menu bar too). That's a test Tomo; yours comes back from **Back to my Tomo** in that menu, or when you relaunch. Tomo asks real questions; pick what it means, or later a reply that fits. Every answer shows **Win**, **Miss**, **No score**, or (when nothing counts) **Practice**. The card lights up with the moment: green for a Win, blue for Practice, gold for a level-up or a birthday; a Miss gets no light.
-- **Open the Tomodachi window:** click the Dock icon, or Tomo's age at the top of the card. Its sidebar has **Tomo** (its level, what's left to grow, what each age brings, and today), **Words** (every level, locked ones too, with each word's stage and when it's due), **Settings** and **About**. **Tomo → Tomo's words** (⌘W) and **Drop in now** (⌘D) are in the menu bar while Tomodachi is in front.
+- **Open the Tomodachi window:** click the Dock icon, or Tomo's age at the top of the card. Its sidebar has **Tomo** (its level, what's left to grow, today, and what each age brings), **Words** (every level, locked ones too, with each word's stage and when it's due), **Together** (today, and every Monday morning a postcard from Tomo of your week: tap it to turn it over, and share it as a picture), **Settings** and **About**. **Tomo → Tomo's words** (⌘W) and **Drop in now** (⌘D) are in the menu bar while Tomodachi is in front.
 - **Settings** (⌘,): how often Tomo visits, how a visit starts (**Open the card**, as before, or **Peek first**: Tomo peeks out beside the notch with its word, and the card opens when you point at it for a moment or click it; tell us which you prefer), quiet hours, how many new words a day, Tomo's voice and sounds, opening Tomodachi when you log in (what you picked in the welcome; Tomo only visits while the app is open), and the language of the app's text (English or Japanese). Tomo speaks Japanese in this version.
 
 ## Good to know
@@ -40,7 +40,7 @@ Install **TestFlight** from the App Store, then open the invite link we send you
 - **Reminders:** when words are ready, Tomo sends a notification at the rhythm you picked, never in quiet hours. If you don't come by for two days, it slows down to once a morning, and after a week it waits for you. Tap one to play.
 
 - **Play in the app:** the same rounds as on the Mac. Tap a word in Tomo's line to look it up. Hold a finger on Tomo and it shows its love. When nothing counts, Tomo rests on the screen and says when it's back; Practice is there if you want it.
-- **The tabs:** **Play**, **Tomo** and **Words** (the same as the Mac's window) and **Settings**: reminders (on or off, how often, quiet hours), Tomo on the Lock Screen, new words a day, sounds and the app's language, with **About** (the version, privacy policy, support and credits) at the bottom.
+- **The tabs:** **Play**, **Tomo**, **Words** and **Together** (the same as the Mac's window) and **Settings**: reminders (on or off, how often, quiet hours), Tomo on the Lock Screen, new words a day, sounds and the app's language, with **About** (the version, privacy policy, support and credits) at the bottom.
 - **Small screens and accessibility:** it fits an iPhone SE, works with VoiceOver and larger text, and never asks for the microphone. The Ring/Silent switch mutes Tomo.
 - **Add the widget:** long-press the Home Screen → **+** → Tomodachi (small or medium). It shows Tomo and how many words are waiting. On the Lock Screen: long-press it → Customize → the space under the time → Tomodachi.
 - **Lock your phone:** if you said yes to it, Tomo's card is on the Lock Screen (allow Live Activities when asked). Tap the yellow **▶** to play one round right there, or tap the card to open the app. On iPhones with a Dynamic Island, Tomo sits there too.
@@ -51,4 +51,5 @@ Install **TestFlight** from the App Store, then open the invite link we send you
 - Did visits feel like a nice nudge, or annoying? Was the frequency right?
 - Was it clear what Tomo wanted? Were Win / Miss / No score clear? Did Tomo's sounds fit it, or get annoying?
 - Did anything feel like studying instead of playing?
+- Did Tomo's Monday postcard feel like a nice surprise? Did you share one?
 - Anything broken, confusing, or ugly. Screenshots help.

@@ -64,6 +64,32 @@
       }
     }
   },
+  "postcard": {
+    "grew": {
+      "say": "Yay!",
+      "romanization": null,
+      "translation": {
+        "en": "Yay!",
+        "ja": "やったー！"
+      }
+    },
+    "bye": {
+      "say": "See ya!",
+      "romanization": null,
+      "translation": {
+        "en": "See ya!",
+        "ja": "またね！"
+      }
+    },
+    "asleep": {
+      "say": "Zz… See ya!",
+      "romanization": null,
+      "translation": {
+        "en": "Zz… See ya!",
+        "ja": "Zz… またね！"
+      }
+    }
+  },
   "reminders": [
     {
       "fromAge": 1,

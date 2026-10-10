@@ -5,8 +5,9 @@ import SQLite3
 //
 // ~/Library/Application Support/<bundle ID>/learner.sqlite (TOMO_DATA_DIR=<dir> overrides it,
 // so test runs never touch the learner's own Tomo). Keyed by (learner language, target language): one Tomo
-// per pair. `tomo` and `item` hold the current state; `answer` and `growth` are append-only logs, kept to tune
-// the rules later and to sync with the Zenbu apps one day (docs/research/learner-data-schema.md).
+// per pair. `tomo` and `item` hold the current state; `answer`, `growth` and `visit` are logs, kept to tune
+// the rules later and to sync with the Zenbu apps one day (docs/research/learner-data-schema.md). The logs
+// stay on this device (TomoSync syncs only `tomo` and `item`); TomoStats counts from them.
 // The rules that fill it are in TomoProgress.swift. Saving a Tomo or a word reports it through `didChange`, so
 // TomoSync can send it to the learner's other devices; the `Sync` methods below write what arrives without
 // reporting it back.
@@ -77,6 +78,10 @@ public final class TomoStore {
             CREATE TABLE IF NOT EXISTS growth (
               at REAL NOT NULL, learner TEXT NOT NULL, target TEXT NOT NULL,
               kind TEXT NOT NULL, value INTEGER NOT NULL);
+            CREATE TABLE IF NOT EXISTS visit (
+              started_at REAL NOT NULL, learner TEXT NOT NULL, target TEXT NOT NULL,
+              opened TEXT NOT NULL, card_at REAL, ended_at REAL, ended TEXT,
+              PRIMARY KEY (learner, target, started_at));
             CREATE TABLE IF NOT EXISTS cloud (record TEXT PRIMARY KEY, fields BLOB NOT NULL);
             """)
         // Added after the first saved Tomos: each fails harmlessly once the column exists.
@@ -156,17 +161,6 @@ public final class TomoStore {
                   hint ? 1 : 0, counted ? 1 : 0, before, after])
     }
 
-    /// Answers since a time (right and wrong tries), and how many of them moved a word up a stage.
-    public func answerCounts(since: Date) -> (answers: Int, stronger: Int) {
-        query("""
-            SELECT COUNT(*),
-                   COALESCE(SUM(CASE WHEN counted = 1 AND stage_after > COALESCE(stage_before, 0) THEN 1 ELSE 0 END), 0)
-            FROM answer WHERE learner = ? AND target = ? AND at >= ? AND result IN ('right', 'wrong')
-            """, [learner, target, since.timeIntervalSince1970]) {
-            (Int(sqlite3_column_int64($0, 0)), Int(sqlite3_column_int64($0, 1)))
-        }.first ?? (0, 0)
-    }
-
     /// `kind`: level | age | reset.
     public func logGrowth(at: Date, kind: String, value: Int) {
         run("INSERT INTO growth (at, learner, target, kind, value) VALUES (?, ?, ?, ?, ?)",
@@ -175,9 +169,78 @@ public final class TomoStore {
 
     /// The growth log since a time, oldest first: (kind, value) as `logGrowth` wrote it.
     public func growthLog(since: Date = .distantPast) -> [(kind: String, value: Int)] {
-        query("SELECT kind, value FROM growth WHERE learner = ? AND target = ? AND at >= ? ORDER BY at, rowid",
+        growthEvents(since: since).map { ($0.kind, $0.value) }
+    }
+
+    /// One row of the growth log: a level-up (`level`, the new level), a birthday (`age`) or a start over (`reset`).
+    public struct GrowthRow: Sendable, Equatable { public let at: Date; public let kind: String; public let value: Int }
+
+    /// The growth log since a time, oldest first, with when each happened.
+    public func growthEvents(since: Date = .distantPast) -> [GrowthRow] {
+        query("SELECT at, kind, value FROM growth WHERE learner = ? AND target = ? AND at >= ? ORDER BY at, rowid",
               [learner, target, since.timeIntervalSince1970]) {
-            (String(cString: sqlite3_column_text($0, 0)), Int(sqlite3_column_int64($0, 1)))
+            GrowthRow(at: Date(timeIntervalSince1970: sqlite3_column_double($0, 0)),
+                      kind: String(cString: sqlite3_column_text($0, 1)), value: Int(sqlite3_column_int64($0, 2)))
+        }
+    }
+
+    /// One row of the answer log, as `logAnswer` wrote it.
+    public struct AnswerRow: Sendable, Equatable {
+        public let at: Date
+        public let item: String?
+        public let result: String          // right | wrong | help | language
+        public let counted: Bool
+        public let before: Int?            // nil: the word was new
+        public let after: Int?
+    }
+
+    /// The answer log in `[from, to)`, oldest first.
+    public func answerLog(from: Date, to: Date) -> [AnswerRow] {
+        query("""
+            SELECT at, item_id, result, counted, stage_before, stage_after FROM answer
+            WHERE learner = ? AND target = ? AND at >= ? AND at < ? ORDER BY at, rowid
+            """, [learner, target, from.timeIntervalSince1970, to.timeIntervalSince1970]) { s in
+            AnswerRow(at: Date(timeIntervalSince1970: sqlite3_column_double(s, 0)),
+                      item: sqlite3_column_type(s, 1) == SQLITE_NULL ? nil : String(cString: sqlite3_column_text(s, 1)),
+                      result: String(cString: sqlite3_column_text(s, 2)), counted: sqlite3_column_int64(s, 3) == 1,
+                      before: sqlite3_column_type(s, 4) == SQLITE_NULL ? nil : Int(sqlite3_column_int64(s, 4)),
+                      after: sqlite3_column_type(s, 5) == SQLITE_NULL ? nil : Int(sqlite3_column_int64(s, 5)))
+        }
+    }
+
+    /// When this device first logged an answer for this pair at or after `since` (nil: none yet).
+    public func firstAnswer(since: Date) -> Date? {
+        query("SELECT MIN(at) FROM answer WHERE learner = ? AND target = ? AND at >= ?",
+              [learner, target, since.timeIntervalSince1970]) { s -> Date? in
+            sqlite3_column_type(s, 0) == SQLITE_NULL ? nil : Date(timeIntervalSince1970: sqlite3_column_double(s, 0))
+        }.first ?? nil
+    }
+
+    /// The visit log: a visit as it starts, again when its card opens, and when it ends (one row per visit, by when
+    /// it started).
+    public func logVisit(_ v: TomoVisit) {
+        run("""
+            INSERT INTO visit (started_at, learner, target, opened, card_at, ended_at, ended) VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT (learner, target, started_at) DO UPDATE SET opened = excluded.opened,
+              card_at = excluded.card_at, ended_at = excluded.ended_at, ended = excluded.ended
+            """, [v.started.timeIntervalSince1970, learner, target, v.opened.rawValue,
+                  v.cardAt?.timeIntervalSince1970, v.endedAt?.timeIntervalSince1970, v.ended?.rawValue])
+    }
+
+    /// Visits that started in `[from, to)`, oldest first.
+    public func visitLog(from: Date, to: Date) -> [TomoVisit] {
+        func date(_ s: OpaquePointer, _ i: Int32) -> Date? {
+            sqlite3_column_type(s, i) == SQLITE_NULL ? nil : Date(timeIntervalSince1970: sqlite3_column_double(s, i))
+        }
+        return query("""
+            SELECT started_at, opened, card_at, ended_at, ended FROM visit
+            WHERE learner = ? AND target = ? AND started_at >= ? AND started_at < ? ORDER BY started_at
+            """, [learner, target, from.timeIntervalSince1970, to.timeIntervalSince1970]) { s in
+            TomoVisit(started: Date(timeIntervalSince1970: sqlite3_column_double(s, 0)),
+                      opened: TomoVisit.Opened(rawValue: String(cString: sqlite3_column_text(s, 1))) ?? .card,
+                      cardAt: date(s, 2), endedAt: date(s, 3),
+                      ended: sqlite3_column_type(s, 4) == SQLITE_NULL
+                        ? nil : TomoVisit.Ended(rawValue: String(cString: sqlite3_column_text(s, 4))))
         }
     }
 

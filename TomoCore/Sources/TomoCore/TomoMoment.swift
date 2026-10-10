@@ -4,9 +4,9 @@ import SwiftUI
 
 /// What the light says right now. Tomo's card and the island wash in it, fading in as the moment starts and out as it
 /// ends: green for a win, blue for practice, gold for a level-up or a birthday, and amber while Tomo waits to play.
-/// Never red: a miss and no score get no light, because Tomo misses you; it never keeps score (concepts.md). The rules
-/// are pure, so every shell lights the same moments; where the light shows and how it moves is the shell's (the Mac's
-/// card and island: `TomoMomentLight`).
+/// A miss and no score get no light: the light marks what went well. Red is allowed now (decisions.md, 2026-10-11), and
+/// this light doesn't use it. The rules are pure, so every shell lights the same moments; where the light shows and how
+/// it moves is the shell's (the Mac's card and island: `TomoMomentLight`).
 public enum TomoMoment: String, CaseIterable, Sendable {
     /// An answer that counted (the Win badge).
     case win

@@ -3,18 +3,19 @@ import TomoCore
 
 // MARK: - The iPhone's home (issue #90): tabs around the play screen
 //
-// Play (TomoPhoneView, as it is) · Tomo · Words · Settings: the same screens as the Mac's Tomodachi window, from
-// TomoCore. About is the last row of Settings, as on the iPhone's own Settings. The tab bar is the iPhone's version of
-// the Mac window's sidebar (decisions.md). TOMO_OPEN_WINDOW=<screen> opens a test run at that screen.
+// Play (TomoPhoneView, as it is) · Tomo · Words · Together · Settings: the same screens as the Mac's Tomodachi window,
+// from TomoCore. About is the last row of Settings, as on the iPhone's own Settings. The tab bar is the iPhone's
+// version of the Mac window's sidebar (decisions.md). TOMO_OPEN_WINDOW=<screen> opens a test run at that screen.
 
 enum PhoneTab: Hashable {
-    case play, tomo, words, settings
+    case play, tomo, words, together, settings
 
     /// The tab a test run asked for (TOMO_OPEN_WINDOW), else Play.
     static var requested: PhoneTab {
         switch TomoScreenNav.requested {
         case "tomo": .tomo
         case "words": .words
+        case "together": .together
         case "settings", "about", "startOver": .settings
         default: .play
         }
@@ -34,7 +35,7 @@ struct TomoPhoneHome: View {
             }
             Tab(lang.learner("screen.tomo"), systemImage: TomoScreen.tomo.icon, value: .tomo) {
                 NavigationStack {
-                    TomoGrowthScreen(play: { tab = .play })
+                    TomoGrowthScreen(play: { tab = .play }, together: { tab = .together })
                         .navigationTitle(lang.learner("screen.tomo"))
                 }
             }
@@ -43,6 +44,13 @@ struct TomoPhoneHome: View {
                     TomoWordsScreen()
                         .navigationTitle(lang.learner("screen.words"))
                         .navigationBarTitleDisplayMode(.inline)
+                }
+            }
+            Tab(lang.learner("screen.together"), systemImage: TomoScreen.together.icon, value: .together) {
+                NavigationStack {
+                    TomoTogetherTab()
+                        .navigationTitle(lang.learner("screen.together"))
+                        .navigationBarTitleDisplayMode(.inline)   // the postcard and its buttons fit above the tabs
                 }
             }
             Tab(lang.learner("screen.settings"), systemImage: TomoScreen.settings.icon, value: .settings) {
@@ -69,5 +77,16 @@ struct TomoPhoneHome: View {
                 }
             }
         }
+    }
+}
+
+/// Together, for the learner's own Tomo: its progress, look and material are passed in (TomoCore's screen takes the
+/// Tomo it shows).
+private struct TomoTogetherTab: View {
+    @ObservedObject var game = TomoGame.shared
+
+    var body: some View {
+        TomoTogetherScreen(progress: game.progress, look: TomoLook.current, material: .own,
+                           version: game.progressVersion)
     }
 }

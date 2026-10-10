@@ -60,6 +60,29 @@
       }
     }
   },
+  "postcard": {
+    "grew": {
+      "say": "¡Bien!",
+      "romanization": null,
+      "translation": {
+        "en": "Yay!"
+      }
+    },
+    "bye": {
+      "say": "¡Hasta luego!",
+      "romanization": null,
+      "translation": {
+        "en": "See you!"
+      }
+    },
+    "asleep": {
+      "say": "Zz… ¡Hasta luego!",
+      "romanization": null,
+      "translation": {
+        "en": "Zz… See you!"
+      }
+    }
+  },
   "ai": {
     "persona": "a {age}-year-old child from Spain",
     "rules": [

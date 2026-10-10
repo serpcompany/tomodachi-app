@@ -2,14 +2,15 @@ import SwiftUI
 
 // MARK: - The app's screens, the same on the Mac and the iPhone (issue #90)
 //
-// Tomo (how it's growing), Words (every level and word), Settings and About. Each is a SwiftUI view here in TomoCore
-// (TomoGrowthScreen, TomoWordsScreen, TomoSettingsScreen, TomoAboutScreen), so both shells show the same screen: the
-// Mac in the Tomodachi window with a sidebar (TomoAppWindow), the iPhone as tabs around the play screen
-// (TomoPhoneHome). Platform touches are `#if os(…)` inside the views; what only one device has (open at login on the
-// Mac, reminders on the iPhone) comes in through a slot in Settings. All text comes from ui.<id>.json.
+// Tomo (how it's growing), Words (every level and word), Together (what you did: today and Tomo's week), Settings and
+// About. Each is a SwiftUI view here in TomoCore (TomoGrowthScreen, TomoWordsScreen, TomoTogetherScreen,
+// TomoSettingsScreen, TomoAboutScreen), so both shells show the same screen: the Mac in the Tomodachi window with a
+// sidebar (TomoAppWindow), the iPhone as tabs around the play screen (TomoPhoneHome). Platform touches are `#if os(…)`
+// inside the views; what only one device has (open at login on the Mac, reminders on the iPhone) comes in through a
+// slot in Settings. All text comes from ui.<id>.json.
 
 public enum TomoScreen: String, CaseIterable, Identifiable, Sendable {
-    case tomo, words, settings, about
+    case tomo, words, together, settings, about
     /// The AI provider and key: hidden for now (TomoFeatures), the code kept for later.
     case ai
     /// The Mac's testing tools (another age, skip ahead a day), after ⌥-clicking the menu bar icon.
@@ -22,6 +23,7 @@ public enum TomoScreen: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .tomo:     "face.smiling.inverse"
         case .words:    "character.book.closed.fill"
+        case .together: "envelope.fill"
         case .settings: "gearshape.fill"
         case .about:    "info.circle.fill"
         case .ai:       "sparkles"
@@ -33,6 +35,7 @@ public enum TomoScreen: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .tomo:     .orange
         case .words:    .teal
+        case .together: .green
         case .settings: .gray
         case .about:    .blue
         case .ai:       .purple
@@ -50,7 +53,7 @@ public final class TomoScreenNav: ObservableObject {
     /// Settings asks "Start Tomo over?" (the Mac's menu bar item asks through here). Starting over is always confirmed.
     @Published public var confirmingStartOver: Bool
 
-    /// TOMO_OPEN_WINDOW=<screen> (tomo, words, settings, about, ai, testing): a test run opens at that screen
+    /// TOMO_OPEN_WINDOW=<screen> (tomo, words, together, settings, about, ai, testing): a test run opens at that screen
     /// (docs/verification.md). `startOver` opens Settings with the confirmation up; `tour` (the Mac) shows every
     /// screen in turn. TOMO_OPEN_SETTINGS is the older name (`general` was Settings).
     nonisolated public static let requested: String? = {

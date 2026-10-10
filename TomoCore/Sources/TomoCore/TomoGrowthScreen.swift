@@ -3,17 +3,21 @@ import SwiftUI
 // MARK: - Tomo: how Tomo is growing (the Mac window's first page, the iPhone's Tomo tab)
 //
 // A live Tomo with its age and level, the experience bar (its goal fills only when the level is done) and what's left;
-// days together; each age with its levels and what it brings (grown / now / later); and today's new words, answers and
-// words that got stronger. Everything shown comes from TomoGame and TomoProgress, which decide it.
+// days together; the Today line ("12 answers · 3 new words", TomoStats), with, on a Monday, Tomo's week come as a
+// postcard; and each age with its levels and what it brings (grown / now / later). Everything shown comes from
+// TomoGame, TomoProgress and TomoStats, which decide it.
 
 public struct TomoGrowthScreen: View {
     @ObservedObject var game = TomoGame.shared
     @ObservedObject var lang = TomoLanguages.shared
     private let play: (() -> Void)?
+    private let together: (() -> Void)?
 
     /// `play`: what "Play with Tomo" does (the Mac opens the island; the iPhone goes to the play tab). Nil hides it.
-    public init(play: (() -> Void)? = nil) {
+    /// `together`: opens the Together screen, where Tomo's week is (on a Monday, Today says it came).
+    public init(play: (() -> Void)? = nil, together: (() -> Void)? = nil) {
         self.play = play
+        self.together = together
     }
 
     private var progress: TomoProgress { game.progress }
@@ -38,18 +42,31 @@ public struct TomoGrowthScreen: View {
                 }
             }
 
+            Section(lang.learner("growth.today")) {
+                let stats = TomoStats(progress)
+                TomoTodayLine(text: stats.todayLine(lang.learner))
+                // Monday morning: Tomo's week has come, as a postcard (the Together screen).
+                if let together, let week = stats.postcardCameToday(lang.learner) {
+                    Button(action: together) {
+                        HStack(spacing: 10) {
+                            Image(systemName: "envelope.fill").foregroundStyle(.orange)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(lang.learner("postcard.arrived")).font(.callout.weight(.semibold))
+                                Text(week).font(.caption).foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .id(game.progressVersion)
+
             Section(lang.learner("growth.growingUp")) {
                 ForEach(progress.ageSpans, id: \.age) { ageRow($0) }
             }
-
-            Section(lang.learner("growth.today")) {
-                let t = progress.today()
-                LabeledContent(lang.learner("growth.newToday"),
-                               value: lang.learner("growth.ofMax", ["n": "\(t.newWords)", "max": "\(TomoProgress.newPerDay)"]))
-                LabeledContent(lang.learner("growth.answersToday"), value: "\(t.answers)")
-                LabeledContent(lang.learner("growth.strongerToday"), value: "\(t.stronger)")
-            }
-            .id(game.progressVersion)
         }
         .formStyle(.grouped)
     }
@@ -154,7 +171,10 @@ extension TomoProgress {
     }
 
     /// Days since Tomo hatched, counting today as day 1.
-    public var daysTogether: Int {
-        max(1, (Calendar.current.dateComponents([.day], from: metAt, to: TomoClock.now).day ?? 0) + 1)
+    public var daysTogether: Int { daysTogether(at: TomoClock.now) }
+
+    /// Days since Tomo hatched at a time, counting that day as day 1 (a postcard's last day).
+    public func daysTogether(at t: Date) -> Int {
+        max(1, (Calendar.current.dateComponents([.day], from: metAt, to: t).day ?? 0) + 1)
     }
 }

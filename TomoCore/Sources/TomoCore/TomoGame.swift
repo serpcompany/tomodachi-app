@@ -337,6 +337,12 @@ public final class TomoGame: ObservableObject {
     private var visitStarted = Date.distantPast
     private var nextDropIn = Date.distantFuture
     private var wasOpen = false
+    /// The visit log (`TomoVisit`, saved on this device through `progress`): the time Tomo and the learner are together
+    /// now (a visit, or the learner opening Tomo), and the last one that ended, for the self-test. A testing Tomo saves
+    /// none. The mood ladder will read "ignored in a row" from it.
+    private(set) var visitNow: TomoVisit?
+    private(set) var lastVisit: TomoVisit?
+    private var lastTick = Date.distantPast
     private var ticker: Timer?
     /// The self-test's runs say nothing, whatever the sound setting (never saved).
     var silent = false
@@ -387,6 +393,7 @@ public final class TomoGame: ObservableObject {
     /// Call `dropIn(force: true)` to open right away.
     public func start() {
         bump()
+        endVisitLog(.closed)                       // before another Tomo (or the same one again) loads
         loadVoice(lang.target.speechLocale)        // ready before Tomo's first line
         TomoClock.offset = TomoClock.start         // the saved Tomo runs on real time (skipAhead moved a copy)
         progress.load(pack: lang.target, learner: lang.learner.id)
@@ -525,6 +532,7 @@ public final class TomoGame: ObservableObject {
     /// Testing: make Tomo any age (1–2 picture rounds, 3+ talking) on an in-memory Tomo; the saved one waits.
     public func jump(toAge age: Int, open: Bool = true) {
         bump()
+        endVisitLog(.closed)
         progress.scratch(age: age)
         syncProgress()
         resetRound()
@@ -562,6 +570,7 @@ public final class TomoGame: ObservableObject {
         // once the card opens. An open card stays the card.
         offered = peeksFirst?() == true && peekIsland != nil && isIslandOpen?() != true
         offerShown = false
+        beginVisit(offered ? .peek : .card)
         if !offered { openIsland?() }
         wasOpen = true
         NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.happy)
@@ -585,6 +594,7 @@ public final class TomoGame: ObservableObject {
     public func acceptOffer() {
         guard offered else { return }
         offered = false
+        visitCardOpened()
         touch()
         guard offerShown else { return }   // the round is still coming: `present` asks it
         offerShown = false
@@ -597,6 +607,7 @@ public final class TomoGame: ObservableObject {
     private func openOffered() {
         guard offered else { return }
         offered = false
+        visitCardOpened()
         openIsland?()
     }
 
@@ -678,6 +689,7 @@ public final class TomoGame: ObservableObject {
     /// so no bounces.
     private func tuckIn() {
         endVisit()
+        endVisitLog(.rested)
         pending = false
         closeIsland?()
         wasOpen = false
@@ -715,7 +727,14 @@ public final class TomoGame: ObservableObject {
     /// Every half second: the visit's clock. `now` is for the self-test (TomoVisitCheck).
     func tick(at now: Date = Date()) {
         let open = isIslandOpen?() ?? false   // a peek counts as open: an offered visit isn't "closed mid-visit"
-        defer { wasOpen = open; publishCountdown(now) }
+        defer { wasOpen = open; lastTick = now; publishCountdown(now) }
+        // The app was suspended (the iPhone app left, the Mac asleep) while the learner had Tomo open: that time
+        // together ended back then, and coming back is a new one.
+        let away = now.timeIntervalSince(lastTick)
+        if away > 60, visitNow?.opened == .learner {
+            endVisitLog(.closed, at: TomoClock.now.addingTimeInterval(-away))
+            if open && wasOpen { beginVisit(.learner) }
+        }
         // "Next at 8:37" has come: say what's left again.
         if let at = levelLeft.nextAt, at <= TomoClock.now { levelLeft = progress.levelLeft }
         if now.timeIntervalSince(countsCheckedAt) >= 30 || (nextCountsAt.map { $0 <= TomoClock.now } ?? false) {
@@ -726,7 +745,8 @@ public final class TomoGame: ObservableObject {
 
         guard visitRoundsLeft != nil else {
             // User opened Tomo themselves: free play, no time limit.
-            if open && !wasOpen { pending = false; resumeFreePlay() }
+            if open && !wasOpen { pending = false; beginVisit(.learner); resumeFreePlay() }
+            if !open && wasOpen { endVisitLog(.closed) }
             if !open && pending && now >= nextNudge && DropIn.quietEnds() == nil {   // no bounces in quiet hours
                 NotificationCenter.default.post(name: .botNudge, object: nil)
                 nextNudge = now.addingTimeInterval(DropIn.nudgeEvery)
@@ -736,7 +756,7 @@ public final class TomoGame: ObservableObject {
         }
         // Closed mid-visit (Esc). A slow launch can take a moment to open the island, so not right after it opened.
         if !open {
-            if now.timeIntervalSince(visitStarted) > 2 { markPending(); endVisit() }
+            if now.timeIntervalSince(visitStarted) > 2 { markPending(); endVisit(); endVisitLog(.closed) }
             return
         }
         if isPointerInside?() == true || listener.isListening || help != nil {
@@ -777,6 +797,7 @@ public final class TomoGame: ObservableObject {
         help = nil
         setBot(.idle)
         publishCountdown()                     // no more deadline: the line fades now, not at the next tick
+        endVisitLog(ignored ? .ignored : .finished)
         if ignored {
             emote(.yawn)
             markPending()
@@ -795,6 +816,7 @@ public final class TomoGame: ObservableObject {
         guard isIslandOpen?() == true else { return }
         if visitRoundsLeft != nil { markPending() }
         endVisit()
+        endVisitLog(.closed)
         closeIsland?()
         wasOpen = false
     }
@@ -818,6 +840,35 @@ public final class TomoGame: ObservableObject {
         if phase == .thinking { phase = .asking }
         setBot(.idle)
         publishCountdown()
+    }
+
+    // MARK: The visit log (TomoVisit, this device only)
+
+    /// A time together begins: a visit, as the card or as a peek, or the learner opening Tomo. One at a time.
+    private func beginVisit(_ opened: TomoVisit.Opened) {
+        if visitNow != nil { endVisitLog(.finished) }
+        let now = TomoClock.now
+        let v = TomoVisit(started: now, opened: opened, cardAt: opened == .peek ? nil : now)
+        visitNow = v
+        progress.logVisit(v)
+    }
+
+    /// A peek opened into the card.
+    private func visitCardOpened() {
+        guard var v = visitNow, v.cardAt == nil else { return }
+        v.cardAt = TomoClock.now
+        visitNow = v
+        progress.logVisit(v)
+    }
+
+    /// The time together ended, and how.
+    private func endVisitLog(_ how: TomoVisit.Ended, at: Date? = nil) {
+        guard var v = visitNow else { return }
+        v.endedAt = max(at ?? TomoClock.now, v.started)
+        v.ended = how
+        progress.logVisit(v)
+        lastVisit = v
+        visitNow = nil
     }
 
     /// Counts one answer toward the visit. Returns true when the visit is over.

@@ -33,6 +33,8 @@ extension TomoGame {
         check(g.offered && peeks >= 1 && opens == 0 && !g.round.say.isEmpty && asks == 0,
               "a visit that peeks first shows its word (\(g.round.say)) in the peek, not asked or said yet")
         check(g.visitCountdown != nil, "the visit's countdown runs on the peek")
+        check(g.visitNow?.opened == .peek && g.visitNow?.cardAt == nil,
+              "the visit log: a visit that peeks first starts as a peek, its card not opened yet")
         g.tick(at: Date().addingTimeInterval(5))
         check(g.offered && g.visitCountdown != nil && closes == 0,
               "the peek counts as open: 5 s in, the visit isn't ended as closed mid-visit")
@@ -40,7 +42,10 @@ extension TomoGame {
         wait(0.5)
         check(!g.offered && asks == 1 && opens == 0 && g.phase == .asking,
               "opening the card from the peek asks the round it offered")
+        check(g.visitNow?.cardAt != nil, "the visit log notes when the peek opened into the card")
         g.dismiss()
+        check(g.visitNow == nil && g.lastVisit?.opened == .peek && g.lastVisit?.ended == .closed,
+              "the visit log: closing it ends the visit as closed")
 
         g.dropIn(force: true)
         wait(0.2)
@@ -50,16 +55,35 @@ extension TomoGame {
         wait(2)
         check(offeredAgain && left && closes == 2 && asks == 1 && g.pending == g.somethingCounts,
               "an ignored peek leaves like an ignored card: it tucks back in, never asking, and waits beside the notch")
+        check(g.lastVisit?.opened == .peek && g.lastVisit?.cardAt == nil && g.lastVisit?.ended == .ignored,
+              "the visit log: an ignored peek is a visit ignored, its card never opened")
 
         g.peekIsland = nil
         g.dropIn(force: true)
         check(!g.offered && opens == 1, "a shell with no peek (the iPhone) opens the card, as before")
+        check(g.visitNow?.opened == .card && g.visitNow?.cardAt == g.visitNow?.started,
+              "the visit log: a visit that opens the card starts with its card open")
         g.dismiss()
         g.peekIsland = { open = true; peeks += 1 }
         g.openIsland?()
         g.dropIn(force: true)
         check(!g.offered, "a visit while the card is already open asks in the card")
         g.dismiss()
+        wait(0.2)
+
+        // The learner opening Tomo themselves is a time together too (free play), ended when it closes; one that spans
+        // the app being suspended (the iPhone app left, the Mac asleep) ends then, and coming back starts another.
+        open = true
+        g.tick()
+        let opened = g.visitNow
+        g.tick(at: Date().addingTimeInterval(120))
+        let split = g.lastVisit?.started == opened?.started && g.lastVisit?.ended == .closed
+            && g.visitNow?.opened == .learner && g.visitNow?.started != opened?.started
+        open = false
+        g.tick(at: Date().addingTimeInterval(121))
+        check(opened?.opened == .learner && opened?.cardAt != nil && split && g.visitNow == nil
+              && g.lastVisit?.opened == .learner && g.lastVisit?.ended == .closed,
+              "the visit log: the learner opening Tomo is logged as theirs, split when the app was suspended, and ends as it closes")
         wait(0.2)
     }
 }
