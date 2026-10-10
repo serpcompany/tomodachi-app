@@ -3,8 +3,10 @@ import TomoCore
 
 // MARK: - Island Mode
 
+/// hidden (the notch), compact (resting: small Tomo beside the notch), peek (a visit offered: TomoPeekLayout's bar),
+/// expanded (Tomo's card).
 enum IslandMode: String, CaseIterable {
-    case hidden, compact, expanded
+    case hidden, compact, peek, expanded
 }
 
 // MARK: - Island View
