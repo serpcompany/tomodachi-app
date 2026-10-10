@@ -42,7 +42,7 @@ See the root level README.md
 
 - **Tomo comes to you.** The visits are the product; the material is a content source that can be swapped.
 - **No study sessions.** Learning happens in short visits. Free play is always available but never required.
-- **No guilt.** No streak shaming. Tomo is happy to see you, never disappointed in you.
+- **Tomo misses you; it never keeps score.** The longer you stay away, or the more visits you ignore in a row, the more restless, pouty and then lonely Tomo gets, in its own toddler words, and coming back is always a happy reunion (planned). It gets more expressive, never more intrusive: no extra visits, no louder sounds, nothing in quiet hours. The notch never counts what's waiting, and nothing shames a streak.
 - **Grade whether you were understood, not your pronunciation.** If Tomo doesn't get it, it reacts like a child (ん？), not like a teacher.
 - **Grows over days, not minutes.** A word only moves up when it's due (or at least halfway there), so knowing it takes several visits over days. You can't cram; practice in between is welcome but doesn't count.
 - **Check offline first, call AI only for leftovers** (planned). Most toddler questions have expected answers that can be checked without AI (yes/no, pick an animal or a food). AI handles the long tail.
