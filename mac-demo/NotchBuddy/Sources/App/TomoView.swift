@@ -901,13 +901,18 @@ struct TomoVisitCountdownLine: View {
 }
 
 extension View {
-    /// Calls `read` as the view appears and again once each change to `game` has landed, on the main queue's next
-    /// turn. For the island's views that read the game: one drawn while the island's animated change (a peek or the
-    /// card opening) and a change to the game come together would read the game from before the change and never
-    /// hear of it again, as an observed one does (a peek's countdown line stayed empty for the whole peek).
+    /// Calls `read` as the view appears, again on the main queue's next turn, and once each change to `game` has
+    /// landed. For the island's views that read the game: one drawn while the island's animated change (a peek or the
+    /// card opening) and a change to the game come together would read the game from before the change and never hear
+    /// of it again, as an observed one does (a peek's countdown line stayed empty for the whole peek). It can even
+    /// appear inside that change's `objectWillChange` (another view on the island observing the game, such as the
+    /// resting right side, flushes the island's update there), before the value is set: the second read catches it.
     func onGameSettled(_ game: TomoGame, perform read: @escaping @MainActor () -> Void) -> some View {
-        onAppear { read() }
-            .onReceive(game.objectWillChange) { _ in Task { @MainActor in read() } }
+        onAppear {
+            read()
+            Task { @MainActor in read() }
+        }
+        .onReceive(game.objectWillChange) { _ in Task { @MainActor in read() } }
     }
 }
 

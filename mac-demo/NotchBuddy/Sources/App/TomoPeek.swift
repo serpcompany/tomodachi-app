@@ -138,20 +138,22 @@ struct TomoWordFlight: Equatable {
     init?(word: String, script: String, peek: TomoPeekLayout, panelWidth: CGFloat) {
         guard !word.isEmpty else { return nil }
         self.word = word
-        from = CGPoint(x: (panelWidth - peek.size.width) / 2 + peek.word.minX, y: peek.word.midY)
+        let top = IslandScreenGeometry.top(hasNotch: peek.hasNotch)
+        from = CGPoint(x: (panelWidth - peek.size.width) / 2 + peek.word.minX, y: top + peek.word.midY)
         fromSize = peek.wordSize(word)
-        let slot = Self.cardWordSlot(panelWidth: panelWidth)
+        let slot = Self.cardWordSlot(panelWidth: panelWidth, hasNotch: peek.hasNotch)
         toSize = TomoWords.fittingSize(TomoWords.tokens(word, script: script, spacesOnly: true), script: script,
                                        in: slot.size, maxSize: 30)
         to = CGPoint(x: slot.minX + TomoWords.wordPadding, y: slot.midY)
     }
 
-    /// The picture card's word slot in the panel: the open island (centred at the top), its padding and header
-    /// (IslandContentView: 8 pt and the 34 pt header above, 10 pt at the sides), the level bar and its gap, then
-    /// TomoView's card: Tomo's column, the gap, and the word row at the top of the rows, which are centred in the card.
-    static func cardWordSlot(panelWidth: CGFloat) -> CGRect {
+    /// The picture card's word slot in the panel: the open island (centred at the top, the capsule's 4 pt below it
+    /// without a notch), its padding and header (IslandContentView: 8 pt and the 34 pt header above, 10 pt at the
+    /// sides), the level bar and its gap, then TomoView's card: Tomo's column, the gap, and the word row at the top of
+    /// the rows, which are centred in the card.
+    static func cardWordSlot(panelWidth: CGFloat, hasNotch: Bool = true) -> CGRect {
         let islandX = (panelWidth - IslandConst.expandedWidth) / 2
-        let cardTop = 8 + 34 + TomoGrid.levelBar + TomoGrid.levelBarGap
+        let cardTop = IslandScreenGeometry.top(hasNotch: hasNotch) + 8 + 34 + TomoGrid.levelBar + TomoGrid.levelBarGap
         let rows = TomoGrid.wordRow + TomoGrid.promptRow + TomoGrid.goalRow + TomoGrid.rowGap * 2
         return CGRect(x: islandX + 10 + TomoGrid.tomoColumn + TomoGrid.gap,
                       y: cardTop + (TomoGrid.content.height - rows) / 2,

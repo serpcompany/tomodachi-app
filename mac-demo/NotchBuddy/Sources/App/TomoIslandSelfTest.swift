@@ -21,11 +21,11 @@ enum TomoIslandSelfTest {
         check(frame.maxY == external.maxY && frame.midX == external.midX,
               "on a display left of and above the main one, the island sits at its top centre")
         let notch = IslandScreenGeometry(screenWidth: 1512, safeAreaTop: 32, auxiliaryLeftWidth: 664,
-                                         auxiliaryRightWidth: 664, menuBarHeight: 32)
+                                         auxiliaryRightWidth: 664)
         check(notch.hasNotch && notch.width == 184 && notch.height == 32, "on a notch screen the island fits the notch")
         let flat = IslandScreenGeometry(screenWidth: 1920, safeAreaTop: 0, auxiliaryLeftWidth: nil,
-                                        auxiliaryRightWidth: nil, menuBarHeight: 25)
-        check(!flat.hasNotch && flat.width == 80 && flat.height == 24, "without a notch it's a small bar under the menu bar")
+                                        auxiliaryRightWidth: nil)
+        capsule(check, notch: notch, flat: flat)
 
         // The resting island's right side (TomoRestingSide): in the right ear, never under the notch, never a count.
         for (screen, name) in [(notch, "a notch"), (flat, "no notch")] {
@@ -128,7 +128,7 @@ enum TomoIslandSelfTest {
               "the card closing lets a still pointer go")
         // No notch: the resting bar never reaches below itself, so the window under the menu bar keeps its clicks.
         let flatNotch = CGSize(width: flat.width, height: flat.height)
-        let bar = island(.compact, notch: flatNotch)
+        let bar = island(.compact, notch: flatNotch, hasNotch: false)
         check(takes(CGPoint(x: bar.midX, y: bar.midY), .compact, hasNotch: false, notch: flatNotch)
               && !takes(CGPoint(x: bar.midX, y: bar.minY - 3), .compact, hasNotch: false, notch: flatNotch),
               "no notch: the resting bar takes clicks on itself, not 3 pt below it")
@@ -140,6 +140,43 @@ enum TomoIslandSelfTest {
         rules(check)
         TomoGame.offerSelfTest(check)
         return ok
+    }
+
+    /// A Mac without a notch (#130): the island is a capsule 4 pt below the top of the screen, rounded all round, with
+    /// the same two sides, and it never hides Tomo. Replaces the 80 × 24 strip.
+    private static func capsule(_ check: (Bool, String) -> Void, notch: IslandScreenGeometry, flat: IslandScreenGeometry) {
+        typealias C = IslandWindowController
+        typealias G = IslandScreenGeometry
+        let n = CGSize(width: flat.width, height: flat.height)
+        let rest = islandSize(mode: .compact, view: .overview, nw: n.width, nh: n.height, hasNotch: false)
+        check(!flat.hasNotch && rest == (300, 30) && G.top(hasNotch: false) == 4 && G.top(hasNotch: true) == 0,
+              "without a notch the resting island is a 300 × 30 capsule, 4 pt below the top of the screen (a notch's is glued to it)")
+        let frame = C.islandFrame(panel: C.panelSize, mode: .compact, view: .overview, notch: n, help: 0, hasNotch: false)
+        let open = C.islandFrame(panel: C.panelSize, mode: .expanded, view: .overview, notch: n, help: 0, hasNotch: false)
+        let peek = C.islandFrame(panel: C.panelSize, mode: .peek, view: .overview, notch: n, help: 0, hasNotch: false)
+        check([frame, open, peek].allSatisfy { $0.maxY == C.panelSize.height - 4 && $0.midX == C.panelSize.width / 2 },
+              "resting, peeking or open, it hangs 4 pt below the top, centred, and its click area with it")
+        let grownH = rest.1 + IslandRestingLayout.hoverGrowth.height
+        check(G.corners(mode: .compact, height: 30, hasNotch: false) == (15, 15)
+              && G.corners(mode: .compact, height: grownH, hasNotch: false) == (grownH / 2, grownH / 2),
+              "resting, it's fully rounded, under the pointer too")
+        check([IslandMode.peek, .expanded].allSatisfy { G.corners(mode: $0, height: 200, hasNotch: false) == (22, 22) },
+              "peeking or open, all four corners are rounded, 22 pt")
+        check(G.corners(mode: .compact, height: 32, hasNotch: true) == (0, 14)
+              && G.corners(mode: .expanded, height: 208, hasNotch: true) == (0, 22),
+              "under a notch nothing changes: square on top, 14 pt below resting, 22 pt open")
+        check(C.shownMode(.hidden, hasNotch: false) == .compact && C.shownMode(.hidden, hasNotch: true) == .hidden
+              && [IslandMode.compact, .peek, .expanded].allSatisfy { C.shownMode($0, hasNotch: false) == $0 },
+              "it never hides Tomo: without a notch, hiding rests as the capsule instead; under a notch it hides as before")
+        let (bx, by, d, alpha) = botPosition(mode: .compact, view: .overview, islandW: rest.0, islandH: rest.1,
+                                             hasNotch: false)
+        let side = IslandRestingLayout(width: rest.0, height: rest.1).rightSide
+        let r = rest.1 / 2   // the rounded ends
+        check(alpha == 1 && bx - d / 2 >= r / 2 && by - d / 2 >= 0 && by + d / 2 <= rest.1
+              && side.maxX <= rest.0 - r / 2 && side.minX >= bx + d / 2,
+              "small Tomo sits on its left and the right side on its right, clear of the rounded ends")
+        let hidden = botPosition(mode: .hidden, view: .overview, islandW: rest.0, islandH: rest.1, hasNotch: false)
+        check(hidden.0 == bx && hidden.1 == by && hidden.3 == 1, "even if asked to hide, Tomo stays where it rests")
     }
 
     /// A visit offered as a peek (TomoPeek.swift): the bar's fixed slots, its clicks, and the word's way into the card.
@@ -176,10 +213,11 @@ enum TomoIslandSelfTest {
                   && !takes(below, .peek, 0, screen.hasNotch, CGSize(width: screen.width, height: screen.height)),
                   "with \(name), the peek takes clicks on itself and lets through the ones just below it")
             if let f = TomoWordFlight(word: short, script: target.script, peek: l, panelWidth: C.panelSize.width) {
-                let slot = TomoWordFlight.cardWordSlot(panelWidth: C.panelSize.width)
-                let card = CGRect(x: (C.panelSize.width - IslandConst.expandedWidth) / 2, y: 0,
+                let slot = TomoWordFlight.cardWordSlot(panelWidth: C.panelSize.width, hasNotch: screen.hasNotch)
+                let top = IslandScreenGeometry.top(hasNotch: screen.hasNotch)
+                let card = CGRect(x: (C.panelSize.width - IslandConst.expandedWidth) / 2, y: top,
                                   width: IslandConst.expandedWidth, height: IslandConst.layout(.overview).height)
-                let barInPanel = bar.offsetBy(dx: (C.panelSize.width - w) / 2, dy: 0)
+                let barInPanel = bar.offsetBy(dx: (C.panelSize.width - w) / 2, dy: top)
                 check(barInPanel.contains(f.from) && f.fromSize == l.wordSize(short) && card.contains(slot)
                       && f.to.x == slot.minX + TomoWords.wordPadding && f.to.y == slot.midY && f.toSize <= 30,
                       "with \(name), opening the peek slides the word from the bar into the card's word slot")

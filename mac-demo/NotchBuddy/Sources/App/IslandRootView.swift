@@ -11,6 +11,7 @@ struct IslandRootView: View {
             Color.clear
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             IslandContainer(state: state)
+                .padding(.top, IslandScreenGeometry.top(hasNotch: state.hasNotch))   // the capsule floats 4 pt down
                 .frame(maxWidth: .infinity, alignment: .center)
             // A peek opening: its word slides from the bar into the card's word slot, over both (panel coordinates).
             if let flight = state.wordFlight {
@@ -43,7 +44,8 @@ struct IslandContainer: View {
     @ObservedObject var state: AppState
     @State private var islandWidth:  CGFloat = IslandConst.notchWidth
     @State private var islandHeight: CGFloat = IslandConst.notchHeight
-    @State private var cornerRadius: CGFloat = IslandConst.roundedCorner
+    @State private var cornerRadius: CGFloat = IslandConst.roundedCorner   // the bottom corners
+    @State private var topCorner: CGFloat = 0                                // 0 under a notch; the capsule's
 
     private let openSpring = Animation.spring(response: 0.5, dampingFraction: 0.72)
     private let closeEase  = Animation.timingCurve(0.45, 0, 0.2, 1, duration: 0.34)
@@ -53,19 +55,19 @@ struct IslandContainer: View {
         return ZStack(alignment: .topLeading) {
             // Black island shape, lit by the moment's light from Tomo: past the card's edges while it's open, along the
             // peek's bar, and around small Tomo while something counts (TomoIslandLight).
-            IslandShape(width: islandWidth, height: islandHeight, cornerRadius: cornerRadius)
+            shape
                 .fill(Color.black)
                 .overlay(alignment: .topLeading) {
                     TomoIslandLight(game: TomoGame.shared, mode: state.mode, view: state.view, tomo: tomoCenter)
                         .frame(width: islandWidth, height: islandHeight)
-                        .clipShape(IslandShape(width: islandWidth, height: islandHeight, cornerRadius: cornerRadius))
+                        .clipShape(shape)
                 }
 
             // Content
             if state.mode == .expanded {
                 IslandContentView(state: state)
                     .frame(width: islandWidth, height: islandHeight)
-                    .clipShape(IslandShape(width: islandWidth, height: islandHeight, cornerRadius: cornerRadius))
+                    .clipShape(shape)
                     .transition(.opacity)
             }
 
@@ -73,7 +75,7 @@ struct IslandContainer: View {
             if state.mode == .peek {
                 TomoPeekWord(game: TomoGame.shared, layout: peekLayout)
                     .frame(width: islandWidth, height: islandHeight, alignment: .topLeading)
-                    .clipShape(IslandShape(width: islandWidth, height: islandHeight, cornerRadius: cornerRadius))
+                    .clipShape(shape)
                     .allowsHitTesting(false)   // a click anywhere on the bar opens the card (IslandWindowController)
                     // Opening, its word flies on into the card (TomoWordFlight): the bar's own goes at once.
                     .transition(.asymmetric(insertion: .opacity, removal: .opacity.animation(.easeOut(duration: 0.08))))
@@ -117,11 +119,10 @@ struct IslandContainer: View {
             let anim = shrinking ? closeEase : openSpring
             let (w, h) = islandSize(mode: newMode, view: state.view, nw: state.notchWidth, nh: state.notchHeight,
                                     hasNotch: state.hasNotch, grown: state.restingHover)
-            let cr = newMode == .expanded || newMode == .peek ? IslandConst.expandedCorner : IslandConst.roundedCorner
             withAnimation(anim) {
                 islandWidth  = w
                 islandHeight = h + (newMode == .expanded ? state.helpPanelHeight : 0)
-                cornerRadius = cr
+                setCorners(newMode, height: h)
             }
         }
         .onChange(of: state.view) { _, newView in
@@ -145,16 +146,14 @@ struct IslandContainer: View {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                 islandWidth = w
                 islandHeight = h
+                setCorners(.compact, height: h)
             }
         }
         // The island moved to another screen (displays changed): fit its notch, or the lack of one.
         .onChange(of: state.notchWidth) { _, _ in fitToScreen() }
         .onChange(of: state.notchHeight) { _, _ in fitToScreen() }
-        .onAppear {
-            fitToScreen()
-            cornerRadius = state.mode == .expanded || state.mode == .peek ? IslandConst.expandedCorner
-                : IslandConst.roundedCorner
-        }
+        .onChange(of: state.hasNotch) { _, _ in fitToScreen() }
+        .onAppear { fitToScreen() }
     }
 
     private var peekLayout: TomoPeekLayout { TomoPeekLayout(hasNotch: state.hasNotch, notchHeight: state.notchHeight) }
@@ -166,11 +165,24 @@ struct IslandContainer: View {
         return CGPoint(x: x, y: y)
     }
 
+    /// The island's outline now: its size and its corners (IslandScreenGeometry.corners).
+    private var shape: IslandShape {
+        IslandShape(width: islandWidth, height: islandHeight, cornerRadius: cornerRadius, topCornerRadius: topCorner)
+    }
+
+    /// The corners for a mode at a height, set with the size (so they animate together).
+    private func setCorners(_ mode: IslandMode, height: CGFloat) {
+        let c = IslandScreenGeometry.corners(mode: mode, height: height, hasNotch: state.hasNotch)
+        topCorner = c.top
+        cornerRadius = c.bottom
+    }
+
     private func fitToScreen() {
         let (w, h) = islandSize(mode: state.mode, view: state.view, nw: state.notchWidth, nh: state.notchHeight,
                                 hasNotch: state.hasNotch, grown: state.restingHover)
         islandWidth  = w
         islandHeight = h + (state.mode == .expanded ? state.helpPanelHeight : 0)
+        setCorners(state.mode, height: h)
     }
 
     private func modeOrder(_ m: IslandMode) -> Int {
@@ -180,27 +192,36 @@ struct IslandContainer: View {
 
 // MARK: - Island shape
 //
-// Square top corners (glued to the top of the screen), rounded bottom corners.
+// Under a notch: square top corners (glued to the top of the screen), rounded bottom corners. The capsule on a screen
+// without one is rounded all round (IslandScreenGeometry.corners).
 
 struct IslandShape: Shape {
     var width: CGFloat
     var height: CGFloat
     var cornerRadius: CGFloat   // bottom corners
+    var topCornerRadius: CGFloat = 0
 
-    var animatableData: AnimatablePair<AnimatablePair<CGFloat, CGFloat>, CGFloat> {
-        get { .init(.init(width, height), cornerRadius) }
+    var animatableData: AnimatablePair<AnimatablePair<CGFloat, CGFloat>, AnimatablePair<CGFloat, CGFloat>> {
+        get { .init(.init(width, height), .init(cornerRadius, topCornerRadius)) }
         set {
-            width        = newValue.first.first
-            height       = newValue.first.second
-            cornerRadius = newValue.second
+            width           = newValue.first.first
+            height          = newValue.first.second
+            cornerRadius    = newValue.second.first
+            topCornerRadius = newValue.second.second
         }
     }
 
     func path(in rect: CGRect) -> Path {
-        let cr = max(0, cornerRadius)
+        let limit = max(0, min(width, height) / 2)
+        let cr = min(max(0, cornerRadius), limit), tr = min(max(0, topCornerRadius), limit)
         var p  = Path()
-        p.move(to: .zero)
-        p.addLine(to: CGPoint(x: width, y: 0))
+        p.move(to: CGPoint(x: tr, y: 0))
+        p.addLine(to: CGPoint(x: width - tr, y: 0))
+        // Top-right corner (none under a notch)
+        if tr > 0 {
+            p.addArc(center: CGPoint(x: width - tr, y: tr), radius: tr,
+                     startAngle: .degrees(-90), endAngle: .degrees(0), clockwise: false)
+        }
         // Right edge
         p.addLine(to: CGPoint(x: width, y: height - cr))
         // Bottom-right corner
@@ -211,6 +232,12 @@ struct IslandShape: Shape {
         // Bottom-left corner
         p.addArc(center: CGPoint(x: cr, y: height - cr), radius: cr,
                  startAngle: .degrees(90), endAngle: .degrees(180), clockwise: false)
+        // Left edge, then the top-left corner (none under a notch)
+        p.addLine(to: CGPoint(x: 0, y: tr))
+        if tr > 0 {
+            p.addArc(center: CGPoint(x: tr, y: tr), radius: tr,
+                     startAngle: .degrees(180), endAngle: .degrees(270), clockwise: false)
+        }
         p.closeSubpath()
         return p
     }
@@ -271,10 +298,8 @@ func botPosition(mode: IslandMode, view: IslandView, islandW: CGFloat, islandH: 
                  hasNotch: Bool = true) -> (CGFloat, CGFloat, CGFloat, Double) {
     let resting = IslandRestingLayout(width: islandW, height: islandH)
     switch mode {
-    case .hidden:
-        return hasNotch ? (46, 16, 6, 0)
-            : (islandW / 2, resting.botCenterY, resting.botDiameter, 1)
-    case .compact: return (40, resting.botCenterY, resting.botDiameter, 1)
+    case .hidden where hasNotch: return (46, 16, 6, 0)
+    case .hidden, .compact: return (40, resting.botCenterY, resting.botDiameter, 1)   // the capsule never hides Tomo
     case .peek: return (TomoPeekLayout.tomoCenterX, islandH / 2, TomoPeekLayout.tomoDiameter(height: islandH), 1)
     case .expanded:
         let layout = IslandConst.layout(view)
