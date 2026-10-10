@@ -198,9 +198,16 @@ public final class TomoGame: ObservableObject {
     @Published public private(set) var outcome: TomoOutcome? {
         didSet { if let o = outcome { TomoSounds.shared.outcome(o) } }
     }
-    /// A visit ended unfinished: red dot on small Tomo + a bounce now and then, until you open it.
+    /// A visit ended unfinished: small Tomo bounces now and then until you open it. Never a count (decisions.md).
     @Published public private(set) var pending = false
     private var nextNudge = Date.distantFuture
+
+    /// Whether anything counts now (`TomoProgress.somethingCounts`, the rule a visit uses) and, when nothing does, when
+    /// something does again (`TomoProgress.nextCountsAt`, on Tomo's clock): the resting island's right side says
+    /// あそぼ！ or that time. Kept current by `syncProgress` and the tick (`refreshCounts`).
+    @Published public private(set) var somethingCounts = false
+    @Published public private(set) var nextCountsAt: Date?
+    private var countsCheckedAt = Date.distantPast
 
     /// Nothing counts right now (Tomo rests, or this round is practice): when answers count again. The card says so.
     @Published public private(set) var countsAgainAt: Date?
@@ -435,6 +442,17 @@ public final class TomoGame: ObservableObject {
         levelIsTalk = progress.isTalkLevel
         isScratch = progress.isScratch
         progressVersion += 1
+        refreshCounts()
+    }
+
+    /// `somethingCounts` and `nextCountsAt`, again: after any change to progress, when that time comes, and every half
+    /// minute for what changes without one (a new day, more new words a day in Settings).
+    private func refreshCounts() {
+        countsCheckedAt = Date()
+        let counts = progress.somethingCounts
+        let next = counts ? nil : progress.nextCountsAt
+        if counts != somethingCounts { somethingCounts = counts }
+        if next != nextCountsAt { nextCountsAt = next }
     }
 
     /// The visit frequency changed in Settings.
@@ -564,7 +582,7 @@ public final class TomoGame: ObservableObject {
     }
 
     /// A visit that found nothing to count was left alone: Tomo tucks back in, still resting. Nothing is waiting,
-    /// so no red dot.
+    /// so no bounces.
     private func tuckIn() {
         endVisit()
         pending = false
@@ -607,6 +625,9 @@ public final class TomoGame: ObservableObject {
         defer { wasOpen = open }
         // "Next at 8:37" has come: say what's left again.
         if let at = levelLeft.nextAt, at <= TomoClock.now { levelLeft = progress.levelLeft }
+        if now.timeIntervalSince(countsCheckedAt) >= 30 || (nextCountsAt.map { $0 <= TomoClock.now } ?? false) {
+            refreshCounts()
+        }
         if open && wasOpen && (phase == .resting || isPracticeRound) && progress.somethingCounts { offerWhatCounts() }
         debugReopen(open: open, now: now)
 
@@ -674,7 +695,7 @@ public final class TomoGame: ObservableObject {
         }
     }
 
-    /// × button: put Tomo away. Mid-visit, it waits beside the notch with a red dot.
+    /// × button: put Tomo away. Mid-visit, it waits beside the notch, bouncing now and then.
     public func dismiss() {
         guard isIslandOpen?() == true else { return }
         if visitRoundsLeft != nil { markPending() }
@@ -683,8 +704,8 @@ public final class TomoGame: ObservableObject {
         wasOpen = false
     }
 
-    /// An unfinished visit: the red dot, if something is still waiting. A visit that was only resting or practicing
-    /// leaves none, since nothing would count.
+    /// An unfinished visit: small Tomo's bounces, if something is still waiting. A visit that was only resting or
+    /// practicing leaves none, since nothing would count.
     private func markPending() {
         guard progress.somethingCounts else { return }
         pending = true
@@ -1171,6 +1192,16 @@ extension TomoGame {
     f.timeStyle = .short
     f.formattingContext = .middleOfSentence
     if !Calendar.current.isDateInToday(wallClock(date)) { f.dateStyle = .short; f.doesRelativeDateFormatting = true }
+    return f.string(from: wallClock(date))
+}
+
+/// When something comes next on Tomo's clock, as short as `tomoTime` can be, for the resting island's narrow right
+/// side: the time alone while it's less than a day away, since it can only be the next one ("4:00 AM", not
+/// "tomorrow, 4:00 AM"); further off, the day ("10/14").
+@MainActor public func tomoNextTime(_ date: Date, _ lang: TomoLanguages) -> String {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: lang.learner.id)
+    if date.timeIntervalSince(TomoClock.now) < 86400 { f.timeStyle = .short } else { f.setLocalizedDateFormatFromTemplate("Md") }
     return f.string(from: wallClock(date))
 }
 

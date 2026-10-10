@@ -114,11 +114,13 @@ Production. The logs and settings stay on each device for now
 ([#62](https://github.com/serpcompany/tomodachi-app/issues/62)).
 
 **Visits.** `TomoGame.tick()` with the `DropIn` constants. Tomo opens on its own when it has something
-that counts and you're at a natural break (not typing, not away). It tucks back in when ignored, leaving
-a red dot. Opening it yourself is free play, with no time limit. When nothing counts, Tomo rests
+that counts and you're at a natural break (not typing, not away). It tucks back in when ignored and bounces
+now and then until you check in (`pending`). Resting, the island's right side says あそぼ！ while something counts
+(`TomoGame.somethingCounts`, the same rule) or when it does again (`nextCountsAt`), never a count. Opening it
+yourself is free play, with no time limit. When nothing counts, Tomo rests
 (`TomoPhase.resting`, `TomoGame.rest`) in every shell until something counts, which the tick notices, or the
 learner picks Practice; opening Tomo again shows the rest, never a new offer. Quiet hours (`DropIn.quietEnds`, the
-reminders' setting) hold the visits, the launch visit (`launchVisit`) and the red dot's bounces until morning;
+reminders' setting) hold the visits, the launch visit (`launchVisit`) and small Tomo's bounces until morning;
 clicking Tomo still plays. Planned: chattiness and back-off
 ([#19](https://github.com/serpcompany/tomodachi-app/issues/19)), busy detection
 ([#20](https://github.com/serpcompany/tomodachi-app/issues/20)).

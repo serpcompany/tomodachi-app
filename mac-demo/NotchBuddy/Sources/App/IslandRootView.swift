@@ -53,10 +53,14 @@ struct IslandContainer: View {
                                       height: state.mode == .expanded ? 320 : islandHeight)
                 }
 
+            // Resting: あそぼ！ (or when words are back) and Tomo's level ring, right of the notch. Never a count.
             if state.mode == .compact {
-                let rest = IslandRestingLayout(width: islandWidth, height: islandHeight)
-                TomoPendingDot()
-                    .position(x: 40 + rest.botDiameter * 0.45, y: rest.botCenterY - rest.botDiameter * 0.4)
+                let side = IslandRestingLayout(width: islandWidth, height: islandHeight).rightSide
+                TomoRestingSide()
+                    .frame(width: side.width, height: side.height)
+                    .position(x: side.midX, y: side.midY)
+                    .allowsHitTesting(false)   // a click anywhere on the island opens it (IslandWindowController)
+                    .transition(.opacity)
             }
         }
         .frame(width: islandWidth, height: islandHeight, alignment: .topLeading)
