@@ -784,6 +784,50 @@ private struct TomoHelpPanel: View {
     }
 }
 
+// MARK: - When a visit tucks back in: the countdown line
+
+/// A thin amber line along the bottom of the open island while a visit's countdown runs: it shrinks toward the left
+/// and is empty when an ignored visit tucks Tomo back in. Drawn every frame from the deadline it's given
+/// (`TomoCountdown.fraction`), so it never jumps: a reset grows it back, and it fades in and out. Nil while the
+/// countdown is paused (the pointer in the island, listening, help open), so it never sits under the help panel.
+/// It's a progress line, not Tomo's motion, so it stays under Reduce Motion.
+struct TomoCountdownLine: View {
+    static let amber = Color(hex: "#F2B04A")
+    static let height: CGFloat = 3
+    static let inset: CGFloat = 24       // from the island's sides, clear of its rounded corners
+    static let bottom: CGFloat = 5       // from the card's bottom edge, in the island's padding under the card
+    /// Where the line's centre sits, from the island's top, on a card `cardHeight` tall.
+    static func centerY(cardHeight: CGFloat) -> CGFloat { cardHeight - bottom - height / 2 }
+
+    let countdown: TomoCountdown?
+
+    var body: some View {
+        ZStack {
+            if let countdown {
+                TimelineView(.animation) { timeline in
+                    GeometryReader { g in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Self.amber.opacity(0.2))
+                            Capsule().fill(Self.amber)
+                                .frame(width: g.size.width * countdown.fraction(at: timeline.date))
+                        }
+                    }
+                }
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.25), value: countdown == nil)
+    }
+}
+
+/// A game's visit countdown as the line (`TomoGame.visitCountdown`). It observes only the game it's given, so the
+/// island doesn't redraw on every change to the game.
+struct TomoVisitCountdownLine: View {
+    @ObservedObject var game: TomoGame
+
+    var body: some View { TomoCountdownLine(countdown: game.visitCountdown) }
+}
+
 // MARK: - The resting island's right side: あそぼ！ or when words are back, and Tomo's level ring
 
 /// Right of the notch while Tomo rests small (IslandRestingLayout.rightSide). The notch never counts what's waiting

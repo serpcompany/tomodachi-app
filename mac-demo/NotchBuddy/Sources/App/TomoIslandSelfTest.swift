@@ -50,6 +50,39 @@ enum TomoIslandSelfTest {
         check(!far.contains(timeOnly.string(from: wallClock(later))), "further off, the day without the time (\(far))")
         check(TomoRestingSide.label(counts: false, next: nil, lang) == nil, "no time known: only the level ring")
 
+        // The countdown line (TomoCountdownLine): drawn from the deadline, so it never jumps.
+        let t0 = Date(timeIntervalSinceReferenceDate: 800_000_000)
+        func at(_ s: Double) -> Date { t0.addingTimeInterval(s) }
+        let run = TomoCountdown(from: t0, until: at(DropIn.ignoreAfter))
+        let samples = stride(from: -2.0, through: DropIn.ignoreAfter + 2, by: 0.05).map(at)
+        check(samples.allSatisfy { (0...1).contains(run.fraction(at: $0)) } && run.fraction(at: t0) == 1
+              && run.fraction(at: at(DropIn.ignoreAfter)) == 0 && run.fraction(at: at(5)) == 0.5,
+              "the countdown line is full when set, half at 5 s of 10, empty at the deadline, never outside 0…1")
+        check(zip(samples, samples.dropFirst()).allSatisfy { run.fraction(at: $1) <= run.fraction(at: $0) },
+              "between resets the line only shrinks")
+        let reset = run.reset(at: at(4), until: at(4 + DropIn.ignoreAfter))
+        let after = samples.map { $0.addingTimeInterval(4) }.filter { $0 >= at(4) }
+        check(abs(reset.fraction(at: at(4)) - run.fraction(at: at(4))) < 1e-9
+              && reset.fraction(at: at(4 + TomoCountdown.refill / 2)) > run.fraction(at: at(4))
+              && abs(reset.fraction(at: at(4 + TomoCountdown.refill))
+                     - (DropIn.ignoreAfter - TomoCountdown.refill) / DropIn.ignoreAfter) < 1e-6,
+              "a reset (an answer) grows the line back from where it was, never a jump, then runs again")
+        check(after.allSatisfy { (0...1).contains(reset.fraction(at: $0)) }
+              && zip(after, after.dropFirst()).filter { $0.0 >= at(4 + TomoCountdown.refill) }
+                .allSatisfy { reset.fraction(at: $0.1) <= reset.fraction(at: $0.0) },
+              "after the refill, the reset line only shrinks, within 0…1")
+        typealias G = TomoGame
+        check(G.countdownShows(visit: true, open: true, paused: false, phase: .asking)
+              && G.countdownShows(visit: true, open: true, paused: false, phase: .resting)
+              && G.countdownShows(visit: true, open: true, paused: false, phase: .wrong("x")),
+              "the line shows while a visit asks (a wrong pick's shake too) or rests, the phases its deadline ends")
+        check(!G.countdownShows(visit: true, open: true, paused: true, phase: .asking),
+              "paused (the pointer in the island, listening, help open): no line")
+        check(!G.countdownShows(visit: false, open: true, paused: false, phase: .asking)
+              && !G.countdownShows(visit: true, open: false, paused: false, phase: .asking)
+              && !G.countdownShows(visit: true, open: true, paused: false, phase: .right),
+              "free play, a closed island, or a phase the deadline doesn't end: no line")
+
         check(C.escCloses(keyCode: 53, inIsland: true, open: true), "Esc in the open island closes it")
         check(!C.escCloses(keyCode: 53, inIsland: false, open: true), "Esc in another window (Settings) is left alone")
         check(!C.escCloses(keyCode: 53, inIsland: true, open: false), "Esc with the island closed is left alone")
