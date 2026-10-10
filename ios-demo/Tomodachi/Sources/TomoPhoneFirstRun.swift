@@ -8,7 +8,7 @@ import TomoCore
 // (it isn't "open", and its visit clock is held), the Lock Screen card doesn't start, and no reminder is scheduled.
 // The flow's steps and choices are TomoOnboarding's (Shell.phone). When it ends, the choices are saved, the screen
 // slides away to Tomo, and Tomo asks its next word (TomoPhoneShell.endFirstRun).
-// TOMO_ONBOARDING=<step> opens it at a step, TOMO_AUTOPLAY=1 plays it through (docs/verification.md).
+// TOMO_ONBOARDING=<step> opens it at a step, TOMO_AUTOPLAY=1 plays it through (docs/debug-flags.md).
 
 extension View {
     /// Covers the whole app (the tabs) with the first run while there is one.

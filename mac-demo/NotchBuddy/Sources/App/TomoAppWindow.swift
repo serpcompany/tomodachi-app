@@ -12,7 +12,7 @@ import TomoCore
 // Closing it leaves Tomo in the notch and Tomodachi in the Dock (decisions.md).
 // TOMO_OPEN_WINDOW=<screen> opens it at launch, `tour` shows every screen in turn, and TOMO_SNAPSHOT_DIR captures it
 // (window-<screen>-NNN.png, and window-sheet-NNN.png for the start-over question); TOMO_APPEARANCE=light|dark draws it
-// in either (docs/verification.md).
+// in either (docs/debug-flags.md).
 
 @MainActor
 enum TomoAppWindow {

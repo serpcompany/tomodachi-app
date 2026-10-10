@@ -11,7 +11,7 @@ import TomoCore
 // The Testing menu's "Show the first run" (`preview`) opens the same flow on a copy of the learner's Tomo in memory
 // (TomoGame.useCopy): nothing is saved, onboarding.json isn't touched, and a setting (how often, quiet hours, open at
 // login) changes only if it was changed in the preview. Closing it, or Back to my Tomo, ends the copy.
-// TOMO_SNAPSHOT_DIR also captures this window (onboarding-NNN.png), like the island (docs/verification.md).
+// TOMO_SNAPSHOT_DIR also captures this window (onboarding-NNN.png), like the island (docs/debug-flags.md).
 // TOMO_ONBOARDING=preview opens the preview at launch.
 
 @MainActor

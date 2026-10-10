@@ -54,7 +54,7 @@ public final class TomoScreenNav: ObservableObject {
     @Published public var confirmingStartOver: Bool
 
     /// TOMO_OPEN_WINDOW=<screen> (tomo, words, together, settings, about, ai, testing): a test run opens at that screen
-    /// (docs/verification.md). `startOver` opens Settings with the confirmation up; `tour` (the Mac) shows every
+    /// (docs/debug-flags.md). `startOver` opens Settings with the confirmation up; `tour` (the Mac) shows every
     /// screen in turn. TOMO_OPEN_SETTINGS is the older name (`general` was Settings).
     nonisolated public static let requested: String? = {
         let env = ProcessInfo.processInfo.environment
