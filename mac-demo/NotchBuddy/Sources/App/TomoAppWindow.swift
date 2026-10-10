@@ -2,16 +2,17 @@ import AppKit
 import SwiftUI
 import TomoCore
 
-// MARK: - The Tomodachi window (issue #90): Tomo, Words, Settings and About, with a sidebar
+// MARK: - The Tomodachi window (issue #90): Tomo, Words, Together, Settings and About, with a sidebar
 //
-// The same screens as the iPhone's tabs (TomoCore: TomoGrowthScreen, TomoWordsScreen, TomoSettingsScreen,
-// TomoAboutScreen), plus what only the Mac has: open at login (in Settings) and, after ⌥-clicking the menu bar icon,
-// the AI page and the testing tools (TomoFeatures). It opens from the menus (About, Settings…, Tomo's words, Start
-// Tomo over…, and the menu bar icon's Open Tomodachi…), from Tomo's age in the card header, and when Tomodachi is
-// opened again from the Dock, Finder or Launchpad (AppDelegate.applicationShouldHandleReopen). Closing it leaves
-// Tomo in the notch and Tomodachi in the Dock (decisions.md).
+// The same screens as the iPhone's tabs (TomoCore: TomoGrowthScreen, TomoWordsScreen, TomoTogetherScreen,
+// TomoSettingsScreen, TomoAboutScreen), plus what only the Mac has: open at login (in Settings) and, after ⌥-clicking
+// the menu bar icon, the AI page and the testing tools (TomoFeatures). It opens from the menus (About, Settings…,
+// Tomo's words, Start Tomo over…, and the menu bar icon's Open Tomodachi…), from Tomo's age in the card header, and
+// when Tomodachi is opened again from the Dock, Finder or Launchpad (AppDelegate.applicationShouldHandleReopen).
+// Closing it leaves Tomo in the notch and Tomodachi in the Dock (decisions.md).
 // TOMO_OPEN_WINDOW=<screen> opens it at launch, `tour` shows every screen in turn, and TOMO_SNAPSHOT_DIR captures it
-// (window-<screen>-NNN.png, and window-sheet-NNN.png for the start-over question) (docs/verification.md).
+// (window-<screen>-NNN.png, and window-sheet-NNN.png for the start-over question); TOMO_APPEARANCE=light|dark draws it
+// in either (docs/verification.md).
 
 @MainActor
 enum TomoAppWindow {
@@ -41,6 +42,10 @@ enum TomoAppWindow {
         win.titleVisibility = .hidden
         win.titlebarAppearsTransparent = true
         win.minSize = minSize
+        // TOMO_APPEARANCE=light|dark: snapshots in either, whatever this Mac uses.
+        if let look = ProcessInfo.processInfo.environment["TOMO_APPEARANCE"] {
+            NSApp.appearance = NSAppearance(named: look == "dark" ? .darkAqua : .aqua)
+        }
         win.contentView = NSHostingView(rootView: TomoAppView(play: { TomoMenus.openIsland() }))
         win.isReleasedWhenClosed = false
         window = win
@@ -74,7 +79,7 @@ enum TomoAppWindow {
 
     /// Every screen in turn, three seconds each, then the start-over question.
     private static func tour() {
-        var screens: [TomoScreen] = [.tomo, .words, .settings, .about]
+        var screens: [TomoScreen] = [.tomo, .words, .together, .settings, .about]
         if TomoFeatures.shared.ai { screens += [.ai] }
         if TomoFeatures.shared.testingTools { screens += [.testing] }
         open(screens[0])
@@ -87,7 +92,8 @@ enum TomoAppWindow {
     private static func startSnapshots() {
         guard let dir = ProcessInfo.processInfo.environment["TOMO_SNAPSHOT_DIR"] else { return }
         var n = 0
-        timers.append(Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+        let every = ProcessInfo.processInfo.environment["TOMO_SNAPSHOT_EVERY"].flatMap(Double.init) ?? 1
+        timers.append(Timer.scheduledTimer(withTimeInterval: max(every, 0.05), repeats: true) { _ in
             MainActor.assumeIsolated {
                 guard let win = window, win.isVisible else { return }
                 n += 1
@@ -129,6 +135,17 @@ enum TomoAppWindow {
 
 // MARK: - The window's content: a sidebar of screens, the selected screen on the right
 
+/// Together, for the learner's own Tomo: its progress, look and material are passed in (TomoCore's screen takes the
+/// Tomo it shows).
+private struct TomoTogetherPage: View {
+    @ObservedObject var game = TomoGame.shared
+
+    var body: some View {
+        TomoTogetherScreen(progress: game.progress, look: TomoLook.current, material: .own,
+                           version: game.progressVersion)
+    }
+}
+
 private struct TomoAppView: View {
     @ObservedObject var lang = TomoLanguages.shared
     @ObservedObject var nav = TomoScreenNav.shared
@@ -157,7 +174,7 @@ private struct TomoAppView: View {
     private var sidebar: some View {
         List(selection: Binding<TomoScreen?>(get: { nav.screen }, set: { if let s = $0 { nav.screen = s } })) {
             Section { TomoProfileRow().tag(TomoScreen.tomo) }
-            Section { row(.words); row(.settings) }
+            Section { row(.words); row(.together); row(.settings) }
             Section {
                 if features.ai { row(.ai) }                 // hidden for now: Japanese only, offline (TomoFeatures)
                 if features.testingTools { row(.testing) }  // ⌥-click the menu bar icon (TomoTestingTools)
@@ -185,8 +202,9 @@ private struct TomoAppView: View {
 
     @ViewBuilder private var page: some View {
         switch nav.screen {
-        case .tomo:     TomoGrowthScreen(play: play)
+        case .tomo:     TomoGrowthScreen(play: play, together: { nav.screen = .together })
         case .words:    TomoWordsScreen()
+        case .together: TomoTogetherPage()
         case .settings: TomoSettingsScreen(device: {
             TomoLoginItemSection()
             TomoReminderSettingsView.QuietHours(forVisits: true)   // no visits at night (#88)

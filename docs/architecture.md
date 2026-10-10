@@ -11,7 +11,7 @@ AI, voice, sounds, and Tomo's drawing. Each app is a shell around it: the Mac ap
 the notch ([coucou-fork.md](coucou-fork.md)), and the iPhone app in `ios-demo/` with its widget extension. Widgets can't run the game: the app writes a `TomoGlance` (age, level, bar, what's waiting, in the learner's language) to the App Group `group.com.zenbujapanese.tomo`, and the widget draws it, with the mascot moving through a font of its own frames (`TomoMovingMascot`; [decisions-2026-10-06.md](decisions-2026-10-06.md)). The same glance drives Tomo's Lock Screen card, a Live Activity (`TomoLiveVisit` in the app, `TomoVisitLiveActivity` in the extension), once the learner said yes to it; its stale date is the next due time, so it turns to "ready" without the app running. Mac-only parts stay in
 the Mac app: the card (`TomoView`), the Tomodachi window and the menus (`TomoAppWindow`, `TomoMenus`), clickable
 words with the Mac's dictionary (`TomoLineView`) and Tomo in the island (`TomoIslandCharacter`). The screens both apps
-show (Tomo, Words, Settings, About) are in TomoCore (below, "Screens"). Invariant: TomoCore never imports AppKit
+show (Tomo, Words, Together, Settings, About) are in TomoCore (below, "Screens"). Invariant: TomoCore never imports AppKit
 or UIKit, or reaches into a shell, and takes the app's identity from it (Info.plist's `TomoAppGroup`, `TomoCloudContainer`).
 
 ## Layers
@@ -23,6 +23,7 @@ Island shell (Coucou)       notch window, open/close state machine, click-throug
        ├─ Content source    what Tomo brings: the age track (language packs)
        ├─ Growth            word stages, levels, ages (TomoProgress)
        ├─ Learner store     saved progress and answer log (TomoStore, SQLite)
+       ├─ Stats             what you and Tomo did, from the logs (TomoStats)
        ├─ Sync              one Tomo across the learner's devices (TomoSync, iCloud)
        ├─ Visits            when Tomo drops in, when it leaves
        ├─ Reminders         iPhone notifications when words are ready (TomoReminders)
@@ -94,11 +95,12 @@ decides. Invariants:
 `TomoClock` moves time for testing, and `TOMO_SELFTEST=1` checks the rules. Planned:
 [#38](https://github.com/serpcompany/tomodachi-app/issues/38).
 
-**Learner store.** `TomoStore.swift`: one SQLite file on the device, keyed by (learner, target), so each
-language pair has its own Tomo. `tomo` and `item` hold the current state; `answer` and `growth` are
-append-only logs. Start over clears the words and notes when (`tomo.reset_at`), never the logs.
-`TOMO_DATA_DIR` moves the file. Planned: Language Reference IDs as item ids and sync with the Zenbu apps
-([#28](https://github.com/serpcompany/tomodachi-app/issues/28)).
+**Learner store.** `TomoStore.swift`: one SQLite file on the device, keyed by (learner, target), so
+each language pair has its own Tomo. `tomo` and `item` hold the current state; `answer`, `growth`
+and `visit` (each time together, from TomoGame) are logs, read by `TomoStats`
+([stats.md](stats.md)). Start over clears the words and notes when (`tomo.reset_at`), never the
+logs. `TOMO_DATA_DIR` moves the file. Planned: Language Reference IDs as item ids and sync with the
+Zenbu apps ([#28](https://github.com/serpcompany/tomodachi-app/issues/28)).
 
 **Sync.** `TomoSync.swift`: one Tomo across the learner's Mac and iPhone through their own iCloud
 (CloudKit private database, zone `Tomo`, container `iCloud.com.zenbujapanese.tomo`) with Apple's
@@ -195,16 +197,20 @@ sounds, lower and fuller as Tomo grows. Planned: a voice that ages with Tomo
 ([#17](https://github.com/serpcompany/tomodachi-app/issues/17)), sound polish
 ([#21](https://github.com/serpcompany/tomodachi-app/issues/21)).
 
-**Screens.** Tomo, Words, Settings and About are SwiftUI views in TomoCore (`TomoGrowthScreen`,
-`TomoWordsScreen`, `TomoSettingsScreen`, `TomoAboutScreen`), shown by both shells: the Mac in the Tomodachi
-window with a sidebar (`TomoAppWindow`), the iPhone as tabs around the play screen (`TomoPhoneHome`, which wraps
-`TomoPhoneView` unchanged). `TomoScreens.swift` holds the seam: `TomoScreen` (the screens), `TomoScreenNav` (which
-one shows; `confirmingStartOver`, so the Mac's menu asks the same way Settings does) and `TomoFeatures` (what this
-version offers: the AI page and the "I'm learning" picker show only with the testing tools). What only one device
-has goes into Settings' `device` slot: open at login on the Mac (`TomoLoginItem`, off until the learner turns it
-on), reminders on the iPhone ([#88](https://github.com/serpcompany/tomodachi-app/issues/88)). The Mac's main menu
-and its menu bar icon's menu share one list of commands (`TomoMenus`). Invariants: the screens read `TomoGame` and
-`TomoProgress` and decide nothing themselves; Start over always asks first; the testing tools (`TomoTestingTools`,
-after ⌥-clicking the menu bar icon) never touch the saved Tomo.
+**Screens.** Tomo, Words, Together, Settings and About are SwiftUI views in TomoCore
+(`TomoGrowthScreen`, `TomoWordsScreen`, `TomoTogetherScreen`, `TomoSettingsScreen`,
+`TomoAboutScreen`), shown by both shells: the Mac in the Tomodachi window with a sidebar
+(`TomoAppWindow`), the iPhone as tabs around the play screen (`TomoPhoneHome`, which wraps
+`TomoPhoneView` unchanged). `TomoScreens.swift` holds the seam: `TomoScreen` (the screens),
+`TomoScreenNav` (which one shows; `confirmingStartOver`, so the Mac's menu asks the same way
+Settings does) and `TomoFeatures` (what this version offers: the AI page and the "I'm learning"
+picker show only with the testing tools). What only one device has goes into Settings' `device`
+slot: open at login on the Mac (`TomoLoginItem`, off until the learner turns it on), reminders on
+the iPhone ([#88](https://github.com/serpcompany/tomodachi-app/issues/88)). The Mac's main menu and
+its menu bar icon's menu share one list of commands (`TomoMenus`). Invariants: the screens read
+`TomoGame`, `TomoProgress` and `TomoStats` and decide nothing themselves; Start over always asks
+first; the testing tools (`TomoTestingTools`, after ⌥-clicking the menu bar icon) never touch the
+saved Tomo. New screens take the Tomo they show (its progress, look and material), so a friend can
+have its own: Together does ([stats.md](stats.md)).
 
 The research behind these systems is mapped in [research/README.md](research/README.md).
