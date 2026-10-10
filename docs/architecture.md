@@ -8,7 +8,7 @@ Tomo's code is in `Tomo*.swift` files, in two places. **`TomoCore/`** is a Swift
 iOS with everything that isn't tied to one device: the game, growth, store, languages and their packs,
 AI, voice, sounds, and Tomo's drawing. Each app is a shell around it: the Mac app in
 `mac-demo/NotchBuddy/Sources/App/`, where Coucou's files (`Island*`, `AppDelegate`, `AppState`…) are
-the notch ([coucou-fork.md](coucou-fork.md)), and the iPhone app in `ios-demo/` with its widget extension. Widgets can't run the game: the app writes a `TomoGlance` (age, level, bar, what's waiting, in the learner's language) to the App Group `group.com.zenbujapanese.tomo`, and the widget draws it, with the mascot moving through a font of its own frames (`TomoMovingMascot`; decisions.md). The same glance drives Tomo's Lock Screen card, a Live Activity (`TomoLiveVisit` in the app, `TomoVisitLiveActivity` in the extension), once the learner said yes to it; its stale date is the next due time, so it turns to "ready" without the app running. Mac-only parts stay in
+the notch ([coucou-fork.md](coucou-fork.md)), and the iPhone app in `ios-demo/` with its widget extension. Widgets can't run the game: the app writes a `TomoGlance` (age, level, bar, what's waiting, in the learner's language) to the App Group `group.com.zenbujapanese.tomo`, and the widget draws it, with the mascot moving through a font of its own frames (`TomoMovingMascot`; [decisions-2026-10-06.md](decisions-2026-10-06.md)). The same glance drives Tomo's Lock Screen card, a Live Activity (`TomoLiveVisit` in the app, `TomoVisitLiveActivity` in the extension), once the learner said yes to it; its stale date is the next due time, so it turns to "ready" without the app running. Mac-only parts stay in
 the Mac app: the card (`TomoView`), the Tomodachi window and the menus (`TomoAppWindow`, `TomoMenus`), clickable
 words with the Mac's dictionary (`TomoLineView`) and Tomo in the island (`TomoIslandCharacter`). The screens both apps
 show (Tomo, Words, Settings, About) are in TomoCore (below, "Screens"). Invariant: TomoCore never imports AppKit
@@ -60,35 +60,12 @@ the learner opens it (a click, the menu), so Esc works then and a visit or a pee
 keystroke (decisions.md). It's a non-activating panel that can't be hidden: Tomodachi is a regular
 app with a Dock icon, and the island never brings it to the front.
 
-**Character.** `TomoBlob` in `TomoCharacter.swift`: a blob drawn every frame in code. Its look is a
-`TomoLook` (`TomoLook.swift`) hashed from a seed: a colour and eyes for life, and a form for each
-age (silhouette, size, details) that changes at every birthday. The learner's look is
-`TomoLook.current`, which `TomoGame` sets from the saved Tomo; the seed is the language pair and the
-second the Tomo first appeared, which is already synced, so every device draws the same Tomo. Places
-that can't draw it live (widgets, Live Activities, the icons) show `TomoLook.mascot`. It's driven by
-notifications (`.botGrow`, `.botLevelUp`, `.triggerEmote` and others, in `TomoSignals.swift`) and
-Tomo's state (`TomoGame.onBotState`), never called directly, so any screen can host it:
-`TomoBlobView` on the iPhone, `TomoCharacterView` in the island. Its time comes from a clock, so it
-can be rendered offline. Big moments (a level-up, a birthday, becoming another Tomo) and arrivals
-(dripping in from the notch on a goo strand, pulled back up into it) are **cue scripts** (`Cue`):
-one timeline each, as data, played on that clock. While one plays it owns Tomo's body, face and
-particles, so what the game sends with it adds nothing; a newer one replaces it, and first closes
-what the old one opened (its pending shape swap). The shell passes in where the notch is
-(`strandAnchor`) and how strongly small Tomo glows amber to ask to play (`callGlow`, 0…1). Reduce
-Motion is an input (`TomoBlob.reduceMotion`): each shell sets `TomoMotion` from the system
-(`NSWorkspace` on the Mac, `UIAccessibility` on the iPhone) and follows changes, and every live host
-passes it on (`TomoBlobView`, `TomoLiveAvatar` on the screens, the island). Then hops, shakes and
-wiggles become a face and a small puff, a cue script plays its calm version (a glow, star eyes and a
-puff; an arrival fades in or out where Tomo sits), the call glow holds steady, and particles are
-fewer and slower. Offline renders leave it off, so they never depend on the Mac that renders them
-(`TOMO_REDUCE_MOTION=1` turns it on); widgets and the Live Activity play their frame font
-regardless. Invariants: idle life never stops (under Reduce Motion it still breathes and blinks, and
-a birthday still changes its shape); a cue script's shape swap always happens, even when a newer
-script replaces it or nobody saw it play; TomoBlob never reads a system setting or the game; a seed
-always gives the same Tomo. Trait keys can be added freely, but changing a range, a band or a list
-changes every learner's Tomo (`TomoLook.selfTest`). `TomoLook.variety` scales how different Tomos
-are. Planned: evolution that reads as growing up, as cue scripts
-([#87](https://github.com/serpcompany/tomodachi-app/issues/87)).
+**Character.** `TomoBlob` in `TomoCharacter.swift`: Tomo the blob, drawn every frame in code on a clock, so it can
+be rendered offline. Its look (`TomoLook`, from a seed) and what it's made of (`TomoMaterial`: jelly for the learner's
+own Tomo, classic for the mascot and what ships as files) come from its host, and the game drives it through
+notifications and Tomo's state, never directly, so any screen can host it. Big moments, arrivals and its hello are cue
+scripts on that clock, and Reduce Motion is an input. How it works, what hosts pass in, and its invariants:
+[character.md](character.md).
 
 **Languages.** `TomoLanguage.swift`: the target pack (Tomo's words, voice, recognition, AI rules) and the
 learner pack (interface text) for the current pair, `TomoLanguages.shared`; background work takes a

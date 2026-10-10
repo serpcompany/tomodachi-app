@@ -249,6 +249,11 @@ enum TomoIslandSelfTest {
               && T.move(from: .expanded, to: .hidden, arriving: false) == .pullUp
               && T.backAfter(pulledUp: true) >= 0.34 && T.backAfter(pulledUp: false) >= C.pullUpTime,
               "the card or the peek closing pulls Tomo up into the notch, and it's back beside it once that's done")
+        check(T.saysHello(greeted: false, waking: false, mode: .compact) && T.saysHello(greeted: false, waking: false, mode: .expanded)
+              && T.saysHello(greeted: false, waking: false, mode: .peek) && !T.saysHello(greeted: false, waking: false, mode: .hidden)
+              && !T.saysHello(greeted: true, waking: false, mode: .compact) && T.saysHello(greeted: true, waking: true, mode: .compact)
+              && !T.saysHello(greeted: true, waking: true, mode: .hidden),
+              "Tomo says hello the first time it shows (resting, the launch visit's card or peek) and when the Mac wakes, never hidden")
         check(C.foldWaits(from: .expanded, to: .compact, reduceMotion: false)
               && C.foldWaits(from: .peek, to: .compact, reduceMotion: false)
               && !C.foldWaits(from: .expanded, to: .compact, reduceMotion: true)

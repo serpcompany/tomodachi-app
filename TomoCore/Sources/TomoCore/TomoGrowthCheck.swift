@@ -4,10 +4,10 @@ import Foundation
 //
 // Beyond the rules' own checks in TomoProgress.selfTest: every level of every target pack can be finished, a birthday
 // evolves Tomo once (under Reduce Motion too: TomoBlob.motionSelfTest; its small touches: touchesSelfTest; its big
-// moments' scripts: cueSelfTest; its arrivals and call glow: arrivalSelfTest), and simulated learners grow on Tomo's
-// clock, moved forward, with the real rules (waits, early reviews at half the wait, new words a day, levels needing 9
-// of 10) from the first word to the first talking question. The runs print how many days each step took: the pacing
-// table for #38.
+// moments' scripts: cueSelfTest; its arrivals and call glow: arrivalSelfTest; its material: materialSelfTest; its
+// hello: helloSelfTest), and simulated learners grow on Tomo's clock, moved forward, with the real rules (waits, early
+// reviews at half the wait, new words a day, levels needing 9 of 10) from the first word to the first talking question.
+// The runs print how many days each step took: the pacing table for #38.
 
 extension TomoProgress {
     /// The pack walk, the evolution and the simulated learners. `check` prints each result.
@@ -24,6 +24,8 @@ extension TomoProgress {
         TomoBlob.touchesSelfTest(check)
         TomoBlob.cueSelfTest(check)
         TomoBlob.arrivalSelfTest(check)
+        TomoBlob.materialSelfTest(check)
+        TomoBlob.helloSelfTest(check)
         let lang = TomoLanguages.shared
         for pack in lang.targets {
             let learner = lang.learners.first { $0.id != pack.id } ?? lang.learner
@@ -107,7 +109,7 @@ extension TomoProgress {
     /// A birthday evolves Tomo once: hearing it twice (the iPhone's view sees the age change, and the game says so)
     /// mustn't cut the evolution short.
     static func evolutionSelfTest(_ check: (Bool, String) -> Void) {
-        let blob = TomoBlob(look: .mascot)
+        let blob = TomoBlob(look: .mascot, material: .classic)
         var t = 100.0
         blob.clock = { t }
         blob.step()
