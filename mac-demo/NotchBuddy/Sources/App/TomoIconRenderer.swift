@@ -9,6 +9,9 @@ import TomoCore
 //   <dir>/tomo-1024.png  Tomo alone on transparent, for the menu bar template
 //   <dir>/icon-ios-1024.png  the iPhone app icon: full-bleed and opaque (iOS draws the rounded mask)
 // mac-demo/scripts/make-icons.py turns them into the asset catalog sizes.
+// Every render here draws a TomoBlob of its own, which never follows this Mac's Reduce Motion, so the renders are the
+// same on any Mac. TOMO_REDUCE_MOTION=1 turns it on for TOMO_RENDER_ANIM and the sheet (`TomoMotion.forced`), never
+// for TOMO_RENDER_CARD_FRAMES: widgets and the Live Activity play their frames regardless.
 
 @MainActor
 enum TomoIconRenderer {
@@ -83,6 +86,7 @@ enum TomoIconRenderer {
         try? FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
         var t = 0.0
         let blob = TomoBlob(look: look)
+        blob.reduceMotion = TomoMotion.forced
         blob.clock = { t }
         blob.particleOverhang = 40
         blob.setGrowth(0)
@@ -139,7 +143,7 @@ enum TomoIconRenderer {
                 let dir = out.appendingPathComponent("\(name)-\(growth)")
                 try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
                 var t = 100.0
-                let blob = TomoBlob(look: .mascot)
+                let blob = TomoBlob(look: .mascot)   // Reduce Motion off, even with the flag: these are the shipped frames
                 blob.clock = { t }
                 blob.setGrowth(CGFloat(growth))
                 blob.step()
@@ -171,6 +175,7 @@ enum TomoIconRenderer {
     private static var sheet: some View {
         func cell(_ label: String, growth: CGFloat = 1, look l: TomoLook = look, _ setup: (TomoBlob) -> Void = { _ in }) -> some View {
             let blob = TomoBlob(look: l)
+            blob.reduceMotion = TomoMotion.forced
             blob.setGrowth(growth)
             setup(blob)
             return VStack(spacing: 4) {

@@ -22,6 +22,10 @@ struct TomodachiApp: App {
         TomoOnboarding.checkAtLaunch()       // before anything opens the store: a new learner gets the first run (#88)
         TomoReminderCenter.shared.install()  // a tap on a reminder can be why we launched
         TomoLiveVisit.shared.install()      // before anything else: a tap on the card can be why we launched
+        // Every live Tomo follows Reduce Motion (TomoMotion); TOMO_REDUCE_MOTION=1 turns it on for screenshots.
+        TomoMotion.shared.follow(.default, UIAccessibility.reduceMotionStatusDidChangeNotification) {
+            UIAccessibility.isReduceMotionEnabled
+        }
         // Tomo's voice and peeps are a game's sounds: the Ring/Silent switch mutes them, and they play over the
         // learner's music instead of stopping it (#92).
         try? AVAudioSession.sharedInstance().setCategory(.ambient)

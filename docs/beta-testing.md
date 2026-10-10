@@ -27,6 +27,9 @@ Tomo is a little blob who lives next to your MacBook's notch and only speaks the
 - **No AI setup in this version:** Tomodachi works offline, with no account. Word cards show the meaning from Tomo's words and the Mac's dictionary.
 - **No microphone:** you answer by clicking, so Tomodachi doesn't ask for it.
 - **Moving between displays:** Tomo follows the notch, or the main display's menu bar when the lid is closed.
+- **Reduce Motion** (System Settings → Accessibility → Display on the Mac, Accessibility → Motion on the iPhone): Tomo
+  stays put and shows how it feels with its face and a small puff instead of hopping and shaking. Widgets and the Lock
+  Screen card still move.
 
 ## On the iPhone (TestFlight)
 

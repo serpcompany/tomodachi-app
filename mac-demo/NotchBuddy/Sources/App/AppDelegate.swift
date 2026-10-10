@@ -9,6 +9,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         TomoHeadless.start()   // TOMO_HEADLESS: test runs stay invisible and silent
+        // Every live Tomo follows Reduce Motion (Accessibility → Display). A test run ignores this Mac's setting, so its
+        // snapshots don't depend on it: TOMO_REDUCE_MOTION=1 turns it on (TomoMotion).
+        TomoMotion.shared.follow(NSWorkspace.shared.notificationCenter,
+                                 NSWorkspace.accessibilityDisplayOptionsDidChangeNotification) {
+            !TomoHeadless.isOn && NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        }
         NSApp.setActivationPolicy(.accessory)
         TomoIconRenderer.renderIfRequested()   // the self-test and the renders quit here
         // A regular app with a Dock icon and a main menu (decisions.md). Info.plist starts it as an agent
