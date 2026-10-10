@@ -10,9 +10,9 @@ import TomoCore
 /// It arrives and leaves through the notch (`move`): it drips in when it comes out on its own, is pulled up before the
 /// card or the peek folds (`AppState.leaving`), and fades back in beside the notch. It says hello (#137) when it first
 /// appears, as the app starts, and when the Mac wakes (`wakes`). Small, in the resting island, it wears its badges
-/// (`wearsBadges`: a "…" bubble while it checks an answer, a Zz while it dozes), drawn just right of its canvas
-/// (`badgeRoom`). Its host says how strongly it glows to ask to play (`callGlow`), and the strand and the hello's drop
-/// hang from the island's top edge, straight above it.
+/// (`wearsBadges`: a "…" bubble while it checks an answer, a Zz while it dozes), drawn just right of its frame. The
+/// canvas reaches past its frame for them and for the call glow (`canvasRoom`). Its host says how strongly it glows to
+/// ask to play (`callGlow`), and the strand and the hello's drop hang from the island's top edge, straight above it.
 struct TomoCharacterView: View {
     @ObservedObject var state: AppState
     var particleOverhang: CGFloat = 0
@@ -45,7 +45,15 @@ struct TomoCharacterView: View {
 
     /// The room the canvas has right of its frame for a badge (the frame stays the size BotPlacement gives, so Tomo
     /// doesn't move or grow). The island's own shape still clips it: the badge stays in the ear, left of the notch.
-    static let badgeRoom: CGFloat = 24
+    nonisolated static let badgeRoom: CGFloat = 24
+
+    /// The room the canvas has beyond its frame on each side, so nothing Tomo draws is cut off by the canvas's edge: the
+    /// call glow reaches 1.8 R from Tomo's middle (0.66 of the frame's width at 6さい, past its sides and its bottom),
+    /// and a badge sits on its right (`badgeRoom`). Tomo is still drawn at the frame's size and place.
+    nonisolated static func canvasRoom(width w: CGFloat) -> (left: CGFloat, right: CGFloat, bottom: CGFloat) {
+        let glow = ceil(w * 0.2)
+        return (glow, max(glow, badgeRoom), glow)
+    }
 
     /// TOMO_BADGE=checking|dozing: small Tomo wears that badge, for snapshots. Checking holds Tomo in `.thinking`
     /// (nothing makes it check an answer while small today: answers are choices); dozing lets it doze 2 s after the
@@ -87,9 +95,13 @@ struct TomoCharacterView: View {
             // hangs from there. Read from the layout as it animates, so it stays put while the island opens or closes.
             let islandTop = -geo.frame(in: .named(IslandContainer.space)).minY
             // The Canvas must read the timeline's date, or SwiftUI won't redraw it every frame.
+            let room = Self.canvasRoom(width: geo.size.width)
             TimelineView(.animation(paused: state.mode == .hidden)) { timeline in
-                // Wider than the frame on the right, for a badge; Tomo is drawn at the frame's size, where it was.
+                // Bigger than the frame, for the glow and a badge (`canvasRoom`); Tomo is drawn at the frame's size,
+                // where it was.
                 Canvas { context, _ in
+                    var context = context
+                    context.translateBy(x: room.left, y: 0)
                     blob.frameDate = timeline.date
                     let g = gaze()
                     blob.lookX = g.x
@@ -101,7 +113,8 @@ struct TomoCharacterView: View {
                     blob.step()
                     blob.draw(context, size: geo.size)
                 }
-                .frame(width: geo.size.width + Self.badgeRoom, height: geo.size.height)
+                .frame(width: geo.size.width + room.left + room.right, height: geo.size.height + room.bottom)
+                .offset(x: -room.left)
             }
         }
         .onChange(of: shownState) { _, s in blob.setState(s) }
