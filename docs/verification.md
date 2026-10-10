@@ -36,7 +36,9 @@ pack's age boundary. Each run prints a `pace` line: the days to Lv 2, 5 and 10 a
 - **The menus and their shortcuts:** `TOMO_DUMP_MENU=<file>` writes the main menu and the menu bar icon's
   menu, with their shortcuts; a headless run can't press them.
 - **Tomo's look or motion:** `TOMO_RENDER_SHEET` and `TOMO_RENDER_ANIM` frames, with `TOMO_SEED=<text>` for
-  a known learner's Tomo (the mascot otherwise), and the self-test's look checks (`TomoLook.selfTest`).
+  a known learner's Tomo (the mascot otherwise), and the self-test's look checks (`TomoLook.selfTest`). They draw the
+  learner's material (jelly); `TOMO_MATERIAL=classic` draws Tomo as before. A change to `classic` or to anything it
+  draws needs `TOMO_RENDER_CARD_FRAMES` compared with main: those frames ship as the widgets' font.
 - **Sounds:** `TOMO_RENDER_SOUNDS`, and listen. An agent can't listen: check each file with ffmpeg (`astats` or
   `volumedetect`: peaks at -3 dBFS or lower; `ebur128`: about the same loudness at every age) and look at a
   `showspectrumpic` sheet.
@@ -126,10 +128,15 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   page → "Skip ahead a day" moves the clock live, on a copy of Tomo in memory.
 - `TOMO_DROPIN_EVERY=8`, `TOMO_NUDGE_EVERY=5`: seconds between visits and between nudge bounces.
 - `TOMO_RENDER_ICON`, `TOMO_RENDER_SHEET`, `TOMO_RENDER_SOUNDS`, `TOMO_RENDER_ANIM`, `TOMO_RENDER_CARD_FRAMES` (`=<dir>`): render
-  the icons, every age and face, every sound (WAV), or a 25-second scene (20 fps frames), then quit. The
+  the icons, every age and face, every sound (WAV), or a 27.5-second scene (20 fps frames, with the hello at 25.2 s),
+  then quit. The
   sheet shows one Tomo at every age and with every face, then a crowd of other seeds. The sounds are
   `<effect>-age<N>.wav` for 1さい to 6さい, and `all-sounds.wav` (every effect at 1さい, in order).
 - `TOMO_SEED=<text>`: the seed Tomo's look is made from, in place of the saved Tomo's.
+- `TOMO_MATERIAL=classic|jelly`: the material of `TOMO_RENDER_ANIM` and the sheets (the learner's own, jelly, otherwise).
+  The icons and the card frames are always classic.
+- `TOMO_HELLO=<seconds>`: that long after Tomo first shows, it says hello as it does when the Mac wakes (a test run
+  can't sleep the Mac). The hello at launch needs no flag: the launch visit's card shows it.
 - `TOMO_REDUCE_MOTION=1`: Tomo honours Reduce Motion whatever the system says, in snapshots, `TOMO_RENDER_ANIM` and
   the sheet (on the iPhone, `SIMCTL_CHILD_TOMO_REDUCE_MOTION=1`). Without it a test run (`TOMO_HEADLESS`) ignores this
   Mac's setting, and the renders always do, so none depends on the Mac it runs on. `TOMO_RENDER_CARD_FRAMES` ignores

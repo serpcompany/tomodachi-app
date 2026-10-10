@@ -1,20 +1,25 @@
+import AppKit
+import Combine
 import SwiftUI
 import TomoCore
 
 // MARK: - Tomo in the notch island (the shared drawing is TomoBlob, in TomoCore)
 
-/// Tomo in the island: a Canvas redrawn every frame, its gaze on the cursor. It follows Reduce Motion (`TomoMotion`).
+/// Tomo in the island: the learner's own, in its material (`TomoMaterial.own`), a Canvas redrawn every frame, its gaze
+/// on the cursor. It follows Reduce Motion (`TomoMotion`).
 /// It arrives and leaves through the notch (`move`): it drips in when it comes out on its own, is pulled up before the
-/// card or the peek folds (`AppState.leaving`), and fades back in beside the notch. Its host says how strongly it glows
-/// to ask to play (`callGlow`), and the strand hangs from the island's top edge, straight above it.
+/// card or the peek folds (`AppState.leaving`), and fades back in beside the notch. It says hello (#137) when it first
+/// appears, as the app starts, and when the Mac wakes (`wakes`). Its host says how strongly it glows to ask to play
+/// (`callGlow`), and the strand and the hello's drop hang from the island's top edge, straight above it.
 struct TomoCharacterView: View {
     @ObservedObject var state: AppState
     var particleOverhang: CGFloat = 0
     /// How strongly small Tomo glows amber to ask to play, 0…1, read every frame (BotPlacement: resting, while
     /// something counts).
     var callGlow: () -> CGFloat = { 0 }
-    @StateObject private var blob = TomoBlob(motion: .shared)
+    @StateObject private var blob = TomoBlob(material: .own, motion: .shared)
     @State private var seenArrivals = 0
+    @State private var greeted = false
 
     /// What Tomo does when the island changes: drips in when the app brought it out (a visit, as its card or its peek:
     /// `AppState.arrivals`), is pulled up into the notch when the card or the peek closes (already, if the fold waited
@@ -34,6 +39,28 @@ struct TomoCharacterView: View {
     /// Small Tomo fades back in beside the notch this long after the island folds: once it has folded (0.34 s), or once
     /// the pull up (0.45 s) is done if it plays as it folds (Reduce Motion's fade).
     static func backAfter(pulledUp: Bool) -> TimeInterval { pulledUp ? 0.35 : 0.5 }
+
+    /// Tomo says hello (#137) the first time it shows after the app starts, and when the Mac wakes while it shows. Never
+    /// while the island is hidden (at launch with no visit, until it moves beside the notch): its timeline is paused
+    /// then, so it would hold the hello's first frame.
+    nonisolated static func saysHello(greeted: Bool, waking: Bool, mode: IslandMode) -> Bool {
+        mode != .hidden && (waking || !greeted)
+    }
+
+    /// When Tomo says hello again: the screens waking (from sleep, or the display's own), the learner unlocking the Mac,
+    /// and coming back to their session (fast user switching). No permission needed for any of them.
+    /// TOMO_HELLO=<seconds>: a wake that long after Tomo first shows, for snapshots (a test run can't sleep the Mac).
+    static let wakes: AnyPublisher<Void, Never> = {
+        let workspace = NSWorkspace.shared.notificationCenter
+        var all = [workspace.publisher(for: NSWorkspace.screensDidWakeNotification),
+                   DistributedNotificationCenter.default().publisher(for: Notification.Name("com.apple.screenIsUnlocked")),
+                   workspace.publisher(for: NSWorkspace.sessionDidBecomeActiveNotification)]
+            .map { $0.map { _ in () }.eraseToAnyPublisher() }
+        if let after = ProcessInfo.processInfo.environment["TOMO_HELLO"].flatMap(Double.init) {
+            all.append(Just(()).delay(for: .seconds(after), scheduler: RunLoop.main).eraseToAnyPublisher())
+        }
+        return Publishers.MergeMany(all).eraseToAnyPublisher()
+    }()
 
     var body: some View {
         GeometryReader { geo in
@@ -59,6 +86,10 @@ struct TomoCharacterView: View {
         .onChange(of: state.mode) { old, new in
             let arriving = state.arrivals != seenArrivals
             seenArrivals = state.arrivals
+            if Self.saysHello(greeted: greeted, waking: false, mode: new) {   // first shown: its hello, not a drip
+                greeted = true
+                if blob.hello() { return }
+            }
             switch Self.move(from: old, to: new, arriving: arriving) {
             case .dripIn: blob.dripIn()
             case .appear: blob.appear()
@@ -78,9 +109,17 @@ struct TomoCharacterView: View {
         .onAppear {
             blob.setState(state.effectiveState, force: true)
             blob.setGrowth(TomoGame.shared.growthStep)
-            // The launch visit can open the island before Tomo is first drawn: it drips in then.
-            if state.arrivals > 0, IslandWindowController.countsAsOpen(state.mode) { blob.dripIn() }
+            // Tomo's first appearance, as the app starts, is its hello: beside the notch, or into the launch visit's card
+            // (which can open before Tomo is first drawn), greeting it instead of dripping in. A material without a hello
+            // drips in as before. Hidden at launch (no visit): it says hello once it shows (`onChange`).
+            let launchVisit = state.arrivals > 0 && IslandWindowController.countsAsOpen(state.mode)
+            var said = false
+            if Self.saysHello(greeted: greeted, waking: false, mode: state.mode) { greeted = true; said = blob.hello() }
+            if !said, launchVisit { blob.dripIn() }
             seenArrivals = state.arrivals
+        }
+        .onReceive(Self.wakes) { _ in
+            if Self.saysHello(greeted: greeted, waking: true, mode: state.mode) { blob.hello() }
         }
         .tomoReactions(blob)
     }

@@ -12,6 +12,8 @@ import TomoCore
 // Every render here draws a TomoBlob of its own, which never follows this Mac's Reduce Motion, so the renders are the
 // same on any Mac. TOMO_REDUCE_MOTION=1 turns it on for TOMO_RENDER_ANIM and the sheet (`TomoMotion.forced`), never
 // for TOMO_RENDER_CARD_FRAMES: widgets and the Live Activity play their frames regardless.
+// The icons and the card frames ship as files, so they're the classic material whatever happens to the learner's Tomo;
+// the renders that check Tomo's look and motion use the learner's own (`TomoMaterial.forRenders`, TOMO_MATERIAL).
 
 @MainActor
 enum TomoIconRenderer {
@@ -70,9 +72,9 @@ enum TomoIconRenderer {
         ProcessInfo.processInfo.environment["TOMO_SEED"].map { TomoLook(seed: $0) } ?? .mascot
     }
 
-    /// The mascot drawn by the same engine as the notch, at rest, looking straight ahead.
+    /// The mascot drawn by the same engine as the notch, at rest, looking straight ahead, in the classic material.
     private static func tomo(size: CGFloat, grow: CGFloat) -> some View {
-        let blob = TomoBlob(look: .mascot)
+        let blob = TomoBlob(look: .mascot, material: .classic)
         blob.setGrowth(grow)
         return Canvas { ctx, sz in
             blob.draw(ctx, size: sz)
@@ -80,14 +82,15 @@ enum TomoIconRenderer {
         .frame(width: size, height: size)
     }
 
-    /// TOMO_RENDER_ANIM=<dir>: a scripted 25-second scene, rendered frame by frame on a scripted clock
+    /// TOMO_RENDER_ANIM=<dir>: a scripted 27.5-second scene, rendered frame by frame on a scripted clock
     /// (frame-0000.png … at 20 fps), for checking motion. Join them into a GIF with any tool. Its big moments: a drip in
     /// at 0 s (0.75 s long, from a notch at the frame's top), birthdays at 2.2 s (2.6 s long) and 13.4 s, a level-up at
-    /// 17.6 s (2.1 s long), the call glow from 20 s to 23 s, a pull up at 23.5 s (0.45 s long) and a drip in at 24.2 s.
+    /// 17.6 s (2.1 s long), the call glow from 20 s to 23 s, a pull up at 23.5 s (0.45 s long), a drip in at 24.2 s and
+    /// the hello at 25.2 s (1.8 s long). TOMO_MATERIAL picks the material (the learner's own otherwise).
     private static func renderAnimation(to out: URL) {
         try? FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
         var t = 0.0
-        let blob = TomoBlob(look: look)
+        let blob = TomoBlob(look: look, material: .forRenders)
         blob.reduceMotion = TomoMotion.forced
         blob.clock = { t }
         blob.particleOverhang = 40
@@ -110,10 +113,11 @@ enum TomoIconRenderer {
             (20.0, { $0.callGlow = 1 }), (23.0, { $0.callGlow = 0 }),        // something counts, then it doesn't
             (23.5, { $0.pullUp() }),
             (24.2, { $0.dripIn() }),
+            (25.2, { $0.hello() }),                                      // the app starting, or the Mac waking
         ]
         var next = 0
         let fps = 20.0
-        for i in 0..<Int(fps * 25) {
+        for i in 0..<Int(fps * 27.5) {
             t = Double(i) / fps
             while next < script.count && script[next].at <= t { script[next].run(blob); next += 1 }
             blob.lookX = CGFloat(sin(t * 0.9)) * 0.9          // a cursor drifting around
@@ -152,7 +156,8 @@ enum TomoIconRenderer {
                 let dir = out.appendingPathComponent("\(name)-\(growth)")
                 try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
                 var t = 100.0
-                let blob = TomoBlob(look: .mascot)   // Reduce Motion off, even with the flag: these are the shipped frames
+                // Reduce Motion off, even with the flag, and classic: these are the shipped frames.
+                let blob = TomoBlob(look: .mascot, material: .classic)
                 blob.clock = { t }
                 blob.setGrowth(CGFloat(growth))
                 blob.step()
@@ -180,8 +185,8 @@ enum TomoIconRenderer {
     }
 
     /// TOMO_RENDER_SHEET=<dir>: one Tomo at every age and with every face, then a crowd of other Tomos, on one
-    /// image for reviewing the character. TOMO_SEED picks the Tomo (the mascot otherwise). A big moment's cell is that
-    /// many seconds into its script.
+    /// image for reviewing the character. TOMO_SEED picks the Tomo (the mascot otherwise), TOMO_MATERIAL its material (the
+    /// learner's own otherwise). A big moment's cell is that many seconds into its script.
     private static var sheet: some View {
         func moment(_ seconds: Double, _ start: @escaping (TomoBlob) -> Void) -> (TomoBlob) -> Void {
             { blob in
@@ -193,7 +198,7 @@ enum TomoIconRenderer {
             }
         }
         func cell(_ label: String, growth: CGFloat = 1, look l: TomoLook = look, _ setup: (TomoBlob) -> Void = { _ in }) -> some View {
-            let blob = TomoBlob(look: l)
+            let blob = TomoBlob(look: l, material: .forRenders)
             blob.reduceMotion = TomoMotion.forced
             blob.setGrowth(growth)
             setup(blob)
@@ -240,7 +245,7 @@ enum TomoIconRenderer {
             ForEach(0..<8, id: \.self) { i in
                 HStack(spacing: 6) {
                     ForEach(0..<TomoLook.ages, id: \.self) { age in
-                        let blob = TomoBlob(look: TomoLook(seed: "variety-\(i)"))
+                        let blob = TomoBlob(look: TomoLook(seed: "variety-\(i)"), material: .forRenders)
                         let _ = blob.setGrowth(CGFloat(age))
                         Canvas { ctx, sz in blob.draw(ctx, size: sz) }.frame(width: 150, height: 150)
                     }
@@ -260,7 +265,7 @@ enum TomoIconRenderer {
                     Text(String(format: "%.2f", v)).font(.system(size: 22, weight: .semibold, design: .rounded))
                         .foregroundColor(.white.opacity(v == 1 ? 1 : 0.6)).frame(width: 70)
                     ForEach(0..<8, id: \.self) { i in
-                        let blob = TomoBlob(look: TomoLook(seed: "variety-\(i)", variety: v))
+                        let blob = TomoBlob(look: TomoLook(seed: "variety-\(i)", variety: v), material: .forRenders)
                         let _ = blob.setGrowth(3)
                         Canvas { ctx, sz in blob.draw(ctx, size: sz) }.frame(width: 150, height: 150)
                     }

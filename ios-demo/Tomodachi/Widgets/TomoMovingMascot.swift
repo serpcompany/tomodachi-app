@@ -7,7 +7,7 @@ import TomoCore
 // seconds, set in a font whose digits 0–9 are ten frames of Tomo's own drawing (TOMO_RENDER_CARD_FRAMES on
 // the Mac app, packed by ios-demo/scripts/make-frame-font.py into Fonts/Tomo<Ready|Sleep><age>.ttf). Only
 // the timer's last digit shows, so Tomo changes pose once a second and loops every ten seconds.
-// decisions.md, 2026-10-06. A font is made ahead of time, so it can't be each learner's own Tomo: these
+// decisions-2026-10-06.md. A font is made ahead of time, so it can't be each learner's own Tomo: these
 // places show the Tomodachi mascot (`TomoLook.mascot`) at the learner's age, up to 3さい (2026-10-07).
 
 struct TomoMovingMascot: View {

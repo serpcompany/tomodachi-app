@@ -205,7 +205,7 @@ private struct TomoProfileRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            TomoLiveAvatar(size: 40)
+            TomoLiveAvatar(size: 40, material: .own)
             VStack(alignment: .leading, spacing: 1) {
                 Text(lang.learner("screen.tomo")).font(.system(size: 14, weight: .semibold))
                 Text("\(game.age) · \(lang.learner("level", ["n": "\(game.level)"]))")

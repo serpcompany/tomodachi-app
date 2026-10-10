@@ -93,17 +93,18 @@ public final class TomoFeatures: ObservableObject {
 
 /// A small live Tomo for the screens. Tomo is never a still image: it breathes, blinks and fidgets here too, and follows
 /// Reduce Motion (`TomoMotion`).
-/// `look` nil is the learner's own Tomo at its age; `.mascot` is the app's mascot (About).
+/// `look` nil is the learner's own Tomo at its age, with `material` `.own`; `.mascot` is the app's mascot (About), in
+/// `.classic` like the icon.
 public struct TomoLiveAvatar: View {
     let size: CGFloat
     let fixedGrowth: CGFloat?
     @ObservedObject var game = TomoGame.shared
     @State private var blob: TomoBlob
 
-    public init(size: CGFloat, look: TomoLook? = nil, growth: CGFloat? = nil) {
+    public init(size: CGFloat, look: TomoLook? = nil, material: TomoMaterial, growth: CGFloat? = nil) {
         self.size = size
         self.fixedGrowth = growth
-        _blob = State(initialValue: TomoBlob(look: look, motion: .shared))
+        _blob = State(initialValue: TomoBlob(look: look, material: material, motion: .shared))
     }
 
     private var step: CGFloat { fixedGrowth ?? game.growthStep }
