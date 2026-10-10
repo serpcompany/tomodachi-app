@@ -32,8 +32,8 @@ the [SERP engineering standards](https://github.com/serpcompany/serp/tree/main/d
   builds and icons. The iPhone app ([#52](https://github.com/serpcompany/tomodachi-app/issues/52)):
   [ios-demo/README.md](ios-demo/README.md).
 - **The Coucou fork:** [docs/coucou-fork.md](docs/coucou-fork.md) says what we may ship, which Coucou
-  files we changed, and what's switched off. Coucou's own screens, character states and demo videos,
-  kept as design reference only: [docs/reference/coucou/](docs/reference/coucou/README.md).
+  files we changed, and what's switched off. Design pages, ours and Coucou's (look only), are in
+  [docs/reference/tomo/](docs/reference/tomo/) and [coucou/](docs/reference/coucou/).
 - **Research:** [docs/research/README.md](docs/research/README.md) holds the evidence behind the issues
   (levels, the data schema, word lists, voices, learning modes, answer checking, AI cost).
 - **Beta testers:** [docs/beta-testing.md](docs/beta-testing.md) is what testers are told. Update it when
