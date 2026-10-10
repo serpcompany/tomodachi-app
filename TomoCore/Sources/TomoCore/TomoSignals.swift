@@ -33,6 +33,26 @@ public extension Notification.Name {
     static let botGulp = Notification.Name("tomo.botGulp")
 }
 
+/// Tomo shows its love (`BotEmote.love`) when the learner rests on it: the pointer resting on it on the Mac, a long
+/// press on the iPhone. At most once every 6 s, so it stays a treat. Each shell keeps one and posts the emote when
+/// `show` says so. Times are seconds on one clock (`CACurrentMediaTime()` in the shells).
+public struct TomoLoveCooldown: Sendable {
+    public static let seconds: Double = 6
+    private var last = -Double.infinity
+
+    public init() {}
+
+    /// Love may show now.
+    public func ready(at now: Double) -> Bool { now - last > Self.seconds }
+
+    /// Love shows now if it may: true, and the cooldown starts again from now.
+    public mutating func show(at now: Double) -> Bool {
+        guard ready(at: now) else { return false }
+        last = now
+        return true
+    }
+}
+
 extension Color {
     public init(hex: String) {
         let h = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
