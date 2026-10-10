@@ -184,7 +184,10 @@ card starts only after the learner says yes (`TomoReminderSettings.lockScreen`).
 trial and plan screens go before `ready` once pricing is decided.
 
 **Card and help panel.** `TomoView.swift`. The card is a fixed grid (`TomoGrid`): Tomo's column plus
-fixed rows, and new UI goes into a slot. Help (a hint, an explanation, a word card) never squeezes into
+fixed rows, and new UI goes into a slot. Its light tells the moment (TomoCore's `TomoMoment`, drawn from
+Tomo across the card and the island by `TomoMomentLight.swift`): never red, still between moments, and
+without its ripple under Reduce Motion. The island's views read the game once each change has landed
+(`onGameSettled`): one drawn as the island opens would miss a change made in the same moment. Help (a hint, an explanation, a word card) never squeezes into
 the card: `TomoGame.help` grows the island by a panel underneath. Word cards (`TomoWords.swift`) are a
 prototype, using an AI meaning and the Mac's dictionary until the Zenbu dictionary provides lookups per
 target language ([#9](https://github.com/serpcompany/tomodachi-app/issues/9),

@@ -16,7 +16,7 @@ Tomo is a little blob who lives next to your MacBook's notch and only speaks the
 - **Answer Tomo's visits.** Tomo drips down from the notch on its own (every 20 minutes by default, never in quiet hours: 9 PM to 8 AM unless you change them in Settings). Tap the right picture or meaning, or do what it asks: 🍙 feed, 😴 bed, 🤗 hug. The thin amber line under the card shows how long Tomo stays if you leave it; pointing at Tomo holds it.
 - **Close it when it's in your way** with **×**, or Esc once you've clicked Tomo (Esc never leaves the app you're typing in). Tomo is pulled back up into the notch, and small Tomo waits beside it, glowing amber while a word is waiting; on its other side, あそぼ！ means a word is waiting, a dimmed time says when words are back, and the little ring is Tomo's level.
 - **Play any time:** click small Tomo next to the notch.
-- **Talk with Tomo:** hold **⌥** and click the menu bar icon → **Skip to talking (3さい)** (after that, a **Testing** menu is in Tomodachi's menu bar too). That's a test Tomo; yours comes back from **Back to my Tomo** in that menu, or when you relaunch. Tomo asks real questions; pick what it means, or later a reply that fits. Every answer shows **Win**, **Miss**, **No score**, or (when nothing counts) **Practice**.
+- **Talk with Tomo:** hold **⌥** and click the menu bar icon → **Skip to talking (3さい)** (after that, a **Testing** menu is in Tomodachi's menu bar too). That's a test Tomo; yours comes back from **Back to my Tomo** in that menu, or when you relaunch. Tomo asks real questions; pick what it means, or later a reply that fits. Every answer shows **Win**, **Miss**, **No score**, or (when nothing counts) **Practice**. The card lights up with the moment: green for a Win, blue for Practice, gold for a level-up or a birthday; a Miss gets no light.
 - **Open the Tomodachi window:** click the Dock icon, or Tomo's age at the top of the card. Its sidebar has **Tomo** (its level, what's left to grow, what each age brings, and today), **Words** (every level, locked ones too, with each word's stage and when it's due), **Settings** and **About**. **Tomo → Tomo's words** (⌘W) and **Drop in now** (⌘D) are in the menu bar while Tomodachi is in front.
 - **Settings** (⌘,): how often Tomo visits, how a visit starts (**Open the card**, as before, or **Peek first**: Tomo peeks out beside the notch with its word, and the card opens when you point at it for a moment or click it; tell us which you prefer), quiet hours, how many new words a day, Tomo's voice and sounds, opening Tomodachi when you log in (what you picked in the welcome; Tomo only visits while the app is open), and the language of the app's text (English or Japanese). Tomo speaks Japanese in this version.
 
@@ -29,7 +29,7 @@ Tomo is a little blob who lives next to your MacBook's notch and only speaks the
 - **Moving between displays:** Tomo follows the notch, or the main display's menu bar when the lid is closed.
 - **Reduce Motion** (System Settings → Accessibility → Display on the Mac, Accessibility → Motion on the iPhone): Tomo
   stays put and shows how it feels with its face and a small puff instead of hopping and shaking, and fades in and out
-  instead of dripping from the notch. Widgets and the Lock Screen card still move.
+  instead of dripping from the notch. The card's coloured light stays, without its ripple. Widgets and the Lock Screen card still move.
 
 ## On the iPhone (TestFlight)
 
