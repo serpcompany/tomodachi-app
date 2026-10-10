@@ -35,21 +35,26 @@ Island shell (Coucou)       notch window, open/close state machine, click-throug
 ## Systems
 
 **Island shell.** Coucou's notch window and state machine (`IslandWindowController`,
-`IslandStateMachine`, `IslandRootView`), cut down to what Tomo uses: it shows Tomo's card or the dizzy
-card, and nothing of Coucou's agent features is left ([coucou-fork.md](coucou-fork.md)). Tomo reaches it only through four closures on `TomoGame`
-(`openIsland`, `closeIsland`, `isIslandOpen`, `focusInput`, plus `isPointerInside`, `onBotState`,
-`onHelpChange`, `onActivity` and `secondsSinceInput`), set in `AppDelegate`. Another shell sets the same
-closures: the iPhone app's `TomoPhoneShell` treats the app being on screen as open, so Tomo never times
-out while you look at it, and so is a round open on the Lock Screen card (`TomoLiveVisit.isPlaying`). The
-card's Play and choice buttons are `LiveActivityIntent`s (`TomoPlayIntent`, `TomoAnswerIntent`) that iOS
-runs in the app's process, launching it in the background if needed; they reach the game through
-`TomoVisitHook`, set in the app's `init` ([#52](https://github.com/serpcompany/tomodachi-app/issues/52)).
-Invariants on the Mac: the island sits on the notch screen (else the main display) and moves when
-displays change; it needs no permission; it follows the pointer through mouse event monitors (a
-sandboxed build gets them too), with no clock while the pointer is away from it; it takes the
-keyboard only when the learner opens it (a click, the menu), so Esc works then and a visit never
-takes a keystroke (decisions.md). It's a non-activating panel that can't be hidden: Tomodachi is a
-regular app with a Dock icon, and the island never brings it to the front.
+`IslandStateMachine`, `IslandRootView`), cut down to what Tomo uses: it shows Tomo's card or the
+dizzy card, and nothing of Coucou's agent features is left ([coucou-fork.md](coucou-fork.md)). Its
+open and close rules (`IslandStateMachine`: hidden, resting, a peek, the card) are pure: each input
+takes the time and returns when the rules next need the clock, and the controller sets one timer for
+that, so `TomoIslandSelfTest` runs them on a stopped clock. Tomo reaches the shell only through four
+closures on `TomoGame` (`openIsland`, `closeIsland`, `isIslandOpen`, `focusInput`, plus
+`isPointerInside`, `onBotState`, `onHelpChange`, `onActivity` and `secondsSinceInput`), set in
+`AppDelegate`. Another shell sets the same closures: the iPhone app's `TomoPhoneShell` treats the
+app being on screen as open, so Tomo never times out while you look at it, and so is a round open on
+the Lock Screen card (`TomoLiveVisit.isPlaying`). The card's Play and choice buttons are
+`LiveActivityIntent`s (`TomoPlayIntent`, `TomoAnswerIntent`) that iOS runs in the app's process,
+launching it in the background if needed; they reach the game through `TomoVisitHook`, set in the
+app's `init` ([#52](https://github.com/serpcompany/tomodachi-app/issues/52)). Invariants on the Mac:
+the island sits on the notch screen (else the main display) and moves when displays change; it needs
+no permission; it follows the pointer through mouse event monitors (a sandboxed build gets them
+too), with no clock while the pointer is away from it; after a close, hovering doesn't reopen the
+island until the pointer has left it once; it takes the keyboard only when the learner opens it (a
+click, the menu), so Esc works then and a visit never takes a keystroke (decisions.md). It's a
+non-activating panel that can't be hidden: Tomodachi is a regular app with a Dock icon, and the
+island never brings it to the front.
 
 **Character.** `TomoBlob` in `TomoCharacter.swift`: a blob drawn every frame in code. Its look is a
 `TomoLook` (`TomoLook.swift`) hashed from a seed: a colour and eyes for life, and a form for each age
