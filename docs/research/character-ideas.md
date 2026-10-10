@@ -103,9 +103,8 @@ Suggested order: #112 and #113 first (small, every learner sees them), then #116
 Desktop mode is the biggest change to how Tomo lives on the Mac; prototype it before polishing.
 
 Not taken: dotpals' build-your-own pal (Tomo is seeded, not chosen), a dot-matrix look (nothing to gain
-over Tomo's own drawing), and the agent-monitoring features (Tomodachi isn't a dev tool). The notch
-reducer is an engineering idea for [#55](https://github.com/serpcompany/tomodachi-app/issues/55): visit
-timing as a pure function would be unit-testable.
+over Tomo's own drawing), and the agent-monitoring features (Tomodachi isn't a dev tool). How these
+apps (and others) use the notch itself is in [notch-ideas.md](notch-ideas.md).
 
 ## Sources
 

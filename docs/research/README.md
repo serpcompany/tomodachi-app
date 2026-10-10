@@ -32,6 +32,9 @@ working on:
 - **[Character ideas](character-ideas.md):** what Coucou's new character code and dotpals can teach
   Tomo and the notch, what we may take, and the issues it became
   ([#110](https://github.com/serpcompany/tomodachi-app/issues/110)).
+- **[Notch ideas](notch-ideas.md):** how Coucou, dotpals and other notch apps present, and what Tomo's
+  notch could borrow: the empty right side, a peek before the card, which screen, a capsule without a
+  notch ([#110](https://github.com/serpcompany/tomodachi-app/issues/110)).
 
 Four of these predate the size budget and have an allowance in `.github/scripts/check-docs.mjs`: they
 may shrink but not grow. New findings on one of those topics go in a new leaf, linked here.
