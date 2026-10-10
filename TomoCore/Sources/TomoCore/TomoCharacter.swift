@@ -9,6 +9,8 @@ import SwiftUI
 // The app drives it through notifications (docs/architecture.md, "Character"): the task state
 // (`AppState.effectiveState`), `.botTalk`, `.botNudge`, `.botGrow`, `.botGreet`, `.botGulp`,
 // `.triggerEmote`, `.triggerSlap`, `.botBlink`, `.botSetTgEs`.
+// Reduce Motion is an input (`reduceMotion`): a live Tomo follows its shell's setting (`TomoMotion`), and offline
+// renders leave it off, so they never depend on the Mac that renders them.
 
 @MainActor
 public final class TomoBlob: ObservableObject {
@@ -25,14 +27,22 @@ public final class TomoBlob: ObservableObject {
     public var dozeAfter: Double = 45
     /// The frame being drawn (set by the view; reading it ties the Canvas to the frame timer).
     public var frameDate = Date()
+    /// Reduce Motion: hops, shakes, wiggles and the evolve pop become a face flash and a small puff, and particles
+    /// are a third as many, and slower. Breathing, blinking and gaze stay. A live Tomo follows `motion`; offline
+    /// renders set it themselves (off unless TOMO_REDUCE_MOTION=1).
+    public var reduceMotion = false
 
     /// Whose Tomo this is. Nil: the learner's own (`TomoLook.current`), changing with a pop when it does.
     public let fixedLook: TomoLook?
     public private(set) var look: TomoLook
+    /// The shell's Reduce Motion setting, followed every frame: `TomoMotion.shared` for a live Tomo, nil offline.
+    private let motion: TomoMotion?
 
-    public init(look: TomoLook? = nil) {
+    public init(look: TomoLook? = nil, motion: TomoMotion? = nil) {
         fixedLook = look
         self.look = look ?? TomoLook.current
+        self.motion = motion
+        reduceMotion = motion?.reduce ?? false
     }
 
     /// The age step on show (0 = 1さい), and the one it's growing into.
@@ -112,8 +122,11 @@ public final class TomoBlob: ObservableObject {
     /// The mouth opens once per spoken line.
     public func talk() { stir(); add(.mouth, 0.28) }
 
-    /// "Over here!": a double hop with a wiggle.
-    public func nudge() { stir(); add(.nudge, 0.75); blink() }
+    /// "Over here!": a double hop with a wiggle (under Reduce Motion, a puff and a happy face).
+    public func nudge() {
+        stir(); add(.nudge, 0.75); blink()
+        if reduceMotion { flash = (.happy, clock() + 0.8) }
+    }
 
     public func greet() {
         stir()
@@ -181,9 +194,11 @@ public final class TomoBlob: ObservableObject {
 
     private static func ageStep(_ v: CGFloat) -> Int { min(max(Int(v.rounded()), 0), TomoLook.ages - 1) }
 
+    /// Under Reduce Motion it doesn't squeeze or pop: it glows, smiles, and puffs as the new shape appears.
     private func evolve(to next: Int, look next2: TomoLook) {
         add(.evolve, 0.9)
         swap = (clock() + 0.4, next, next2)
+        if reduceMotion { flash = (.happy, clock() + 1.2) }
     }
 
     /// Something small Tomo does on its own between events, so it never sits frozen:
@@ -220,6 +235,7 @@ public final class TomoBlob: ObservableObject {
 
     public func step() {
         let now = clock()
+        if let motion { reduceMotion = motion.reduce }
         if !started {
             started = true
             born = now - .random(in: 0...4)
@@ -240,7 +256,7 @@ public final class TomoBlob: ObservableObject {
         if let s = swap, now >= s.at {
             age = s.age; look = s.look; swap = nil
             emit(.pop, 12)
-            jiggleVel += 6
+            if reduceMotion { add(.puff, 0.5) } else { jiggleVel += 6 }
         }
 
         moves.removeAll { now > $0.start + $0.duration }
@@ -331,10 +347,11 @@ public final class TomoBlob: ObservableObject {
         }
 
         for i in bits.indices {
+            let pace = bits[i].pace
             bits[i].age += elapsed
-            bits[i].pos.x += bits[i].vel.dx * dt
-            bits[i].pos.y += bits[i].vel.dy * dt
-            bits[i].vel.dy += bits[i].kind.gravity * dt
+            bits[i].pos.x += bits[i].vel.dx * dt * pace
+            bits[i].pos.y += bits[i].vel.dy * dt * pace
+            bits[i].vel.dy += bits[i].kind.gravity * dt * pace
         }
         bits.removeAll { $0.age >= $0.life }
     }
@@ -714,10 +731,17 @@ public final class TomoBlob: ObservableObject {
         public let life: Double
         public let size: CGFloat
         public let spin: CGFloat
+        /// How fast it plays: 1, or slower under Reduce Motion (the same path, at that pace).
+        public var pace: CGFloat = 1
     }
+
+    /// Particles fly at this pace under Reduce Motion, and only a third of them.
+    private static let calmPace: CGFloat = 0.4
 
     private func emit(_ kind: Bit.Kind, _ count: Int) {
         guard !isMini else { return }
+        let count = reduceMotion ? max(1, Int((Double(count) / 3).rounded())) : count
+        let first = bits.count
         for _ in 0..<count {
             switch kind {
             case .sparkle:
@@ -741,6 +765,7 @@ public final class TomoBlob: ObservableObject {
                                 life: .random(in: 0.7...1.0), size: .random(in: 0.08...0.15), spin: 0))
             }
         }
+        if reduceMotion { for i in first..<bits.count { bits[i].pace = Self.calmPace } }
     }
 
     private func drawBits(_ ctx: GraphicsContext, center: CGPoint, R: CGFloat) {
@@ -748,7 +773,7 @@ public final class TomoBlob: ObservableObject {
             var c = ctx
             c.opacity = max(0, 1 - b.age / b.life)
             c.translateBy(x: center.x + b.pos.x * R, y: center.y + b.pos.y * R)
-            c.rotate(by: .radians(Double(b.spin) * b.age))
+            c.rotate(by: .radians(Double(b.spin * b.pace) * b.age))
             let s = b.size * R
             switch b.kind {
             case .sparkle:
@@ -780,6 +805,16 @@ public final class TomoBlob: ObservableObject {
         public enum Kind {
             case hop(CGFloat), nudge, shake, wiggle(Int), gulp, rock, squish, wobble, mouth
             case peep, stretch, tiltHold(CGFloat), shuffle, lean(CGFloat), evolve
+            case puff                          // Reduce Motion's stand-in for the others: a small swell
+
+            /// Carries Tomo off its spot, tips or squashes it: under Reduce Motion it becomes a puff. The mouth
+            /// moves only open the mouth then, and evolving only glows (`pose`).
+            public var movesBody: Bool {
+                switch self {
+                case .mouth, .peep, .gulp, .evolve: return false
+                default: return true
+                }
+            }
         }
         public let kind: Kind
         public let start: Double
@@ -793,11 +828,22 @@ public final class TomoBlob: ObservableObject {
     }
 
     private func add(_ kind: Move.Kind, _ duration: Double) {
-        moves.append(Move(kind: kind, start: clock(), duration: duration))
+        let now = clock()
+        guard reduceMotion, kind.movesBody else {
+            moves.append(Move(kind: kind, start: now, duration: duration))
+            return
+        }
+        // Reduce Motion: a small puff instead, one for moves that start together (a win's hop, wiggle and rock).
+        let puffing = moves.contains { m in
+            if case .puff = m.kind { return now - m.start < 0.3 }
+            return false
+        }
+        if !puffing { moves.append(Move(kind: .puff, start: now, duration: 0.5)) }
     }
 
     private func pose(at now: Double) -> Pose {
         var p = Pose()
+        let body: CGFloat = reduceMotion ? 0 : 1           // the mouth moves' little bob
         for m in moves {
             let q = CGFloat(min(1, max(0, (now - m.start) / m.duration)))
             let arc = sin(.pi * q)
@@ -814,8 +860,8 @@ public final class TomoBlob: ObservableObject {
                 let w = sin(q * CGFloat(n) * .pi) * 0.07 * (1 - q * 0.5)
                 p.sx *= 1 + w; p.sy *= 1 - w; p.rot += w * 0.6
             case .gulp:
-                p.dy += 0.1 * abs(sin(q * 2 * .pi)); p.mouth = max(p.mouth, max(0, sin(q * 4 * .pi)))
-                p.sy *= 1 - 0.06 * abs(sin(q * 2 * .pi))
+                p.dy += 0.1 * abs(sin(q * 2 * .pi)) * body; p.mouth = max(p.mouth, max(0, sin(q * 4 * .pi)))
+                p.sy *= 1 - 0.06 * abs(sin(q * 2 * .pi)) * body
             case .rock:
                 p.rot += sin(q * 4 * .pi) * 0.13 * (1 - q * 0.6)
             case .squish:
@@ -823,9 +869,9 @@ public final class TomoBlob: ObservableObject {
             case .wobble:
                 p.rot += sin(q * 7 * .pi) * 0.16 * (1 - q)
             case .mouth:
-                p.mouth = max(p.mouth, arc); p.dy -= 0.04 * arc
+                p.mouth = max(p.mouth, arc); p.dy -= 0.04 * arc * body
             case .peep:
-                p.mouth = max(p.mouth, 0.55 * arc); p.dy -= 0.05 * arc
+                p.mouth = max(p.mouth, 0.55 * arc); p.dy -= 0.05 * arc * body
             case .stretch:
                 p.sy *= 1 + 0.09 * arc; p.sx *= 1 - 0.05 * arc
             case .tiltHold(let a):
@@ -837,16 +883,21 @@ public final class TomoBlob: ObservableObject {
                 p.rot += side * 0.16 * e; p.dy += 0.05 * e; p.sy *= 1 - 0.04 * e
             case .evolve:                          // squeeze down glowing, then pop out in the next form
                 let swapAt: CGFloat = 0.45
-                if q < swapAt {
-                    let e = q / swapAt
-                    let s = 1 - 0.35 * e * e
-                    p.sx *= s; p.sy *= s; p.rot += sin(e * 6 * .pi) * 0.06 * e
-                } else {
-                    let e = (q - swapAt) / (1 - swapAt)
-                    let s = 1 - 0.35 * (1 - e) * (1 - e) + 0.18 * sin(.pi * e) * (1 - e)
-                    p.sx *= s; p.sy *= s
+                if !reduceMotion {                 // under Reduce Motion it only glows; the pop is a puff (`step`)
+                    if q < swapAt {
+                        let e = q / swapAt
+                        let s = 1 - 0.35 * e * e
+                        p.sx *= s; p.sy *= s; p.rot += sin(e * 6 * .pi) * 0.06 * e
+                    } else {
+                        let e = (q - swapAt) / (1 - swapAt)
+                        let s = 1 - 0.35 * (1 - e) * (1 - e) + 0.18 * sin(.pi * e) * (1 - e)
+                        p.sx *= s; p.sy *= s
+                    }
                 }
                 p.glow = max(p.glow, 0.85 * max(0, 1 - abs(q - swapAt) / 0.25))
+            case .puff:
+                p.sx *= 1 + 0.045 * arc; p.sy *= 1 + 0.045 * arc
+                p.glow = max(p.glow, 0.16 * arc)
             }
         }
         return p
@@ -894,11 +945,61 @@ public final class TomoBlob: ObservableObject {
     }
 }
 
+// MARK: - Checks (TOMO_SELFTEST)
+
+extension TomoBlob {
+    /// Reduce Motion, on a scripted clock: a win, a miss, a poke, a nudge, a level-up and a birthday keep Tomo on its
+    /// spot with only a small puff, a win's sparkles are a third, the birthday still swaps the shape, and Tomo still
+    /// blinks. The same script with it off must hop, so the check can tell.
+    static func motionSelfTest(_ check: (Bool, String) -> Void) {
+        struct Run { var moved: CGFloat = 0, swell: CGFloat = 0, squash: CGFloat = 0, sparkles = 0, age = 0, blinks = 0 }
+        func run(reduce: Bool) -> Run {
+            let blob = TomoBlob(look: .mascot)
+            blob.reduceMotion = reduce
+            var t = 100.0
+            blob.clock = { t }
+            blob.step()
+            var r = Run()
+            blob.setState(.finished)                                     // a win
+            r.sparkles = blob.bits.count
+            let script: [(at: Double, run: (TomoBlob) -> Void)] = [
+                (1.5, { $0.setState(.idle) }),
+                (2.0, { $0.setState(.error) }), (3.0, { $0.setState(.idle) }),   // a miss
+                (3.5, { $0.poke() }),
+                (4.5, { $0.nudge() }),
+                (5.5, { $0.setState(.finished); $0.emote(.proud) }),        // a level-up (TomoGame.celebrate)
+                (7.0, { $0.setState(.idle); $0.grow(to: 1) }),               // a birthday
+            ]
+            var next = 0, lastBlink = blob.blinkAt
+            for i in 1...(60 * 9) {
+                t = 100 + Double(i) / 60
+                while next < script.count, 100 + script[next].at <= t { script[next].run(blob); next += 1 }
+                blob.step()
+                let p = blob.pose
+                r.moved = max(r.moved, abs(p.dx), abs(p.dy), abs(p.rot), abs(blob.jiggle))
+                r.swell = max(r.swell, p.sx - 1, p.sy - 1)
+                r.squash = max(r.squash, 1 - p.sx, 1 - p.sy)
+                if blob.blinkAt != lastBlink { r.blinks += 1; lastBlink = blob.blinkAt }
+            }
+            r.age = blob.age
+            return r
+        }
+        let calm = run(reduce: true), lively = run(reduce: false)
+        check(lively.moved > 0.2, "Tomo hops and shakes for a win, a miss, a poke and a level-up")
+        check(calm.moved == 0 && calm.squash == 0 && calm.swell <= 0.046,
+              String(format: "under Reduce Motion they're a puff (%.1f%% at most): no hop, shake, tip or squash",
+                     calm.swell * 100))
+        check(calm.age == 1, "under Reduce Motion a birthday still swaps Tomo's shape")
+        check(calm.sparkles == 2 && lively.sparkles == 6, "under Reduce Motion a win has a third of the sparkles (6 → 2)")
+        check(calm.blinks > 0, "under Reduce Motion Tomo still blinks")
+    }
+}
+
 
 // MARK: - Views
 
 /// Tomo on its own: a Canvas redrawn every frame. Shells that know where the pointer is set `gaze`.
-/// `look`: nil for the learner's own Tomo.
+/// `look`: nil for the learner's own Tomo. It follows Reduce Motion (`TomoMotion`).
 public struct TomoBlobView: View {
     @StateObject private var blob: TomoBlob
     public var state: BotState
@@ -906,7 +1007,7 @@ public struct TomoBlobView: View {
     public var gaze: (() -> CGPoint)?
 
     public init(state: BotState = .idle, growth: CGFloat, look: TomoLook? = nil, gaze: (() -> CGPoint)? = nil) {
-        _blob = StateObject(wrappedValue: TomoBlob(look: look))
+        _blob = StateObject(wrappedValue: TomoBlob(look: look, motion: .shared))
         self.state = state
         self.growth = growth
         self.gaze = gaze
@@ -928,6 +1029,29 @@ public struct TomoBlobView: View {
             blob.setGrowth(growth)
         }
         .tomoReactions(blob)
+    }
+}
+
+/// Reduce Motion for every live Tomo: the one setting their TomoBlobs follow (`TomoBlobView`, `TomoLiveAvatar`, the
+/// Mac's island). The shell sets it from the system and follows changes (`follow`); TomoCore never reads the system.
+/// TOMO_REDUCE_MOTION=1 turns it on, for snapshots and renders.
+@MainActor
+public final class TomoMotion: ObservableObject {
+    public static let shared = TomoMotion()
+    /// TOMO_REDUCE_MOTION=1: on, whatever the system says.
+    public nonisolated static let forced = ProcessInfo.processInfo.environment["TOMO_REDUCE_MOTION"] == "1"
+    @Published public private(set) var reduce = TomoMotion.forced
+    private var watch: NSObjectProtocol?
+
+    private init() {}
+
+    /// The shell's system setting, once at launch: `system` now, and again each time `center` posts `name`.
+    public func follow(_ center: NotificationCenter, _ name: Notification.Name,
+                       system: @escaping @MainActor @Sendable () -> Bool) {
+        reduce = Self.forced || system()
+        watch = center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.reduce = Self.forced || system() }
+        }
     }
 }
 

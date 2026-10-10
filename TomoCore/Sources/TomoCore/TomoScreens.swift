@@ -91,7 +91,8 @@ public final class TomoFeatures: ObservableObject {
     public func targetPicker(current: String) -> Bool { testingTools || current != Self.target }
 }
 
-/// A small live Tomo for the screens. Tomo is never a still image: it breathes, blinks and fidgets here too.
+/// A small live Tomo for the screens. Tomo is never a still image: it breathes, blinks and fidgets here too, and follows
+/// Reduce Motion (`TomoMotion`).
 /// `look` nil is the learner's own Tomo at its age; `.mascot` is the app's mascot (About).
 public struct TomoLiveAvatar: View {
     let size: CGFloat
@@ -102,7 +103,7 @@ public struct TomoLiveAvatar: View {
     public init(size: CGFloat, look: TomoLook? = nil, growth: CGFloat? = nil) {
         self.size = size
         self.fixedGrowth = growth
-        _blob = State(initialValue: TomoBlob(look: look))
+        _blob = State(initialValue: TomoBlob(look: look, motion: .shared))
     }
 
     private var step: CGFloat { fixedGrowth ?? game.growthStep }
