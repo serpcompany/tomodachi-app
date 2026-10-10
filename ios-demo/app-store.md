@@ -25,7 +25,7 @@ the name or subtitle are wasted there), description and review notes 4,000.
 
 What the listing may say is what the build does:
 
-- **Japanese only**, for English speakers. The name stays "Tomodachi: Language Companion".
+- **Japanese only**, for English speakers. The name is "Tomodachi by Zenbu Japanese" (the old app's name is held by its record on the old team).
 - **No AI.** Meanings come from the pack, and the iPhone's dictionary is a tap away.
 - **Progress stays in the learner's own iCloud** (CloudKit's private database), never "on your iPhone" alone, and
   there are no servers of ours. The privacy label stays **Data Not Collected**.
