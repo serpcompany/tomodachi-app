@@ -8,8 +8,8 @@ testers"). This is the listing written as if it were, so it's ready when the app
 - **The app:** it isn't sandboxed (`ENABLE_SANDBOX: NO` in `NotchBuddy/project.yml`), which the Mac App Store
   requires, and there's no upload script: `scripts/release-beta.sh` exports for Developer ID, and the iPhone's
   `ios-demo/scripts/testflight.sh` is the model for an App Store export.
-- **App Store Connect:** macOS isn't on the iPhone app's record yet. Same bundle ID
-  (`com.zenbujapanese.tomo`), so one record and one purchase cover both.
+- **App Store Connect:** one record, **Tomodachi by Zenbu Japanese** (app ID `6821401516`), has iOS and macOS
+  versions. Same bundle ID (`com.zenbujapanese.tomo`), so one purchase covers both.
 - **Two things App Review may question in today's build:** ⌥-clicking the menu bar icon shows the testing tools
   in every build (`TomoTestingTools`), and the first run's "Open Tomodachi when I log in" switch starts on (it's
   shown, and Settings turns it off).

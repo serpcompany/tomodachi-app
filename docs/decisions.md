@@ -2,6 +2,9 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident. The first days' decisions are in [decisions-2026-10-03.md](decisions-2026-10-03.md) and [decisions-2026-10-05.md](decisions-2026-10-05.md), and the ones about what Tomo teaches (the content source, word lists, levels and rounds) in [decisions-content.md](decisions-content.md).
 
+### 2026-10-11: The new app is "Tomodachi by Zenbu Japanese" on the App Store
+The App Store Connect record on TSMC LLC is **Tomodachi by Zenbu Japanese** (app ID `6821401516`, bundle ID `com.zenbujapanese.tomo`, SKU `zenbujapanese-tomo`, primary language English (U.S.)), with iOS and macOS versions, so one purchase covers both. The new iCloud container's schema (`Tomo`, `Item`) is deployed to Production. **Why:** the old name, "Tomodachi: Language Companion", is held by the rejected record on the old team, and the owner chose a name that ties Tomodachi to the Zenbu Japanese brand. It can still change before the first release.
+
 ### 2026-10-10: A visit can peek first; opening the card stays the default for now
 On the Mac a visit can start as a peek: the island widens into a bar where Tomo calls, with あそぼ！ over the visit's word, and it opens into the card when the pointer rests on it or on a click. Or it opens the card, as before. It's a Settings switch (**Peek first**, **Open the card**), and the default stays **Open the card**, so a learner who never touches it sees nothing new. The iPhone is unchanged. The lasting default is still open in [#19](https://github.com/serpcompany/tomodachi-app/issues/19). **Why:** the owner wants to try both for a while before choosing. A peek is never pushier than the card: it takes no keystroke, says nothing until it's opened, and leaves on the same countdown.
 
