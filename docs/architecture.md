@@ -115,7 +115,8 @@ Production. The logs and settings stay on each device for now
 
 **Visits.** `TomoGame.tick()` with the `DropIn` constants. Tomo opens on its own when it has something
 that counts and you're at a natural break (not typing, not away). It tucks back in when ignored and bounces
-now and then until you check in (`pending`). Resting, the island's right side says あそぼ！ while something counts
+now and then until you check in (`pending`). Its deadline is `TomoGame.visitCountdown`, an amber line under the Mac's
+card, nil while held (the pointer in the island, listening, help; on the iPhone, on screen) or in free play. Resting, the island's right side says あそぼ！ while something counts
 (`TomoGame.somethingCounts`, the same rule) or when it does again (`nextCountsAt`), never a count. Opening it
 yourself is free play, with no time limit. When nothing counts, Tomo rests
 (`TomoPhase.resting`, `TomoGame.rest`) in every shell until something counts, which the tick notices, or the

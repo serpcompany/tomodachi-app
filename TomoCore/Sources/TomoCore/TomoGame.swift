@@ -164,6 +164,37 @@ public enum DropIn {
         .flatMap(TimeInterval.init) ?? 60
 }
 
+/// How long a visit has before it tucks Tomo back in, from when its deadline was last set (`from`) to the deadline
+/// (`until`), for the countdown line on the Mac's island. `refillFrom` is how much of the line was left when the
+/// deadline was set again, so a reset grows the line back over `refill` seconds instead of jumping.
+public struct TomoCountdown: Equatable, Sendable {
+    public let from: Date
+    public let until: Date
+    public let refillFrom: Double
+    public static let refill: TimeInterval = 0.35
+
+    /// `refillFrom` 1: a countdown that starts full (it appears; it doesn't grow).
+    public init(from: Date, until: Date, refillFrom: Double = 1) {
+        self.from = from; self.until = until; self.refillFrom = min(max(refillFrom, 0), 1)
+    }
+
+    /// How much of the line is left at `t`, 0…1: 1 at `from`, 0 at `until`, shrinking steadily in between, except
+    /// in the first `refill` seconds after a reset, when it grows back (eased) from `refillFrom` to meet that.
+    public func fraction(at t: Date) -> Double {
+        let total = until.timeIntervalSince(from)
+        guard total > 0 else { return 0 }
+        let left = min(max(until.timeIntervalSince(t) / total, 0), 1)
+        let k = min(max(t.timeIntervalSince(from) / Self.refill, 0), 1)
+        guard k < 1, refillFrom < left else { return left }
+        return refillFrom + (left - refillFrom) * k * k * (3 - 2 * k)
+    }
+
+    /// The deadline set again at `t` (an answer, the next round), to `until`: the line grows back from where it is.
+    public func reset(at t: Date, until: Date) -> TomoCountdown {
+        TomoCountdown(from: t, until: until, refillFrom: fraction(at: t))
+    }
+}
+
 // MARK: - Game
 
 @MainActor
@@ -193,7 +224,9 @@ public final class TomoGame: ObservableObject {
     /// The card's layout: talking (a starter or chat) or a picture round. Older Tomos still review baby words.
     @Published public private(set) var talking = false
     @Published public private(set) var round: TomoRound = .empty
-    @Published public private(set) var phase: TomoPhase = .asking
+    @Published public private(set) var phase: TomoPhase = .asking {
+        didSet { if visitCountdown != nil { publishCountdown() } }   // a right answer or a level-up: the line goes now
+    }
     @Published public var hintShown = false
     @Published public private(set) var outcome: TomoOutcome? {
         didSet { if let o = outcome { TomoSounds.shared.outcome(o) } }
@@ -276,6 +309,11 @@ public final class TomoGame: ObservableObject {
     // Visit state: nil = no visit (island closed, or opened by the user for free play)
     private var visitRoundsLeft: Int?
     private var visitDeadline = Date.distantFuture
+    private var deadlineSetAt = Date.distantPast
+    /// The visit's countdown while it runs (`countdownShows`): nil in free play, while the island is closed, while it's
+    /// paused (the pointer in the island, listening, help open), and in the phases a deadline doesn't end. The Mac's
+    /// island draws it as a line.
+    @Published public private(set) var visitCountdown: TomoCountdown?
     private var visitStarted = Date.distantPast
     private var nextDropIn = Date.distantFuture
     private var wasOpen = false
@@ -494,7 +532,7 @@ public final class TomoGame: ObservableObject {
         if !force && queue.isEmpty { nextDropIn = Date().addingTimeInterval(DropIn.recheck); return }
         let talks = queue.contains(where: progress.isStarter) || (queue.isEmpty && stage >= Self.chatStage)
         visitRoundsLeft = force || talks ? DropIn.roundsPerVisit : queue.count
-        visitDeadline = Date().addingTimeInterval(ignoreAfter + 1.5)
+        resetDeadline(after: ignoreAfter + 1.5)
         visitStarted = Date()
         pending = false
         openIsland?()
@@ -568,7 +606,7 @@ public final class TomoGame: ObservableObject {
             self.setBot(.idle)
             self.emote(.happy)
             self.speak(self.lang.target.lines.rest ?? self.lang.target.lines.seeYou, slow: false)
-            self.visitDeadline = Date().addingTimeInterval(self.ignoreAfter)
+            self.resetDeadline(after: self.ignoreAfter)
             if Self.autoplay { self.after(2.5, tok) { [weak self] in self?.startPractice() } }
         }
     }
@@ -622,7 +660,7 @@ public final class TomoGame: ObservableObject {
     private func tick() {
         let now = Date()
         let open = isIslandOpen?() ?? false
-        defer { wasOpen = open }
+        defer { wasOpen = open; publishCountdown(now) }
         // "Next at 8:37" has come: say what's left again.
         if let at = levelLeft.nextAt, at <= TomoClock.now { levelLeft = progress.levelLeft }
         if now.timeIntervalSince(countsCheckedAt) >= 30 || (nextCountsAt.map { $0 <= TomoClock.now } ?? false) {
@@ -647,7 +685,7 @@ public final class TomoGame: ObservableObject {
             return
         }
         if isPointerInside?() == true || listener.isListening || help != nil {
-            visitDeadline = now.addingTimeInterval(ignoreAfter)
+            resetDeadline(after: ignoreAfter)
         } else if now > visitDeadline && phase == .asking {
             leave(ignored: true)
         } else if now > visitDeadline && phase == .resting {
@@ -682,6 +720,7 @@ public final class TomoGame: ObservableObject {
         listener.stop()
         help = nil
         setBot(.idle)
+        publishCountdown()                     // no more deadline: the line fades now, not at the next tick
         if ignored {
             emote(.yawn)
             markPending()
@@ -721,6 +760,7 @@ public final class TomoGame: ObservableObject {
         speech.stopSpeaking(at: .immediate)
         if phase == .thinking { phase = .asking }
         setBot(.idle)
+        publishCountdown()
     }
 
     /// Counts one answer toward the visit. Returns true when the visit is over.
@@ -839,7 +879,7 @@ public final class TomoGame: ObservableObject {
             self.phase = .asking
             self.setBot(.question)
             self.speak(r.say, slow: false)
-            self.visitDeadline = Date().addingTimeInterval(self.ignoreAfter)
+            self.resetDeadline(after: self.ignoreAfter)
             if Self.autoplay { self.autoAnswer(tok) }
             if let i = ProcessInfo.processInfo.environment["TOMO_AUTOLOOKUP"].flatMap(Int.init), !Self.autoExplained {
                 Self.autoExplained = true
@@ -884,7 +924,7 @@ public final class TomoGame: ObservableObject {
             self.transcript.append("Tomo: \(l.say)")
             self.setBot(.question)
             self.speak(l.say, slow: false)
-            self.visitDeadline = Date().addingTimeInterval(self.ignoreAfter)
+            self.resetDeadline(after: self.ignoreAfter)
             if let i = ProcessInfo.processInfo.environment["TOMO_AUTOLOOKUP"].flatMap(Int.init), !Self.autoExplained {
                 Self.autoExplained = true
                 self.after(1.5, tok) { [weak self] in self?.cardRequest = i }
@@ -1030,7 +1070,7 @@ public final class TomoGame: ObservableObject {
         phase = .asking
         transcript.append("Tomo: \(r.say)")
         speak(r.say, slow: false)
-        visitDeadline = Date().addingTimeInterval(ignoreAfter)
+        resetDeadline(after: ignoreAfter)
 
         let item = itemCredited ? nil : currentItem     // after the starter is credited, it's conversation
         guard r.understood else {
@@ -1137,7 +1177,40 @@ public final class TomoGame: ObservableObject {
 
     private func touch() {
         onActivity?()
-        visitDeadline = Date().addingTimeInterval(ignoreAfter)
+        resetDeadline(after: ignoreAfter)
+    }
+
+    /// Tomo tucks back in `after` seconds from now, unless something sets the deadline again first.
+    private func resetDeadline(after: TimeInterval) {
+        let now = Date()
+        deadlineSetAt = now
+        visitDeadline = now.addingTimeInterval(after)
+        publishCountdown(now)
+    }
+
+    /// `visitCountdown`, again: a new countdown when it shows, grown back from where the line is when the deadline moved.
+    private func publishCountdown(_ now: Date = Date()) {
+        let paused = isPointerInside?() == true || listener.isListening || help != nil
+        guard Self.countdownShows(visit: visitRoundsLeft != nil, open: isIslandOpen?() == true, paused: paused,
+                                  phase: phase) else {
+            if visitCountdown != nil { visitCountdown = nil }
+            return
+        }
+        if let c = visitCountdown {
+            if c.until != visitDeadline { visitCountdown = c.reset(at: deadlineSetAt, until: visitDeadline) }
+        } else {
+            visitCountdown = TomoCountdown(from: deadlineSetAt, until: visitDeadline)
+        }
+    }
+
+    /// Whether a visit's countdown shows: in a visit (not free play), with Tomo open, not paused (`tick` holds the
+    /// deadline then), and while asking or resting, the phases the deadline ends (`leave`, `tuckIn`). A wrong pick's
+    /// shake counts as asking: the round stays open and the pick's deadline keeps running through it.
+    public nonisolated static func countdownShows(visit: Bool, open: Bool, paused: Bool, phase: TomoPhase) -> Bool {
+        switch phase {
+        case .asking, .resting, .wrong: visit && open && !paused
+        default: false
+        }
     }
 
     @discardableResult
