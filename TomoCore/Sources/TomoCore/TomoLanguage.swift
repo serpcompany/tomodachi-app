@@ -50,6 +50,13 @@ public struct TargetPack: Codable, Sendable {
         public let sayItInMyLanguage: SpokenLine
         public let dontUnderstand: SpokenLine
     }
+    /// Tomo's words on its weekly postcard (TomoPostcard.swift): a level-up, signing off, and a week Tomo slept through
+    /// (which it never says was quiet).
+    public struct PostcardLines: Codable, Sendable {
+        public let grew: SpokenLine
+        public let bye: SpokenLine
+        public let asleep: SpokenLine
+    }
     public struct AIProfile: Codable, Sendable {
         public let persona: String     // "a {age}-year-old Japanese child"
         public let rules: [String]     // language-specific speaking rules (script, register, typical words)
@@ -108,6 +115,7 @@ public struct TargetPack: Codable, Sendable {
     public let labels: Labels
     public let lines: Lines
     public let reminders: [AgeLines]?      // reminders (TomoReminders), by age; none: Tomo's `invite`
+    public let postcard: PostcardLines?    // Tomo's week (TomoPostcard); none: its level-up and see-you lines
     public let ai: AIProfile
     public let levels: [Level]             // levels[0] = level 1. Each level's age marks when Tomo grows up
     public let startersByAge: [AgeStarters]?   // openers for ages past the levels (testing older Tomos)

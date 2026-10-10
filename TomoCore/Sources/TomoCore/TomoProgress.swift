@@ -279,14 +279,23 @@ public final class TomoProgress {
     }
     public var canTeachNew: Bool { newToday < Self.newPerDay && unlocked.contains { items[$0] == nil } }
 
-    /// Today (since 4 am): new words, answers, and answers that moved a word up. A testing Tomo has no log.
-    public func today() -> (newWords: Int, answers: Int, stronger: Int) {
-        let counts = store?.answerCounts(since: TomoClock.dayStart) ?? (answers: 0, stronger: 0)
-        return (newToday, counts.answers, counts.stronger)
-    }
-
     /// Level-ups, birthdays and start-overs logged for this Tomo, oldest first. A testing Tomo has no log.
     public func growthLog() -> [(kind: String, value: Int)] { store?.growthLog() ?? [] }
+
+    // MARK: Logs, for TomoStats (this device only; a testing Tomo has none and logs nothing)
+
+    /// This Tomo's answers on this device in `[from, to)`: since it hatched, never an earlier Tomo's.
+    public func answerLog(from: Date, to: Date) -> [TomoStore.AnswerRow] {
+        store?.answerLog(from: max(from, metAt), to: to) ?? []
+    }
+    /// This Tomo's level-ups and birthdays on this device, oldest first.
+    public func growthEvents() -> [TomoStore.GrowthRow] { store?.growthEvents(since: metAt) ?? [] }
+    /// When this device first logged an answer for this Tomo.
+    public func firstAnswerAt() -> Date? { store?.firstAnswer(since: metAt) }
+    /// The visit log: a visit as it starts, when its card opens, and when it ends (TomoGame).
+    public func logVisit(_ v: TomoVisit) { store?.logVisit(v) }
+    /// This Tomo's visits on this device that started in `[from, to)`.
+    public func visitLog(from: Date, to: Date) -> [TomoVisit] { store?.visitLog(from: max(from, metAt), to: to) ?? [] }
 
     /// A visit: due items first (the longest-waiting first), then at most one new one. Empty = nothing to do.
     public func visitItems(limit: Int) -> [String] {
@@ -598,6 +607,7 @@ public final class TomoProgress {
               && loaded.growthLog().last.map { $0.kind == "age" && $0.value == age20 } == true,
               "a Tomo saved at level \(lv20) as \(pack.ageLabel(1)) loads as \(pack.ageLabel(age20)), saved and logged")
 
+        TomoStats.selfTest(check)
         growthSelfTest(check)
         return ok
     }

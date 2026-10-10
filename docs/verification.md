@@ -13,7 +13,7 @@ macOS CI yet: CI runs only the repo checks, so the build, the self-test and the 
 | **Finish gate** | Build, self-test, repo checks, and the evidence below | Once, when the branch is done |
 
 The self-test: `TOMO_SELFTEST=1 TOMO_DATA_DIR=$(mktemp -d) <app binary>` checks the word-stage, level,
-store, sync-merge and look rules, the island's (which screen, where, Esc, opening and closing, the peek; a visit offered as a peek runs on the game itself, about 3 s), who sees the first run, when reminders
+store, sync-merge and look rules, the island's (which screen, where, Esc, opening and closing, the peek; a visit offered as a peek runs on the game itself, about 3 s, and logs as one), the stats (a learner simulated for three weeks, against its own tally: `TomoStatsCheck.swift`), who sees the first run, when reminders
 come, and that every moment has a short, soft sound, lower for an older Tomo; it prints each
 check and quits (exit code 1 on a failure). A new growth rule gets a new check in `TomoProgress.selfTest`, a new
 merge rule one in `TomoSync.selfTest`, an island rule one in `TomoIslandSelfTest`. It also checks growth end to end
@@ -30,9 +30,11 @@ pack's age boundary. Each run prints a `pace` line: the days to Lv 2, 5 and 10 a
   (talking); Win, Practice, Miss and No score; resting and a level-up; and any new state the change adds. A change
   to how a visit starts or opens needs them with the peek on too (`TOMO_PEEK=1 TOMO_PEEK_OPEN=2`).
 - **Growth rules:** the self-test, with a check for the new rule.
-- **The screens (Tomo, Words, Settings, About):** on the Mac, the window's snapshots with seeded progress
+- **The screens (Tomo, Words, Together, Settings, About):** on the Mac, the window's snapshots with seeded progress
   (`TOMO_OPEN_WINDOW=tour`, below), in English and Japanese; on the iPhone, a simctl screenshot of each
-  (`SIMCTL_CHILD_TOMO_OPEN_WINDOW=<screen>`), on a regular and an SE-size simulator.
+  (`SIMCTL_CHILD_TOMO_OPEN_WINDOW=<screen>`), on a regular and an SE-size simulator. Stats need a seed with logs
+  (`--history`, below): both sides of the postcard (`TOMO_POSTCARD_TURN`), a quiet week, a brand-new Tomo (no seed),
+  and Monday (`TOMO_TIME_TRAVEL` to Monday morning) on the Tomo screen.
 - **The menus and their shortcuts:** `TOMO_DUMP_MENU=<file>` writes the main menu and the menu bar icon's
   menu, with their shortcuts; a headless run can't press them.
 - **Tomo's look or motion:** `TOMO_RENDER_SHEET` and `TOMO_RENDER_ANIM` frames, with `TOMO_SEED=<text>` for
@@ -103,18 +105,21 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
 
 - `TOMO_HEADLESS=1`: nothing shows, sounds or takes focus (above). Use it on every test run.
 - `TOMO_SNAPSHOT_DIR=<dir>`: a PNG of the island every second, and of the Tomodachi window while it's open
-  (`window-<screen>-NNN.png`, and `window-sheet-NNN.png` for the start-over question). `TOMO_SNAPSHOT_EVERY=<seconds>`
-  takes them more often (0.1, to catch a motion midway). In a headless run the card's first frame takes about 0.4 s
+  (`window-<screen>-NNN.png`, and `window-sheet-NNN.png` for the start-over question), and the picture Together
+  shares (`postcard-share-<day>.png`). `TOMO_SNAPSHOT_EVERY=<seconds>` takes them more often (0.1, to catch a motion
+  midway). `TOMO_APPEARANCE=light|dark` draws the window in either. In a headless run the card's first frame takes about 0.4 s
   to draw, so a motion as it opens shows in one or two frames.
 - `TOMO_RESTING_HOVER=1`: the resting island as it is under the pointer (a little bigger), which a headless run can't
   move there.
 - `TOMO_PEEK=1` (or `0`): visits peek first (or open the card), whatever Settings says. `TOMO_PEEK_OPEN=<seconds>`:
   that long after a peek shows, it opens as a click on it would (without taking the keyboard), so a test run sees its
   word slide into the card. A headless run can't point at it.
-- `TOMO_OPEN_WINDOW=<screen>` (tomo, words, settings, about, ai, testing): the Tomodachi window opens at that
+- `TOMO_OPEN_WINDOW=<screen>` (tomo, words, together, settings, about, ai, testing): the Tomodachi window opens at that
   screen a second after launch (`ai` and `testing` also show the testing tools). `startOver` opens Settings
   asking to start over; `tour` shows every screen for 3 s each, then the question. On the iPhone it picks the
   tab. `TOMO_OPEN_SETTINGS` is its old name. Seed a mid-level Tomo first (below), so the screens have content.
+- `TOMO_POSTCARD=<n>`: Together shows the postcard n weeks before the newest. `TOMO_POSTCARD_TURN=<seconds>`: that
+  long after it shows, it turns over.
 - `TOMO_AUTOPLAY=1`: answers picture rounds by itself (one miss, then right) and picks Practice when Tomo rests.
   `TOMO_AUTOPLAY=right` answers every round right the first time, so the answer counts in full: a level-up on cue
   from a `seed-progress.py --edge` folder.
@@ -166,7 +171,9 @@ python3 mac-demo/scripts/seed-progress.py /tmp/tomo-test --through-level 1 --sta
 
 `--edge N` is one word short of finishing level N (the word due now), with Tomo at that level's age: with
 `TOMO_AUTOPLAY=right`, the first answer levels up, so `--edge 15` shows the 2さい birthday and `--edge 60` the
-3さい one and the first talking question. Its docstring has the options. Snapshots of the real data are a copy away:
+3さい one and the first talking question. `--history` adds the logs of a learner who played since Tomo hatched
+(`--days`), so Together has weeks and postcards; `--quiet A-B` leaves days A to B ago quiet. Its docstring has the
+options. Snapshots of the real data are a copy away:
 `sqlite3 -readonly "<Application Support>/com.zenbujapanese.tomo/learner.sqlite" ".backup '<dir>/learner.sqlite'"`.
 
 ## Known flake

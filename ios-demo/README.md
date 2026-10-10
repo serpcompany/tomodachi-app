@@ -1,13 +1,13 @@
 # iPhone demo
 
-Tomodachi on the iPhone ([#52](https://github.com/serpcompany/tomodachi-app/issues/52)): a shell around the `TomoCore` package, like the Mac app. It has four tabs: **Play**, Tomo big and alive with the same rounds as the notch card (pictures, needs, meanings, and at 3さい what Tomo means or a reply that fits), and **Tomo**, **Words** and **Settings** (with About), the same screens as the Mac's Tomodachi window, from TomoCore. Opening the app is free play; Tomo never times out while it's on screen. A Home Screen widget shows Tomo, its age and level, and what's waiting; a Live Activity puts Tomo on the Lock Screen and in the Dynamic Island.
+Tomodachi on the iPhone ([#52](https://github.com/serpcompany/tomodachi-app/issues/52)): a shell around the `TomoCore` package, like the Mac app. It has five tabs: **Play**, Tomo big and alive with the same rounds as the notch card (pictures, needs, meanings, and at 3さい what Tomo means or a reply that fits), and **Tomo**, **Words**, **Together** and **Settings** (with About), the same screens as the Mac's Tomodachi window, from TomoCore. Opening the app is free play; Tomo never times out while it's on screen. A Home Screen widget shows Tomo, its age and level, and what's waiting; a Live Activity puts Tomo on the Lock Screen and in the Dynamic Island.
 
 A new learner's first launch shows the first run full screen over all of it: the hatch, the first word, how Tomo comes to you, the rhythm and quiet hours for reminders, the notification prompt, the widget how-to and the Lock Screen card, yes or not now (`TomoOnboarding`, `Shell.phone`).
 
 | File | What |
 |---|---|
 | `Tomodachi/Sources/TomodachiApp.swift` | The app, and `TomoPhoneShell`: sets `TomoGame`'s closures (open = the app is active; `onBotState` → Tomo). The app follows Reduce Motion for every live Tomo (`TomoMotion`) |
-| `Tomodachi/Sources/TomoPhoneHome.swift` | The tabs: Play (`TomoPhoneView`) and TomoCore's Tomo, Words and Settings screens, with About in Settings. Settings shows the reminders' settings (`TomoReminderSettingsView`, from TomoCore) |
+| `Tomodachi/Sources/TomoPhoneHome.swift` | The tabs: Play (`TomoPhoneView`) and TomoCore's Tomo, Words, Together and Settings screens, with About in Settings. Settings shows the reminders' settings (`TomoReminderSettingsView`, from TomoCore) |
 | `Tomodachi/Sources/TomoPhoneFirstRun.swift` | The first run, full screen over the tabs; `TomoPhoneShell` holds the game, the Lock Screen card and the reminders until it's done (`endFirstRun`) |
 | `Tomodachi/Sources/TomoPhoneView.swift` | The play screen: header and level bar, `TomoBlobView` (tap: a poke; long press: love, `TomoLoveCooldown`), what Tomo says, the result, the answers |
 | `Tomodachi/Sources/TomoWordSheet.swift` | Tap a word in Tomo's line: its word card, with Open in Zenbu and the iPhone's dictionary (`UIReferenceLibraryViewController`) |

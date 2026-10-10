@@ -62,6 +62,29 @@
       }
     }
   },
+  "postcard": {
+    "grew": {
+      "say": "やったー！",
+      "romanization": "yattā!",
+      "translation": {
+        "en": "Yay!"
+      }
+    },
+    "bye": {
+      "say": "またね！",
+      "romanization": "mata ne!",
+      "translation": {
+        "en": "See you!"
+      }
+    },
+    "asleep": {
+      "say": "Zz… またね！",
+      "romanization": "Zz… mata ne!",
+      "translation": {
+        "en": "Zz… See you!"
+      }
+    }
+  },
   "reminders": [
     {
       "fromAge": 1,
