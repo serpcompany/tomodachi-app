@@ -1,7 +1,7 @@
 #!/bin/zsh
 # Archives the iPhone app and uploads it to App Store Connect for TestFlight.
 # Needs: Xcode signed in to the Zenbu Japanese team (Xcode → Settings → Accounts), and the app record
-# "Tomodachi" (bundle ID com.zenbujapanese.tomodachi) in App Store Connect. Xcode picks the next build number.
+# "Tomodachi" (bundle ID com.zenbujapanese.tomo) in App Store Connect. Xcode picks the next build number.
 set -euo pipefail
 # Xcode packages the upload with /usr/bin/rsync, which starts a second rsync from PATH; Homebrew's rsync 3.x
 # rejects Apple's options ("Copy failed"). Apple's tools first.

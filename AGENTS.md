@@ -3,7 +3,7 @@
 **Tomodachi** (by Zenbu Japanese) is a language-learning app whose character, **Tomo**, lives in the
 MacBook notch, comes to you through the day, and speaks at its age level. What it teaches comes from a
 content source (the age track by default). Use "Tomodachi" for the app and "Tomo" for the character.
-Bundle ID: `com.zenbujapanese.tomodachi`.
+Bundle ID: `com.zenbujapanese.tomo`, on TSMC LLC's team `847HR8U8D9` (the Zenbu Japanese app's).
 
 Stage: explore
 Agents may merge: yes

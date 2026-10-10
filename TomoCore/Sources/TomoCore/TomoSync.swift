@@ -19,7 +19,9 @@ import Security
 @MainActor
 public final class TomoSync {
     public static let shared = TomoSync()
-    static let containerID = "iCloud.com.zenbujapanese.tomodachi"
+    /// The app's iCloud container, named in its Info.plist (`TomoCloudContainer`): the host app's identity, never
+    /// TomoCore's. The Mac and iPhone apps name the same one.
+    static let containerID = Bundle.main.object(forInfoDictionaryKey: "TomoCloudContainer") as? String
     static let zoneID = CKRecordZone.ID(zoneName: "Tomo")
 
     public struct Pair: Hashable, Sendable {
@@ -71,7 +73,7 @@ public final class TomoSync {
     /// Starts syncing this device's saved Tomos, if this build and run may.
     public func start() {
         let env = ProcessInfo.processInfo.environment
-        guard engine == nil, Self.environment != nil,
+        guard engine == nil, Self.environment != nil, let containerID = Self.containerID,
               env["TOMO_DATA_DIR"] == nil || env["TOMO_SYNC"] == "1" else { return }
         directory = TomoStore.directory.standardizedFileURL
         guard let file = TomoStore(learner: "", target: "", directory: directory) else { return }
@@ -80,7 +82,7 @@ public final class TomoSync {
 
         let saved = loadState()
         var config = CKSyncEngine.Configuration(
-            database: CKContainer(identifier: Self.containerID).privateCloudDatabase,
+            database: CKContainer(identifier: containerID).privateCloudDatabase,
             stateSerialization: saved, delegate: self)
         config.automaticallySync = true
         let engine = CKSyncEngine(config)

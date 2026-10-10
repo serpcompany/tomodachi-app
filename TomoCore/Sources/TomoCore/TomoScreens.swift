@@ -75,7 +75,7 @@ public final class TomoFeatures: ObservableObject {
     public static let target = "ja"
 
     /// The testing tools are on: on the Mac, ⌥-click the menu bar icon (TomoTestingTools), or
-    /// `defaults write com.zenbujapanese.tomodachi tomoTestingTools -bool true`.
+    /// `defaults write com.zenbujapanese.tomo tomoTestingTools -bool true`.
     @Published public var testingTools: Bool
 
     private init() {

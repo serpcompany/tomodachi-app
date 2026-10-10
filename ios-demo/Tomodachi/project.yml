@@ -14,11 +14,14 @@ settings:
   base:
     SWIFT_VERSION: "6.0"
     OTHER_SWIFT_FLAGS: "-strict-concurrency=complete"
-    # The team Pedos ships with (W3GXL2NQQP). Xcode signs automatically: simulator builds run
+    # TSMC LLC's team, the Zenbu Japanese app's too (decisions.md). Xcode signs automatically: simulator builds run
     # locally, device builds get a development profile (xcodebuild -allowProvisioningUpdates registers the
     # App IDs and the App Group the first time).
     CODE_SIGN_STYLE: Automatic
-    DEVELOPMENT_TEAM: W3GXL2NQQP
+    DEVELOPMENT_TEAM: 847HR8U8D9
+    # Shared with the widgets (TomoGlance) and with the Mac (TomoSync): read from Info.plist, never hard-coded.
+    TOMO_APP_GROUP: group.com.zenbujapanese.tomo
+    TOMO_ICLOUD_CONTAINER: iCloud.com.zenbujapanese.tomo
   configs:
     # iCloud sync (TomoSync): Debug builds use CloudKit's Development environment, TestFlight and the App Store
     # Production. Xcode sets the iCloud and push environments in the entitlements when it exports.
@@ -54,7 +57,7 @@ targets:
       properties:
         CFBundleName: Tomodachi
         CFBundleDisplayName: Tomodachi
-        CFBundleIdentifier: com.zenbujapanese.tomodachi
+        CFBundleIdentifier: com.zenbujapanese.tomo
         CFBundleVersion: "1"
         CFBundleShortVersionString: "1.1"
         UILaunchScreen: {}
@@ -63,12 +66,14 @@ targets:
         NSSupportsLiveActivities: true
         UIBackgroundModes: [remote-notification]   # CloudKit's push when the Mac changed Tomo (TomoSync)
         TomoICloudEnvironment: $(TOMO_ICLOUD_ENV)   # this build has iCloud (TomoSync)
+        TomoCloudContainer: $(TOMO_ICLOUD_CONTAINER)
+        TomoAppGroup: $(TOMO_APP_GROUP)
         ITSAppUsesNonExemptEncryption: false   # only Apple's own encryption (HTTPS): no export paperwork
         # No microphone or speech-recognition text: answers are choices (TomoGame.talkAsChoices), and TomoCore
         # leaves its listener out of iOS builds, so the app never asks (#92).
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.zenbujapanese.tomodachi
+        PRODUCT_BUNDLE_IDENTIFIER: com.zenbujapanese.tomo
         PRODUCT_NAME: Tomodachi
         INFOPLIST_FILE: Resources/Info.plist
         TARGETED_DEVICE_FAMILY: "1"
@@ -98,12 +103,13 @@ targets:
         CFBundleDisplayName: Tomodachi
         CFBundleShortVersionString: "1.1"
         CFBundleVersion: "1"
+        TomoAppGroup: $(TOMO_APP_GROUP)
         UIAppFonts: [TomoReady0.ttf, TomoReady1.ttf, TomoReady2.ttf, TomoSleep0.ttf, TomoSleep1.ttf, TomoSleep2.ttf]
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.zenbujapanese.tomodachi.widgets
+        PRODUCT_BUNDLE_IDENTIFIER: com.zenbujapanese.tomo.widgets
         PRODUCT_NAME: TomoWidgets
         INFOPLIST_FILE: Widgets/Info.plist
         TARGETED_DEVICE_FAMILY: "1"
