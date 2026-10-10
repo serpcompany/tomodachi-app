@@ -135,6 +135,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) { TomoGame.shared.testGrow(how) }
         }
         TomoMenus.openIsland = { [weak self] in self?.openIsland() }
+        // The learner's shortcut to play from any app (Settings; none until they record one; never in a test run).
+        TomoHotKey.shared.onPress = { [weak self] in self?.islandController?.shortcutPressed() }
+        TomoHotKey.shared.start()
         TomoMenus.takeKeyboard = { [weak self] in self?.islandController?.takeKeyboard() }
         TomoAppWindow.openIfRequested()
         TomoMenus.dumpIfRequested()

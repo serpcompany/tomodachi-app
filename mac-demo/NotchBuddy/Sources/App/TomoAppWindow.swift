@@ -212,6 +212,7 @@ private struct TomoAppView: View {
             TomoLoginItemSection()
             TomoReminderSettingsView.QuietHours(forVisits: true)   // no visits at night (#88)
             TomoScreenSection()                                    // which screen Tomo lives on (#130)
+            TomoShortcutSection()                                  // a shortcut to play from any app (#130)
         }, more: { EmptyView() })
         case .about:    TomoAboutScreen()
         case .ai:       TomoAISettingsView()
