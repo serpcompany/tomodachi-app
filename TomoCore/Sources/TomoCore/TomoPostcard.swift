@@ -92,32 +92,12 @@ extension TomoStats {
             said.append(Self.spoken(lines?.asleep, or: pack.lines.seeYou, learner))
         }
 
-        // The back: what you did, never a zero.
-        var facts: [TomoPostcard.Fact] = []
-        if !s.newWords.isEmpty { facts.append(.init(id: "new", text: ui.counted("postcard.newWords", s.newWords.count), dot: nil)) }
-        if s.wins > 0 { facts.append(.init(id: "wins", text: ui.counted("postcard.wins", s.wins), dot: .win)) }
-        if s.practice > 0 { facts.append(.init(id: "practice", text: ui.counted("postcard.practice", s.practice), dot: .practice)) }
-        if s.misses > 0 { facts.append(.init(id: "misses", text: ui.counted("postcard.misses", s.misses), dot: .miss)) }
-        if !s.stronger.isEmpty {
-            facts.append(.init(id: "stronger", text: ui.counted("postcard.stronger", s.stronger.count), dot: nil))
-        }
-        if s.longestRun >= 2 { facts.append(.init(id: "streak", text: ui("postcard.streak", ["n": "\(s.longestRun)"]), dot: nil)) }
+        // The back: what you did, never a zero, then the level and days together.
+        var facts = counts(s, ui)
         facts.append(.init(id: "level", text: s.grew ? ui("postcard.grew", ["from": "\(s.levelFrom)", "to": "\(s.levelTo)"])
                                                      : ui("level", ["n": "\(s.levelTo)"]), dot: nil))
         facts.append(.init(id: "days", text: ui("words.days", ["n": "\(progress.daysTogether(at: lastDay))"]), dot: nil))
-
-        // The shared text: the same numbers, the level, the week's new words.
-        let sep = ui("list.separator")
-        var recap = [ui("postcard.recap.title", ["range": range])]
-        let counts = facts.filter { ["new", "wins", "practice", "misses", "streak"].contains($0.id) }.map(\.text)
-        if !counts.isEmpty { recap.append(counts.joined(separator: sep)) }
-        recap.append(s.grew ? ui("postcard.recap.grew", ["from": "\(s.levelFrom)", "to": "\(s.levelTo)", "age": pack.ageLabel(age)])
-                            : ui("postcard.recap.level", ["age": pack.ageLabel(age), "n": "\(s.levelTo)"]))
-        if !s.newWords.isEmpty {
-            let words = s.newWords.prefix(6).map { progress.word($0, learner: learner).say }.joined(separator: " ")
-            recap.append(ui("postcard.recap.words", ["words": words]))
-        }
-        recap.append(ui("postcard.recap.app"))
+        let recap = recap(s, range: range, ui)
 
         let front = favourite.map { progress.word($0, learner: learner) }
         return TomoPostcard(
@@ -125,7 +105,7 @@ extension TomoStats {
             word: front?.say ?? said[0].say, picture: front?.emoji,
             message: said.map(\.say).joined(separator: " "), gloss: said.map(\.gloss).filter { !$0.isEmpty }.joined(separator: " "),
             facts: facts, level: s.levelTo, age: age, ageLabel: pack.ageLabel(age), ageShare: ageShare(level: s.levelTo),
-            grew: s.grew, asleep: favourite == nil, hue: Self.hue(firstDay), recap: recap.joined(separator: "\n"))
+            grew: s.grew, asleep: favourite == nil, hue: Self.hue(firstDay), recap: recap)
     }
 
     /// A brand-new Tomo's card, before its first Monday: Tomo says hello (ばあ！) and when its first postcard comes.

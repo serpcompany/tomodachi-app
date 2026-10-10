@@ -142,7 +142,10 @@ private struct TomoTogetherPage: View {
 
     var body: some View {
         TomoTogetherScreen(progress: game.progress, look: TomoLook.current, material: .own,
-                           version: game.progressVersion)
+                           version: game.progressVersion) { text in
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(text, forType: .string)
+        }
     }
 }
 

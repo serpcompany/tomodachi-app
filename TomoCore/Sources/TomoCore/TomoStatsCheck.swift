@@ -33,9 +33,10 @@ extension TomoStats {
 
         // The run's own tally, by day (day 0 is the Wednesday; before 4 am counts for the day before).
         struct Day { var answers = 0, wins = 0, practice = 0, misses = 0; var new: [String] = [], moved: [String] = []
-                     var answered: [String: Int] = [:] }
+                     var practiced: [String] = []; var answered: [String: Int] = [:] }
         var days: [Int: Day] = [:], levelAfter: [Int: Int] = [:], visits = 0, ignored = 0, n = 0
         var firstAnswer: Date?
+        var stages: [String: [(at: Date, stage: Int)]] = [:]      // each word's stage after each answer, for the replay
         func answer(_ id: String, day: Int, practice: Bool = false) {
             n += 1
             firstAnswer = firstAnswer ?? TomoClock.now
@@ -57,8 +58,10 @@ extension TomoStats {
                 if before == nil { d.new.append(id) } else if after > before! { d.moved.append(id) }
             } else {
                 d.practice += 1
+                if !d.practiced.contains(id) { d.practiced.append(id) }
             }
             days[day] = d
+            stages[id, default: []].append((TomoClock.now, after))
             _ = p.levelUpIfReady()
             levelAfter[day] = p.level
             TomoClock.stopped = TomoClock.now.addingTimeInterval(15)
@@ -105,6 +108,7 @@ extension TomoStats {
             for d in range.compactMap({ days[$0] }) {
                 s.answers += d.answers; s.wins += d.wins; s.practice += d.practice; s.misses += d.misses
                 s.newWords += d.new
+                s.practiced += d.practiced.filter { !s.practiced.contains($0) }
                 s.stronger += d.moved.filter { !s.stronger.contains($0) }
                 d.answered.forEach { s.answered[$0.key, default: 0] += $0.value }
             }
@@ -117,6 +121,7 @@ extension TomoStats {
         }
         func same(_ a: Summary, _ b: Summary) -> Bool {
             a.answers == b.answers && a.wins == b.wins && a.practice == b.practice && a.misses == b.misses
+                && a.practiced == b.practiced
                 && a.daysPlayed == b.daysPlayed && a.longestRun == b.longestRun && a.newWords == b.newWords
                 && Set(a.stronger) == Set(b.stronger) && a.answered == b.answered
                 && a.levelFrom == b.levelFrom && a.levelTo == b.levelTo
@@ -218,6 +223,38 @@ extension TomoStats {
         check(again.todayLine(ui) == shown.0 && again.postcards(ui).map { $0.facts.map(\.text) + [$0.recap, $0.message] } == shown.1,
               "stats: the Today line and the postcards leave ignored visits off (for now)")
 
+        // The garden: every word met, at its stage now; the replay's stages from the log; the ranges.
+        let plants = stats.garden()
+        check(plants.count == p.items.count && plants.map(\.met) == plants.map(\.met).sorted()
+              && plants.allSatisfy { p.items[$0.id]?.stage == $0.stage && $0.pale == ((p.items[$0.id]?.stage ?? 0) < (p.items[$0.id]?.peak ?? 0)) },
+              "stats: the garden has every word met (\(plants.count)), oldest first, at its stage now, pale when it slipped (\(plants.filter(\.pale).count))")
+        let replayed = (0...20).allSatisfy { d in
+            let t = at(d, 23.9)
+            return plants.allSatisfy { plant in
+                plant.stage(at: t) == (stages[plant.id]?.last { $0.at <= t }?.stage ?? 0)
+            }
+        }
+        check(replayed, "stats: the replay's stage of every word at the end of every day matches the learner's own record")
+        check(same(stats.summary(.today), tally(20...20)) && same(stats.summary(.week), tally(19...20))
+              && same(stats.summary(.all), tally(0...20)),
+              "stats: today, this week (from Monday 5 October) and since we met match the tally, waterings included (\(stats.summary(.week).practiced.count) watered this week)")
+        let weekRecap = stats.recap(stats.summary(.week), range: stats.rangeText(.week, ui), ui)
+        check(weekRecap.hasPrefix(ui("postcard.recap.title", ["range": stats.rangeText(.week, ui)]))
+              && weekRecap.contains(stats.counts(stats.summary(.week), ui).map(\.text).joined(separator: " · "))
+              && stats.rangeText(.week, ui) == "Oct 5–Oct 6",
+              "stats: Copy recap says the range and its numbers: \(weekRecap.split(separator: "\n").prefix(2).joined(separator: " / "))")
+
+        // The learner's own log: JSON that reads back, and Markdown with a row for every week, word and answer.
+        let json = stats.exportJSON(ui), log = TomoLogExport.decode(json)
+        let answerRows = p.answerLog(from: start, to: at(21, 4)).count
+        check(log?.answers.count == answerRows && log?.words.count == p.items.count
+              && log?.growth.count == p.growthEvents().count && log?.visits.count == visits + ignored + 2
+              && log?.answers.first?.word == stats.garden().first?.id && log?.tomo.level == p.level,
+              "stats: the JSON export reads back with every answer (\(answerRows)), word, level-up and visit")
+        let md = stats.exportMarkdown(ui), tableRows = md.split(separator: "\n").filter { $0.hasPrefix("| ") }.count
+        check(md.hasPrefix("# \(ui("export.title"))") && tableRows == 6 + (weeks.count + 1) + p.items.count + answerRows,
+              "stats: the Markdown export has a row for every week (\(weeks.count) and this one), word and answer")
+
         // The postcard comes on Monday morning: Monday 5 October at 3:59 it isn't there yet, at 4 am it is, and that
         // Monday is the day it came.
         TomoClock.stopped = at(19, 3.98)
@@ -244,9 +281,9 @@ extension TomoStats {
         TomoClock.stopped = at(20, 22)
         let fresh = TomoProgress(pack: pack, learner: "es", directory: dir)
         let none = TomoStats(fresh), first = none.firstPostcard(ui)
-        check(none.weeks().isEmpty && none.since == nil && none.todayLine(ui) == ui("today.nothing")
+        check(none.weeks().isEmpty && none.since == nil && none.todayLine(ui) == ui("today.nothing") && none.garden().isEmpty
               && first.isFirst && first.facts.map(\.id) == ["first"] && first.message.hasPrefix(pack.lines.hello?.say ?? "-"),
-              "stats: a brand-new Tomo has no weeks, nothing yet today, and a first postcard: \(first.message)")
+              "stats: a brand-new Tomo has an empty garden, no weeks, nothing yet today, and a first postcard: \(first.message)")
         if let id = fresh.visitItems(limit: 1).first {
             fresh.answeredRight(id, mode: "sim", wrongTries: 0, hint: false)
             check(TomoStats(fresh).todayLine(ui) == "1 answer · 1 new word", "stats: one answer: \"\(TomoStats(fresh).todayLine(ui))\"")
