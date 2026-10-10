@@ -89,7 +89,7 @@ public struct TomoGrowthScreen: View {
         .frame(maxWidth: .infinity)
         #else
         HStack(spacing: 16) {
-            TomoLiveAvatar(size: 76, material: .own)
+            TomoLiveAvatar(size: 76, material: .own, weather: TomoCalendar.weatherToday)
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
                     Text(game.age).font(.system(size: 22, weight: .bold))

@@ -435,6 +435,11 @@ enum TomoIslandSelfTest {
               "Tomo says hello the first time it shows (resting, the launch visit's card or peek) and when the Mac wakes, never hidden")
         check(T.wearsBadges(.compact) && !T.wearsBadges(.peek) && !T.wearsBadges(.expanded) && !T.wearsBadges(.hidden),
               "small Tomo wears its badges resting beside the notch, not in the peek or the card")
+        check(T.weather(mode: .expanded, view: .overview, today: .snow) == .snow
+              && [IslandMode.compact, .peek, .hidden].allSatisfy { T.weather(mode: $0, view: .overview, today: .snow) == nil }
+              && T.weather(mode: .expanded, view: .confused, today: .petals) == nil
+              && T.weather(mode: .expanded, view: .overview, today: nil) == nil,
+              "the season's weather falls only in Tomo's card: never resting by the notch, in the peek or the dizzy card")
         // Its badge stays in the left ear, left of the notch and below the screen's top edge, at every age, in the room
         // the canvas leaves right of its frame (BotPlacement's canvas: the diameter / 0.6, 72 pt of room above). Its call
         // glow fits the canvas's room on every side, so no edge of the canvas cuts it.

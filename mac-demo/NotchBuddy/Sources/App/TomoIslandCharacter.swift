@@ -22,6 +22,8 @@ struct TomoCharacterView: View {
     @StateObject private var blob = TomoBlob(material: .own, motion: .shared)
     @State private var seenArrivals = 0
     @State private var greeted = false
+    /// The season's weather (TomoCalendar), looked up when the card opens.
+    @State private var todaysWeather: TomoWeather?
 
     /// What Tomo does when the island changes: drips in when the app brought it out (a visit, as its card or its peek:
     /// `AppState.arrivals`), is pulled up into the notch when the card or the peek closes (already, if the fold waited
@@ -42,6 +44,12 @@ struct TomoCharacterView: View {
     /// card, whose own line says "…" while it checks; not in the peek, where Tomo is big, a badge would reach its words,
     /// and a visit never dozes or checks; nor hidden.
     nonisolated static func wearsBadges(_ mode: IslandMode) -> Bool { mode == .compact }
+
+    /// The season's weather shows around Tomo only in Tomo's card, where it has room and the learner is looking: never
+    /// resting beside the notch, in the peek, the dizzy card or hidden.
+    nonisolated static func weather(mode: IslandMode, view: IslandView, today: TomoWeather?) -> TomoWeather? {
+        mode == .expanded && view == .overview ? today : nil
+    }
 
     /// The room the canvas has right of its frame for a badge (the frame stays the size BotPlacement gives, so Tomo
     /// doesn't move or grow). The island's own shape still clips it: the badge stays in the ear, left of the notch.
@@ -110,6 +118,7 @@ struct TomoCharacterView: View {
                     blob.strandAnchor = CGPoint(x: geo.size.width / 2, y: islandTop - 2)
                     blob.callGlow = callGlow()
                     blob.showsBadges = Self.wearsBadges(state.mode)
+                    blob.weather = Self.weather(mode: state.mode, view: state.view, today: todaysWeather)
                     blob.step()
                     blob.draw(context, size: geo.size)
                 }
@@ -119,6 +128,7 @@ struct TomoCharacterView: View {
         }
         .onChange(of: shownState) { _, s in blob.setState(s) }
         .onChange(of: state.mode) { old, new in
+            if new == .expanded { todaysWeather = TomoCalendar.weatherToday }
             let arriving = state.arrivals != seenArrivals
             seenArrivals = state.arrivals
             if Self.saysHello(greeted: greeted, waking: false, mode: new) {   // first shown: its hello, not a drip
@@ -142,6 +152,7 @@ struct TomoCharacterView: View {
             if leaving { blob.pullUp() } else if IslandWindowController.countsAsOpen(state.mode) { blob.appear() }
         }
         .onAppear {
+            todaysWeather = TomoCalendar.weatherToday
             if Self.testBadge == "dozing" { blob.dozeAfter = 2 }
             blob.setState(shownState, force: true)
             blob.setGrowth(TomoGame.shared.growthStep)
