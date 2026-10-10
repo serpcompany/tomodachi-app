@@ -76,8 +76,8 @@ mac-demo/scripts/release-beta.sh --owner         # the owner's copy in build/own
 
 ## Mac App Store (not set up yet)
 
-No sandbox, no upload script, and macOS isn't on the App Store Connect record yet. The listing is drafted as if
-it were, in `metadata/`, with screenshots from `scripts/make-screenshots.py`: [app-store.md](app-store.md).
+No sandbox and no upload script yet; the App Store Connect record has a macOS version waiting.
+The listing is drafted in `metadata/`, with screenshots from `scripts/make-screenshots.py`: [app-store.md](app-store.md).
 
 ## App icon
 
