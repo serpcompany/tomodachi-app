@@ -141,6 +141,8 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   sheet shows one Tomo at every age and with every face, then a crowd of other seeds. The sounds are
   `<effect>-age<N>.wav` for 1さい to 6さい, and `all-sounds.wav` (every effect at 1さい, in order).
 - `TOMO_SEED=<text>`: the seed Tomo's look is made from, in place of the saved Tomo's.
+- `TOMO_SCREEN=<notch|main|mouse|display:name>`: which screen Tomo lives on, whatever Settings says, without saving it.
+  A headless run has only this Mac's screens, so the choices between screens are checked in `TomoIslandSelfTest`.
 - `TOMO_MATERIAL=classic|jelly`: the material of `TOMO_RENDER_ANIM` and the sheets (the learner's own, jelly, otherwise).
   The icons and the card frames are always classic.
 - `TOMO_HELLO=<seconds>`: that long after Tomo first shows, it says hello as it does when the Mac wakes (a test run
