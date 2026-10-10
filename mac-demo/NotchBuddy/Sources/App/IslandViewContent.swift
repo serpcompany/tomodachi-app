@@ -37,8 +37,14 @@ struct ConfusedView: View {
 
 // MARK: - Card background
 
+/// The card's rounded panel and its wash. The dizzy card's is a fixed pink light from below. Tomo's card washes in the
+/// moment's light (`TomoMoment`, drawn by `TomoMomentLight`), from Tomo's column (`TomoGrid.tomoCenter`), over a faint
+/// neutral light from below; between moments only the neutral one shows.
 struct CardBackground<Content: View>: View {
-    enum Wash { case red, green, pink, amber, cyan, indigo, soft }
+    enum Wash: Equatable {
+        case pink
+        case moment(TomoMoment?)
+    }
 
     let wash: Wash?
     let content: (() -> Content)?
@@ -48,16 +54,12 @@ struct CardBackground<Content: View>: View {
         self.content = content
     }
 
+    /// The light from below the card: the dizzy card's pink, or the faint neutral one under Tomo's moments.
     var washColor: Color {
         switch wash {
-        case .red:    return Color(hex: "#F4505E").opacity(0.55)
-        case .green:  return Color(hex: "#34D399").opacity(0.5)
-        case .pink:   return Color(hex: "#F472B6").opacity(0.55)
-        case .amber:  return Color(hex: "#F5A524").opacity(0.42)
-        case .cyan:   return Color(hex: "#22D3EE").opacity(0.38)
-        case .indigo: return Color(hex: "#6366F1").opacity(0.5)
-        case .soft:   return Color.white.opacity(0.08)
-        case nil:     return Color.clear
+        case .pink:    return Color(hex: "#F472B6").opacity(0.55)
+        case .moment:  return Color.white.opacity(0.08)
+        case nil:      return Color.clear
         }
     }
 
@@ -77,6 +79,12 @@ struct CardBackground<Content: View>: View {
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 20))
                 )
+                .overlay {
+                    if case .moment(let moment) = wash {
+                        TomoMomentLight(moment: moment, center: TomoGrid.tomoCenter, reach: 430, squash: 1.7)
+                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                    }
+                }
                 .overlay(
                     RoundedRectangle(cornerRadius: 20)
                         .stroke(Color.white.opacity(0.035), lineWidth: 1)

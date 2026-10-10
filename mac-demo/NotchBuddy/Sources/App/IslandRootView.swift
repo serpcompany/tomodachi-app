@@ -51,9 +51,15 @@ struct IslandContainer: View {
     var body: some View {
         // Tomo's character draws itself (TomoCharacterView).
         return ZStack(alignment: .topLeading) {
-            // Black island shape
+            // Black island shape, lit by the moment's light from Tomo: past the card's edges while it's open, along the
+            // peek's bar, and around small Tomo while something counts (TomoIslandLight).
             IslandShape(width: islandWidth, height: islandHeight, cornerRadius: cornerRadius)
                 .fill(Color.black)
+                .overlay(alignment: .topLeading) {
+                    TomoIslandLight(game: TomoGame.shared, mode: state.mode, view: state.view, tomo: tomoCenter)
+                        .frame(width: islandWidth, height: islandHeight)
+                        .clipShape(IslandShape(width: islandWidth, height: islandHeight, cornerRadius: cornerRadius))
+                }
 
             // Content
             if state.mode == .expanded {
@@ -153,6 +159,13 @@ struct IslandContainer: View {
 
     private var peekLayout: TomoPeekLayout { TomoPeekLayout(hasNotch: state.hasNotch, notchHeight: state.notchHeight) }
 
+    /// Where Tomo sits in the island now (BotPlacement's place), where the island's light comes from.
+    private var tomoCenter: CGPoint {
+        let (x, y, _, _) = botPosition(mode: state.mode, view: state.view, islandW: islandWidth, islandH: islandHeight,
+                                       hasNotch: state.hasNotch)
+        return CGPoint(x: x, y: y)
+    }
+
     private func fitToScreen() {
         let (w, h) = islandSize(mode: state.mode, view: state.view, nw: state.notchWidth, nh: state.notchHeight,
                                 hasNotch: state.hasNotch, grown: state.restingHover)
@@ -219,20 +232,9 @@ struct BotPlacement: View {
         let overhang: CGFloat = 72
 
         Group {
+            // The halo behind Tomo in the card, in the moment's colour (TomoMomentHalo).
             if state.mode == .expanded {
-                Circle()
-                    .fill(RadialGradient(
-                        gradient: Gradient(stops: [
-                            .init(color: botGlowColor(state.effectiveState), location: 0),
-                            .init(color: .clear, location: 0.62)
-                        ]),
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: diameter * 1.1
-                    ))
-                    .frame(width: diameter * 2.2, height: diameter * 2.2)
-                    .blur(radius: 6)
-                    .opacity(botGlowOpacity(state.effectiveState))
+                TomoMomentHalo(game: TomoGame.shared, diameter: diameter, opacity: botGlowOpacity(state.effectiveState))
                     .position(x: cx, y: cy)
                     .animation(.easeInOut(duration: 0.4), value: state.effectiveState)
             }
@@ -254,19 +256,6 @@ struct BotPlacement: View {
         // Pokes and hover are handled by the AppKit NSEvent monitors in
         // IslandWindowController — not SwiftUI gestures — so this is safe.
         .allowsHitTesting(false)
-    }
-
-    private func botGlowColor(_ s: BotState) -> Color {
-        switch s {
-        case .working:   return Color(hex: "#3B9EFF")
-        case .thinking:  return Color(hex: "#A78BFA")
-        case .searching: return Color(hex: "#6366F1")
-        case .approval:  return Color(hex: "#F5A524")
-        case .error:     return Color(hex: "#F4505E")
-        case .finished:  return Color(hex: "#34D399")
-        case .ratelimit: return Color(hex: "#F59E0B")
-        default:         return Color.white
-        }
     }
 
     private func botGlowOpacity(_ s: BotState) -> Double {
