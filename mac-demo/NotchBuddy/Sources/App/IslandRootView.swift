@@ -47,8 +47,8 @@ struct IslandContainer: View {
     @State private var cornerRadius: CGFloat = IslandConst.roundedCorner   // the bottom corners
     @State private var topCorner: CGFloat = 0                                // 0 under a notch; the capsule's
 
-    private let openSpring = Animation.spring(response: 0.5, dampingFraction: 0.72)
-    private let closeEase  = Animation.timingCurve(0.45, 0, 0.2, 1, duration: 0.34)
+    private let openSpring = Animation.spring(response: 0.5 * TomoTravel.slowMotion, dampingFraction: 0.72)
+    private let closeEase  = Animation.timingCurve(0.45, 0, 0.2, 1, duration: TomoTravel.fold * TomoTravel.slowMotion)
 
     var body: some View {
         // Tomo's character draws itself (TomoCharacterView).
@@ -83,7 +83,7 @@ struct IslandContainer: View {
 
             // Single BotPlacement — always alive in the view tree so spring animations
             // fire from the current position.
-            BotPlacement(state: state, islandW: islandWidth, islandH: islandHeight)
+            BotPlacement(state: state)
                 // Keep idle animations inside the resting strip. Expanded views
                 // retain the panel's full height for particles.
                 .mask(alignment: .topLeading) {
@@ -247,38 +247,49 @@ struct IslandShape: Shape {
 
 struct BotPlacement: View {
     @ObservedObject var state: AppState
-    let islandW: CGFloat
-    let islandH: CGFloat
+    @ObservedObject var motion = TomoMotion.shared
+    /// Tomo travelling between the island's states (TomoTravel): drawn where it is on the way, not where it's going.
+    @StateObject private var traveller = TomoTraveller()
 
     var body: some View {
-        let (cx, cy, diameter, opacity) = botPosition(mode: state.mode, view: state.view, islandW: islandW,
-                                                      islandH: islandH, hasNotch: state.hasNotch)
-        let canvasSize = diameter / 0.6
+        // Where Tomo goes, from the island's size in its new state (as the click area and the gaze take it), not the
+        // drawing's, which follows a moment later: one move per change.
+        let (w, h) = islandSize(mode: state.mode, view: state.view, nw: state.notchWidth, nh: state.notchHeight,
+                                hasNotch: state.hasNotch, grown: state.restingHover)
+        let (cx, cy, diameter, opacity) = botPosition(mode: state.mode, view: state.view, islandW: w, islandH: h,
+                                                      hasNotch: state.hasNotch)
+        let target = TomoSpot(center: CGPoint(x: cx, y: cy), diameter: diameter, opacity: opacity)
         // Room above Tomo in its canvas: for particles, and for an arrival, which starts about 1.9 R up and stretched,
         // its head at the island's top edge in the card (the mask cuts what's above the island).
         let overhang: CGFloat = 72
 
         Group {
-            // The halo behind Tomo in the card, in the moment's colour (TomoMomentHalo).
-            if state.mode == .expanded {
-                TomoMomentHalo(game: TomoGame.shared, diameter: diameter, opacity: botGlowOpacity(state.effectiveState))
-                    .position(x: cx, y: cy)
-                    .animation(.easeInOut(duration: 0.4), value: state.effectiveState)
-            }
-
             // Extra canvas at the top (`overhang`); the position is offset up by half of it, and TomoBlob compensates
             // with cy = H/2 + particleOverhang/2 + dy*R + R*0.1. Resting, small Tomo glows amber while something counts
-            // (the rule TomoRestingSide and a visit use).
-            TomoCharacterView(state: state, particleOverhang: overhang, callGlow: { [state] in
-                state.mode == .compact && TomoGame.shared.somethingCounts ? 1 : 0
-            })
-                .frame(width: canvasSize, height: canvasSize + overhang)
-                .opacity(opacity)
-                .position(x: cx, y: cy - overhang / 2)
-                .animation(.spring(response: 0.5, dampingFraction: 0.72), value: cx)
-                .animation(.spring(response: 0.5, dampingFraction: 0.72), value: cy)
-                .animation(.spring(response: 0.5, dampingFraction: 0.72), value: canvasSize)
-                .transition(.scale(scale: 0.01, anchor: .center).combined(with: .opacity))
+            // (the rule TomoRestingSide and a visit use). Where it's drawn comes from the traveller, frame by frame
+            // while it travels (the timeline is paused once it has landed).
+            TimelineView(.animation(paused: !traveller.moving)) { timeline in
+                let pose = traveller.pose(for: target, mode: state.mode, arrivals: state.arrivals,
+                                          reduceMotion: motion.reduce, now: max(timeline.date, Date()))
+                let side = pose.spot.diameter / 0.6
+                ZStack(alignment: .topLeading) {
+                    // The halo behind Tomo in the card, in the moment's colour (TomoMomentHalo), with Tomo wherever it is.
+                    if state.mode == .expanded {
+                        TomoMomentHalo(game: TomoGame.shared, diameter: pose.spot.diameter,
+                                       opacity: botGlowOpacity(state.effectiveState))
+                            .position(pose.spot.center)
+                            .animation(.easeInOut(duration: 0.4), value: state.effectiveState)
+                    }
+                    TomoCharacterView(state: state, particleOverhang: overhang, callGlow: { [state] in
+                        state.mode == .compact && TomoGame.shared.somethingCounts ? 1 : 0
+                    })
+                        .frame(width: side, height: side + overhang)
+                        // Squashed and stretched about Tomo's bottom (its middle is `overhang` + half the side down).
+                        .scaleEffect(x: pose.sx, y: pose.sy, anchor: UnitPoint(x: 0.5, y: (overhang + side * 0.8) / (side + overhang)))
+                        .opacity(pose.spot.opacity)
+                        .position(x: pose.spot.center.x, y: pose.spot.center.y - overhang / 2)
+                }
+            }
         }
         // Pokes and hover are handled by the AppKit NSEvent monitors in
         // IslandWindowController — not SwiftUI gestures — so this is safe.

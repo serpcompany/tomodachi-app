@@ -7,8 +7,9 @@ import TomoCore
 
 /// Tomo in the island: the learner's own, in its material (`TomoMaterial.own`), a Canvas redrawn every frame, its gaze
 /// on the cursor. It follows Reduce Motion (`TomoMotion`).
-/// It arrives and leaves through the notch (`move`): it drips in when it comes out on its own, is pulled up before the
-/// card or the peek folds (`AppState.leaving`), and fades back in beside the notch. It says hello (#137) when it first
+/// It arrives through the notch (`move`): it drips in when it comes out on its own. Between the island's states it
+/// travels (BotPlacement moves this view: TomoTravel), and it's pulled up into the notch only when the island folds
+/// away (`AppState.leaving`). It says hello (#137) when it first
 /// appears, as the app starts, and when the Mac wakes (`wakes`). Small, in the resting island, it wears its badges
 /// (`wearsBadges`: a "…" bubble while it checks an answer, a Zz while it dozes), drawn just right of its frame. The
 /// canvas reaches past its frame for them and for the call glow (`canvasRoom`). Its host says how strongly it glows to
@@ -26,16 +27,17 @@ struct TomoCharacterView: View {
     @State private var todaysWeather: TomoWeather?
 
     /// What Tomo does when the island changes: drips in when the app brought it out (a visit, as its card or its peek:
-    /// `AppState.arrivals`), is pulled up into the notch when the card or the peek closes (already, if the fold waited
-    /// for it), and otherwise comes back if it was away (a click reopening the island). Opening a peek into its card is
-    /// the same visit: nothing.
+    /// `AppState.arrivals`), and is pulled up into the notch when the card or the peek closes with nowhere to rest
+    /// (the island hiding; already, if the fold waited for it). Otherwise it travels (TomoTravel, in BotPlacement): from
+    /// beside the notch into the card on a click, from the peek into its card, and back beside the notch when the card
+    /// or the peek tucks in. `appear` brings it back if it was away (the card reopened while it was being pulled up).
     enum Move: Equatable { case dripIn, pullUp, appear, none }
 
     nonisolated static func move(from old: IslandMode, to new: IslandMode, arriving: Bool) -> Move {
         let open = IslandWindowController.countsAsOpen
         switch (open(old), open(new)) {
         case (false, true): return arriving ? .dripIn : .appear
-        case (true, false): return .pullUp
+        case (true, false): return new == .hidden ? .pullUp : .none
         default: return .none
         }
     }
