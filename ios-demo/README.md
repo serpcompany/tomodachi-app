@@ -6,7 +6,7 @@ A new learner's first launch shows the first run full screen over all of it: the
 
 | File | What |
 |---|---|
-| `Tomodachi/Sources/TomodachiApp.swift` | The app, and `TomoPhoneShell`: sets `TomoGame`'s closures (open = the app is active; `onBotState` → Tomo) |
+| `Tomodachi/Sources/TomodachiApp.swift` | The app, and `TomoPhoneShell`: sets `TomoGame`'s closures (open = the app is active; `onBotState` → Tomo). The app follows Reduce Motion for every live Tomo (`TomoMotion`) |
 | `Tomodachi/Sources/TomoPhoneHome.swift` | The tabs: Play (`TomoPhoneView`) and TomoCore's Tomo, Words and Settings screens, with About in Settings. Settings shows the reminders' settings (`TomoReminderSettingsView`, from TomoCore) |
 | `Tomodachi/Sources/TomoPhoneFirstRun.swift` | The first run, full screen over the tabs; `TomoPhoneShell` holds the game, the Lock Screen card and the reminders until it's done (`endFirstRun`) |
 | `Tomodachi/Sources/TomoPhoneView.swift` | The play screen: header and level bar, `TomoBlobView`, what Tomo says, the result, the answers |
