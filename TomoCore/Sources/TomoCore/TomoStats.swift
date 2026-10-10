@@ -65,6 +65,8 @@ public struct TomoStats {
         public var newWords: [String] = []
         /// Words met before that moved up a stage, in order.
         public var stronger: [String] = []
+        /// Words answered right while nothing counted (practice: the garden waters them), in order.
+        public var practiced: [String] = []
         /// How many answers each word got.
         public var answered: [String: Int] = [:]
         /// Tomo's level when it began and when it ended, and how many level-ups were logged in it.
@@ -88,14 +90,18 @@ public struct TomoStats {
 
     private func summarize(_ rows: [TomoStore.AnswerRow], from: Date, to: Date) -> Summary {
         var s = Summary(from: from, to: to)
-        var met = Set<String>(), moved = Set<String>()
+        var met = Set<String>(), moved = Set<String>(), watered = Set<String>()
         var days = Set<Date>()
         for r in rows where r.result == "right" || r.result == "wrong" {
             s.answers += 1
             days.insert(Self.dayStart(of: r.at))
             if let id = r.item { s.answered[id, default: 0] += 1 }
             guard r.result == "right" else { s.misses += 1; continue }
-            guard r.counted else { s.practice += 1; continue }
+            guard r.counted else {
+                s.practice += 1
+                if let id = r.item, watered.insert(id).inserted { s.practiced.append(id) }
+                continue
+            }
             s.wins += 1
             guard let id = r.item else { continue }
             if r.before == nil {
@@ -127,6 +133,57 @@ public struct TomoStats {
         let levels = progress.pack.levels
         guard !levels.isEmpty else { return 1 }
         return max(levels[min(max(level, 1), levels.count) - 1].age, 1)
+    }
+
+    // MARK: Ranges (the garden's switch)
+
+    /// Today, this week so far (from Monday 4 am), or everything since this Tomo's stats began.
+    public enum Range: String, CaseIterable, Sendable { case today, week, all }
+
+    /// What happened in a range, up to the end of today.
+    public func summary(_ range: Range) -> Summary {
+        let today = Self.dayStart(of: TomoClock.now), end = Self.day(after: today)
+        switch range {
+        case .today: return summary(from: today, to: end)
+        case .week:  return summary(from: Self.weekStart(of: TomoClock.now), to: end)
+        case .all:   return summary(from: progress.metAt, to: end)
+        }
+    }
+
+    // MARK: The garden
+
+    /// A word in the garden: one the learner has met, with its stage now and how it got there.
+    public struct Plant: Identifiable, Equatable, Sendable {
+        public struct Step: Equatable, Sendable { public let at: Date; public let stage: Int }
+        public let id: String
+        /// When it was met (its first right answer, on any device).
+        public let met: Date
+        public let stage: Int
+        /// It slipped: it's below the best stage it reached, until it's answered right again (the bar's pale part).
+        public let pale: Bool
+        /// Its stage after each answer this device logged that changed it, oldest first.
+        public let steps: [Step]
+
+        /// Its stage at a time, for the replay: 0 before it was met; then the last logged step, else (a word met on
+        /// another device) its stage now.
+        public func stage(at t: Date) -> Int {
+            guard t >= met else { return 0 }
+            if let step = steps.last(where: { $0.at <= t }) { return step.stage }
+            return steps.isEmpty ? stage : 1
+        }
+    }
+
+    /// Every word met, oldest first: the garden. A word is planted at its first right answer; one not met yet isn't
+    /// there at all, so nothing in the garden is waiting to be done.
+    public func garden() -> [Plant] {
+        var steps: [String: [Plant.Step]] = [:]
+        for r in progress.answerLog(from: progress.metAt, to: Self.day(after: Self.dayStart(of: TomoClock.now))) {
+            guard let id = r.item, let after = r.after, after != r.before || r.before == nil else { continue }
+            steps[id, default: []].append(Plant.Step(at: r.at, stage: after))
+        }
+        return progress.items.values.filter { $0.stage > 0 }
+            .sorted { ($0.introduced, $0.id) < ($1.introduced, $1.id) }
+            .map { Plant(id: $0.id, met: $0.introduced, stage: $0.stage, pale: $0.stage < $0.peak, steps: steps[$0.id] ?? []) }
     }
 
     // MARK: Today

@@ -87,6 +87,6 @@ private struct TomoTogetherTab: View {
 
     var body: some View {
         TomoTogetherScreen(progress: game.progress, look: TomoLook.current, material: .own,
-                           version: game.progressVersion)
+                           version: game.progressVersion) { UIPasteboard.general.string = $0 }
     }
 }

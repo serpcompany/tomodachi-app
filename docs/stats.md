@@ -3,8 +3,9 @@
 What the stats screens count, where the numbers come from, and the rules they keep. Stats are four
 screens built in stages from [Stats, Take Two](reference/tomo/stats-take-two.html) ([#137](https://github.com/serpcompany/tomodachi-app/issues/137),
 item 2): Tomo's week as a postcard first, then the word garden, a height pillar for growing up and Tomo's
-diary, all on the same layer. The code: `TomoStats.swift` (the layer), `TomoPostcard.swift` and
-`TomoPostcardView.swift` (Tomo's week), `TomoTogetherScreen.swift` (the Together screen).
+diary, all on the same layer. The code: `TomoStats.swift` (the layer), `TomoStatsExport.swift` (the recap
+and the export), `TomoGarden.swift` (the garden), `TomoPostcard.swift` and `TomoPostcardView.swift` (Tomo's
+week), `TomoTogetherScreen.swift` (the Together screen).
 
 ## One layer
 
@@ -40,6 +41,31 @@ its card opened) or the learner opening Tomo, and how it ended (finished, ignore
 nothing counted). A time together that spans the app being suspended ends then. It's there for the mood
 ladder's "ignored in a row" ([#130](https://github.com/serpcompany/tomodachi-app/issues/130)) and the diary.
 
+## The Together screen
+
+One page, on the Mac's sidebar and as an iPhone tab: the Today line, the word garden, then Tomo's week.
+The garden is the stats screen and the postcard is its share moment, so they share a page rather than
+take a tab each; on the Monday a postcard comes, it moves to the top.
+
+## The word garden
+
+- Every word met is a plant (`TomoStats.garden`), planted at its first right answer and grown to its stage:
+  a sprout while Tomo has just heard it, leaves once it knows it, a bud when it's good at it, a flower when
+  it loves it, a gold star for forever. A word that slipped turns pale until it's answered right again; no
+  plant ever wilts. Words not met yet aren't planted, so nothing there waits to be done.
+- The first words are at the back, the newest at the front, and Tomo strolls along the front.
+- **Today, this week or since we met:** in the range, words met or grown glow and words practiced are
+  watered; the summary says how many sprouted, grew, were watered and missed. Since we met, it says how
+  many words are planted.
+- **Tap a plant** for its word: the picture, the word, its reading and meaning, its stage, when it was met.
+- **The replay** grows the garden again from the first day, from this device's log (a word met on another
+  device shows at its stage now); the slider picks a day.
+- **Copy recap** puts the range's recap on the clipboard (the shell's pasteboard: TomoCore has none).
+  **Export my log** saves the learner's own log as Markdown (tables of weeks, words and answers) or JSON
+  (every answer, level-up, birthday and visit as stored, and the words now), from `TomoStats`.
+- Under Reduce Motion nothing sways or falls and Tomo stays at the side, still breathing; watered words
+  get a still drop.
+
 ## Today and Tomo's week
 
 - **The Today line** ("12 answers · 3 new words · 5 days in a row · Lv 61 → 62") is on the Tomo and
@@ -62,6 +88,8 @@ ladder's "ignored in a row" ([#130](https://github.com/serpcompany/tomodachi-app
 
 The self-test plays a simulated learner for three weeks on a stopped clock and checks today, every week,
 the misses, the streak (across the 4 am boundary, broken by a quiet week, waiting on today), missed days,
-the Today line and the postcards against its own tally (`TomoStatsCheck.swift`), plus the visit log on the
-game (`TomoVisitCheck.swift`). Snapshots: `TOMO_OPEN_WINDOW=together` with a `seed-progress.py --history`
+the garden (every word met at its stage, and the replay's stage of every word at the end of every day),
+the ranges, the recap, both exports (the JSON reads back; the Markdown has a row for everything), the Today
+line and the postcards against its own tally (`TomoStatsCheck.swift`), plus the visit log on the game
+(`TomoVisitCheck.swift`). Snapshots: `TOMO_OPEN_WINDOW=together` with a `seed-progress.py --history`
 folder ([verification.md](verification.md)).

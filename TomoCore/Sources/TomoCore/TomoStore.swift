@@ -188,7 +188,11 @@ public final class TomoStore {
     public struct AnswerRow: Sendable, Equatable {
         public let at: Date
         public let item: String?
+        public let level: Int
+        public let mode: String            // picture | need | meaning | reply | chat…
         public let result: String          // right | wrong | help | language
+        public let wrongTries: Int
+        public let hint: Bool
         public let counted: Bool
         public let before: Int?            // nil: the word was new
         public let after: Int?
@@ -196,15 +200,19 @@ public final class TomoStore {
 
     /// The answer log in `[from, to)`, oldest first.
     public func answerLog(from: Date, to: Date) -> [AnswerRow] {
-        query("""
-            SELECT at, item_id, result, counted, stage_before, stage_after FROM answer
+        func int(_ s: OpaquePointer, _ i: Int32) -> Int? {
+            sqlite3_column_type(s, i) == SQLITE_NULL ? nil : Int(sqlite3_column_int64(s, i))
+        }
+        return query("""
+            SELECT at, item_id, level, mode, result, wrong_tries, hint, counted, stage_before, stage_after FROM answer
             WHERE learner = ? AND target = ? AND at >= ? AND at < ? ORDER BY at, rowid
             """, [learner, target, from.timeIntervalSince1970, to.timeIntervalSince1970]) { s in
             AnswerRow(at: Date(timeIntervalSince1970: sqlite3_column_double(s, 0)),
                       item: sqlite3_column_type(s, 1) == SQLITE_NULL ? nil : String(cString: sqlite3_column_text(s, 1)),
-                      result: String(cString: sqlite3_column_text(s, 2)), counted: sqlite3_column_int64(s, 3) == 1,
-                      before: sqlite3_column_type(s, 4) == SQLITE_NULL ? nil : Int(sqlite3_column_int64(s, 4)),
-                      after: sqlite3_column_type(s, 5) == SQLITE_NULL ? nil : Int(sqlite3_column_int64(s, 5)))
+                      level: Int(sqlite3_column_int64(s, 2)), mode: String(cString: sqlite3_column_text(s, 3)),
+                      result: String(cString: sqlite3_column_text(s, 4)), wrongTries: Int(sqlite3_column_int64(s, 5)),
+                      hint: sqlite3_column_int64(s, 6) == 1, counted: sqlite3_column_int64(s, 7) == 1,
+                      before: int(s, 8), after: int(s, 9))
         }
     }
 

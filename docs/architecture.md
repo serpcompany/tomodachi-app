@@ -213,6 +213,7 @@ its menu bar icon's menu share one list of commands (`TomoMenus`). Invariants: t
 `TomoGame`, `TomoProgress` and `TomoStats` and decide nothing themselves; Start over always asks
 first; the testing tools (`TomoTestingTools`, after ⌥-clicking the menu bar icon) never touch the
 saved Tomo. New screens take the Tomo they show (its progress, look and material), so a friend can
-have its own: Together does ([stats.md](stats.md)).
+have its own: Together does ([stats.md](stats.md)), and takes the clipboard from the shell (`copy`), since
+TomoCore has no pasteboard.
 
 The research behind these systems is mapped in [research/README.md](research/README.md).
