@@ -35,6 +35,9 @@ final class IslandWindowController: NSWindowController {
     private var notchW: CGFloat = IslandConst.notchWidth
     private var notchH: CGFloat = IslandConst.notchHeight
     private var hasNotch = true
+    /// The screen the island is on, and the learner's choice of screen (read again when it changes).
+    private var placedFrame = CGRect.zero
+    private var screenChoice = TomoScreenChoice.current
 
     nonisolated static let panelSize = NSSize(width: 720, height: 560)   // room for Tomo's help panel below the card
 
@@ -46,7 +49,7 @@ final class IslandWindowController: NSWindowController {
         )
         self.init(window: panel)
         self.islandPanel = panel
-        if let screen = Self.islandScreen() { place(on: screen) }
+        if let screen = Self.chooseScreen(current: nil, closed: true) { place(on: screen) }
         setupPanel()
     }
 
@@ -79,14 +82,19 @@ final class IslandWindowController: NSWindowController {
         followPointer()
     }
 
-    // MARK: - Screens (the notch one if there is one; it can change while Tomo runs)
+    // MARK: - Screens (the one Settings picks, TomoScreenChoice; it can change while Tomo runs)
 
-    /// Re-places the island whenever displays change: a monitor plugged in or out, the lid closed or opened,
-    /// a resolution change, or waking from sleep. It was picked once at launch, and stranded after any of those.
+    /// Re-places the island whenever displays change (a monitor plugged in or out, the lid closed or opened, a
+    /// resolution change, waking from sleep: it was picked once at launch, and stranded after any of those), and when
+    /// the learner picks another screen in Settings, which moves it at once.
     private func followScreens() {
-        let replace: @Sendable (Notification) -> Void = { [weak self] _ in
+        let replace: @Sendable (Notification) -> Void = { [weak self] note in
+            let picked = note.name == TomoScreenChoice.changed
             Task { @MainActor in
-                guard let self, let screen = Self.islandScreen() else { return }
+                guard let self else { return }
+                if picked { self.screenChoice = .current }
+                guard let screen = Self.chooseScreen(current: Self.placedScreen,
+                                                     closed: picked || self.isClosed) else { return }
                 self.place(on: screen)
                 self.pollFrame()   // the island moved under a still pointer
             }
@@ -95,10 +103,26 @@ final class IslandWindowController: NSWindowController {
                                                object: nil, queue: .main, using: replace)
         NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didWakeNotification,
                                                           object: nil, queue: .main, using: replace)
+        NotificationCenter.default.addObserver(forName: TomoScreenChoice.changed, object: nil, queue: .main,
+                                               using: replace)
     }
+
+    /// Following the pointer: once it's on another screen while the island is closed, the island moves there. Called on
+    /// each of the pointer's moves (pollFrame), so it's one rectangle check while the pointer stays on Tomo's screen.
+    private func followPointerScreen(_ mouse: CGPoint) {
+        guard screenChoice == .followMouse, isClosed, !NSMouseInRect(mouse, placedFrame, false),
+              let screen = Self.chooseScreen(current: Self.placedScreen, closed: true),
+              screen.displayID != Self.placedDisplay else { return }
+        place(on: screen)
+    }
+
+    /// The island is closed (resting or hidden, not folding): following the pointer may move it.
+    private var isClosed: Bool { !Self.countsAsOpen(state.mode) && !state.leaving }
 
     /// Puts the island at the top centre of `screen`, sized for its notch (or for none).
     private func place(on screen: NSScreen) {
+        Self.placedDisplay = screen.displayID
+        placedFrame = screen.frame
         let geometry = Self.screenGeometry(for: screen)
         notchW = geometry.width
         notchH = geometry.height
@@ -120,14 +144,20 @@ final class IslandWindowController: NSWindowController {
         mode == .hidden && !hasNotch ? .compact : mode
     }
 
-    /// The screen Tomo lives on: the one with a notch, else the main display (the one with the menu bar).
-    static func islandScreen() -> NSScreen? {
-        pickScreen(NSScreen.screens.map { $0.safeAreaInsets.top > 0 }).map { NSScreen.screens[$0] }
-    }
+    /// The display the island is on now (set by `place(on:)`), and its screen while it's connected.
+    private(set) static var placedDisplay: CGDirectDisplayID?
+    static var placedScreen: NSScreen? { NSScreen.screens.first { $0.displayID == placedDisplay } }
 
-    /// Which of the screens (true = it has a notch) Tomo lives on: the first notch, else the first screen.
-    nonisolated static func pickScreen(_ hasNotch: [Bool]) -> Int? {
-        hasNotch.firstIndex(of: true) ?? (hasNotch.isEmpty ? nil : 0)
+    /// The screen Tomo lives on now, where Tomodachi's windows open: where the island is, else where Settings puts it.
+    static func islandScreen() -> NSScreen? { placedScreen ?? chooseScreen(current: nil, closed: true) }
+
+    /// Where Settings puts the island now (`TomoScreenChoice.pick` on the connected screens, the pointer, the screen
+    /// it's on and whether it's closed).
+    static func chooseScreen(current: NSScreen?, closed: Bool) -> NSScreen? {
+        let screens = NSScreen.screens
+        let here = current.flatMap { c in screens.firstIndex { $0.displayID == c.displayID } }
+        return TomoScreenChoice.pick(TomoScreenInfo.connected, choice: .current, pointer: NSEvent.mouseLocation,
+                                     current: here, closed: closed).map { screens[$0] }
     }
 
     /// The panel's frame: glued to the top of the screen, centred.
@@ -273,6 +303,7 @@ final class IslandWindowController: NSWindowController {
         guard let panel = window as? IslandPanel else { return }
 
         let mouse = NSEvent.mouseLocation
+        followPointerScreen(mouse)   // following the pointer, Tomo moves to its screen first
 
         // Convert mouse to panel-local coords (macOS: origin bottom-left)
         let pf = panel.frame
@@ -623,5 +654,12 @@ func islandSize(mode: IslandMode, view: IslandView,
         let size = TomoPeekLayout(hasNotch: hasNotch, notchHeight: nh).size
         return (size.width, size.height)
     case .expanded: return (IslandConst.expandedWidth, IslandConst.layout(view).height)
+    }
+}
+
+extension NSScreen {
+    /// The display's ID, which lasts while it's connected (NSScreen objects can be made again when displays change).
+    var displayID: CGDirectDisplayID? {
+        deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID
     }
 }

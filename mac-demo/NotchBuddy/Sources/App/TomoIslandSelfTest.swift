@@ -13,9 +13,7 @@ enum TomoIslandSelfTest {
         }
         typealias C = IslandWindowController
 
-        check(C.pickScreen([false, true]) == 1, "Tomo lives on the screen with the notch, wherever it is in the list")
-        check(C.pickScreen([false, false]) == 0, "no notch (lid closed, only external displays): the main display")
-        check(C.pickScreen([]) == nil, "no screen: nowhere to go")
+        whichScreen(check)
         let external = NSRect(x: -1920, y: 200, width: 1920, height: 1080)
         let frame = C.panelFrame(on: external)
         check(frame.maxY == external.maxY && frame.midX == external.midX,
@@ -140,6 +138,53 @@ enum TomoIslandSelfTest {
         rules(check)
         TomoGame.offerSelfTest(check)
         return ok
+    }
+
+    /// Which screen Tomo lives on (#130, Settings: TomoScreenChoice): the notch screen, the main one, a display by name,
+    /// or following the pointer, which moves only while the island is closed. A headless run can't plug in a monitor,
+    /// so the rule is checked on made-up screens.
+    private static func whichScreen(_ check: (Bool, String) -> Void) {
+        typealias P = TomoScreenChoice
+        // The main display (an external one, the menu bar's) left, the MacBook's built-in screen with its notch right.
+        let external = TomoScreenInfo(hasNotch: false, name: "LG UltraFine", frame: CGRect(x: 0, y: 0, width: 2560, height: 1440))
+        let builtIn = TomoScreenInfo(hasNotch: true, name: "Built-in Retina Display",
+                                     frame: CGRect(x: 2560, y: 0, width: 1512, height: 982))
+        let side = TomoScreenInfo(hasNotch: false, name: "DELL U2723QE", frame: CGRect(x: -1920, y: 200, width: 1920, height: 1080))
+        let three = [external, builtIn, side]
+        check(P.pick(three, choice: .notch) == 1 && P.pick([external, side], choice: .notch) == 0
+              && P.pick([], choice: .notch) == nil,
+              "the notch screen (the default): the one with the notch, wherever it is; none (lid closed): the main display; no screen: nowhere")
+        check(P.pick(three, choice: .main) == 0 && P.pick([builtIn, external], choice: .main) == 0,
+              "the main screen: the one with the menu bar, even when another has the notch")
+        check(P.pick(three, choice: .named("DELL U2723QE")) == 2 && P.pick(three, choice: .named("Studio Display")) == 1
+              && P.pick([external, side], choice: .named("Studio Display")) == 0,
+              "a display by name; while it isn't connected, the notch screen (else the main one)")
+        let onSide = CGPoint(x: -500, y: 600), onBuiltIn = CGPoint(x: 3000, y: 500), offAll = CGPoint(x: 99_999, y: 0)
+        check(P.pick(three, choice: .followMouse, pointer: onSide, current: 1, closed: true) == 2
+              && P.pick(three, choice: .followMouse, pointer: onBuiltIn, current: 2, closed: true) == 1,
+              "following the pointer: closed, the island goes to the screen the pointer is on")
+        check(P.pick(three, choice: .followMouse, pointer: onSide, current: 1, closed: false) == 1,
+              "following the pointer: open (a visit, a peek, folding), it stays where it is until it closes")
+        check(P.pick(three, choice: .followMouse, pointer: onSide, current: 7, closed: false) == 2
+              && P.pick(three, choice: .followMouse, pointer: offAll, current: 0, closed: true) == 0
+              && P.pick(three, choice: .followMouse, pointer: offAll, current: nil, closed: true) == 1,
+              "following the pointer: its screen gone, to the pointer's; the pointer on none, it stays, else the notch screen")
+        let saved: [P] = [.notch, .main, .followMouse, .named("LG UltraFine")]
+        check(saved.allSatisfy { P(raw: $0.raw) == $0 } && P(raw: nil) == .notch && P(raw: "display:") == .notch
+              && P(raw: "somewhere") == .notch,
+              "the choice is saved and read back; nothing saved, or anything unknown, is the notch screen")
+        let options = P.options(connected: ["LG UltraFine", "Built-in Retina Display"], saved: .named("Studio Display"))
+        check(options.map(\.choice) == [.notch, .main, .named("LG UltraFine"), .named("Built-in Retina Display"),
+                                        .named("Studio Display"), .followMouse]
+              && options.filter(\.away).map(\.choice) == [.named("Studio Display")]
+              && P.options(connected: ["A", "A"], saved: .notch).count == 4,
+              "Settings offers the notch screen, the main one, each display, and following the pointer; a saved display that's away stays, marked")
+        let lang = TomoLanguages.shared
+        check(["settings.screen", "settings.screen.notch", "settings.screen.main", "settings.screen.mouse",
+               "settings.screen.away", "settings.screenNote"].allSatisfy { key in
+                lang.learners.allSatisfy { !($0.strings[key] ?? "").isEmpty } }
+              && lang.learner("settings.screen.away", ["name": "X"]).contains("X"),
+              "every interface language names the choices")
     }
 
     /// A Mac without a notch (#130): the island is a capsule 4 pt below the top of the screen, rounded all round, with
