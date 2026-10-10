@@ -136,6 +136,7 @@ enum TomoIslandSelfTest {
         peek(check, notch: notch, flat: flat, island: island, takes: takes)
         motion(check, notch: notch, flat: flat)
         light(check)
+        levelBar(check)
         rules(check)
         TomoGame.offerSelfTest(check)
         return ok
@@ -229,6 +230,39 @@ enum TomoIslandSelfTest {
         let cardOrigin = CGPoint(x: 10, y: 8 + 34 + TomoGrid.levelBar + TomoGrid.levelBarGap)   // IslandContentView, TomoView
         check(bx - cardOrigin.x == TomoGrid.tomoCenter.x && by - cardOrigin.y == TomoGrid.tomoCenter.y,
               "the card's light and the island's around it come from where Tomo sits, so their ripples travel as one")
+    }
+
+    /// The level bar coming alive (#137, effect 7): what a change to the bar does, the +1's way into it, and where
+    /// the fill ends.
+    private static func levelBar(_ check: (Bool, String) -> Void) {
+        typealias B = TomoBarMotion
+        check(B.move(from: 0.2, to: 0.3, counted: true, reduceMotion: false) == .fly
+              && B.move(from: 0.2, to: 0.3, counted: true, reduceMotion: true) == .glow,
+              "a counted answer that moves the bar sends a +1 flying into it; under Reduce Motion, a glow only")
+        check(B.move(from: 0.2, to: 0.2, counted: true, reduceMotion: false) == .plain
+              && B.move(from: 0.2, to: 0.3, counted: false, reduceMotion: false) == .plain
+              && B.move(from: 1, to: 0, counted: true, reduceMotion: false) == .plain,
+              "no +1 when the bar doesn't move, for anything but a counted answer, or when a level is done and it empties")
+        check(B.lands <= 1 && B.glow(reduceMotion: false) <= 2 && B.glow(reduceMotion: true) < B.glow(reduceMotion: false)
+              && B.sheen <= 2 && B.birthdayFill(reduceMotion: false) <= 2 && B.birthdayFill(reduceMotion: true) <= 0.15,
+              "the bar's moments are short (the +1 lands in \(B.lands) s, a glow lasts \(B.glow(reduceMotion: false)) s); "
+              + "under Reduce Motion the glow is briefer and a birthday's colour fades in within 0.15 s")
+        let w = TomoGrid.content.width - 28
+        let track = TomoGrowthBar.trackWidth(w)
+        check(TomoGrowthBar.filledWidth(w, progress: 0) == 0
+              && abs(TomoGrowthBar.filledWidth(w, progress: (1 - TomoProgress.goalShare) / 2) - track / 2) < 0.001
+              && TomoGrowthBar.filledWidth(w, progress: 0.99) == track && TomoGrowthBar.filledWidth(w, progress: 1) == w,
+              "the +1 aims where the fill ends: along the track, the track's end before the goal, the whole bar once done")
+        // A +1 from the picture card's result row into a half-full bar, in TomoView's coordinates.
+        let from = CGPoint(x: 230, y: 12 + 72), to = CGPoint(x: 14 + TomoGrowthBar.filledWidth(w, progress: 0.45), y: 2.5)
+        let f = TomoPlusOne(from: from, to: to)
+        let path = stride(from: 0.0, through: B.flight, by: B.flight / 60).map(f.point(at:))
+        let island = CGRect(x: -10, y: -42, width: IslandConst.expandedWidth, height: IslandConst.layout(.overview).height)
+        check(f.point(at: 0) == from && abs(f.point(at: B.flight).x - to.x) < 0.001 && abs(f.point(at: B.flight).y - to.y) < 0.001
+              && path.allSatisfy { island.contains($0) } && (path.map(\.y).min() ?? 0) < to.y,
+              "the +1 leaves the result, stays in the island, and comes down into the bar's fill end from above")
+        check(f.opacity(at: 0) == 1 && f.opacity(at: B.flight) == 0 && f.scale(at: B.flight) < f.scale(at: 0),
+              "it shrinks as it goes and melts into the bar as it lands")
     }
 
     /// Arrivals and motion (#130): what Tomo does as the island changes, and the resting island growing under the

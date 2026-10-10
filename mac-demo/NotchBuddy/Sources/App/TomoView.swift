@@ -56,6 +56,16 @@ struct TomoView: View {
     @ObservedObject var lang = TomoLanguages.shared
     @ObservedObject var motion = TomoMotion.shared
 
+    /// TomoView's coordinates, from the level bar's row: a +1 flies in them from the result into the bar.
+    static let space = "tomoCard"
+    /// The bar as it was, held while a counted answer's +1 is on its way to it (TomoBarMotion); nil: the game's.
+    @State private var held: TomoBarValue?
+    @State private var plusOne: TomoPlusOne?
+    @State private var hits = 0
+    @State private var landing = 0
+    @State private var barFrame = CGRect.zero
+    @State private var winBadge: CGRect?
+
     /// Which card the content is: a new round, the resting card, a level-up or a birthday. When it changes, the old
     /// contents blur away as the new ones come in (`blurSwap`); a round's own answers change it in place.
     static func cardKey(phase: TomoPhase, chat: Bool, word: String) -> String {
@@ -79,9 +89,11 @@ struct TomoView: View {
         VStack(spacing: 0) {
             // Progress to the next level, the whole width of the card (an RPG-style experience bar). Its last
             // tenth is the goal, which fills only when the level is done (TomoGrowthBar).
-            TomoGrowthBar(progress: game.levelProgress, standing: game.levelStanding, dimmed: game.isPracticeRound,
-                          colors: [Color(hex: "#FFD3BD"), Color(hex: "#7BD389")])
+            // A counted answer's +1 flies into it, and it glows as it lands; at a birthday it fills with Tomo's colour.
+            TomoLevelBar(progress: (held ?? bar).progress, standing: (held ?? bar).standing, dimmed: game.isPracticeRound,
+                         hits: hits, birthday: game.phase == .grew, tomo: TomoLook.current.body)
                 .frame(width: TomoGrid.content.width - 28, height: TomoGrid.levelBar)
+                .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(Self.space)) } action: { barFrame = $0 }
                 .padding(.bottom, TomoGrid.levelBarGap)
                 .help(game.isPracticeRound ? timeText("practice.offer", until: game.countsAgainAt, lang)
                       : game.whatsLeft())
@@ -95,7 +107,55 @@ struct TomoView: View {
             }
         }
         .frame(width: TomoGrid.content.width, alignment: .top)
+        .overlay(alignment: .topLeading) {
+            if let plusOne { TomoPlusOneView(flight: plusOne).id(plusOne.id) }
+        }
+        .coordinateSpace(.named(Self.space))
+        .onPreferenceChange(TomoWinBadgeFrame.self) { winBadge = $0 }
+        .onChange(of: bar) { old, new in barMoved(from: old, to: new) }
         .frame(maxHeight: .infinity, alignment: .top)
+    }
+
+    private var bar: TomoBarValue { TomoBarValue(progress: game.levelProgress, standing: game.levelStanding) }
+
+    /// The bar moved: a counted answer's +1 flies from the result and the bar follows when it lands (TomoBarMotion);
+    /// anything else shows at once. A newer move replaces one still on its way.
+    private func barMoved(from old: TomoBarValue, to new: TomoBarValue) {
+        landing += 1
+        let token = landing
+        switch TomoBarMotion.move(from: old.progress, to: new.progress, counted: game.outcome == .win(counted: true),
+                                  reduceMotion: motion.reduce) {
+        case .plain:
+            plusOne = nil
+            held = nil
+        case .glow:
+            plusOne = nil
+            held = nil
+            hits += 1
+        case .fly:
+            held = held ?? old
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(TomoBarMotion.delay))
+                guard landing == token else { return }
+                plusOne = TomoPlusOne(from: plusOneStart, to: barEnd(new.progress))
+                try? await Task.sleep(for: .seconds(TomoBarMotion.flight))
+                guard landing == token else { return }
+                plusOne = nil
+                held = nil
+                hits += 1
+            }
+        }
+    }
+
+    /// Where the +1 leaves: the "+1" end of the Win badge, or, before it's measured, the result's row.
+    private var plusOneStart: CGPoint {
+        if let b = winBadge { return CGPoint(x: b.maxX - 14, y: b.midY) }
+        return CGPoint(x: TomoGrid.tomoColumn + TomoGrid.gap + 40, y: barFrame.maxY + TomoGrid.levelBarGap + 72)
+    }
+
+    /// Where the fill will end in the bar at `progress`.
+    private func barEnd(_ progress: Double) -> CGPoint {
+        CGPoint(x: barFrame.minX + TomoGrowthBar.filledWidth(barFrame.width, progress: progress), y: barFrame.midY)
     }
 
     private var card: some View {
@@ -932,8 +992,22 @@ struct OutcomeBadge: View {
         .background(style.color.opacity(0.16))
         .clipShape(Capsule())
         .fixedSize()
+        .background {
+            // A Win says where it is, so the card's +1 can fly from it into the level bar (TomoPlusOne).
+            if outcome == .win(counted: true) {
+                GeometryReader { g in
+                    Color.clear.preference(key: TomoWinBadgeFrame.self, value: g.frame(in: .named(TomoView.space)))
+                }
+            }
+        }
         .help(Self.why(outcome, lang))
     }
+}
+
+/// The level bar's two numbers (TomoGame.levelProgress, levelStanding), as one value the card follows.
+struct TomoBarValue: Equatable {
+    var progress: Double
+    var standing: Double
 }
 
 // MARK: - Card swaps

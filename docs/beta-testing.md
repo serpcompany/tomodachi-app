@@ -23,14 +23,14 @@ Tomo is a little blob of jelly who lives next to your MacBook's notch and only s
 
 ## Good to know
 
-- **Progress is saved on this Mac and syncs through your iCloud.** Tomo grows over days, not minutes: a word only counts again when it's due (hours at first, then days), so a few short visits a day is the right pace. Clicking Tomo to play counts too, as long as some time has passed since you last saw a word. When nothing counts, Tomo rests and says when it's back; if you'd like to keep playing anyway, **Practice** is a button there (marked in blue; it doesn't move the bar). **Lv** in the header goes up when 9 of a level's 10 words are known; some levels are birthdays. The bar under the header moves a little with every answer that counts; the short piece at its end fills only when the level is done, and the card says what's left ("1 more word to Lv 2 · ready now"). To start over: Settings, or **Tomo → Start Tomo over…** (it asks first).
+- **Progress is saved on this Mac and syncs through your iCloud.** Tomo grows over days, not minutes: a word only counts again when it's due (hours at first, then days), so a few short visits a day is the right pace. Clicking Tomo to play counts too, as long as some time has passed since you last saw a word. When nothing counts, Tomo rests and says when it's back; if you'd like to keep playing anyway, **Practice** is a button there (marked in blue; it doesn't move the bar). **Lv** in the header goes up when 9 of a level's 10 words are known; some levels are birthdays. The bar under the header moves a little with every answer that counts (a +1 flies into it from the result, and at a birthday it fills with your Tomo's colour); the short piece at its end fills only when the level is done, and the card says what's left ("1 more word to Lv 2 · ready now"). To start over: Settings, or **Tomo → Start Tomo over…** (it asks first).
 - **The voice is the Mac's built-in Japanese voice at a higher pitch.** Better voices come later.
 - **No AI setup in this version:** Tomodachi works offline, with no account. Word cards show the meaning from Tomo's words and the Mac's dictionary.
 - **No microphone:** you answer by clicking, so Tomodachi doesn't ask for it.
 - **Moving between displays:** Tomo follows the notch, or the main display's menu bar when the lid is closed.
 - **Reduce Motion** (System Settings → Accessibility → Display on the Mac, Accessibility → Motion on the iPhone): Tomo
   stays put and shows how it feels with its face and a small puff instead of hopping and shaking, and fades in and out
-  instead of dripping from the notch (its hello too). The card's coloured light stays, without its ripple. Widgets and the Lock Screen card still move.
+  instead of dripping from the notch (its hello too). The card's coloured light stays, without its ripple, and the level bar moves with a glow instead of a flying +1. Widgets and the Lock Screen card still move.
 
 ## On the iPhone (TestFlight)
 
