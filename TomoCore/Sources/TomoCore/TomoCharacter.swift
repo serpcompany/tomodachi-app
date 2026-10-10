@@ -51,6 +51,11 @@ public final class TomoBlob: ObservableObject {
     /// and leaves room for them to the right of the canvas (`badgeFrame`); elsewhere Tomo's face and drifting z's say it.
     /// Under Reduce Motion they show without bobbing.
     public var showsBadges = false
+    /// The season's light weather around Tomo (#137): a few flakes or petals falling behind it, from the target
+    /// language's calendar (`TomoCalendar`). The host passes it only where Tomo has room and the learner is looking (the
+    /// card), never resting. It's drawn from the clock, with nothing stored, so it's no particles; under Reduce Motion
+    /// there are a third as many, falling slower.
+    public var weather: TomoWeather?
 
     /// Whose Tomo this is. Nil: the learner's own (`TomoLook.current`), changing with a pop when it does.
     public let fixedLook: TomoLook?
@@ -92,6 +97,7 @@ public final class TomoBlob: ObservableObject {
     private var blush: CGFloat = 0
     private var callGlowShown: CGFloat = 0 // `callGlow`, eased
     private var badgeShown: (badge: Badge, alpha: CGFloat) = (.dozing, 0)   // the badge on show, fading in or out
+    private var weatherShown: (weather: TomoWeather, alpha: CGFloat) = (.snow, 0)   // fading in or out, like a badge
     private var sway: CGFloat = 0          // the sprout, lagging behind the body's moves
     private var swayVel: CGFloat = 0
     private var jiggle: CGFloat = 0        // the body's own wobble after a hop or a pop
@@ -364,6 +370,10 @@ public final class TomoBlob: ObservableObject {
         let badgeTarget: CGFloat = wears == badgeShown.badge ? 1 : 0
         badgeShown.alpha += (badgeTarget - badgeShown.alpha) * (1 - pow(0.0005, dt))
         if badgeShown.alpha < 0.005 && badgeTarget == 0 { badgeShown.alpha = 0 }
+        if let w = weather, w != weatherShown.weather, weatherShown.alpha < 0.05 { weatherShown.weather = w }
+        let weatherTarget: CGFloat = weather == weatherShown.weather ? 1 : 0
+        weatherShown.alpha += (weatherTarget - weatherShown.alpha) * (1 - pow(0.02, dt))
+        if weatherShown.alpha < 0.005 && weatherTarget == 0 { weatherShown.alpha = 0 }
 
         // Springs, in small substeps: the sprout, which lags behind the body's moves and wobbles back,
         // and the body's jelly wobble when it lands. How loose they are is the material's.
@@ -421,6 +431,7 @@ public final class TomoBlob: ObservableObject {
             bits[i].pos.x += bits[i].vel.dx * dt * pace
             bits[i].pos.y += bits[i].vel.dy * dt * pace
             bits[i].vel.dy += bits[i].kind.gravity * dt * pace
+            if bits[i].kind == .confetti { bits[i].vel.dx *= pow(0.25, dt * pace) }   // paper slows sideways
         }
         bits.removeAll { $0.age >= $0.life }
     }
@@ -448,6 +459,7 @@ public final class TomoBlob: ObservableObject {
         // Anchor scaling and rocking at Tomo's base, so squashes stay on the ground.
         let sx = p.sx * puff * g * (1 - jiggle * 0.5), sy = p.sy * puff * g * breath * (1 + jiggle)
 
+        if weatherShown.alpha > 0 { drawWeather(context, size: size, center: CGPoint(x: cx, y: cy), R: R, now: now) }
         if callGlowShown > 0 { drawCallGlow(context, center: CGPoint(x: cx, y: cy), R: R * g, now: now, fade: p.opacity) }
         if let strand = p.strand, let anchor = strandAnchor {
             // From the notch to the top of Tomo's head, a little inside it so the two join (the same steps as below).
@@ -489,6 +501,54 @@ public final class TomoBlob: ObservableObject {
                       alpha: badgeShown.alpha * p.opacity, now: now)
         }
     }
+
+    // MARK: - Weather
+
+    /// Where the weather's flakes or petals are now, in the canvas, and how solid each is (`weather`): a few, each falling
+    /// on its own loop from just above Tomo's head to the canvas's bottom and swaying, all worked out from the clock, so
+    /// nothing is stored or emitted. Under Reduce Motion, a third as many, at the calm pace.
+    func weatherFlakes(size: CGSize, center c: CGPoint, R: CGFloat, now: Double) -> [(at: CGPoint, alpha: CGFloat, k: CGFloat)] {
+        let n = reduceMotion ? 2 : 7, pace = reduceMotion ? Self.calmPace : 1
+        let snow = weatherShown.weather == .snow
+        let top = max(0, c.y - R * 2.6), h = max(1, size.height - top), t = CGFloat(now) * pace
+        func frac(_ x: CGFloat) -> CGFloat { x - floor(x) }
+        return (0..<n).map { i in
+            let k = CGFloat(i)
+            let fall = R * (snow ? 0.8 : 0.6) * (0.75 + 0.5 * frac(k * 0.37 + 0.5))     // points a second
+            let u = frac(k * 0.29 + 0.11 + t * fall / h)                               // how far down its loop
+            let x = size.width * (0.08 + 0.84 * frac(k * 0.618 + 0.13)) + sin(t * 0.9 + k * 1.7) * R * (snow ? 0.12 : 0.3)
+            let edge = min(1, u / 0.1, (1 - u) / 0.1)                                 // in and out at the ends
+            return (CGPoint(x: x, y: top + u * h), max(0, edge), k)
+        }
+    }
+
+    private func drawWeather(_ ctx: GraphicsContext, size: CGSize, center: CGPoint, R: CGFloat, now: Double) {
+        let pace: CGFloat = reduceMotion ? Self.calmPace : 1, t = CGFloat(now) * pace
+        for f in weatherFlakes(size: size, center: center, R: R, now: now) {
+            var c = ctx
+            c.opacity = Double(f.alpha * weatherShown.alpha)
+            c.translateBy(x: f.at.x, y: f.at.y)
+            switch weatherShown.weather {
+            case .snow:
+                let r = R * (0.045 + 0.03 * (f.k * 0.71 - floor(f.k * 0.71)))
+                c.fill(Path(ellipseIn: CGRect(x: -r, y: -r, width: r * 2, height: r * 2)), with: .color(.white.opacity(0.92)))
+            case .petals:                      // a 桜 petal, notched at its tip, turning and flipping as it drifts
+                c.rotate(by: .radians(Double(t * (1.1 + 0.3 * f.k.truncatingRemainder(dividingBy: 3)) + f.k)))
+                c.scaleBy(x: max(0.25, abs(cos(t * 1.6 + f.k))), y: 1)
+                let p = R * 0.11
+                var petal = Path()
+                petal.move(to: CGPoint(x: 0, y: p))
+                petal.addCurve(to: CGPoint(x: -p * 0.16, y: -p * 0.86), control1: CGPoint(x: -p, y: p * 0.2),
+                               control2: CGPoint(x: -p * 0.62, y: -p))
+                petal.addLine(to: CGPoint(x: 0, y: -p * 0.58))
+                petal.addLine(to: CGPoint(x: p * 0.16, y: -p * 0.86))
+                petal.addCurve(to: CGPoint(x: 0, y: p), control1: CGPoint(x: p * 0.62, y: -p), control2: CGPoint(x: p, y: p * 0.2))
+                c.fill(petal, with: .color(Self.petal))
+            }
+        }
+    }
+
+    private static let petal = Color(hex: "#FFB0C8")
 
     // MARK: - Badges
 
@@ -978,7 +1038,17 @@ public final class TomoBlob: ObservableObject {
     private struct Bit {
         public enum Kind {
             case sparkle, heart, z, pop
-            public var gravity: CGFloat { self == .pop ? 2.6 : self == .sparkle ? 0.6 : -0.15 }
+            case dust                          // a level-up's sparkle dust: fine glitter that bursts out and twinkles
+            case confetti                      // a birthday's confetti, in Tomo's own colours
+            public var gravity: CGFloat {
+                switch self {
+                case .pop: return 2.6
+                case .sparkle: return 0.6
+                case .dust: return 0.25
+                case .confetti: return 2
+                case .heart, .z: return -0.15
+                }
+            }
         }
         public let kind: Kind
         public var pos: CGPoint        // relative to Tomo's center, in body radii
@@ -989,7 +1059,14 @@ public final class TomoBlob: ObservableObject {
         public let spin: CGFloat
         /// How fast it plays: 1, or slower under Reduce Motion (the same path, at that pace).
         public var pace: CGFloat = 1
+        /// Which of its colours (confetti: Tomo's palette, `confettiColor`; dust: gold, white or pale gold).
+        public var tint = 0
+        /// Where its twinkle (dust) or its tumble and flutter (confetti) start.
+        public var phase: CGFloat = 0
     }
+
+    /// A moment's particles never live longer than this, and are gone when the moment ends (`particleSelfTest`).
+    static let momentParticleLife: Double = 2
 
     /// Particles fly at this pace under Reduce Motion, and only a third of them.
     private static let calmPace: CGFloat = 0.4
@@ -1020,6 +1097,23 @@ public final class TomoBlob: ObservableObject {
                 bits.append(Bit(kind: kind, pos: CGPoint(x: cos(a) * 0.6, y: sin(a) * 0.6),
                                 vel: CGVector(dx: cos(a) * speed, dy: sin(a) * speed - 1.2),
                                 life: .random(in: 0.7...1.0), size: .random(in: 0.08...0.15), spin: 0))
+            case .dust:                        // out from all round Tomo, drifting up, then slowly settling
+                let a = CGFloat.random(in: 0...(2 * .pi)), d = CGFloat.random(in: 0.3...1.0)
+                let speed = CGFloat.random(in: 0.35...1.1)
+                var b = Bit(kind: kind, pos: CGPoint(x: cos(a) * d, y: sin(a) * d - 0.15),
+                            vel: CGVector(dx: cos(a) * speed, dy: sin(a) * speed - 0.6),
+                            life: .random(in: 1.0...1.6), size: .random(in: 0.045...0.09), spin: 0)
+                b.tint = .random(in: 0..<3)
+                b.phase = .random(in: 0...(2 * .pi))
+                bits.append(b)
+            case .confetti:                    // tossed up from its head, tumbling and fluttering down
+                let a = CGFloat.random(in: (-0.67 * .pi)...(-0.33 * .pi)), speed = CGFloat.random(in: 1.6...2.6)
+                var b = Bit(kind: kind, pos: CGPoint(x: .random(in: -0.35...0.35), y: -0.5),
+                            vel: CGVector(dx: cos(a) * speed, dy: sin(a) * speed),
+                            life: .random(in: 1.2...1.8), size: .random(in: 0.06...0.1), spin: .random(in: -6...6))
+                b.tint = .random(in: 0..<4)
+                b.phase = .random(in: 0...(2 * .pi))
+                bits.append(b)
             }
         }
         if reduceMotion { for i in first..<bits.count { bits[i].pace = Self.calmPace } }
@@ -1050,8 +1144,28 @@ public final class TomoBlob: ObservableObject {
                     .foregroundColor(.white.opacity(0.8)), at: .zero)
             case .pop:
                 c.fill(Path(ellipseIn: CGRect(x: -s, y: -s, width: s * 2, height: s * 2)), with: .color(look.body))
+            case .dust:                        // a tiny four-point glint, twinkling as it fades
+                c.opacity *= Double(0.7 + 0.3 * sin(CGFloat(b.age) * 16 * b.pace + b.phase))
+                var glint = Path()
+                glint.move(to: CGPoint(x: 0, y: -s)); glint.addLine(to: CGPoint(x: s * 0.3, y: 0))
+                glint.addLine(to: CGPoint(x: 0, y: s)); glint.addLine(to: CGPoint(x: -s * 0.3, y: 0)); glint.closeSubpath()
+                glint.addPath(Path(ellipseIn: CGRect(x: -s * 0.35, y: -s * 0.35, width: s * 0.7, height: s * 0.7)))
+                c.fill(glint, with: .color(Self.dustColors[b.tint % Self.dustColors.count]))
+            case .confetti:                    // a paper rectangle, flipping as it tumbles, held till its last third
+                let q = b.age / b.life
+                c.opacity = max(0, min(1, (1 - q) / 0.35))
+                c.translateBy(x: sin(CGFloat(b.age) * 7 * b.pace + b.phase) * R * 0.12, y: 0)
+                c.scaleBy(x: 1, y: max(0.15, abs(cos(CGFloat(b.age) * 9 * b.pace + b.phase))))
+                c.fill(Path(CGRect(x: -s, y: -s * 0.6, width: s * 2, height: s * 1.2)), with: .color(confettiColor(b.tint)))
             }
         }
+    }
+
+    private static let dustColors = [Color(hex: "#FFE27A"), .white, Color(hex: "#FFF3B0")]
+
+    /// Birthday confetti is Tomo's own: its body, its lighter top, its markings' colour and its cheeks.
+    func confettiColor(_ tint: Int) -> Color {
+        [look.body, look.bodyLight, look.accent, look.cheek][tint % 4]
     }
 
     // MARK: - Moves
@@ -1309,6 +1423,8 @@ public final class TomoBlob: ObservableObject {
             case face(Face)                    // worn from then on, until the next face or the end
             case move(Move.Kind, Double)       // a move for that many seconds, starting exactly at the step's time
             case sparkles(Int)
+            case dust(Int)                     // sparkle dust (a level-up's)
+            case confetti(Int)                 // confetti in Tomo's own colours (a birthday's)
             case drops(Int)                    // drops of Tomo's own colour
             case kick(CGFloat)                 // a jiggle, as on landing
             case swap                          // the new shape: the age or look the script was started with
@@ -1319,32 +1435,32 @@ public final class TomoBlob: ObservableObject {
         let calm: [(at: Double, step: Step)]
     }
 
-    /// A new level (about 2.1 s): squeeze, then flash and leap with star eyes and a sparkle burst, land with a jiggle
-    /// kick, settle with happy eyes.
+    /// A new level (about 2.1 s): squeeze, then flash and leap with star eyes in a burst of sparkles and sparkle dust,
+    /// land with a jiggle kick, settle with happy eyes.
     private static let levelUpCue = Cue(length: 2.1, lively: [
         (0, .face(.squeeze)), (0, .move(.crouch, 0.35)),
         (0.35, .face(.star)), (0.35, .move(.leap(0.55), 0.6)), (0.35, .move(.glow(0.85, peak: 0), 0.45)),
-        (0.38, .sparkles(10)),
+        (0.38, .sparkles(5)), (0.38, .dust(26)),
         (0.95, .move(.squish, 0.35)), (0.95, .kick(6)), (0.95, .sparkles(3)),
         (1.3, .move(.settle, 0.8)), (1.3, .face(.happy)),
     ], calm: [
         (0, .face(.star)), (0, .move(.glow(0.5, peak: 0.25), 0.5)), (0, .move(.puff, 0.5)),
-        (0.15, .sparkles(10)),
+        (0.15, .sparkles(5)), (0.15, .dust(26)),
         (1.7, .face(.happy)),
     ])
 
-    /// A birthday (about 2.6 s): a glowing squeeze-down, the new shape at 0.62 s with drops of Tomo's colour, a pop
-    /// out with star eyes, and it settles, happy.
+    /// A birthday (about 2.6 s): a glowing squeeze-down, the new shape at 0.62 s with drops of Tomo's colour and
+    /// confetti in its own colours, a pop out with star eyes, and it settles, happy.
     private static let birthdayCue = Cue(length: 2.6, lively: [
         (0, .face(.squeeze)), (0, .move(.evolve(squeeze: 0.62), 1.2)), (0, .move(.glow(0.95, peak: 0.62), 1.2)),
-        (0.62, .swap), (0.62, .drops(12)), (0.62, .kick(7)), (0.62, .face(.star)),
-        (0.66, .sparkles(10)),
+        (0.62, .swap), (0.62, .drops(12)), (0.62, .confetti(26)), (0.62, .kick(7)), (0.62, .face(.star)),
+        (0.66, .sparkles(6)),
         (1.2, .kick(6)), (1.2, .sparkles(3)), (1.2, .move(.settle, 0.8)),
         (1.8, .face(.happy)),
     ], calm: [
         (0, .face(.star)), (0, .move(.glow(0.95, peak: 0.62), 1.2)),
-        (0.62, .swap), (0.62, .drops(12)), (0.62, .move(.puff, 0.5)),
-        (0.66, .sparkles(10)),
+        (0.62, .swap), (0.62, .drops(12)), (0.62, .confetti(26)), (0.62, .move(.puff, 0.5)),
+        (0.66, .sparkles(6)),
         (1.8, .face(.happy)),
     ])
 
@@ -1465,6 +1581,10 @@ public final class TomoBlob: ObservableObject {
                 moves.append(Move(kind: kind, start: c.start + at, duration: duration, byCue: true))
             case .sparkles(let n):
                 emit(.sparkle, n, fromCue: true)
+            case .dust(let n):
+                emit(.dust, n, fromCue: true)
+            case .confetti(let n):
+                emit(.confetti, n, fromCue: true)
             case .drops(let n):
                 emit(.pop, n, fromCue: true)
             case .kick(let v):
@@ -2044,6 +2164,83 @@ extension TomoBlob {
         let liveBob = times.flatMap { now in (0..<3).map { lively.badgeBob($0, now: now) } }
         check(calmBob.allSatisfy { $0 == 0 } && (liveBob.max() ?? 0) > 0.15 && still.badgeShown.alpha > 0.95,
               "under Reduce Motion the badges show without bobbing")
+    }
+}
+
+extension TomoBlob {
+    /// Big moments' particles and the season's weather (#137), on a clock only the check moves: a level-up bursts sparkle
+    /// dust and a birthday tosses confetti in Tomo's own colours, each piece living 2 s at most and all gone when the
+    /// moment ends; under Reduce Motion a third as many, slower; nothing emits at rest (small Tomo resting, glowing and
+    /// dozing for two minutes, or in the card with its weather); the weather is a few flakes inside the canvas, worked out
+    /// from the clock, fewer and slower under Reduce Motion.
+    static func particleSelfTest(_ check: (Bool, String) -> Void) {
+        var t = 100.0
+        func blob(reduce: Bool = false) -> TomoBlob {
+            t = 100
+            let b = TomoBlob(look: TomoLook(seed: "particles"), material: .own)
+            b.reduceMotion = reduce
+            b.clock = { t }
+            b.step()
+            return b
+        }
+        struct Run { var most: [Bit.Kind: Int] = [:]; var longest = 0.0; var leftAtEnd = -1; var paces = Set<CGFloat>(); var tints = Set<Int>() }
+        func moment(reduce: Bool, _ start: (TomoBlob) -> Void) -> Run {
+            let b = blob(reduce: reduce)
+            start(b)
+            var r = Run()
+            for _ in 0..<(60 * 3) {
+                t += 1.0 / 60
+                b.step()
+                for kind in [Bit.Kind.dust, .confetti] { r.most[kind] = max(r.most[kind] ?? 0, b.bits.filter { $0.kind == kind }.count) }
+                for bit in b.bits { r.longest = max(r.longest, bit.life); r.paces.insert(bit.pace); if bit.kind == .confetti { r.tints.insert(bit.tint) } }
+                if r.leftAtEnd < 0, b.cue == nil { r.leftAtEnd = b.bits.count }
+            }
+            return r
+        }
+        let level = moment(reduce: false) { $0.levelUp() }, birthday = moment(reduce: false) { $0.grow(to: 1) }
+        let calmLevel = moment(reduce: true) { $0.levelUp() }, calmBirthday = moment(reduce: true) { $0.grow(to: 1) }
+        check((level.most[.dust] ?? 0) >= 20 && (level.most[.confetti] ?? 0) == 0 && (birthday.most[.confetti] ?? 0) >= 20
+              && (birthday.most[.dust] ?? 0) == 0 && birthday.tints == [0, 1, 2, 3],
+              "a level-up bursts sparkle dust (\(level.most[.dust] ?? 0)) and a birthday tosses confetti (\(birthday.most[.confetti] ?? 0)) in Tomo's own four colours")
+        let b = blob()
+        check([0, 1, 2, 3].map(b.confettiColor) == [b.look.body, b.look.bodyLight, b.look.accent, b.look.cheek],
+              "birthday confetti is Tomo's body, its lighter top, its markings' colour and its cheeks")
+        check([level, birthday, calmLevel, calmBirthday].allSatisfy { $0.longest <= Self.momentParticleLife && $0.leftAtEnd == 0 },
+              String(format: "a moment's particles live %.1f s at most and are all gone when it ends (level-up 2.1 s, birthday 2.6 s)",
+                     max(level.longest, birthday.longest)))
+        check((calmLevel.most[.dust] ?? 0) == 9 && (calmBirthday.most[.confetti] ?? 0) == 9
+              && calmLevel.paces == [Self.calmPace] && calmBirthday.paces == [Self.calmPace],
+              "under Reduce Motion a moment has a third of its dust and confetti (26 → 9), slower")
+
+        // At rest nothing emits: small Tomo resting beside the notch, glowing and dozing, for two minutes; and Tomo in the
+        // card with the season's weather.
+        func emitted(_ setUp: (TomoBlob) -> Void) -> Int {
+            let r = blob()
+            setUp(r)
+            var most = 0
+            for _ in 0..<(60 * 120) { t += 1.0 / 60; r.step(); most = max(most, r.bits.count) }
+            return most
+        }
+        let resting = emitted { $0.showsBadges = true; $0.callGlow = 1 }
+        let card = emitted { $0.weather = .petals; $0.dozeAfter = 1e9 }
+        check(resting == 0 && card == 0, "nothing emits at rest: small Tomo resting, glowing and dozing for 2 min, or Tomo in the card with its weather")
+
+        // The weather: a few flakes, inside the canvas below Tomo's head; a third as many and slower under Reduce Motion.
+        func flakes(reduce: Bool) -> (count: Int, inside: Bool, moved: CGFloat) {
+            let w = blob(reduce: reduce)
+            w.weather = .snow
+            for _ in 0..<60 { t += 1.0 / 60; w.step() }
+            let size = CGSize(width: 120, height: 192), c = CGPoint(x: 60, y: 135), R: CGFloat = 32.4
+            let a = w.weatherFlakes(size: size, center: c, R: R, now: t), z = w.weatherFlakes(size: size, center: c, R: R, now: t + 0.5)
+            let inside = a.allSatisfy { $0.at.x >= 0 && $0.at.x <= size.width && $0.at.y >= c.y - R * 2.6 && $0.at.y <= size.height }
+            let moved = zip(a, z).map { abs($1.at.y - $0.at.y) }.filter { $0 < size.height / 2 }.reduce(0, +) / CGFloat(a.count)
+            return (a.count, inside, moved)
+        }
+        let lively = flakes(reduce: false), calm = flakes(reduce: true)
+        check(lively.count == 7 && calm.count == 2 && lively.inside && calm.inside && calm.moved > 0
+              && abs(calm.moved / lively.moved - Self.calmPace) < 0.1,
+              String(format: "the weather is %d flakes inside the canvas (%d, at %.0f%% of the pace, under Reduce Motion)",
+                     lively.count, calm.count, calm.moved / lively.moved * 100))
     }
 }
 

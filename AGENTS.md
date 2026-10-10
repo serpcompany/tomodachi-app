@@ -26,8 +26,8 @@ the [SERP engineering standards](https://github.com/serpcompany/serp/tree/main/d
 - **Why things are the way they are:** [docs/decisions.md](docs/decisions.md), newest first, and
   [docs/decisions-content.md](docs/decisions-content.md) for what Tomo teaches. Read them before
   reopening a settled question.
-- **Checking a change:** [docs/verification.md](docs/verification.md) covers the debug flags, the snapshot
-  matrix, the self-test and seeded progress. Read it before you build or test.
+- **Checking a change:** [docs/verification.md](docs/verification.md) covers the evidence and the
+  self-test; [docs/debug-flags.md](docs/debug-flags.md) the flags and seeding. Read both first.
 - **Running the demo app:** [mac-demo/README.md](mac-demo/README.md) covers running, rebuilding, beta
   builds and icons. The iPhone app ([#52](https://github.com/serpcompany/tomodachi-app/issues/52)):
   [ios-demo/README.md](ios-demo/README.md).

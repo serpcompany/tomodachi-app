@@ -40,7 +40,9 @@ Big moments (a level-up, a birthday, becoming another Tomo), arrivals (dripping 
 pulled back up into it) and the hello (`hello`) are **cue scripts** (`Cue`): one timeline each, as data, played on
 Tomo's clock. While one plays it owns Tomo's body, face and particles, so what the game sends with it adds nothing; a
 newer one replaces it, and first closes what the old one opened (its pending shape swap). A hello never plays over
-another script, or while Tomo is away. Planned: evolution that reads as growing up, as cue scripts
+another script, or while Tomo is away. A moment's particles are its own steps: a level-up's sparkles and sparkle dust,
+a birthday's drops and confetti in Tomo's own colours (`confettiColor`: its body, lighter top, markings and cheeks).
+Each lives 2 s at most and all are gone when the moment ends; under Reduce Motion there are a third, slower. Planned: evolution that reads as growing up, as cue scripts
 ([#87](https://github.com/serpcompany/tomodachi-app/issues/87)).
 
 ## What its hosts pass in
@@ -53,6 +55,9 @@ another script, or while Tomo is away. Planned: evolution that reads as growing 
   (`badgeRoom`, `TomoBlob.badgeFrame`). The badge is what Tomo is doing (`badge`): a "…" thought bubble while it checks
   an answer (`.thinking`), a tiny Zz while it dozes or sleeps; none while a script plays or Tomo is away. Wearing them,
   its z's don't drift. Elsewhere (the card, the peek, the iPhone) its face and drifting z's say it.
+- The season's weather (`weather`, from the target language's calendar, `TomoCalendar.weatherToday`): the island
+  passes it only to Tomo's card (`TomoCharacterView.weather`), and the Mac's Tomo screen to its Tomo. A few flakes or
+  petals fall behind Tomo, worked out from the clock, so nothing is emitted; under Reduce Motion, a third, slower.
 - When it says hello: the island the first time Tomo shows after launch, greeting the launch visit's card instead of
   dripping into it, and when the Mac wakes (`TomoCharacterView.saysHello`); the iPhone's play screen when it first
   appears.
@@ -73,3 +78,5 @@ another script, or while Tomo is away. Planned: evolution that reads as growing 
 - A material's pass is fixed fills: no blur or particles at rest, so a Tomo at rest costs what it did.
 - No material moves Tomo under Reduce Motion (`TomoBlob.motionSelfTest` runs every material).
 - A badge says what Tomo is doing, never how many of anything (`TomoBlob.Badge`).
+- Nothing emits at rest: particles come only with moments, and the weather never reaches the resting island
+  (`TomoBlob.particleSelfTest`).

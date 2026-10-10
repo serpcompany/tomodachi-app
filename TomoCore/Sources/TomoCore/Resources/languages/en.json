@@ -90,6 +90,20 @@
       }
     }
   },
+  "calendar": [
+    {
+      "id": "blossom",
+      "from": "04-01",
+      "until": "04-30",
+      "weather": "petals"
+    },
+    {
+      "id": "snow",
+      "from": "12-15",
+      "until": "02-28",
+      "weather": "snow"
+    }
+  ],
   "reminders": [
     {
       "fromAge": 1,
