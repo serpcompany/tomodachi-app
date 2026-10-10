@@ -231,6 +231,16 @@ final class IslandWindowController: NSWindowController {
         }
     }
 
+    /// Whether the resting island grows (`AppState.restingHover`): only resting, only for a pointer that came onto it
+    /// (`IslandStateMachine.hovering`: not after a close under a still pointer), and not under Reduce Motion. A peek's
+    /// hover opens it instead (the rules), so it never grows.
+    nonisolated static func restingGrows(mode: IslandMode, hovering: Bool, reduceMotion: Bool) -> Bool {
+        mode == .compact && hovering && !reduceMotion
+    }
+
+    /// TOMO_RESTING_HOVER=1 (snapshots): the resting island as it is under the pointer, which a headless run can't move.
+    private static let forcedRestingHover = ProcessInfo.processInfo.environment["TOMO_RESTING_HOVER"] == "1"
+
     /// Whether the pointer at `point` (panel coordinates) is in the island: the panel takes clicks there and lets
     /// them through everywhere else. 6 pt of slack, except around the resting bar on a screen without a notch, which
     /// must not take the clicks meant for the window just below the menu bar. It's decided on each pointer move and
@@ -244,8 +254,9 @@ final class IslandWindowController: NSWindowController {
     /// The island's frame in the panel (AppKit coordinates, origin bottom-left): glued to the top, centred, with
     /// the help panel under an open card.
     nonisolated static func islandFrame(panel: CGSize, mode: IslandMode, view: IslandView,
-                                        notch: CGSize, help: CGFloat, hasNotch: Bool = true) -> CGRect {
-        let (w, fixedH) = islandSize(mode: mode, view: view, nw: notch.width, nh: notch.height, hasNotch: hasNotch)
+                                        notch: CGSize, help: CGFloat, hasNotch: Bool = true, grown: Bool = false) -> CGRect {
+        let (w, fixedH) = islandSize(mode: mode, view: view, nw: notch.width, nh: notch.height, hasNotch: hasNotch,
+                                     grown: grown)
         let h = fixedH + (mode == .expanded ? help : 0)
         return CGRect(x: (panel.width - w) / 2, y: panel.height - h, width: w, height: h)
     }
@@ -284,6 +295,11 @@ final class IslandWindowController: NSWindowController {
         if !inIsland && wasInIsland { checkRules(at: fsm.mouseLeft(at: Self.clock)) }
         wasInIsland = inIsland
         state.mouseInIsland = inIsland
+
+        // The resting island grows under a pointer that came onto it; the click area above grows with it.
+        let grown = Self.restingGrows(mode: state.mode, hovering: Self.forcedRestingHover || (inIsland && fsm.hovering),
+                                      reduceMotion: TomoMotion.shared.reduce)
+        if state.restingHover != grown { state.restingHover = grown }
 
         // Bot-head hover (love emote)
         let overBot = state.mode == .expanded && state.stateOverride == nil && isBotHit(local)
@@ -342,7 +358,48 @@ final class IslandWindowController: NSWindowController {
     /// offered in a peek, if anything (`TomoGame.acceptOffer`).
     var onOpen: (() -> Void)?
 
+    /// The fold waiting for Tomo to be pulled up into the notch (`AppState.leaving`), and where it's going.
+    private var leaving: (fold: DispatchWorkItem, to: IslandMode)?
+
+    /// How long the card or the peek waits to fold while Tomo is pulled up out of it (TomoBlob's pull up).
+    nonisolated static let pullUpTime: TimeInterval = 0.45
+
+    /// Whether going from `from` to `to` waits for Tomo to be pulled up first: the card or the peek folding (to rest,
+    /// or hidden), not under Reduce Motion, where Tomo fades as it folds.
+    nonisolated static func foldWaits(from: IslandMode, to: IslandMode, reduceMotion: Bool) -> Bool {
+        countsAsOpen(from) && !countsAsOpen(to) && !reduceMotion
+    }
+
     func setMode(_ mode: IslandMode) {
+        let prev = state.mode
+        if Self.countsAsOpen(mode) { stayOpen() }   // opened again while Tomo was leaving: it comes back
+        guard mode != prev else { return }
+        // Folding the card or the peek: Tomo is pulled up into the notch first (TomoCharacterView), then it folds.
+        if Self.foldWaits(from: prev, to: mode, reduceMotion: TomoMotion.shared.reduce) {
+            if let pending = leaving { leaving = (pending.fold, mode); return }
+            let fold = DispatchWorkItem { [weak self] in
+                guard let self, let to = self.leaving?.to else { return }
+                self.leaving = nil
+                self.applyMode(to)
+                self.state.leaving = false   // after the fold, so Tomo isn't brought back into the card first
+            }
+            leaving = (fold, mode)
+            state.leaving = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + Self.pullUpTime, execute: fold)
+            return
+        }
+        applyMode(mode)
+    }
+
+    /// A fold that was waiting for Tomo to leave won't happen: the island stays open.
+    private func stayOpen() {
+        guard let pending = leaving else { return }
+        pending.fold.cancel()
+        leaving = nil
+        state.leaving = false
+    }
+
+    private func applyMode(_ mode: IslandMode) {
         let prev = state.mode
         guard mode != prev else { return }
         let shrinking = modeLevel(mode) < modeLevel(prev)
@@ -368,8 +425,10 @@ final class IslandWindowController: NSWindowController {
     }
 
     /// The app opened the island itself (Tomo's visit, the menu's Open): the FSM follows without a transition.
-    func open() {
+    /// `arriving`: Tomo came out on its own (a visit), so it drips in from the notch (`AppState.arrivals`).
+    func open(arriving: Bool = false) {
         checkRules(at: fsm.openedExternally(at: Self.clock))
+        if arriving, !Self.countsAsOpen(state.mode) { state.arrivals += 1 }
         expand(to: .overview)
     }
 
@@ -379,6 +438,7 @@ final class IslandWindowController: NSWindowController {
     func peek() {
         guard state.mode != .expanded else { return }
         checkRules(at: fsm.peekedExternally(at: Self.clock))
+        if state.mode != .peek { state.arrivals += 1 }   // Tomo drips into the bar
         setMode(.peek)
         // TOMO_PEEK_OPEN=<seconds> (snapshots): that long after it shows, the peek opens as a click on it would, but
         // without taking the keyboard, so a test run can see the word slide into the card.
@@ -488,7 +548,8 @@ final class IslandWindowController: NSWindowController {
         let s = AppState.shared
         let panelH = window?.frame.height ?? 320
         let panelW = window?.frame.width  ?? 720
-        let (islandW, islandH) = islandSize(mode: s.mode, view: s.view, nw: notchW, nh: notchH, hasNotch: hasNotch)
+        let (islandW, islandH) = islandSize(mode: s.mode, view: s.view, nw: notchW, nh: notchH, hasNotch: hasNotch,
+                                            grown: s.restingHover)
         let islandMinX = (panelW - islandW) / 2
         let (cx, cy, diameter, _) = botPosition(mode: s.mode, view: s.view,
                                                 islandW: islandW, islandH: islandH, hasNotch: s.hasNotch)
@@ -539,18 +600,22 @@ final class IslandPanel: NSPanel {
         let s = AppState.shared
         return IslandWindowController.islandFrame(panel: frame.size, mode: s.mode, view: s.view,
                                                   notch: CGSize(width: nw, height: nh), help: s.helpPanelHeight,
-                                                  hasNotch: s.hasNotch)
+                                                  hasNotch: s.hasNotch, grown: s.restingHover)
     }
 }
 
 // MARK: - islandSize (takes real notch dimensions)
 
+/// The island's size for a mode, on this notch (or none). `grown`: the resting island under the pointer
+/// (`AppState.restingHover`), which the drawing and the click area both take from here, so they stay in step.
 func islandSize(mode: IslandMode, view: IslandView,
                 nw: CGFloat = IslandConst.notchWidth,
-                nh: CGFloat = IslandConst.notchHeight, hasNotch: Bool = true) -> (CGFloat, CGFloat) {
+                nh: CGFloat = IslandConst.notchHeight, hasNotch: Bool = true, grown: Bool = false) -> (CGFloat, CGFloat) {
     switch mode {
     case .hidden:   return (nw, nh)
-    case .compact:  return (nw + IslandRestingLayout.ear * 2, nh)
+    case .compact:
+        let g = grown ? IslandRestingLayout.hoverGrowth : .zero
+        return (nw + IslandRestingLayout.ear * 2 + g.width, nh + g.height)
     case .peek:
         let size = TomoPeekLayout(hasNotch: hasNotch, notchHeight: nh).size
         return (size.width, size.height)

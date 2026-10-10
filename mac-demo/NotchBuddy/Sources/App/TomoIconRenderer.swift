@@ -80,9 +80,10 @@ enum TomoIconRenderer {
         .frame(width: size, height: size)
     }
 
-    /// TOMO_RENDER_ANIM=<dir>: a scripted 20-second scene, rendered frame by frame on a scripted clock
-    /// (frame-0000.png … at 20 fps), for checking motion. Join them into a GIF with any tool. Its big moments: birthdays
-    /// at 2.2 s (2.6 s long) and 13.4 s, and a level-up at 17.6 s (2.1 s long).
+    /// TOMO_RENDER_ANIM=<dir>: a scripted 25-second scene, rendered frame by frame on a scripted clock
+    /// (frame-0000.png … at 20 fps), for checking motion. Join them into a GIF with any tool. Its big moments: a drip in
+    /// at 0 s (0.75 s long, from a notch at the frame's top), birthdays at 2.2 s (2.6 s long) and 13.4 s, a level-up at
+    /// 17.6 s (2.1 s long), the call glow from 20 s to 23 s, a pull up at 23.5 s (0.45 s long) and a drip in at 24.2 s.
     private static func renderAnimation(to out: URL) {
         try? FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
         var t = 0.0
@@ -90,8 +91,10 @@ enum TomoIconRenderer {
         blob.reduceMotion = TomoMotion.forced
         blob.clock = { t }
         blob.particleOverhang = 40
+        blob.strandAnchor = CGPoint(x: 120, y: 0)
         blob.setGrowth(0)
         let script: [(at: Double, run: (TomoBlob) -> Void)] = [
+            (0, { $0.dripIn() }),
             (0.8, { $0.talk() }), (1.1, { $0.talk() }), (1.4, { $0.talk() }),
             (2.2, { $0.grow(to: 1) }),                                   // 2さい: its first evolution
             (5.0, { $0.setState(.question) }),
@@ -103,10 +106,14 @@ enum TomoIconRenderer {
             (13.4, { $0.grow(to: 2) }),                                  // 3さい
             (16.2, { $0.emote(.yawn) }),
             (17.6, { $0.setState(.finished); $0.emote(.proud); $0.levelUp() }),   // a level-up (TomoGame.celebrate)
+            (19.8, { $0.setState(.idle) }),
+            (20.0, { $0.callGlow = 1 }), (23.0, { $0.callGlow = 0 }),        // something counts, then it doesn't
+            (23.5, { $0.pullUp() }),
+            (24.2, { $0.dripIn() }),
         ]
         var next = 0
         let fps = 20.0
-        for i in 0..<Int(fps * 20) {
+        for i in 0..<Int(fps * 25) {
             t = Double(i) / fps
             while next < script.count && script[next].at <= t { script[next].run(blob); next += 1 }
             blob.lookX = CGFloat(sin(t * 0.9)) * 0.9          // a cursor drifting around

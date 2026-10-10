@@ -36,6 +36,10 @@ struct IslandRootView: View {
 // MARK: - Island container
 
 struct IslandContainer: View {
+    /// The island's own coordinates (origin top-left, at the top of the screen), where Tomo's canvas finds the island's
+    /// top edge for an arrival's strand (TomoCharacterView).
+    static let space = "island"
+
     @ObservedObject var state: AppState
     @State private var islandWidth:  CGFloat = IslandConst.notchWidth
     @State private var islandHeight: CGFloat = IslandConst.notchHeight
@@ -101,11 +105,12 @@ struct IslandContainer: View {
             }
         }
         .frame(width: islandWidth, height: islandHeight, alignment: .topLeading)
+        .coordinateSpace(.named(Self.space))
         .onChange(of: state.mode) { oldMode, newMode in
             let shrinking = modeOrder(newMode) < modeOrder(oldMode)
             let anim = shrinking ? closeEase : openSpring
             let (w, h) = islandSize(mode: newMode, view: state.view, nw: state.notchWidth, nh: state.notchHeight,
-                                    hasNotch: state.hasNotch)
+                                    hasNotch: state.hasNotch, grown: state.restingHover)
             let cr = newMode == .expanded || newMode == .peek ? IslandConst.expandedCorner : IslandConst.roundedCorner
             withAnimation(anim) {
                 islandWidth  = w
@@ -126,6 +131,16 @@ struct IslandContainer: View {
             let (_, h) = islandSize(mode: .expanded, view: state.view, nw: state.notchWidth, nh: state.notchHeight)
             withAnimation(extra > 0 ? openSpring : closeEase) { islandHeight = h + extra }
         }
+        // The resting island under the pointer: a little bigger (IslandWindowController keeps the click area in step).
+        .onChange(of: state.restingHover) { _, grown in
+            guard state.mode == .compact else { return }
+            let (w, h) = islandSize(mode: .compact, view: state.view, nw: state.notchWidth, nh: state.notchHeight,
+                                    hasNotch: state.hasNotch, grown: grown)
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                islandWidth = w
+                islandHeight = h
+            }
+        }
         // The island moved to another screen (displays changed): fit its notch, or the lack of one.
         .onChange(of: state.notchWidth) { _, _ in fitToScreen() }
         .onChange(of: state.notchHeight) { _, _ in fitToScreen() }
@@ -140,7 +155,7 @@ struct IslandContainer: View {
 
     private func fitToScreen() {
         let (w, h) = islandSize(mode: state.mode, view: state.view, nw: state.notchWidth, nh: state.notchHeight,
-                                hasNotch: state.hasNotch)
+                                hasNotch: state.hasNotch, grown: state.restingHover)
         islandWidth  = w
         islandHeight = h + (state.mode == .expanded ? state.helpPanelHeight : 0)
     }
@@ -199,7 +214,9 @@ struct BotPlacement: View {
         let (cx, cy, diameter, opacity) = botPosition(mode: state.mode, view: state.view, islandW: islandW,
                                                       islandH: islandH, hasNotch: state.hasNotch)
         let canvasSize = diameter / 0.6
-        let overhang: CGFloat = 40
+        // Room above Tomo in its canvas: for particles, and for an arrival, which starts about 1.9 R up and stretched,
+        // its head at the island's top edge in the card (the mask cuts what's above the island).
+        let overhang: CGFloat = 72
 
         Group {
             if state.mode == .expanded {
@@ -220,9 +237,12 @@ struct BotPlacement: View {
                     .animation(.easeInOut(duration: 0.4), value: state.effectiveState)
             }
 
-            // An extra 40pt of canvas at the top for heart particles; the position is offset up by 20pt,
-            // and TomoBlob compensates with cy = H/2 + particleOverhang/2 + dy*R + R*0.06.
-            TomoCharacterView(state: state, particleOverhang: overhang)
+            // Extra canvas at the top (`overhang`); the position is offset up by half of it, and TomoBlob compensates
+            // with cy = H/2 + particleOverhang/2 + dy*R + R*0.1. Resting, small Tomo glows amber while something counts
+            // (the rule TomoRestingSide and a visit use).
+            TomoCharacterView(state: state, particleOverhang: overhang, callGlow: { [state] in
+                state.mode == .compact && TomoGame.shared.somethingCounts ? 1 : 0
+            })
                 .frame(width: canvasSize, height: canvasSize + overhang)
                 .opacity(opacity)
                 .position(x: cx, y: cy - overhang / 2)

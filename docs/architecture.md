@@ -35,27 +35,30 @@ Island shell (Coucou)       notch window, open/close state machine, click-throug
 ## Systems
 
 **Island shell.** Coucou's notch window and state machine (`IslandWindowController`,
-`IslandStateMachine`, `IslandRootView`), cut down to what Tomo uses: it shows Tomo's card, the
-dizzy card or a visit's peek (`TomoPeek.swift`: a bar Tomo calls from, which opens into the card
-with its word sliding into place), and nothing of Coucou's agent features is left ([coucou-fork.md](coucou-fork.md)). Its
-open and close rules (`IslandStateMachine`: hidden, resting, a peek, the card) are pure: each input
-takes the time and returns when the rules next need the clock, and the controller sets one timer for
-that, so `TomoIslandSelfTest` runs them on a stopped clock. Tomo reaches the shell only through four
-closures on `TomoGame` (`openIsland`, `closeIsland`, `isIslandOpen`, `focusInput`, plus
-`peeksFirst`, `peekIsland`, `isPointerInside`, `onBotState`, `onHelpChange`, `onActivity` and
-`secondsSinceInput`), set in `AppDelegate`, and calls `acceptOffer` whenever the card opens. Another shell sets the same closures: the iPhone app's `TomoPhoneShell` treats the
-app being on screen as open, so Tomo never times out while you look at it, and so is a round open on
-the Lock Screen card (`TomoLiveVisit.isPlaying`). The card's Play and choice buttons are
-`LiveActivityIntent`s (`TomoPlayIntent`, `TomoAnswerIntent`) that iOS runs in the app's process,
+`IslandStateMachine`, `IslandRootView`), cut down to what Tomo uses: it shows Tomo's card, the dizzy
+card or a visit's peek (`TomoPeek.swift`: a bar Tomo calls from, which opens into the card with its
+word sliding into place), and nothing of Coucou's agent features is left
+([coucou-fork.md](coucou-fork.md)). Its open and close rules (`IslandStateMachine`: hidden, resting,
+a peek, the card) are pure: each input takes the time and returns when the rules next need the
+clock, and the controller sets one timer for that, so `TomoIslandSelfTest` runs them on a stopped
+clock. Tomo reaches the shell only through four closures on `TomoGame` (`openIsland`, `closeIsland`,
+`isIslandOpen`, `focusInput`, plus `peeksFirst`, `peekIsland`, `isPointerInside`, `onBotState`,
+`onHelpChange`, `onActivity` and `secondsSinceInput`), set in `AppDelegate`, and calls `acceptOffer`
+whenever the card opens. Another shell sets the same closures: the iPhone app's `TomoPhoneShell`
+treats the app being on screen as open, so Tomo never times out while you look at it, and so is a
+round open on the Lock Screen card (`TomoLiveVisit.isPlaying`). The card's Play and choice buttons
+are `LiveActivityIntent`s (`TomoPlayIntent`, `TomoAnswerIntent`) that iOS runs in the app's process,
 launching it in the background if needed; they reach the game through `TomoVisitHook`, set in the
 app's `init` ([#52](https://github.com/serpcompany/tomodachi-app/issues/52)). Invariants on the Mac:
 the island sits on the notch screen (else the main display) and moves when displays change; it needs
 no permission; it follows the pointer through mouse event monitors (a sandboxed build gets them
 too), with no clock while the pointer is away from it; after a close, hovering doesn't reopen the
-island until the pointer has left it once; a peek counts as open; it takes the keyboard only when the
-learner opens it (a click, the menu), so Esc works then and a visit or a peek never takes a keystroke (decisions.md). It's a
-non-activating panel that can't be hidden: Tomodachi is a regular app with a Dock icon, and the
-island never brings it to the front.
+island until the pointer has left it once; a peek counts as open; the card or the peek folds once
+Tomo is pulled up out of it (`AppState.leaving`; closed for the game at once); the resting island
+and its click area grow together under the pointer (`islandSize`); it takes the keyboard only when
+the learner opens it (a click, the menu), so Esc works then and a visit or a peek never takes a
+keystroke (decisions.md). It's a non-activating panel that can't be hidden: Tomodachi is a regular
+app with a Dock icon, and the island never brings it to the front.
 
 **Character.** `TomoBlob` in `TomoCharacter.swift`: a blob drawn every frame in code. Its look is a
 `TomoLook` (`TomoLook.swift`) hashed from a seed: a colour and eyes for life, and a form for each
@@ -66,19 +69,22 @@ that can't draw it live (widgets, Live Activities, the icons) show `TomoLook.mas
 notifications (`.botGrow`, `.botLevelUp`, `.triggerEmote` and others, in `TomoSignals.swift`) and
 Tomo's state (`TomoGame.onBotState`), never called directly, so any screen can host it:
 `TomoBlobView` on the iPhone, `TomoCharacterView` in the island. Its time comes from a clock, so it
-can be rendered offline. Big moments (a level-up, a birthday, becoming another Tomo) are **cue
-scripts** (`Cue`): one timeline each, as data, played on that clock. While one plays it owns Tomo's
-body, face and particles, so what the game sends with it adds nothing; a newer one replaces it, and
-first closes what the old one opened (its pending shape swap). Reduce Motion is an input
-(`TomoBlob.reduceMotion`): each shell sets `TomoMotion` from the system (`NSWorkspace` on the Mac,
-`UIAccessibility` on the iPhone) and follows changes, and every live host passes it on
-(`TomoBlobView`, `TomoLiveAvatar` on the screens, the island). Then hops, shakes and wiggles become
-a face and a small puff, a cue script plays its calm version (a glow, star eyes and a puff), and
-particles are fewer and slower. Offline renders leave it off, so they never depend on the Mac that
-renders them (`TOMO_REDUCE_MOTION=1` turns it on); widgets and the Live Activity play their frame
-font regardless. Invariants: idle life never stops (under Reduce Motion it still breathes and
-blinks, and a birthday still changes its shape); a cue script's shape swap always happens, even when
-a newer script replaces it or nobody saw it play; TomoBlob never reads a system setting; a seed
+can be rendered offline. Big moments (a level-up, a birthday, becoming another Tomo) and arrivals
+(dripping in from the notch on a goo strand, pulled back up into it) are **cue scripts** (`Cue`):
+one timeline each, as data, played on that clock. While one plays it owns Tomo's body, face and
+particles, so what the game sends with it adds nothing; a newer one replaces it, and first closes
+what the old one opened (its pending shape swap). The shell passes in where the notch is
+(`strandAnchor`) and how strongly small Tomo glows amber to ask to play (`callGlow`, 0…1). Reduce
+Motion is an input (`TomoBlob.reduceMotion`): each shell sets `TomoMotion` from the system
+(`NSWorkspace` on the Mac, `UIAccessibility` on the iPhone) and follows changes, and every live host
+passes it on (`TomoBlobView`, `TomoLiveAvatar` on the screens, the island). Then hops, shakes and
+wiggles become a face and a small puff, a cue script plays its calm version (a glow, star eyes and a
+puff; an arrival fades in or out where Tomo sits), the call glow holds steady, and particles are
+fewer and slower. Offline renders leave it off, so they never depend on the Mac that renders them
+(`TOMO_REDUCE_MOTION=1` turns it on); widgets and the Live Activity play their frame font
+regardless. Invariants: idle life never stops (under Reduce Motion it still breathes and blinks, and
+a birthday still changes its shape); a cue script's shape swap always happens, even when a newer
+script replaces it or nobody saw it play; TomoBlob never reads a system setting or the game; a seed
 always gives the same Tomo. Trait keys can be added freely, but changing a range, a band or a list
 changes every learner's Tomo (`TomoLook.selfTest`). `TomoLook.variety` scales how different Tomos
 are. Planned: evolution that reads as growing up, as cue scripts
@@ -129,18 +135,20 @@ fetch too. Debug builds use CloudKit's Development environment, Developer ID and
 Production. The logs and settings stay on each device for now
 ([#62](https://github.com/serpcompany/tomodachi-app/issues/62)).
 
-**Visits.** `TomoGame.tick()` with the `DropIn` constants. Tomo opens on its own when it has something
-that counts and you're at a natural break (not typing, not away). It tucks back in when ignored and bounces
-now and then until you check in (`pending`). Its deadline is `TomoGame.visitCountdown`, an amber line under the Mac's
-card, nil while held (the pointer in the island, listening, help; on the iPhone, on screen) or in free play. Resting, the island's right side says あそぼ！ while something counts
-(`TomoGame.somethingCounts`, the same rule) or when it does again (`nextCountsAt`), never a count. Opening it
-yourself is free play, with no time limit. A visit can peek first (the Mac's setting, `DropIn.peekFirst`; off by
-default): it's `offered`, its first round shown in the peek with its countdown running, and asked only once the card
-opens (`acceptOffer`); ignored, it leaves like any visit. When nothing counts, Tomo rests
-(`TomoPhase.resting`, `TomoGame.rest`) in every shell until something counts, which the tick notices, or the
-learner picks Practice; opening Tomo again shows the rest, never a new offer. Quiet hours (`DropIn.quietEnds`, the
-reminders' setting) hold the visits, the launch visit (`launchVisit`) and small Tomo's bounces until morning;
-clicking Tomo still plays. Planned: chattiness and back-off
+**Visits.** `TomoGame.tick()` with the `DropIn` constants. Tomo opens on its own when it has
+something that counts and you're at a natural break (not typing, not away). It tucks back in when
+ignored and bounces now and then until you check in (`pending`). Its deadline is
+`TomoGame.visitCountdown`, an amber line under the Mac's card, nil while held (the pointer in the
+island, listening, help; on the iPhone, on screen) or in free play. Resting, the island's right side
+says あそぼ！ while something counts (`TomoGame.somethingCounts`, the same rule) or when it does again
+(`nextCountsAt`), never a count. Opening it yourself is free play, with no time limit. A visit can
+peek first (the Mac's setting, `DropIn.peekFirst`; off by default): it's `offered`, its first round
+shown in the peek with its countdown running, and asked only once the card opens (`acceptOffer`);
+ignored, it leaves like any visit. When nothing counts, Tomo rests (`TomoPhase.resting`,
+`TomoGame.rest`) in every shell until something counts, which the tick notices, or the learner picks
+Practice; opening Tomo again shows the rest, never a new offer. Quiet hours (`DropIn.quietEnds`, the
+reminders' setting) hold the visits, the launch visit (`launchVisit`) and small Tomo's bounces until
+morning; clicking Tomo still plays. Planned: chattiness and back-off
 ([#19](https://github.com/serpcompany/tomodachi-app/issues/19)), busy detection
 ([#20](https://github.com/serpcompany/tomodachi-app/issues/20)).
 

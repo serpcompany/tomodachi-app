@@ -134,6 +134,7 @@ enum TomoIslandSelfTest {
               "no notch: the resting bar takes clicks on itself, not 3 pt below it")
 
         peek(check, notch: notch, flat: flat, island: island, takes: takes)
+        motion(check, notch: notch, flat: flat)
         rules(check)
         TomoGame.offerSelfTest(check)
         return ok
@@ -194,6 +195,70 @@ enum TomoIslandSelfTest {
         check(path.first == 0 && peak > 1.02 && peak < 1.08 && (settledAt.map { Double($0) / 100 } ?? 9) <= 0.5
               && TomoWordFlight.progress(at: TomoWordFlight.duration) == 1,
               "the word slides in about 0.5 s with a small overshoot (\(Int((peak - 1) * 100))%), and sits still where the card's takes over")
+    }
+
+    /// Arrivals and motion (#130): what Tomo does as the island changes, and the resting island growing under the
+    /// pointer, with the click area growing with it (both take the size from `islandSize`).
+    private static func motion(_ check: (Bool, String) -> Void, notch: IslandScreenGeometry, flat: IslandScreenGeometry) {
+        typealias C = IslandWindowController
+        typealias T = TomoCharacterView
+        check(T.move(from: .compact, to: .expanded, arriving: true) == .dripIn
+              && T.move(from: .hidden, to: .peek, arriving: true) == .dripIn
+              && T.move(from: .compact, to: .peek, arriving: true) == .dripIn,
+              "a visit drips Tomo in from the notch, as its card or its peek")
+        check(T.move(from: .compact, to: .expanded, arriving: false) == .appear
+              && T.move(from: .peek, to: .expanded, arriving: false) == .none
+              && T.move(from: .expanded, to: .expanded, arriving: true) == .none,
+              "a click opens the card without a drip, and a peek opening into its card is the same visit")
+        check(T.move(from: .expanded, to: .compact, arriving: false) == .pullUp
+              && T.move(from: .peek, to: .compact, arriving: false) == .pullUp
+              && T.move(from: .expanded, to: .hidden, arriving: false) == .pullUp
+              && T.backAfter(pulledUp: true) >= 0.34 && T.backAfter(pulledUp: false) >= C.pullUpTime,
+              "the card or the peek closing pulls Tomo up into the notch, and it's back beside it once that's done")
+        check(C.foldWaits(from: .expanded, to: .compact, reduceMotion: false)
+              && C.foldWaits(from: .peek, to: .compact, reduceMotion: false)
+              && !C.foldWaits(from: .expanded, to: .compact, reduceMotion: true)
+              && !C.foldWaits(from: .peek, to: .expanded, reduceMotion: false)
+              && !C.foldWaits(from: .compact, to: .hidden, reduceMotion: false) && C.pullUpTime == 0.45,
+              "the card or the peek waits 0.45 s to fold while Tomo is pulled up out of it (under Reduce Motion it folds at once)")
+        let key = TomoView.cardKey
+        let asked = key(.asking, false, "ja:wanwan")
+        check(asked == key(.wrong("x"), false, "ja:wanwan") && asked == key(.right, false, "ja:wanwan")
+              && asked != key(.asking, false, "ja:mama") && asked != key(.resting, false, "ja:wanwan")
+              && key(.leveledUp, false, "ja:wanwan") != key(.grew, false, "ja:wanwan")
+              && key(.asking, true, "ja:wanwan") != asked,
+              "the card's contents blur across when it becomes another card (a new word, resting, a level-up), not for an answer")
+        let grows = C.restingGrows(mode: .compact, hovering: true, reduceMotion: false)
+        let not = [C.restingGrows(mode: .compact, hovering: false, reduceMotion: false),
+                   C.restingGrows(mode: .compact, hovering: true, reduceMotion: true),
+                   C.restingGrows(mode: .peek, hovering: true, reduceMotion: false),
+                   C.restingGrows(mode: .expanded, hovering: true, reduceMotion: false),
+                   C.restingGrows(mode: .hidden, hovering: true, reduceMotion: false)]
+        check(grows && !not.contains(true),
+              "only the resting island grows under a pointer that came onto it; never a peek, the card, or under Reduce Motion")
+        for (screen, name) in [(notch, "a notch"), (flat, "no notch")] {
+            let n = CGSize(width: screen.width, height: screen.height)
+            let small = islandSize(mode: .compact, view: .overview, nw: n.width, nh: n.height, hasNotch: screen.hasNotch)
+            let big = islandSize(mode: .compact, view: .overview, nw: n.width, nh: n.height, hasNotch: screen.hasNotch,
+                                 grown: true)
+            let f0 = C.islandFrame(panel: C.panelSize, mode: .compact, view: .overview, notch: n, help: 0,
+                                   hasNotch: screen.hasNotch)
+            let f1 = C.islandFrame(panel: C.panelSize, mode: .compact, view: .overview, notch: n, help: 0,
+                                   hasNotch: screen.hasNotch, grown: true)
+            let others = [IslandMode.hidden, .peek, .expanded].allSatisfy {
+                islandSize(mode: $0, view: .overview, nw: n.width, nh: n.height, hasNotch: screen.hasNotch, grown: true)
+                    == islandSize(mode: $0, view: .overview, nw: n.width, nh: n.height, hasNotch: screen.hasNotch)
+            }
+            // Just under the grown island's edge (and its slack, with a notch): taken only while it's grown.
+            let edge = CGPoint(x: f1.midX, y: f1.minY - (screen.hasNotch ? 6 : 0) + 1)
+            let takesGrown = C.pointerInIsland(edge, island: f1, hasNotch: screen.hasNotch, open: false)
+            let takesSmall = C.pointerInIsland(edge, island: f0, hasNotch: screen.hasNotch, open: false)
+            let side = IslandRestingLayout(width: big.0, height: big.1).rightSide
+            check(big.0 == small.0 + 8 && big.1 == small.1 + 4 && others && f1.size == CGSize(width: big.0, height: big.1)
+                  && f1.midX == f0.midX && f1.maxY == f0.maxY && takesGrown && !takesSmall
+                  && side.minX >= (big.0 + screen.width) / 2 && side.maxX <= big.0,
+                  "with \(name), the resting island grows to \(Int(big.0)) × \(Int(big.1)) under the pointer, centred, and takes clicks to its new edge")
+        }
     }
 
     /// The island's rules (IslandStateMachine) on a stopped clock: each input gives the time, and says when the rules

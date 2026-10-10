@@ -9,8 +9,9 @@ import SwiftUI
 // The app drives it through notifications (docs/architecture.md, "Character"): the task state
 // (`AppState.effectiveState`), `.botTalk`, `.botNudge`, `.botGrow`, `.botLevelUp`, `.botGreet`, `.botGulp`,
 // `.triggerEmote`, `.triggerSlap`, `.botBlink`, `.botSetTgEs`.
-// Big moments (a level-up, a birthday, becoming another Tomo) are cue scripts: one timeline each, as data, played on
-// Tomo's clock (`Cue`, `play`).
+// Big moments (a level-up, a birthday, becoming another Tomo) and arrivals (dripping in from the notch, being pulled
+// back up) are cue scripts: one timeline each, as data, played on Tomo's clock (`Cue`, `play`). The shell says where
+// the notch is (`strandAnchor`) and how strongly small Tomo glows to ask to play (`callGlow`).
 // Reduce Motion is an input (`reduceMotion`): a live Tomo follows its shell's setting (`TomoMotion`), and offline
 // renders leave it off, so they never depend on the Mac that renders them.
 
@@ -33,6 +34,16 @@ public final class TomoBlob: ObservableObject {
     /// (a glow, star eyes and a puff), and particles are a third as many, and slower. Breathing, blinking and gaze stay.
     /// A live Tomo follows `motion`; offline renders set it themselves (off unless TOMO_REDUCE_MOTION=1).
     public var reduceMotion = false
+
+    /// Where the goo strand hangs from while Tomo drips in or is pulled up (`dripIn`, `pullUp`): the notch, in the
+    /// canvas's own coordinates (points, y down; usually above the canvas). The shell sets it; nil: no strand.
+    public var strandAnchor: CGPoint?
+    /// How strongly small Tomo glows amber to say it wants to play, 0…1 (0: no glow). The shell sets it while something
+    /// counts (later, the mood ladder sets how strongly). It eases in and out and pulses every 2.6 s; under Reduce
+    /// Motion it's a steady, softer glow.
+    public var callGlow: CGFloat = 0
+    /// Pulled up into the notch (`pullUp`): nothing is drawn until `dripIn` or `appear`.
+    public private(set) var isAway = false
 
     /// Whose Tomo this is. Nil: the learner's own (`TomoLook.current`), changing with a pop when it does.
     public let fixedLook: TomoLook?
@@ -68,6 +79,7 @@ public final class TomoBlob: ObservableObject {
     private var puff: CGFloat = 1
     private var puffTarget: CGFloat = 1
     private var blush: CGFloat = 0
+    private var callGlowShown: CGFloat = 0 // `callGlow`, eased
     private var sway: CGFloat = 0          // the sprout, lagging behind the body's moves
     private var swayVel: CGFloat = 0
     private var jiggle: CGFloat = 0        // the body's own wobble after a hop or a pop
@@ -161,6 +173,31 @@ public final class TomoBlob: ObservableObject {
 
     /// A new level: the level-up script (`levelUpCue`). The game's win and `.proud`, sent with it, add nothing (`play`).
     public func levelUp() { play(Self.levelUpCue) }
+
+    /// A visit arrives: Tomo drips down from the notch (`dripInCue`), hanging from `strandAnchor`. Under Reduce Motion it
+    /// fades in where it sits.
+    public func dripIn() {
+        isAway = false
+        play(Self.dripInCue)
+    }
+
+    /// Leaving: Tomo is pulled up into the notch (`pullUpCue`), then it's away until `dripIn` or `appear`. Under Reduce
+    /// Motion it fades out where it sits. Already leaving (or gone): nothing more.
+    public func pullUp() {
+        guard !isLeaving else { return }
+        play(Self.pullUpCue)
+    }
+
+    /// Being pulled up into the notch, or up there already (`pullUp`).
+    public var isLeaving: Bool { isAway || cue?.goesAway == true }
+
+    /// Back without dripping in (small Tomo beside the notch after a visit, or the card reopened while Tomo was being
+    /// pulled up): a quick fade in. Nothing to do if Tomo is here.
+    public func appear() {
+        guard isLeaving else { return }
+        isAway = false
+        play(Self.appearCue)
+    }
 
     public func emote(_ e: BotEmote) {
         stir()
@@ -297,6 +334,8 @@ public final class TomoBlob: ObservableObject {
         tilt += (Self.tilt(for: state) - tilt) * kSoft
         puff += (puffTarget - puff) * kSoft
         blush += (0 - blush) * (1 - pow(0.4, dt))
+        callGlowShown += (min(max(callGlow, 0), 1) - callGlowShown) * (1 - pow(0.02, dt))
+        if callGlowShown < 0.001 && callGlow <= 0 { callGlowShown = 0 }
 
         // Springs, in small substeps: the sprout, which lags behind the body's moves and wobbles back,
         // and the body's jelly wobble when it lands.
@@ -360,6 +399,7 @@ public final class TomoBlob: ObservableObject {
     // MARK: Drawing
 
     public func draw(_ context: GraphicsContext, size: CGSize) {
+        guard !isAway else { return }                       // up in the notch
         let now = clock()
         let p = started ? pose : pose(at: now)
         let form = look.form(age)
@@ -377,15 +417,33 @@ public final class TomoBlob: ObservableObject {
         let breath = 1 + sin(t * rate) * (state == .sleeping || drowsy ? 0.035 : 0.018)
 
         // Anchor scaling and rocking at Tomo's base, so squashes stay on the ground.
-        var ctx = context
-        ctx.translateBy(x: cx, y: cy + ground)
-        ctx.rotate(by: .radians(Double(rot)))
-        ctx.scaleBy(x: p.sx * puff * g * (1 - jiggle * 0.5), y: p.sy * puff * g * breath * (1 + jiggle))
-        ctx.translateBy(x: 0, y: -ground)
+        let sx = p.sx * puff * g * (1 - jiggle * 0.5), sy = p.sy * puff * g * breath * (1 + jiggle)
 
-        drawTopper(ctx, form: form, R: R)
-        drawBody(ctx, form: form, R: R, glow: p.glow)
-        drawFace(ctx, form: form, R: R, now: now, mouth: p.mouth)
+        if callGlowShown > 0 { drawCallGlow(context, center: CGPoint(x: cx, y: cy), R: R * g, now: now, fade: p.opacity) }
+        if let strand = p.strand, let anchor = strandAnchor {
+            // From the notch to the top of Tomo's head, a little inside it so the two join (the same steps as below).
+            let place = CGAffineTransform(translationX: cx, y: cy + ground).rotated(by: rot).scaledBy(x: sx, y: sy)
+                .translatedBy(x: 0, y: -ground)
+            let top = CGPoint(x: 0, y: (0.15 - form.top) * R).applying(place)
+            drawStrand(context, from: anchor, to: top, strand, R: R * g, fade: p.opacity)
+        }
+        let tomo = { (layer: GraphicsContext) in
+            var ctx = layer
+            ctx.translateBy(x: cx, y: cy + ground)
+            ctx.rotate(by: .radians(Double(rot)))
+            ctx.scaleBy(x: sx, y: sy)
+            ctx.translateBy(x: 0, y: -ground)
+            self.drawTopper(ctx, form: form, R: R)
+            self.drawBody(ctx, form: form, R: R, glow: p.glow)
+            self.drawFace(ctx, form: form, R: R, now: now, mouth: p.mouth)
+        }
+        if p.opacity < 1 {                                  // fading in or out: as one piece, so parts don't show through
+            var faded = context
+            faded.opacity = Double(max(p.opacity, 0))
+            faded.drawLayer { tomo($0) }
+        } else {
+            tomo(context)
+        }
 
         if !isMini {
             let center = CGPoint(x: cx, y: cy)
@@ -403,6 +461,63 @@ public final class TomoBlob: ObservableObject {
         public static let horn = Color(hex: "#FFF1D6")
         public static let gold = Color(hex: "#FFC83D")
         public static let goldEdge = Color(hex: "#B5630C")
+        public static let amber = Color(hex: "#F2B04A")        // the island's countdown line's amber
+    }
+
+    /// The call glow's strength now (`callGlow`, eased): a soft pulse every 2.6 s, or steady under Reduce Motion.
+    private func callGlowAlpha(_ now: Double) -> CGFloat {
+        guard callGlowShown > 0 else { return 0 }
+        if reduceMotion { return callGlowShown * 0.62 }
+        let pulse = 0.5 - 0.5 * CGFloat(cos(now * 2 * .pi / 2.6))
+        return callGlowShown * (0.4 + 0.5 * pulse)
+    }
+
+    /// Small Tomo's amber call glow: a radial around it, behind everything else.
+    private func drawCallGlow(_ ctx: GraphicsContext, center c: CGPoint, R: CGFloat, now: Double, fade: CGFloat) {
+        let a = Double(callGlowAlpha(now) * fade)
+        guard a > 0.002 else { return }
+        let r = R * 1.8
+        ctx.fill(Path(ellipseIn: CGRect(x: c.x - r, y: c.y - r, width: r * 2, height: r * 2)),
+                 with: .radialGradient(Gradient(stops: [
+                    .init(color: Palette.amber.opacity(a), location: 0),
+                    .init(color: Palette.amber.opacity(a * 0.45), location: 0.5),
+                    .init(color: Palette.amber.opacity(0), location: 1),
+                 ]), center: c, startRadius: 0, endRadius: r))
+    }
+
+    /// The goo strand from the notch (`a`) to Tomo's head (`b`), in Tomo's colour: wide where it meets each, thin in the
+    /// middle. Once it lets go, its two ends spring back, into the notch and into Tomo.
+    private func drawStrand(_ ctx: GraphicsContext, from a: CGPoint, to b: CGPoint, _ s: Strand, R: CGFloat,
+                            fade: CGFloat) {
+        let tip = CGPoint(x: a.x + (b.x - a.x) * s.reach, y: a.y + (b.y - a.y) * s.reach)
+        let len = hypot(tip.x - a.x, tip.y - a.y)
+        guard len > 0.5 else { return }
+        let n = CGPoint(x: -(tip.y - a.y) / len, y: (tip.x - a.x) / len)        // across the strand
+        func at(_ u: CGFloat, _ w: CGFloat) -> CGPoint {
+            CGPoint(x: a.x + (tip.x - a.x) * u + n.x * w, y: a.y + (tip.y - a.y) * u + n.y * w)
+        }
+        // A tapered piece from u0 (width w0) to u1 (width w1), pinched to `mid` halfway.
+        func piece(_ u0: CGFloat, _ w0: CGFloat, _ u1: CGFloat, _ w1: CGFloat, mid: CGFloat) -> Path {
+            let um = (u0 + u1) / 2, pinch = 2 * mid - (w0 + w1) / 2
+            var p = Path()
+            p.move(to: at(u0, w0))
+            p.addQuadCurve(to: at(u1, w1), control: at(um, pinch))
+            p.addLine(to: at(u1, -w1))
+            p.addQuadCurve(to: at(u0, -w0), control: at(um, -pinch))
+            p.closeSubpath()
+            return p
+        }
+        var c = ctx
+        c.opacity = Double(max(0, fade) * (1 - 0.4 * s.recoil))
+        let top = R * 0.2, joint = R * 0.3
+        if s.recoil == 0 {
+            c.fill(piece(0, top, 1, s.reach < 1 ? R * 0.06 : joint, mid: R * (0.025 + 0.11 * s.neck)),
+                   with: .color(look.body))
+        } else {                                           // let go: each end springs back to where it hangs from
+            let k = 1 - s.recoil
+            c.fill(piece(0, top, 0.5 * k, 0.01 * R, mid: top * 0.35), with: .color(look.body))
+            c.fill(piece(1 - 0.3 * k, 0.01 * R, 1, joint * k, mid: joint * 0.4 * k), with: .color(look.body))
+        }
     }
 
     private func drawBody(_ ctx: GraphicsContext, form: TomoForm, R: CGFloat, glow: CGFloat) {
@@ -752,7 +867,7 @@ public final class TomoBlob: ObservableObject {
 
     /// While a big moment plays, only its own particles fly (`fromCue`).
     private func emit(_ kind: Bit.Kind, _ count: Int, fromCue: Bool = false) {
-        guard !isMini, cue == nil || fromCue else { return }
+        guard !isMini, !isAway, cue == nil || fromCue else { return }
         let count = reduceMotion ? max(1, Int((Double(count) / 3).rounded())) : count
         let first = bits.count
         for _ in 0..<count {
@@ -828,12 +943,15 @@ public final class TomoBlob: ObservableObject {
             case settle                        // a few small rocks, dying away
             case evolve(squeeze: Double)       // squeeze down until then (the new shape), then pop out past size
             case glow(CGFloat, peak: Double)   // glow up to that brightness at that time (0: a flash), then fade
+            case drip                          // down from the notch on a goo strand, stretched, landing with a bounce
+            case pull                          // a strand reaches down, and Tomo is pulled up into the notch
+            case fade(in: Bool)                // Reduce Motion's arrival or leaving: in or out where it sits
 
             /// Carries Tomo off its spot, tips or squashes it: under Reduce Motion it becomes a puff, and during a big
             /// moment it's skipped (`add`). The mouth moves only open the mouth then, and a glow only glows (`pose`).
             public var movesBody: Bool {
                 switch self {
-                case .mouth, .peep, .gulp, .glow: return false
+                case .mouth, .peep, .gulp, .glow, .fade: return false
                 default: return true
                 }
             }
@@ -849,7 +967,20 @@ public final class TomoBlob: ObservableObject {
         public var dx: CGFloat = 0, dy: CGFloat = 0, rot: CGFloat = 0
         public var sx: CGFloat = 1, sy: CGFloat = 1
         public var mouth: CGFloat = 0, glow: CGFloat = 0
+        public var opacity: CGFloat = 1
+        /// The goo strand to the notch, while dripping in or pulled up.
+        public var strand: Strand?
     }
+
+    /// The goo strand between the notch and Tomo's head (`drawStrand`).
+    private struct Strand: Equatable {
+        public var reach: CGFloat = 1                  // how far down from the notch it has got (1: to Tomo)
+        public var neck: CGFloat = 1                   // its thinnest part, 1 thick … 0 about to let go
+        public var recoil: CGFloat = 0                 // after letting go, 0 … 1: the two ends spring back and are gone
+    }
+
+    /// The drip's strand lets go this far through it (#130: by about 75%), once Tomo has landed.
+    private static let letGo: CGFloat = 0.75
 
     private func add(_ kind: Move.Kind, _ duration: Double) {
         let now = clock()
@@ -932,6 +1063,38 @@ public final class TomoBlob: ObservableObject {
                 let at = CGFloat(peak / m.duration)
                 let e = q < at ? Self.inOut(q / at) : 1 - (q - at) / max(1 - at, 0.001)
                 p.glow = max(p.glow, g * e)
+            case .drip:                            // falls stretched from about 1.9 R up, lands at 62% with a bounce
+                let land: CGFloat = 0.62
+                if q < land {
+                    let e = q / land
+                    p.dy -= 1.9 * (1 - e * e)
+                    p.sy *= 1 + 0.55 * (1 - e); p.sx *= 1 - 0.28 * (1 - e)
+                } else {
+                    let k = (q - land) / (1 - land), w = sin(2 * .pi * k) * (1 - k)
+                    p.sy *= 1 - 0.22 * w; p.sx *= 1 + 0.16 * w
+                }
+                p.opacity *= min(1, q / 0.1)
+                let l = Self.letGo
+                if q < l {
+                    p.strand = Strand(neck: 1 - q / l)
+                } else if q < l + 0.2 {
+                    p.strand = Strand(neck: 0, recoil: (q - l) / 0.2)
+                }
+            case .pull:                            // a small crouch while the strand reaches down, then up and gone
+                let lift: CGFloat = 0.3
+                if q < lift {
+                    let a = sin(.pi * q / lift)
+                    p.sy *= 1 - 0.1 * a; p.sx *= 1 + 0.07 * a
+                } else {
+                    let e = (q - lift) / (1 - lift)
+                    p.dy -= 1.9 * e * e
+                    p.sy *= 1 + 0.55 * e; p.sx *= 1 - 0.28 * e
+                }
+                p.opacity *= 1 - Self.inOut(max(0, (q - 0.85) / 0.15))
+                p.strand = Strand(reach: min(1, q / 0.2))
+            case .fade(let appearing):
+                let e = Self.inOut(q)
+                p.opacity *= appearing ? e : 1 - e
             }
         }
         if puffed > 0 {
@@ -992,6 +1155,7 @@ public final class TomoBlob: ObservableObject {
             case drops(Int)                    // drops of Tomo's own colour
             case kick(CGFloat)                 // a jiggle, as on landing
             case swap                          // the new shape: the age or look the script was started with
+            case away                          // gone up into the notch, until `dripIn` or `appear`
         }
         let length: Double
         let lively: [(at: Double, step: Step)]
@@ -1038,6 +1202,29 @@ public final class TomoBlob: ObservableObject {
         (0.62, .swap), (0.62, .drops(12)), (0.62, .move(.puff, 0.5)),
     ])
 
+    /// A visit arrives (about 0.75 s): Tomo drips down from the notch, stretched 1.55 × 0.72 from about 1.9 R up, and
+    /// lands with a jiggle while the strand thins and lets go at 75%. Under Reduce Motion: a fade in and a small puff.
+    private static let dripInCue = Cue(length: 0.75, lively: [
+        (0, .move(.drip, 0.75)),
+        (0.47, .kick(5)),
+    ], calm: [
+        (0, .move(.fade(in: true), 0.4)), (0, .move(.puff, 0.5)),
+    ])
+
+    /// Leaving (about 0.45 s), the drip in reverse: a strand reaches down, and Tomo is pulled up into the notch,
+    /// stretching. Under Reduce Motion: a fade out. Then Tomo is away.
+    private static let pullUpCue = Cue(length: 0.45, lively: [
+        (0, .move(.pull, 0.45)),
+        (0.45, .away),
+    ], calm: [
+        (0, .move(.fade(in: false), 0.45)),
+        (0.45, .away),
+    ])
+
+    /// Back from the notch without the drip (`appear`): a quick fade in.
+    private static let appearCue = Cue(length: 0.25, lively: [(0, .move(.fade(in: true), 0.25))],
+                                       calm: [(0, .move(.fade(in: true), 0.25))])
+
     /// A script playing: its steps (lively or calm, picked when it starts), how far it has got, and what it opened.
     private final class Playing {
         let length: Double
@@ -1047,12 +1234,15 @@ public final class TomoBlob: ObservableObject {
         var fired: [Double] = []               // the clock when each step fired (the self-test reads it)
         var face: Face?
         var swap: (age: Int, look: TomoLook)?  // what `.swap` changes to; nil once it has
+        /// It ends with Tomo up in the notch (`pullUp`).
+        let goesAway: Bool
 
         init(_ cue: Cue, start: Double, calm: Bool, swap: (age: Int, look: TomoLook)?) {
             length = cue.length
             self.start = start
             steps = calm ? cue.calm : cue.lively
             self.swap = swap
+            goesAway = steps.contains { if case .away = $0.step { return true } else { return false } }
         }
     }
 
@@ -1076,7 +1266,7 @@ public final class TomoBlob: ObservableObject {
 
     /// Fires the playing script's due steps, each once and in order; a move starts at its step's own time, whatever the
     /// frame rate. The script ends after its length. One whose time passed while Tomo wasn't drawn (a hidden island, an
-    /// app in the background) only swaps the shape.
+    /// app in the background) only swaps the shape, or goes away.
     private func advanceCue(_ now: Double) {
         guard let c = cue else { return }
         let over = now >= c.start + c.length
@@ -1087,6 +1277,8 @@ public final class TomoBlob: ObservableObject {
             switch step {
             case .swap:
                 if let s = c.swap { age = s.age; look = s.look; c.swap = nil }
+            case .away:
+                isAway = true
             case _ where over:
                 break
             case .face(let f):
@@ -1345,6 +1537,120 @@ extension TomoBlob {
         }
         check(swell <= 0.046, String(format: "under Reduce Motion a level-up's puff doesn't add to a poke's (%.1f%% at most)",
                                      swell * 100))
+    }
+
+    /// Arrivals, on a clock only the check moves (#130): the drip in (about 0.75 s, from about 1.9 R up, stretched
+    /// 1.55 × 0.72, landing with a small bounce, the strand letting go at about 75%), the pull up (about 0.45 s, the
+    /// reverse, then away), neither travelling under Reduce Motion, and small Tomo's call glow (off at 0, a 2.6 s pulse,
+    /// steady under Reduce Motion).
+    static func arrivalSelfTest(_ check: (Bool, String) -> Void) {
+        var t = 100.0
+        func blob(reduce: Bool = false) -> TomoBlob {
+            t = 100
+            let b = TomoBlob(look: .mascot)
+            b.reduceMotion = reduce
+            b.clock = { t }
+            b.step()
+            return b
+        }
+        func near(_ a: CGFloat, _ b: CGFloat, _ e: CGFloat = 0.02) -> Bool { abs(a - b) <= e }
+
+        // Drip in: where it starts, when it lands, the bounce, the strand thinning and letting go, and rest at the end.
+        let d = blob()
+        d.dripIn()
+        d.step()
+        let first = d.pose
+        var landed: Double?, letGo: Double?, squash: CGFloat = 1, bounce: CGFloat = 1, thinning = true
+        var lastNeck: CGFloat = 2
+        for i in 1...60 {
+            t = 100 + Double(i) / 60
+            d.step()
+            let p = d.pose, s = Double(i) / 60
+            if landed == nil, p.dy == 0, s < 0.75 { landed = s }
+            if landed != nil, s < 0.75 { squash = min(squash, p.sy); bounce = max(bounce, p.sy) }
+            if let st = p.strand, st.recoil == 0 { thinning = thinning && st.neck < lastNeck; lastNeck = st.neck }
+            if letGo == nil, let st = p.strand, st.recoil > 0 { letGo = s }
+        }
+        let rest = d.pose
+        check(near(first.dy, -1.9) && near(first.sy, 1.55) && near(first.sx, 0.72) && first.strand == Strand()
+              && landed.map { $0 > 0.42 && $0 < 0.5 } == true && squash < 0.9 && bounce > 1.02
+              && d.cue == nil && rest.dy == 0 && rest.sx == 1 && rest.sy == 1 && rest.opacity == 1 && rest.strand == nil,
+              String(format: "Tomo drips in from 1.9 R up, stretched 1.55 × 0.72, lands at %.2f s with a bounce, at rest by 0.75 s",
+                     landed ?? -1))
+        check(thinning && letGo.map { $0 > 0.55 && $0 < 0.6 } == true,
+              String(format: "the drip's strand thins and lets go at %.0f%% of it", (letGo ?? 0) / 0.75 * 100))
+
+        // Pulled up: the strand reaches down, Tomo goes up stretched, and is away at 0.45 s until it drips in again.
+        let u = blob()
+        u.pullUp()
+        var top: CGFloat = 0, stretch: CGFloat = 1, reached = false, awayEarly = false
+        for i in 1...27 {                                  // to 0.45 s
+            t = 100 + Double(i) / 60
+            u.step()
+            top = min(top, u.pose.dy); stretch = max(stretch, u.pose.sy)
+            reached = reached || u.pose.strand?.reach == 1
+            awayEarly = awayEarly || (u.isAway && i < 27)
+        }
+        t = 100.46
+        u.step()
+        let away = u.isAway
+        u.dripIn()
+        let back = !u.isAway
+        // Reopened mid-pull (a click on the island as it closes): it comes back instead of going away. A second pull up
+        // while one plays (the shell hearing the fold twice) changes nothing.
+        u.pullUp()
+        t = 100.7
+        u.step()
+        let started = u.cue?.start
+        u.pullUp()
+        let once = u.cue?.start == started && u.isLeaving
+        u.appear()
+        t = 101.3
+        u.step()
+        check(top < -1.8 && stretch > 1.5 && reached && !awayEarly && away && back && once && !u.isAway && u.cue == nil,
+              String(format: "Tomo is pulled up (to %.2f R, stretched %.2f tall) into the notch by 0.45 s, away until it drips in or appears",
+                     top, stretch))
+
+        // Reduce Motion: a fade and a puff, where it sits.
+        func calm(_ start: (TomoBlob) -> Void) -> (moved: CGFloat, swell: CGFloat, squash: CGFloat, faded: [CGFloat], strand: Bool) {
+            let b = blob(reduce: true)
+            start(b)
+            var r: (moved: CGFloat, swell: CGFloat, squash: CGFloat, faded: [CGFloat], strand: Bool) = (0, 0, 0, [], false)
+            for i in 0...60 {
+                t = 100 + Double(i) / 60
+                b.step()
+                let p = b.pose
+                r.moved = max(r.moved, abs(p.dx), abs(p.dy), abs(p.rot), abs(b.jiggle))
+                r.swell = max(r.swell, p.sx - 1, p.sy - 1)
+                r.squash = max(r.squash, 1 - p.sx, 1 - p.sy)
+                r.strand = r.strand || p.strand != nil
+                if i % 12 == 0 { r.faded.append(b.isAway ? 0 : p.opacity) }
+            }
+            return r
+        }
+        let inCalm = calm { $0.dripIn() }, upCalm = calm { $0.pullUp() }
+        check([inCalm, upCalm].allSatisfy { $0.moved == 0 && $0.squash == 0 && $0.swell <= 0.046 && !$0.strand }
+              && inCalm.faded.first == 0 && inCalm.faded.last == 1 && upCalm.faded.first == 1 && upCalm.faded.last == 0,
+              "under Reduce Motion Tomo fades in and out where it sits: no drop, no pull, no strand")
+
+        // The call glow: nothing at 0; with it on, a pulse that repeats every 2.6 s; under Reduce Motion, steady.
+        func glow(_ on: CGFloat, reduce: Bool = false) -> [CGFloat] {
+            let b = blob(reduce: reduce)
+            b.callGlow = on
+            var seen: [CGFloat] = []
+            for i in 1...(60 * 9) {
+                t = 100 + Double(i) / 60
+                b.step()
+                if i > 60 * 4 { seen.append(b.callGlowAlpha(t)) }
+            }
+            return seen
+        }
+        let off = glow(0), on = glow(1), steady = glow(1, reduce: true)
+        let period = 156                                   // 2.6 s of frames
+        let repeats = (0..<(on.count - period)).allSatisfy { abs(on[$0] - on[$0 + period]) < 0.01 }
+        check(off.allSatisfy { $0 == 0 } && (on.max() ?? 0) - (on.min() ?? 0) > 0.3 && repeats
+              && (steady.min() ?? 0) > 0.3 && (steady.max() ?? 0) - (steady.min() ?? 0) < 0.005,
+              "small Tomo's call glow: none at 0, a pulse every 2.6 s, steady under Reduce Motion")
     }
 }
 
