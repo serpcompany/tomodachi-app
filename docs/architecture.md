@@ -8,11 +8,11 @@ Tomo's code is in `Tomo*.swift` files, in two places. **`TomoCore/`** is a Swift
 iOS with everything that isn't tied to one device: the game, growth, store, languages and their packs,
 AI, voice, sounds, and Tomo's drawing. Each app is a shell around it: the Mac app in
 `mac-demo/NotchBuddy/Sources/App/`, where Coucou's files (`Island*`, `AppDelegate`, `AppState`…) are
-the notch ([coucou-fork.md](coucou-fork.md)), and the iPhone app in `ios-demo/` with its widget extension. Widgets can't run the game: the app writes a `TomoGlance` (age, level, bar, what's waiting, in the learner's language) to the App Group `group.com.zenbujapanese.tomodachi`, and the widget draws it, with the mascot moving through a font of its own frames (`TomoMovingMascot`; decisions.md). The same glance drives Tomo's Lock Screen card, a Live Activity (`TomoLiveVisit` in the app, `TomoVisitLiveActivity` in the extension), once the learner said yes to it; its stale date is the next due time, so it turns to "ready" without the app running. Mac-only parts stay in
+the notch ([coucou-fork.md](coucou-fork.md)), and the iPhone app in `ios-demo/` with its widget extension. Widgets can't run the game: the app writes a `TomoGlance` (age, level, bar, what's waiting, in the learner's language) to the App Group `group.com.zenbujapanese.tomo`, and the widget draws it, with the mascot moving through a font of its own frames (`TomoMovingMascot`; decisions.md). The same glance drives Tomo's Lock Screen card, a Live Activity (`TomoLiveVisit` in the app, `TomoVisitLiveActivity` in the extension), once the learner said yes to it; its stale date is the next due time, so it turns to "ready" without the app running. Mac-only parts stay in
 the Mac app: the card (`TomoView`), the Tomodachi window and the menus (`TomoAppWindow`, `TomoMenus`), clickable
 words with the Mac's dictionary (`TomoLineView`) and Tomo in the island (`TomoIslandCharacter`). The screens both apps
 show (Tomo, Words, Settings, About) are in TomoCore (below, "Screens"). Invariant: TomoCore never imports AppKit
-or UIKit, or reaches into a shell.
+or UIKit, or reaches into a shell, and takes the app's identity from it (Info.plist's `TomoAppGroup`, `TomoCloudContainer`).
 
 ## Layers
 
@@ -103,7 +103,7 @@ append-only logs. Start over clears the words and notes when (`tomo.reset_at`), 
 ([#28](https://github.com/serpcompany/tomodachi-app/issues/28)).
 
 **Sync.** `TomoSync.swift`: one Tomo across the learner's Mac and iPhone through their own iCloud
-(CloudKit private database, zone `Tomo`, container `iCloud.com.zenbujapanese.tomodachi`) with Apple's
+(CloudKit private database, zone `Tomo`, container `iCloud.com.zenbujapanese.tomo`) with Apple's
 `CKSyncEngine`; no server of ours. `TomoStore` stays the truth on each device: a save reports itself
 (`TomoStore.didChange`) and becomes a pending record, one per Tomo and one per word; what arrives is
 merged (`mergeTomo`, `mergeItem`) and written back without echoing, then `TomoGame` reloads. Invariants:

@@ -166,13 +166,12 @@
 				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					12E59C1D41BFA3D2F7CDD7F5 = {
-						DevelopmentTeam = W3GXL2NQQP;
+						DevelopmentTeam = 847HR8U8D9;
 						ProvisioningStyle = Automatic;
 					};
 				};
 			};
 			buildConfigurationList = 2B80F5D9D7D10C755DEF1E61 /* Build configuration list for PBXProject "NotchBuddy" */;
-			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -185,6 +184,7 @@
 				1BC530D84049ED2B57B71DD3 /* XCLocalSwiftPackageReference "../../TomoCore" */,
 			);
 			preferredProjectObjectVersion = 77;
+			productRefGroup = 6CF11AAA7898712CF6DB364A /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -248,7 +248,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomodachi;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomo;
 				PRODUCT_NAME = Tomodachi;
 				SDKROOT = macosx;
 			};
@@ -266,7 +266,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomodachi;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomo;
 				PRODUCT_NAME = Tomodachi;
 				SDKROOT = macosx;
 			};
@@ -309,7 +309,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = W3GXL2NQQP;
+				DEVELOPMENT_TEAM = 847HR8U8D9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -337,6 +337,7 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 6.0;
+				TOMO_ICLOUD_CONTAINER = iCloud.com.zenbujapanese.tomo;
 				TOMO_ICLOUD_ENV = Development;
 			};
 			name = Debug;
@@ -379,7 +380,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = W3GXL2NQQP;
+				DEVELOPMENT_TEAM = 847HR8U8D9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -401,6 +402,7 @@
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 6.0;
+				TOMO_ICLOUD_CONTAINER = iCloud.com.zenbujapanese.tomo;
 				TOMO_ICLOUD_ENV = Production;
 			};
 			name = Release;

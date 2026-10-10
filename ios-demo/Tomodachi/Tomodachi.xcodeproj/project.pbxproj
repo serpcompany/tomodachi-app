@@ -248,17 +248,16 @@
 				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					5CAF3C2F15CD2B9C51E2615B = {
-						DevelopmentTeam = W3GXL2NQQP;
+						DevelopmentTeam = 847HR8U8D9;
 						ProvisioningStyle = Automatic;
 					};
 					E6F7A89F9C9FF369E1EA5B01 = {
-						DevelopmentTeam = W3GXL2NQQP;
+						DevelopmentTeam = 847HR8U8D9;
 						ProvisioningStyle = Automatic;
 					};
 				};
 			};
 			buildConfigurationList = 660B5F35D84EDAB98A448F81 /* Build configuration list for PBXProject "Tomodachi" */;
-			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -271,11 +270,12 @@
 				87CDA8F940A7DE4FD2FC8FCA /* XCLocalSwiftPackageReference "../../TomoCore" */,
 			);
 			preferredProjectObjectVersion = 77;
+			productRefGroup = 4CF2F1D264207785F5CCAFAD /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				5CAF3C2F15CD2B9C51E2615B /* TomoWidgets */,
 				E6F7A89F9C9FF369E1EA5B01 /* Tomodachi */,
+				5CAF3C2F15CD2B9C51E2615B /* TomoWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -418,7 +418,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = W3GXL2NQQP;
+				DEVELOPMENT_TEAM = 847HR8U8D9;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -445,6 +445,8 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 6.0;
+				TOMO_APP_GROUP = group.com.zenbujapanese.tomo;
+				TOMO_ICLOUD_CONTAINER = iCloud.com.zenbujapanese.tomo;
 				TOMO_ICLOUD_ENV = Development;
 			};
 			name = Debug;
@@ -459,7 +461,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomodachi.widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomo.widgets;
 				PRODUCT_NAME = TomoWidgets;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -478,7 +480,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomodachi;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomo;
 				PRODUCT_NAME = Tomodachi;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -495,7 +497,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomodachi.widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomo.widgets;
 				PRODUCT_NAME = TomoWidgets;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -539,7 +541,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = W3GXL2NQQP;
+				DEVELOPMENT_TEAM = 847HR8U8D9;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -559,6 +561,8 @@
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 6.0;
+				TOMO_APP_GROUP = group.com.zenbujapanese.tomo;
+				TOMO_ICLOUD_CONTAINER = iCloud.com.zenbujapanese.tomo;
 				TOMO_ICLOUD_ENV = Production;
 			};
 			name = Release;
@@ -574,7 +578,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomodachi;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomo;
 				PRODUCT_NAME = Tomodachi;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;

@@ -3,7 +3,7 @@ import SQLite3
 
 // MARK: - Saved progress: one SQLite file on this Mac
 //
-// ~/Library/Application Support/com.zenbujapanese.tomodachi/learner.sqlite (TOMO_DATA_DIR=<dir> overrides it,
+// ~/Library/Application Support/<bundle ID>/learner.sqlite (TOMO_DATA_DIR=<dir> overrides it,
 // so test runs never touch the learner's own Tomo). Keyed by (learner language, target language): one Tomo
 // per pair. `tomo` and `item` hold the current state; `answer` and `growth` are append-only logs, kept to tune
 // the rules later and to sync with the Zenbu apps one day (docs/research/learner-data-schema.md).
@@ -44,7 +44,7 @@ public final class TomoStore {
     public static var directory: URL {
         if let d = ProcessInfo.processInfo.environment["TOMO_DATA_DIR"] { return URL(fileURLWithPath: d) }
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        return base.appendingPathComponent(Bundle.main.bundleIdentifier ?? "com.zenbujapanese.tomodachi")
+        return base.appendingPathComponent(Bundle.main.bundleIdentifier ?? "Tomodachi")
     }
 
     public init?(learner: String, target: String, directory: URL = TomoStore.directory) {

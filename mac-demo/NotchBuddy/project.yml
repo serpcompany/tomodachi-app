@@ -15,12 +15,15 @@ settings:
     SWIFT_VERSION: "6.0"
     ENABLE_HARDENED_RUNTIME: YES
     OTHER_SWIFT_FLAGS: "-strict-concurrency=complete"
-    # The team the iPhone app ships with (decisions.md): iCloud sync (#62) needs both apps on one team.
+    # TSMC LLC's team, the Zenbu Japanese app's too (decisions.md): iCloud sync (#62) needs both Tomodachi apps on
+    # one team, and so would sharing anything with the Zenbu app later.
     # Xcode signs automatically: Debug with an Apple Development profile, the owner's copy and beta builds with
     # a Developer ID profile at export (scripts/release-beta.sh). -allowProvisioningUpdates registers this Mac
     # and the profiles the first time.
     CODE_SIGN_STYLE: Automatic
-    DEVELOPMENT_TEAM: W3GXL2NQQP
+    DEVELOPMENT_TEAM: 847HR8U8D9
+    # The app's iCloud container, the same as the iPhone app's (TomoSync reads it from Info.plist).
+    TOMO_ICLOUD_CONTAINER: iCloud.com.zenbujapanese.tomo
     CODE_SIGN_ENTITLEMENTS: Resources/Tomodachi.entitlements
   configs:
     # iCloud sync (TomoSync) and its push notifications: Debug builds use CloudKit's Development environment,
@@ -59,7 +62,7 @@ targets:
         CFBundleName: Tomodachi
         CFBundleDisplayName: Tomodachi
         NSHumanReadableCopyright: "Tomodachi by Zenbu Japanese. © 2026 Zenbu Japanese."
-        CFBundleIdentifier: com.zenbujapanese.tomodachi
+        CFBundleIdentifier: com.zenbujapanese.tomo
         CFBundleVersion: "1"
         CFBundleShortVersionString: "0.0.2"
         CFBundlePackageType: APPL
@@ -69,9 +72,10 @@ targets:
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         TomoICloudEnvironment: $(TOMO_ICLOUD_ENV)   # this build has iCloud (TomoSync)
+        TomoCloudContainer: $(TOMO_ICLOUD_CONTAINER)
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.zenbujapanese.tomodachi
+        PRODUCT_BUNDLE_IDENTIFIER: com.zenbujapanese.tomo
         PRODUCT_NAME: Tomodachi
         INFOPLIST_FILE: Resources/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon

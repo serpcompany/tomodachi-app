@@ -65,9 +65,9 @@ xcrun simctl spawn tomodachi-shots defaults write -g AppleICUForce24HourTime -bo
 xcrun simctl status_bar tomodachi-shots override --time 9:41 --batteryState discharging --batteryLevel 100 \
   --dataNetwork wifi --wifiBars 3 --cellularBars 4
 xcrun simctl install tomodachi-shots ios-demo/build/Build/Products/Debug-iphonesimulator/Tomodachi.app
-xcrun simctl spawn tomodachi-shots defaults write com.zenbujapanese.tomodachi soundEnabled -bool false
+xcrun simctl spawn tomodachi-shots defaults write com.zenbujapanese.tomo soundEnabled -bool false
 SIMCTL_CHILD_TOMO_DATA_DIR=<dir> SIMCTL_CHILD_TOMO_SEED=variety-1 SIMCTL_CHILD_TZ=America/Denver \
-  SIMCTL_CHILD_TOMO_OPEN_WINDOW=tomo xcrun simctl launch --terminate-running-process tomodachi-shots com.zenbujapanese.tomodachi
+  SIMCTL_CHILD_TOMO_OPEN_WINDOW=tomo xcrun simctl launch --terminate-running-process tomodachi-shots com.zenbujapanese.tomo
 xcrun simctl io tomodachi-shots screenshot <raw dir>/4-tomo.png
 ```
 

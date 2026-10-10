@@ -43,7 +43,7 @@ Grow one step ⌘G, Finish this level ⌘L, Grow to the next birthday ⌘B) and 
 cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug -derivedDataPath ../build -allowProvisioningUpdates build
 ```
 
-Signing is automatic with team `W3GXL2NQQP`, the iPhone app's (iCloud sync needs one team), so Xcode
+Signing is automatic with TSMC LLC's team `847HR8U8D9`, the iPhone app's (iCloud sync needs one team), so Xcode
 must be signed in to it. `-allowProvisioningUpdates` lets Xcode make the profiles; the first build on a
 new Mac also needs `-allowProvisioningDeviceRegistration` to register it.
 
@@ -60,8 +60,9 @@ mac-demo/scripts/release-beta.sh --no-notarize   # archive and sign only
 mac-demo/scripts/release-beta.sh --owner         # the owner's copy in build/owner (run.sh opens it)
 ```
 
-- **Team:** `DEVELOPMENT_TEAM` in `NotchBuddy/project.yml` (`W3GXL2NQQP` since October 6, 2026; earlier
-  betas were `847HR8U8D9`). The export makes the Developer ID profile with iCloud and push
+- **Team:** `DEVELOPMENT_TEAM` in `NotchBuddy/project.yml` (`847HR8U8D9` with bundle ID `com.zenbujapanese.tomo`
+  since October 10, 2026; betas 0.0.2 and earlier were `com.zenbujapanese.tomodachi`, on `W3GXL2NQQP` from
+  October 6). The export makes the Developer ID profile with iCloud and push
   (`scripts/ExportOptions.plist`). You need a Developer ID Application certificate for that team, and Xcode
   signed in to it (Xcode → Settings → Accounts).
 - **Notarizing** uses that same Xcode account, as Organizer's "Distribute App" does, so there are no notary

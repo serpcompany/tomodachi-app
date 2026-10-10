@@ -53,7 +53,7 @@ pack's age boundary. Each run prints a `pace` line: the days to Lv 2, 5 and 10 a
 The Testing menu, the window's Testing and AI pages and the "I'm learning" picker are hidden from learners. The AI
 page exists in Debug builds only.
 **⌥-click the menu bar icon** to show them for the rest of that run, or show them always with
-`defaults write com.zenbujapanese.tomodachi tomoTestingTools -bool true` (`defaults delete` to hide them again).
+`defaults write com.zenbujapanese.tomo tomoTestingTools -bool true` (`defaults delete` to hide them again).
 They work in every build, Developer ID included (`TomoTestingTools`). The Testing menu is in the main menu while
 Tomodachi is the active app, and in the menu bar icon's menu: **Skip to talking (3さい)** (⌘3), **Grow one
 step** (⌘G), **Finish this level** (⌘L) and **Grow to the next birthday** (⌘B), which grow Tomo without waiting
@@ -152,7 +152,7 @@ python3 mac-demo/scripts/seed-progress.py /tmp/tomo-test --through-level 1 --sta
 `--edge N` is one word short of finishing level N (the word due now), with Tomo at that level's age: with
 `TOMO_AUTOPLAY=right`, the first answer levels up, so `--edge 15` shows the 2さい birthday and `--edge 60` the
 3さい one and the first talking question. Its docstring has the options. Snapshots of the real data are a copy away:
-`sqlite3 -readonly "<Application Support>/com.zenbujapanese.tomodachi/learner.sqlite" ".backup '<dir>/learner.sqlite'"`.
+`sqlite3 -readonly "<Application Support>/com.zenbujapanese.tomo/learner.sqlite" ".backup '<dir>/learner.sqlite'"`.
 
 ## Known flake
 

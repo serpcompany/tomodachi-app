@@ -7,7 +7,7 @@
     <!-- One Tomo across Mac and iPhone: the learner's own iCloud (TomoSync, #62) -->
     <key>com.apple.developer.icloud-container-identifiers</key>
     <array>
-        <string>iCloud.com.zenbujapanese.tomodachi</string>
+        <string>$(TOMO_ICLOUD_CONTAINER)</string>
     </array>
     <key>com.apple.developer.icloud-services</key>
     <array>

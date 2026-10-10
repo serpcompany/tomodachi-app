@@ -9,7 +9,7 @@ testers"). This is the listing written as if it were, so it's ready when the app
   requires, and there's no upload script: `scripts/release-beta.sh` exports for Developer ID, and the iPhone's
   `ios-demo/scripts/testflight.sh` is the model for an App Store export.
 - **App Store Connect:** macOS isn't on the iPhone app's record yet. Same bundle ID
-  (`com.zenbujapanese.tomodachi`), so one record and one purchase cover both.
+  (`com.zenbujapanese.tomo`), so one record and one purchase cover both.
 - **Two things App Review may question in today's build:** ⌥-clicking the menu bar icon shows the testing tools
   in every build (`TomoTestingTools`), and the first run's "Open Tomodachi when I log in" switch starts on (it's
   shown, and Settings turns it off).

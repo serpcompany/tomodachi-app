@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.zenbujapanese.tomodachi</string>
+	<string>com.zenbujapanese.tomo</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -24,6 +24,10 @@
 	<false/>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
+	<key>TomoAppGroup</key>
+	<string>$(TOMO_APP_GROUP)</string>
+	<key>TomoCloudContainer</key>
+	<string>$(TOMO_ICLOUD_CONTAINER)</string>
 	<key>TomoICloudEnvironment</key>
 	<string>$(TOMO_ICLOUD_ENV)</string>
 	<key>UIBackgroundModes</key>
