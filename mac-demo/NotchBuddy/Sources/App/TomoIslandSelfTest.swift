@@ -2,7 +2,7 @@ import AppKit
 import TomoCore
 
 /// The island shell's rules that a headless run can't show by hand (which screen, where, Esc, the resting right
-/// side, click-through), checked by TOMO_SELFTEST with TomoCore's (docs/verification.md).
+/// side, click-through, opening and closing), checked by TOMO_SELFTEST with TomoCore's (docs/verification.md).
 @MainActor
 enum TomoIslandSelfTest {
     static func run() -> Bool {
@@ -132,6 +132,138 @@ enum TomoIslandSelfTest {
         check(takes(CGPoint(x: bar.midX, y: bar.midY), .compact, hasNotch: false, notch: flatNotch)
               && !takes(CGPoint(x: bar.midX, y: bar.minY - 3), .compact, hasNotch: false, notch: flatNotch),
               "no notch: the resting bar takes clicks on itself, not 3 pt below it")
+
+        rules(check)
         return ok
+    }
+
+    /// The island's rules (IslandStateMachine) on a stopped clock: each input gives the time, and says when the rules
+    /// next need the clock; nothing happens between those times.
+    private static func rules(_ check: (Bool, String) -> Void) {
+        var moves: [String] = []
+        func fresh() -> IslandStateMachine {
+            let m = IslandStateMachine()
+            moves = []
+            m.onTransition = { moves.append("\($0)→\($1)") }
+            return m
+        }
+        let probe = IslandStateMachine()
+        let fold = probe.homeToPetitDelay, hide = probe.petitToHiddenDelay, dwell = probe.peekHoverToOpen
+
+        // Opening
+        var m = fresh()
+        var next = m.mouseEntered(at: 0)
+        check(m.state == .petit && moves == ["hidden→petit"] && next == nil,
+              "the pointer coming onto the hidden island shows the resting island; resting there needs no clock")
+        next = m.click(at: 1)
+        check(m.state == .home && moves.last == "petit→home" && next == nil,
+              "a click on the resting island opens the card, with no fold while the pointer is in it")
+        m = fresh()
+        next = m.click(at: 0)
+        check(m.state == .home && moves == ["hidden→home"] && next == fold,
+              "a click opens even an island the rules never saw the pointer come into; the pointer away, it folds later")
+        m = fresh()
+        next = m.peekedExternally(at: 0)
+        check(m.state == .peek && moves.isEmpty && next == nil, "a visit's peek: the app shows it, and nothing is timed")
+        next = m.mouseEntered(at: 2)
+        check(next == 2 + dwell && m.advance(to: 2 + dwell - 0.01) == 2 + dwell && m.state == .peek,
+              "the pointer coming onto a peek: nothing before it has rested \(dwell) s")
+        next = m.advance(to: 2 + dwell)
+        check(m.state == .home && moves == ["peek→home"] && next == nil, "then the peek opens its card")
+        m = fresh()
+        _ = m.peekedExternally(at: 0)
+        _ = m.mouseEntered(at: 0)
+        next = m.mouseLeft(at: 0.3)
+        check(next == 0.3 + fold && m.state == .peek,
+              "leaving a peek before then doesn't open it; its fold starts instead")
+        next = m.mouseEntered(at: 1)
+        _ = m.advance(to: 1 + dwell - 0.01)
+        let early = m.state
+        _ = m.advance(to: 1 + dwell)
+        check(next == 1 + dwell && early == .peek && m.state == .home, "coming back starts the rest over")
+        m = fresh()
+        _ = m.peekedExternally(at: 0)
+        _ = m.click(at: 0.1)
+        check(m.state == .home && moves == ["peek→home"], "a click on a peek opens it at once")
+
+        // Ignoring
+        m = fresh()
+        _ = m.mouseEntered(at: 0)
+        _ = m.click(at: 0)
+        next = m.mouseLeft(at: 10)
+        check(next == 10 + fold && m.advance(to: 10 + fold - 0.01) == 10 + fold && m.state == .home,
+              "an open card the pointer left stays open until its fold time")
+        next = m.advance(to: 10 + fold)
+        check(m.state == .petit && moves.last == "home→petit" && next == 10 + fold + hide,
+              "then it folds to the resting island, which hides in its own time if the pointer stays away")
+        next = m.advance(to: 10 + fold + hide)
+        check(m.state == .hidden && moves.last == "petit→hidden" && next == nil, "and then it hides")
+        m = fresh()
+        _ = m.mouseEntered(at: 0)
+        _ = m.click(at: 0)
+        _ = m.mouseLeft(at: 10)
+        next = m.mouseEntered(at: 20)
+        _ = m.advance(to: 1e6)
+        check(next == nil && m.state == .home, "the pointer coming back before then keeps the card open")
+        m = fresh()
+        _ = m.peekedExternally(at: 0)
+        _ = m.mouseEntered(at: 0)
+        _ = m.mouseLeft(at: 0.2)
+        _ = m.advance(to: 0.2 + fold)
+        check(m.state == .petit && moves == ["peek→petit"], "a peek the pointer left folds the same way")
+        m = fresh()
+        _ = m.mouseEntered(at: 0)
+        _ = m.click(at: 0)
+        _ = m.mouseLeft(at: 0)
+        next = m.advance(to: fold + hide + 5)
+        check(m.state == .hidden && next == nil && moves == ["hidden→petit", "petit→home", "home→petit", "petit→hidden"],
+              "one late check makes every step that came due, in order")
+        m = fresh()
+        next = m.openedExternally(at: 0)
+        _ = m.advance(to: 1e6)
+        check(m.state == .home && moves.isEmpty && next == nil,
+              "the app opening the card (a visit) leaves its time to the visit: no fold while the pointer stays away")
+        m = fresh()
+        _ = m.mouseEntered(at: 0)
+        _ = m.click(at: 0)
+        _ = m.mouseLeft(at: 5)
+        next = m.openedExternally(at: 6)
+        check(next == nil, "the app opening the card stops a fold that was counting")
+
+        // Closing
+        m = fresh()
+        _ = m.openedExternally(at: 0)
+        next = m.collapse(at: 3)
+        check(m.state == .petit && moves == ["home→petit"] && next == 3 + hide,
+              "the app closing the card (Esc, ×, goodbye) shows the resting island at once; the pointer away, it hides later")
+        m = fresh()
+        _ = m.peekedExternally(at: 0)
+        _ = m.collapse(at: 11.5)
+        check(m.state == .petit && moves == ["peek→petit"], "an ignored peek tucks back in the same way")
+        m = fresh()
+        _ = m.mouseEntered(at: 0)
+        _ = m.collapse(at: 1)
+        check(m.state == .petit && moves == ["hidden→petit"], "closing an island that isn't open does nothing")
+
+        // Hovering again after a close
+        m = fresh()
+        _ = m.mouseEntered(at: 0)
+        _ = m.click(at: 0)
+        next = m.collapse(at: 5)
+        check(m.state == .petit && m.pointerInside && !m.hovering && next == nil,
+              "the card closing under the pointer: the pointer is still there, but it isn't hovering")
+        next = m.peekedExternally(at: 6)
+        _ = m.advance(to: 60)
+        check(next == nil && m.state == .peek, "so a peek arriving then doesn't open, however long the pointer rests")
+        _ = m.mouseLeft(at: 61)
+        next = m.mouseEntered(at: 62)
+        _ = m.advance(to: 62 + dwell)
+        check(next == 62 + dwell && m.state == .home, "once the pointer has left and come back, resting on it opens it")
+        m = fresh()
+        _ = m.mouseEntered(at: 0)
+        next = m.peekedExternally(at: 5)
+        _ = m.advance(to: 30)
+        check(m.hovering == false && next == nil && m.state == .peek,
+              "a peek arriving under a still pointer isn't hovered either: the island changed under it")
     }
 }

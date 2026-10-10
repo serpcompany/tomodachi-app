@@ -50,8 +50,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     /// The learner opened Tomo on purpose (the menus, the window's Play with Tomo): free play, and Esc closes it.
     private func openIsland() {
-        islandController?.fsm.openedExternally()
-        islandController?.expand(to: .overview)
+        islandController?.open()
         islandController?.takeKeyboard()   // opened on purpose: Esc closes it
     }
 
@@ -100,11 +99,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // Between visits Tomo hangs out small beside the notch (click to play anytime): never auto-hide.
         islandController?.fsm.petitToHiddenDelay = 365 * 24 * 3600
         let game = TomoGame.shared
-        game.openIsland = { [weak self] in
-            guard let c = self?.islandController else { return }
-            c.fsm.openedExternally()
-            c.expand(to: .overview)
-        }
+        game.openIsland = { [weak self] in self?.islandController?.open() }
         game.closeIsland = { [weak self] in self?.islandController?.collapse() }
         game.isIslandOpen = { AppState.shared.mode == .expanded }
         game.focusInput = { [weak self] in self?.islandController?.window?.makeKey() }

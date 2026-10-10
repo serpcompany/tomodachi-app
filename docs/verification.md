@@ -13,7 +13,7 @@ macOS CI yet: CI runs only the repo checks, so the build, the self-test and the 
 | **Finish gate** | Build, self-test, repo checks, and the evidence below | Once, when the branch is done |
 
 The self-test: `TOMO_SELFTEST=1 TOMO_DATA_DIR=$(mktemp -d) <app binary>` checks the word-stage, level,
-store, sync-merge and look rules, the island's (which screen, where, Esc), who sees the first run, when reminders
+store, sync-merge and look rules, the island's (which screen, where, Esc, opening and closing), who sees the first run, when reminders
 come, and that every moment has a short, soft sound, lower for an older Tomo; it prints each
 check and quits (exit code 1 on a failure). A new growth rule gets a new check in `TomoProgress.selfTest`, a new
 merge rule one in `TomoSync.selfTest`, an island rule one in `TomoIslandSelfTest`. It also checks growth end to end

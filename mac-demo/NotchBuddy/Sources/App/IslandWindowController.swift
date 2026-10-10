@@ -9,8 +9,10 @@ final class IslandWindowController: NSWindowController {
     private var islandPanel: IslandPanel!
     private var state: AppState { AppState.shared }
 
-    // State machine (replaces all hover/absence/auto-close timers)
+    // State machine (replaces all hover/absence/auto-close timers), and the one timer it needs (checkRules)
     let fsm = IslandStateMachine()
+    private var rulesTimer: Timer?
+    private var rulesTimerAt: TimeInterval?
 
     private var wasInIsland = false
     private var pointerMonitors: [Any] = []
@@ -130,6 +132,7 @@ final class IslandWindowController: NSWindowController {
     // MARK: - FSM wiring
 
     private func wireFSM() {
+        // The FSM starts its own fold when the pointer is away, so nothing here feeds it back.
         fsm.onTransition = { [weak self] from, to in
             guard let self else { return }
             switch to {
@@ -139,15 +142,39 @@ final class IslandWindowController: NSWindowController {
             case .petit:
                 if from == .hidden { SoundEngine.shared.play("peek") }
                 self.setMode(.compact)
-                // Start the hide timer if the mouse is not currently over the island
-                if !self.wasInIsland { self.fsm.mouseLeft() }
+
+            case .peek:
+                break   // nothing peeks yet: no visit offers one
 
             case .home:
                 self.expand(to: .overview)
-                // Start the collapse timer if the mouse is not hovering
-                if !self.wasInIsland { self.fsm.mouseLeft() }
             }
         }
+    }
+
+    /// The clock the island's rules run on: seconds the Mac has been awake, so a fold waits through sleep like the
+    /// timers it replaced.
+    private static var clock: TimeInterval { CACurrentMediaTime() }
+
+    /// Sets the one timer the island's rules need, for `next` (what each of their inputs returns). When it fires, the
+    /// rules get the time, make what came due, and say when they need the clock again. Nil: no timer.
+    private func checkRules(at next: TimeInterval?) {
+        if next == rulesTimerAt, rulesTimer?.isValid == true { return }
+        rulesTimer?.invalidate()
+        rulesTimer = nil
+        rulesTimerAt = next
+        guard let next else { return }
+        let wait = max(0, next - Self.clock)
+        let timer = Timer(timeInterval: wait, repeats: false) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.rulesTimerAt = nil
+                self.checkRules(at: self.fsm.advance(to: Self.clock))
+            }
+        }
+        timer.tolerance = min(0.05, wait / 10)
+        RunLoop.main.add(timer, forMode: .common)
+        rulesTimer = timer
     }
 
     // MARK: - Following the pointer: its moves, and the island's changes (no clock while the pointer is away)
@@ -253,8 +280,8 @@ final class IslandWindowController: NSWindowController {
         }
 
         // Feed FSM hover enter/leave
-        if inIsland && !wasInIsland { fsm.mouseEntered() }
-        if !inIsland && wasInIsland { fsm.mouseLeft() }
+        if inIsland && !wasInIsland { checkRules(at: fsm.mouseEntered(at: Self.clock)) }
+        if !inIsland && wasInIsland { checkRules(at: fsm.mouseLeft(at: Self.clock)) }
         wasInIsland = inIsland
         state.mouseInIsland = inIsland
 
@@ -326,9 +353,15 @@ final class IslandWindowController: NSWindowController {
 
     func collapse() {
         // Keep the FSM in step with what is on screen (home → petit now).
-        fsm.collapse()
+        checkRules(at: fsm.collapse(at: Self.clock))
         setMode(.compact)
         giveBackKeyboard()
+    }
+
+    /// The app opened the island itself (Tomo's visit, the menu's Open): the FSM follows without a transition.
+    func open() {
+        checkRules(at: fsm.openedExternally(at: Self.clock))
+        expand(to: .overview)
     }
 
     // MARK: - Keyboard (Escape closes) and mouse
@@ -397,7 +430,8 @@ final class IslandWindowController: NSWindowController {
                         // FSM already thinks it's open (e.g. the view folded it): just reopen.
                         self.expand(to: .overview)
                     } else {
-                        self.fsm.click()   // FSM petit/hidden→home; onTransition calls expand(to:)
+                        // FSM petit/hidden→home; onTransition calls expand(to:)
+                        self.checkRules(at: self.fsm.click(at: Self.clock))
                     }
                     self.takeKeyboard()
                 }
