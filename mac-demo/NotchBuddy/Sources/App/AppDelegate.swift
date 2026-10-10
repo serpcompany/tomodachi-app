@@ -138,6 +138,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         // The learner's shortcut to play from any app (Settings; none until they record one; never in a test run).
         TomoHotKey.shared.onPress = { [weak self] in self?.islandController?.shortcutPressed() }
         TomoHotKey.shared.start()
+        TomoScrollProbe.startIfRequested(panel: islandController?.window)   // TOMO_SCROLL_PROBE: do swipes reach it?
         TomoMenus.takeKeyboard = { [weak self] in self?.islandController?.takeKeyboard() }
         TomoAppWindow.openIfRequested()
         TomoMenus.dumpIfRequested()
