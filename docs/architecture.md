@@ -87,7 +87,8 @@ decides. Invariants:
 - Level and age never go down, and the experience bar never moves back (it uses each word's best stage).
 - The bar counts the level's best `levelNeeded` words, and its goal (`goalShare`, the last tenth) fills only
   when the level is done. Every surface draws the same number (`TomoGrowthBar` on the card, the iPhone's play
-  screen and the Tomo screen; the glance for widgets).
+  screen and the Tomo screen; the glance for widgets). The card's catches up as a counted answer's +1 lands in it,
+  under a second later (`TomoLevelBar.swift`).
 - Practice is a mode the learner picks, and it never moves the bar.
 
 `TomoClock` moves time for testing, and `TOMO_SELFTEST=1` checks the rules. Planned:
