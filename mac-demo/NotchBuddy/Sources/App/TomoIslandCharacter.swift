@@ -3,11 +3,11 @@ import TomoCore
 
 // MARK: - Tomo in the notch island (the shared drawing is TomoBlob, in TomoCore)
 
-/// Tomo in the island: a Canvas redrawn every frame, gaze following the cursor.
+/// Tomo in the island: a Canvas redrawn every frame, its gaze on the cursor. It follows Reduce Motion (`TomoMotion`).
 struct TomoCharacterView: View {
     @ObservedObject var state: AppState
     var particleOverhang: CGFloat = 0
-    @StateObject private var blob = TomoBlob()
+    @StateObject private var blob = TomoBlob(motion: .shared)
 
     var body: some View {
         // The Canvas must read the timeline's date, or SwiftUI won't redraw it every frame.

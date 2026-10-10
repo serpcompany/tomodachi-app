@@ -33,7 +33,7 @@ public struct TomoReminderSettingsView: View {
 
         public var body: some View {
             Section {
-                Toggle(ui("reminders.settings.on"), isOn: Binding(get: { center.settings.on && !denied }, set: turn))
+                Toggle(ui("reminders.settings.on"), isOn: Binding(get: { center.settings.on && !denied }, set: { turn($0) }))
                     .disabled(asking)
                 if denied {
                     Text(ui("reminders.settings.denied")).font(.footnote).foregroundStyle(.secondary)
