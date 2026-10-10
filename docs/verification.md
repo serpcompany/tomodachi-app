@@ -120,6 +120,9 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   tab. `TOMO_OPEN_SETTINGS` is its old name. Seed a mid-level Tomo first (below), so the screens have content.
 - `TOMO_POSTCARD=<n>`: Together shows the postcard n weeks before the newest. `TOMO_POSTCARD_TURN=<seconds>`: that
   long after it shows, it turns over.
+- `TOMO_GARDEN=today|week|all`: the garden's range. `TOMO_GARDEN_REPLAY=<seconds>`: that long after it shows, the
+  replay starts. `TOMO_GARDEN_WORD=newest`: the newest word's card shows. With `TOMO_SNAPSHOT_DIR`, Together also
+  writes its exports and recaps there (`export.md`, `export.json`, `recap-<range>.txt`).
 - `TOMO_AUTOPLAY=1`: answers picture rounds by itself (one miss, then right) and picks Practice when Tomo rests.
   `TOMO_AUTOPLAY=right` answers every round right the first time, so the answer counts in full: a level-up on cue
   from a `seed-progress.py --edge` folder.
@@ -172,7 +175,9 @@ python3 mac-demo/scripts/seed-progress.py /tmp/tomo-test --through-level 1 --sta
 `--edge N` is one word short of finishing level N (the word due now), with Tomo at that level's age: with
 `TOMO_AUTOPLAY=right`, the first answer levels up, so `--edge 15` shows the 2さい birthday and `--edge 60` the
 3さい one and the first talking question. `--history` adds the logs of a learner who played since Tomo hatched
-(`--days`), so Together has weeks and postcards; `--quiet A-B` leaves days A to B ago quiet. Its docstring has the
+(`--days`), with each word reviewed when its wait is up (now and then a miss sets it back), and leaves the words at
+the stages that history gives them, so Together has weeks, postcards and a garden; `--quiet A-B` leaves days A to B
+ago quiet. A longer one (`--through-level 30 --days 150`) grows flowers. Its docstring has the
 options. Snapshots of the real data are a copy away:
 `sqlite3 -readonly "<Application Support>/com.zenbujapanese.tomo/learner.sqlite" ".backup '<dir>/learner.sqlite'"`.
 

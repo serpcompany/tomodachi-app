@@ -127,9 +127,13 @@ def main():
     level = a.level or a.through_level or 1
     age = a.age or levels[min(level, len(levels)) - 1]["age"]
     db.execute("INSERT INTO tomo VALUES (?, ?, ?, ?, ?)", (learner, target, now - a.days * 86400, level, age))
-    met = history(db, a, learner, target, levels, items, level, now) if a.history else {}
+    met, stages, peaks = history(db, a, learner, target, levels, items, level, now) if a.history else ({}, {}, {})
+    for item in met:                         # the words as their history left them: stage, best stage, due
+        st = stages[item]
+        items[item] = (st, wait(st, level) * 0.6 if st < 9 else None, max(peaks[item], st))
     db.executemany("INSERT INTO item VALUES (?, ?, ?, ?, ?, ?, ?, 3, 0, ?)", [
-        (learner, target, item, stage, now + due * 3600, met.get(item, now - min(3, a.days) * 86400), now - 3600, peak)
+        (learner, target, item, stage, None if due is None else now + due * 3600,
+         met.get(item, now - min(3, a.days) * 86400), now - 3600, peak)
         for item, (stage, due, peak) in items.items()])
     db.commit()
     print(f"{d}/learner.sqlite: {learner} → {target}, level {level}, age {age}, {len(items)} items")
@@ -138,8 +142,9 @@ def main():
 def history(db, a, learner, target, levels, items, level, now):
     """The logs of a learner who played since Tomo hatched (--history): the seeded words met in order, a level-up
     when the next level's first word is met (a birthday where the pack's age goes up), and on each day that isn't
-    quiet three visits and an ignored one, with reviews (wins), practice and a couple of misses. Returns when each
-    word was met, for the item table."""
+    quiet three visits and an ignored one: new words, the reviews that are due (wins, now and then a miss that sets
+    a word back), and practice in the evening. Returns when each word was met, its stage and its best stage, for the
+    item table."""
     hatched = now - a.days * 86400
     start = time.mktime(time.localtime(hatched)[:3] + (0, 0, 0, 0, 0, -1))   # midnight of the hatch day
     days = int((now - start) // 86400) + 1
@@ -152,7 +157,7 @@ def history(db, a, learner, target, levels, items, level, now):
     order = [i for i in items if not i.startswith("_")]
     level_of = {i: n + 1 for n, lv in enumerate(levels) for i in ids(lv)}
     per_day = max(1, -(-len(order) // max(1, len(played))))                # ceil: every seeded word gets met
-    answers, growth, visits, met, stage = [], [], [], {}, {}
+    answers, growth, visits, met, stage, peak, nxt, n = [], [], [], {}, {}, {}, {}, 0
     lv, age, queue = 1, levels[0]["age"], list(order)
     for d in played:
         day = start + d * 86400
@@ -171,16 +176,26 @@ def history(db, a, learner, target, levels, items, level, now):
                         age = levels[lv - 1]["age"]
                         growth.append((at - 30, "age", age))
                 answers.append((at, item, lv, "right", 0, 1, None, 1))
-                met[item], stage[item] = at, 1
+                met[item], stage[item], peak[item] = at, 1, 1
+                nxt[item] = at + wait(1, level_of.get(item, lv)) * 3600 * 0.9
+                at += 20
+            # Reviews, as the rules ask them: each word comes back when its wait is up (a little early), goes up a
+            # stage when it's right, and a miss now and then sets it back (two stages from "knows it" up).
+            due = sorted((i for i in met if nxt[i] <= t and stage[i] < 9), key=lambda i: nxt[i])[:10]
+            for k, item in enumerate(due):
+                n += 1
+                miss = n % 9 == 4
+                if miss:
+                    answers.append((at, item, lv, "wrong", 0, 0, stage[item], stage[item]))
+                    at += 15
+                    after = max(1, stage[item] - (2 if stage[item] >= 5 else 1))
+                else:
+                    after = stage[item] + 1
+                answers.append((at, item, lv, "right", 1 if miss else 0, 1, stage[item], after))
+                stage[item], peak[item] = after, max(peak[item], after)
+                nxt[item] = at + (wait(after, level_of.get(item, lv)) or 1e9) * 3600 * 0.9
                 at += 20
             known = [i for i in met if met[i] < t - 3600]
-            for k, item in enumerate(known[(d * 3 + v) % max(1, len(known)):][:3]):     # reviews: wins
-                if (d + v + k) % 5 == 4:
-                    answers.append((at, item, lv, "wrong", 0, 0, stage[item], stage[item]))  # a miss, then right
-                    at += 15
-                answers.append((at, item, lv, "right", 0, 1, stage[item], min(stage[item] + 1, 8)))
-                stage[item] = min(stage[item] + 1, 8)
-                at += 20
             if v == 2 and known:                                            # practice in the evening
                 for item in known[-2:]:
                     answers.append((at, item, lv, "right", 0, 0, stage[item], stage[item]))
@@ -203,7 +218,7 @@ def history(db, a, learner, target, levels, items, level, now):
         (t, learner, target, opened, card, end, how) for t, opened, card, end, how in visits])
     print(f"  history: {len(played)} days played of {days}, {len(answers)} answers, {len(growth)} growth rows, "
           f"{len(visits)} visits")
-    return met
+    return met, stage, peak
 
 
 if __name__ == "__main__":
