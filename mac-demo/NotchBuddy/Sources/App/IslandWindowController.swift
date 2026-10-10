@@ -403,10 +403,11 @@ final class IslandWindowController: NSWindowController {
     /// How long the card or the peek waits to fold while Tomo is pulled up out of it (TomoBlob's pull up).
     nonisolated static let pullUpTime: TimeInterval = 0.45
 
-    /// Whether going from `from` to `to` waits for Tomo to be pulled up first: the card or the peek folding (to rest,
-    /// or hidden), not under Reduce Motion, where Tomo fades as it folds.
+    /// Whether going from `from` to `to` waits for Tomo to be pulled up first: the card or the peek folding away
+    /// (hidden), not under Reduce Motion, where Tomo fades as it folds. Folding to rest, Tomo travels back beside the
+    /// notch as the island folds (TomoTravel), so nothing waits.
     nonisolated static func foldWaits(from: IslandMode, to: IslandMode, reduceMotion: Bool) -> Bool {
-        countsAsOpen(from) && !countsAsOpen(to) && !reduceMotion
+        countsAsOpen(from) && to == .hidden && !reduceMotion
     }
 
     func setMode(_ requested: IslandMode) {
@@ -443,9 +444,10 @@ final class IslandWindowController: NSWindowController {
         let prev = state.mode
         guard mode != prev else { return }
         let shrinking = modeLevel(mode) < modeLevel(prev)
+        let slow = TomoTravel.slowMotion   // TOMO_SLOW_MOTION, for snapshots; 1 otherwise
         let anim: Animation = shrinking
-            ? .timingCurve(0.45, 0, 0.2, 1, duration: 0.34)
-            : .spring(response: 0.5, dampingFraction: 0.72)
+            ? .timingCurve(0.45, 0, 0.2, 1, duration: TomoTravel.fold * slow)
+            : .spring(response: 0.5 * slow, dampingFraction: 0.72)
         withAnimation(anim) { state.mode = mode }
         if mode == .expanded { SoundEngine.shared.play("open") }
         if prev == .expanded { SoundEngine.shared.play("close") }
