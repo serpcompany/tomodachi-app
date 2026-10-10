@@ -9,8 +9,10 @@ import TomoCore
 /// on the cursor. It follows Reduce Motion (`TomoMotion`).
 /// It arrives and leaves through the notch (`move`): it drips in when it comes out on its own, is pulled up before the
 /// card or the peek folds (`AppState.leaving`), and fades back in beside the notch. It says hello (#137) when it first
-/// appears, as the app starts, and when the Mac wakes (`wakes`). Its host says how strongly it glows to ask to play
-/// (`callGlow`), and the strand and the hello's drop hang from the island's top edge, straight above it.
+/// appears, as the app starts, and when the Mac wakes (`wakes`). Small, in the resting island, it wears its badges
+/// (`wearsBadges`: a "…" bubble while it checks an answer, a Zz while it dozes), drawn just right of its canvas
+/// (`badgeRoom`). Its host says how strongly it glows to ask to play (`callGlow`), and the strand and the hello's drop
+/// hang from the island's top edge, straight above it.
 struct TomoCharacterView: View {
     @ObservedObject var state: AppState
     var particleOverhang: CGFloat = 0
@@ -35,6 +37,23 @@ struct TomoCharacterView: View {
         default: return .none
         }
     }
+
+    /// Where Tomo is small enough to wear its badges instead of its drifting z's: resting beside the notch. Not in the
+    /// card, whose own line says "…" while it checks; not in the peek, where Tomo is big, a badge would reach its words,
+    /// and a visit never dozes or checks; nor hidden.
+    nonisolated static func wearsBadges(_ mode: IslandMode) -> Bool { mode == .compact }
+
+    /// The room the canvas has right of its frame for a badge (the frame stays the size BotPlacement gives, so Tomo
+    /// doesn't move or grow). The island's own shape still clips it: the badge stays in the ear, left of the notch.
+    static let badgeRoom: CGFloat = 24
+
+    /// TOMO_BADGE=checking|dozing: small Tomo wears that badge, for snapshots. Checking holds Tomo in `.thinking`
+    /// (nothing makes it check an answer while small today: answers are choices); dozing lets it doze 2 s after the
+    /// pointer stops, not 45 s.
+    nonisolated static let testBadge = ProcessInfo.processInfo.environment["TOMO_BADGE"]
+
+    /// Tomo's state, or `.thinking` for TOMO_BADGE=checking.
+    private var shownState: BotState { Self.testBadge == "checking" ? .thinking : state.effectiveState }
 
     /// Small Tomo fades back in beside the notch this long after the island folds: once it has folded (0.34 s), or once
     /// the pull up (0.45 s) is done if it plays as it folds (Reduce Motion's fade).
@@ -69,20 +88,23 @@ struct TomoCharacterView: View {
             let islandTop = -geo.frame(in: .named(IslandContainer.space)).minY
             // The Canvas must read the timeline's date, or SwiftUI won't redraw it every frame.
             TimelineView(.animation(paused: state.mode == .hidden)) { timeline in
-                Canvas { context, size in
+                // Wider than the frame on the right, for a badge; Tomo is drawn at the frame's size, where it was.
+                Canvas { context, _ in
                     blob.frameDate = timeline.date
                     let g = gaze()
                     blob.lookX = g.x
                     blob.lookY = g.y
                     blob.particleOverhang = particleOverhang
-                    blob.strandAnchor = CGPoint(x: size.width / 2, y: islandTop - 2)
+                    blob.strandAnchor = CGPoint(x: geo.size.width / 2, y: islandTop - 2)
                     blob.callGlow = callGlow()
+                    blob.showsBadges = Self.wearsBadges(state.mode)
                     blob.step()
-                    blob.draw(context, size: size)
+                    blob.draw(context, size: geo.size)
                 }
+                .frame(width: geo.size.width + Self.badgeRoom, height: geo.size.height)
             }
         }
-        .onChange(of: state.effectiveState) { _, s in blob.setState(s) }
+        .onChange(of: shownState) { _, s in blob.setState(s) }
         .onChange(of: state.mode) { old, new in
             let arriving = state.arrivals != seenArrivals
             seenArrivals = state.arrivals
@@ -107,7 +129,8 @@ struct TomoCharacterView: View {
             if leaving { blob.pullUp() } else if IslandWindowController.countsAsOpen(state.mode) { blob.appear() }
         }
         .onAppear {
-            blob.setState(state.effectiveState, force: true)
+            if Self.testBadge == "dozing" { blob.dozeAfter = 2 }
+            blob.setState(shownState, force: true)
             blob.setGrowth(TomoGame.shared.growthStep)
             // Tomo's first appearance, as the app starts, is its hello: beside the notch, or into the launch visit's card
             // (which can open before Tomo is first drawn), greeting it instead of dripping in. A material without a hello

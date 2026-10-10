@@ -48,14 +48,19 @@ another script, or while Tomo is away. Planned: evolution that reads as growing 
 - Its look and its material, at creation.
 - Where the notch is (`strandAnchor`), for the strand and the hello's drop, and how strongly small Tomo glows amber to
   ask to play (`callGlow`, 0…1).
+- Whether it wears its badges (`showsBadges`): the island turns them on while Tomo rests small beside the notch
+  (`TomoCharacterView.wearsBadges`), and its canvas reaches past its frame on the right, where the badge sits
+  (`badgeRoom`, `TomoBlob.badgeFrame`). The badge is what Tomo is doing (`badge`): a "…" thought bubble while it checks
+  an answer (`.thinking`), a tiny Zz while it dozes or sleeps; none while a script plays or Tomo is away. Wearing them,
+  its z's don't drift. Elsewhere (the card, the peek, the iPhone) its face and drifting z's say it.
 - When it says hello: the island the first time Tomo shows after launch, greeting the launch visit's card instead of
   dripping into it, and when the Mac wakes (`TomoCharacterView.saysHello`); the iPhone's play screen when it first
   appears.
 - Reduce Motion (`TomoBlob.reduceMotion`): each shell sets `TomoMotion` from the system (`NSWorkspace` on the Mac,
   `UIAccessibility` on the iPhone) and follows changes, and every live host passes it on. Then hops, shakes and wiggles
   become a face and a small puff, a cue script plays its calm version (a glow, star eyes and a puff; an arrival fades in
-  or out where Tomo sits; the hello fades in with its light), the call glow holds steady, and particles are fewer and
-  slower. Offline renders leave it off, so they never depend on the Mac that renders them (`TOMO_REDUCE_MOTION=1` turns
+  or out where Tomo sits; the hello fades in with its light), the call glow holds steady, badges show without bobbing,
+  and particles are fewer and slower. Offline renders leave it off, so they never depend on the Mac that renders them (`TOMO_REDUCE_MOTION=1` turns
   it on); widgets and the Live Activity play their frame font regardless.
 
 ## Invariants
@@ -67,3 +72,4 @@ another script, or while Tomo is away. Planned: evolution that reads as growing 
 - `classic` never changes, because the frame font is rendered from it: a new look is a new material.
 - A material's pass is fixed fills: no blur or particles at rest, so a Tomo at rest costs what it did.
 - No material moves Tomo under Reduce Motion (`TomoBlob.motionSelfTest` runs every material).
+- A badge says what Tomo is doing, never how many of anything (`TomoBlob.Badge`).
