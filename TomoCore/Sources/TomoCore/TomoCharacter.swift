@@ -4,11 +4,13 @@ import SwiftUI
 //
 // Every Tomo is a blob of its own, drawn and animated by our own code (decisions.md, 2026-10-07). What it
 // looks like comes from its seed (TomoLook.swift): a colour and eyes for life, and a new form at every
-// birthday. Growth is an age step, 0 = 1さい … 5 = 6さい; each birthday it squeezes down, flashes and pops out
+// birthday. Growth is an age step, 0 = 1さい … 5 = 6さい; each birthday it squeezes down glowing and pops out
 // in its next form.
 // The app drives it through notifications (docs/architecture.md, "Character"): the task state
 // (`AppState.effectiveState`), `.botTalk`, `.botNudge`, `.botGrow`, `.botLevelUp`, `.botGreet`, `.botGulp`,
 // `.triggerEmote`, `.triggerSlap`, `.botBlink`, `.botSetTgEs`.
+// Big moments (a level-up, a birthday, becoming another Tomo) are cue scripts: one timeline each, as data, played on
+// Tomo's clock (`Cue`, `play`).
 // Reduce Motion is an input (`reduceMotion`): a live Tomo follows its shell's setting (`TomoMotion`), and offline
 // renders leave it off, so they never depend on the Mac that renders them.
 
@@ -27,9 +29,9 @@ public final class TomoBlob: ObservableObject {
     public var dozeAfter: Double = 45
     /// The frame being drawn (set by the view; reading it ties the Canvas to the frame timer).
     public var frameDate = Date()
-    /// Reduce Motion: hops, shakes, wiggles and the evolve pop become a face flash and a small puff, and particles
-    /// are a third as many, and slower. Breathing, blinking and gaze stay. A live Tomo follows `motion`; offline
-    /// renders set it themselves (off unless TOMO_REDUCE_MOTION=1).
+    /// Reduce Motion: hops, shakes and wiggles become a face flash and a small puff, a big moment plays its calm script
+    /// (a glow, star eyes and a puff), and particles are a third as many, and slower. Breathing, blinking and gaze stay.
+    /// A live Tomo follows `motion`; offline renders set it themselves (off unless TOMO_REDUCE_MOTION=1).
     public var reduceMotion = false
 
     /// Whose Tomo this is. Nil: the learner's own (`TomoLook.current`), changing with a pop when it does.
@@ -45,9 +47,10 @@ public final class TomoBlob: ObservableObject {
         reduceMotion = motion?.reduce ?? false
     }
 
-    /// The age step on show (0 = 1さい), and the one it's growing into.
+    /// The age step on show (0 = 1さい). The one it's growing into is the playing script's `swap`.
     public private(set) var age = 0
-    private var swap: (at: Double, age: Int, look: TomoLook)?
+    /// The big moment playing, if any (`play`).
+    private var cue: Playing?
 
     public private(set) var state: BotState = .idle
     private var baseFace: Face = .normal
@@ -156,8 +159,8 @@ public final class TomoBlob: ObservableObject {
         }
     }
 
-    /// A new level: star eyes. The game's win and `.proud` bring the hop and the sparkles.
-    public func levelUp() { stir(); flash = (.star, clock() + 1.8) }
+    /// A new level: the level-up script (`levelUpCue`). The game's win and `.proud`, sent with it, add nothing (`play`).
+    public func levelUp() { play(Self.levelUpCue) }
 
     public func emote(_ e: BotEmote) {
         stir()
@@ -179,35 +182,29 @@ public final class TomoBlob: ObservableObject {
         puffTarget = scale > 1 ? 1.05 : 1
     }
 
-    /// Grow up (or reset) to an age step. Growing up evolves: squeeze, flash, pop out in the next form.
+    /// Grow up (or reset) to an age step. Growing up plays the birthday script (`birthdayCue`): the new form comes at
+    /// its swap.
     public func grow(to target: CGFloat) {
         let next = Self.ageStep(target)
-        // Already there, or evolving into it: a shell can report one birthday twice (the iPhone's view sees the age
-        // change and the game's notification), and the second must not cut the evolution short.
-        if next == (swap?.age ?? age) { return }
-        stir()
-        if next > (swap?.age ?? age) {
-            evolve(to: next, look: swap?.look ?? look)
-            emit(.sparkle, 8)
+        let showing = cue?.swap?.age ?? age            // the age on show, or the one a birthday is growing into
+        // Already there, or growing into it: a shell can report one birthday twice (the iPhone's view sees the age
+        // change and the game's notification), and the second must not cut the birthday short.
+        if next == showing { return }
+        if next > showing {
+            play(Self.birthdayCue, swap: (next, cue?.swap?.look ?? look))
         } else {
+            stir()
             setGrowth(target)
         }
     }
 
-    /// Jump straight to an age step (no animation).
+    /// Jump straight to an age step (no animation). A birthday playing keeps going, without its swap.
     public func setGrowth(_ value: CGFloat) {
         age = Self.ageStep(value)
-        swap = nil
+        cue?.swap = nil
     }
 
     private static func ageStep(_ v: CGFloat) -> Int { min(max(Int(v.rounded()), 0), TomoLook.ages - 1) }
-
-    /// Under Reduce Motion it doesn't squeeze or pop: it glows, smiles, and puffs as the new shape appears.
-    private func evolve(to next: Int, look next2: TomoLook) {
-        add(.evolve, 0.9)
-        swap = (clock() + 0.4, next, next2)
-        if reduceMotion { flash = (.happy, clock() + 1.2) }
-    }
 
     /// Something small Tomo does on its own between events, so it never sits frozen:
     /// a glance, a peep, a stretch, a curious tilt, a shuffle, a little lean, or a hop.
@@ -258,14 +255,10 @@ public final class TomoBlob: ObservableObject {
         let dt = CGFloat(min(elapsed, 1))
 
         // A different learner's Tomo (it synced in, or a new one hatched): pop into it.
-        if fixedLook == nil, TomoLook.current != (swap?.look ?? look) {
-            evolve(to: swap?.age ?? age, look: TomoLook.current)
+        if fixedLook == nil, TomoLook.current != (cue?.swap?.look ?? look) {
+            play(Self.newTomoCue, swap: (cue?.swap?.age ?? age, TomoLook.current))
         }
-        if let s = swap, now >= s.at {
-            age = s.age; look = s.look; swap = nil
-            emit(.pop, 12)
-            if reduceMotion { add(.puff, 0.5) } else { jiggleVel += 6 }
-        }
+        advanceCue(now)
 
         moves.removeAll { now > $0.start + $0.duration }
         if let f = flash, now > f.until { flash = nil }
@@ -337,8 +330,8 @@ public final class TomoBlob: ObservableObject {
         }
         if let b = secondBlinkAt, now > b { blinkAt = now; secondBlinkAt = nil }
 
-        // Fidgets while waiting; dozing when ignored for a while.
-        let calm = state == .idle || state == .question || state == .thinking
+        // Fidgets while waiting (not during a big moment); dozing when ignored for a while.
+        let calm = cue == nil && (state == .idle || state == .question || state == .thinking)
         if calm, !drowsy, flash == nil, moves.isEmpty, glance == nil, now > nextFidget {
             fidget()
             nextFidget = now + .random(in: 2.5...6)
@@ -570,8 +563,11 @@ public final class TomoBlob: ObservableObject {
         return p
     }
 
+    /// The face on show: a big moment's, else a flash, else the state's (sleepy while dozing).
+    private var shownFace: Face { cue?.face ?? flash?.face ?? (drowsy ? .sleepy : baseFace) }
+
     private func drawFace(_ ctx: GraphicsContext, form: TomoForm, R: CGFloat, now: Double, mouth: CGFloat) {
-        let face = flash?.face ?? (drowsy ? .sleepy : baseFace)
+        let face = shownFace
         let fit = min(1, form.faceW / 0.8) * (isMini ? 1.4 : 1)       // a small face gets smaller eyes
         let one: CGFloat = look.cyclops ? 1.55 : 1
         let fx = look2.x * R * 0.16 * form.faceW, fy = -look2.y * R * 0.1 + (form.faceY + look.eyeY * fit) * R
@@ -754,8 +750,9 @@ public final class TomoBlob: ObservableObject {
     /// Particles fly at this pace under Reduce Motion, and only a third of them.
     private static let calmPace: CGFloat = 0.4
 
-    private func emit(_ kind: Bit.Kind, _ count: Int) {
-        guard !isMini else { return }
+    /// While a big moment plays, only its own particles fly (`fromCue`).
+    private func emit(_ kind: Bit.Kind, _ count: Int, fromCue: Bool = false) {
+        guard !isMini, cue == nil || fromCue else { return }
         let count = reduceMotion ? max(1, Int((Double(count) / 3).rounded())) : count
         let first = bits.count
         for _ in 0..<count {
@@ -823,14 +820,20 @@ public final class TomoBlob: ObservableObject {
     private struct Move {
         public enum Kind {
             case hop(CGFloat), nudge, shake, wiggle(Int), gulp, rock, squish, wobble, mouth
-            case peep, stretch, tiltHold(CGFloat), shuffle, lean(CGFloat), evolve
+            case peep, stretch, tiltHold(CGFloat), shuffle, lean(CGFloat)
             case puff                          // Reduce Motion's stand-in for the others: a small swell
+            // The cue scripts' moves. Each starts and ends at rest, so they add up; times are in seconds.
+            case crouch                        // squeeze down, then let go to take off
+            case leap(CGFloat)                 // up that high (in body radii) and down, stretched and twirling
+            case settle                        // a few small rocks, dying away
+            case evolve(squeeze: Double)       // squeeze down until then (the new shape), then pop out past size
+            case glow(CGFloat, peak: Double)   // glow up to that brightness at that time (0: a flash), then fade
 
-            /// Carries Tomo off its spot, tips or squashes it: under Reduce Motion it becomes a puff. The mouth
-            /// moves only open the mouth then, and evolving only glows (`pose`).
+            /// Carries Tomo off its spot, tips or squashes it: under Reduce Motion it becomes a puff, and during a big
+            /// moment it's skipped (`add`). The mouth moves only open the mouth then, and a glow only glows (`pose`).
             public var movesBody: Bool {
                 switch self {
-                case .mouth, .peep, .gulp, .evolve: return false
+                case .mouth, .peep, .gulp, .glow: return false
                 default: return true
                 }
             }
@@ -838,6 +841,8 @@ public final class TomoBlob: ObservableObject {
         public let kind: Kind
         public let start: Double
         public let duration: Double
+        /// Started by a big moment's script, so a newer one takes it back (`play`).
+        public var byCue = false
     }
 
     private struct Pose {
@@ -848,6 +853,7 @@ public final class TomoBlob: ObservableObject {
 
     private func add(_ kind: Move.Kind, _ duration: Double) {
         let now = clock()
+        if cue != nil, kind.movesBody { return }            // a big moment owns the body (`play`)
         guard reduceMotion, kind.movesBody else {
             moves.append(Move(kind: kind, start: now, duration: duration))
             return
@@ -863,6 +869,7 @@ public final class TomoBlob: ObservableObject {
     private func pose(at now: Double) -> Pose {
         var p = Pose()
         let body: CGFloat = reduceMotion ? 0 : 1           // the mouth moves' little bob
+        var puffed: CGFloat = 0                            // puffs don't add up: the fullest one shows
         for m in moves {
             let q = CGFloat(min(1, max(0, (now - m.start) / m.duration)))
             let arc = sin(.pi * q)
@@ -900,24 +907,36 @@ public final class TomoBlob: ObservableObject {
             case .lean(let side):
                 let e = Self.hold(q)
                 p.rot += side * 0.16 * e; p.dy += 0.05 * e; p.sy *= 1 - 0.04 * e
-            case .evolve:                          // squeeze down glowing, then pop out in the next form
-                let swapAt: CGFloat = 0.45
-                if !reduceMotion {                 // under Reduce Motion it only glows; the pop is a puff (`step`)
-                    if q < swapAt {
-                        let e = q / swapAt
-                        let s = 1 - 0.35 * e * e
-                        p.sx *= s; p.sy *= s; p.rot += sin(e * 6 * .pi) * 0.06 * e
-                    } else {
-                        let e = (q - swapAt) / (1 - swapAt)
-                        let s = 1 - 0.35 * (1 - e) * (1 - e) + 0.18 * sin(.pi * e) * (1 - e)
-                        p.sx *= s; p.sy *= s
-                    }
-                }
-                p.glow = max(p.glow, 0.85 * max(0, 1 - abs(q - swapAt) / 0.25))
             case .puff:
-                p.sx *= 1 + 0.045 * arc; p.sy *= 1 + 0.045 * arc
-                p.glow = max(p.glow, 0.16 * arc)
+                puffed = max(puffed, arc)
+            case .crouch:                          // the squash builds, then lets go in the last fifth
+                let e = q < 0.8 ? Self.inOut(q / 0.8) : 1 - Self.inOut((q - 0.8) / 0.2)
+                p.sx *= 1 + 0.16 * e; p.sy *= 1 - 0.2 * e
+            case .leap(let h):
+                p.dy -= h * arc; p.sx *= 1 - 0.1 * arc; p.sy *= 1 + 0.14 * arc
+                p.rot += sin(q * 2 * .pi) * 0.12
+            case .settle:
+                p.rot += sin(q * 4 * .pi) * 0.05 * (1 - q)
+            case .evolve(let squeeze):             // wide and trembling, then the new shape pops out past its size
+                let at = CGFloat(squeeze / m.duration)
+                if q < at {
+                    let e = Self.inOut(q / at)
+                    p.sx *= 1 + 0.2 * e; p.sy *= 1 - 0.3 * e
+                    p.dx += sin(CGFloat(now - m.start) * 70) * 0.02 * e
+                } else {
+                    let k = (q - at) / (1 - at), b = Self.overshoot(k)
+                    p.sx *= 1.2 - 0.2 * b; p.sy *= 0.7 + 0.3 * b
+                    p.dy -= 0.32 * sin(.pi * k)
+                }
+            case .glow(let g, let peak):
+                let at = CGFloat(peak / m.duration)
+                let e = q < at ? Self.inOut(q / at) : 1 - (q - at) / max(1 - at, 0.001)
+                p.glow = max(p.glow, g * e)
             }
+        }
+        if puffed > 0 {
+            p.sx *= 1 + 0.045 * puffed; p.sy *= 1 + 0.045 * puffed
+            p.glow = max(p.glow, 0.16 * puffed)
         }
         return p
     }
@@ -926,6 +945,19 @@ public final class TomoBlob: ObservableObject {
     private static func hold(_ q: CGFloat) -> CGFloat {
         let e = min(1, min(q, 1 - q) * 4)
         return e * e * (3 - 2 * e)
+    }
+
+    /// 0 → 1, easing in and out (cubic).
+    private static func inOut(_ u: CGFloat) -> CGFloat {
+        if u < 0.5 { return 4 * u * u * u }
+        let v = 2 - 2 * u
+        return 1 - v * v * v / 2
+    }
+
+    /// 0 → 1, past 1 and back (a springy overshoot).
+    private static func overshoot(_ u: CGFloat) -> CGFloat {
+        let s: CGFloat = 1.9, v = u - 1
+        return 1 + (s + 1) * v * v * v + s * v * v
     }
 
     private static func face(for s: BotState) -> Face {
@@ -944,6 +976,134 @@ public final class TomoBlob: ObservableObject {
         case .question: return 0.18
         case .sleeping: return -0.06
         default: return 0
+        }
+    }
+
+    // MARK: - Big moments (cue scripts)
+
+    /// A big moment as one timeline on Tomo's clock: what happens at each time, as data, so it plays the same live and
+    /// offline. `lively` is the moment; `calm` plays under Reduce Motion (a glow, star eyes and a small puff; no hop,
+    /// squash or tip). To add a moment (#87), write a script; a new kind of step or move goes here and in `pose`.
+    private struct Cue {
+        enum Step {
+            case face(Face)                    // worn from then on, until the next face or the end
+            case move(Move.Kind, Double)       // a move for that many seconds, starting exactly at the step's time
+            case sparkles(Int)
+            case drops(Int)                    // drops of Tomo's own colour
+            case kick(CGFloat)                 // a jiggle, as on landing
+            case swap                          // the new shape: the age or look the script was started with
+        }
+        let length: Double
+        let lively: [(at: Double, step: Step)]
+        let calm: [(at: Double, step: Step)]
+    }
+
+    /// A new level (about 2.1 s): squeeze, then flash and leap with star eyes and a sparkle burst, land with a jiggle
+    /// kick, settle with happy eyes.
+    private static let levelUpCue = Cue(length: 2.1, lively: [
+        (0, .face(.squeeze)), (0, .move(.crouch, 0.35)),
+        (0.35, .face(.star)), (0.35, .move(.leap(0.55), 0.6)), (0.35, .move(.glow(0.85, peak: 0), 0.45)),
+        (0.38, .sparkles(10)),
+        (0.95, .move(.squish, 0.35)), (0.95, .kick(6)), (0.95, .sparkles(3)),
+        (1.3, .move(.settle, 0.8)), (1.3, .face(.happy)),
+    ], calm: [
+        (0, .face(.star)), (0, .move(.glow(0.5, peak: 0.25), 0.5)), (0, .move(.puff, 0.5)),
+        (0.15, .sparkles(10)),
+        (1.7, .face(.happy)),
+    ])
+
+    /// A birthday (about 2.6 s): a glowing squeeze-down, the new shape at 0.62 s with drops of Tomo's colour, a pop
+    /// out with star eyes, and it settles, happy.
+    private static let birthdayCue = Cue(length: 2.6, lively: [
+        (0, .face(.squeeze)), (0, .move(.evolve(squeeze: 0.62), 1.2)), (0, .move(.glow(0.95, peak: 0.62), 1.2)),
+        (0.62, .swap), (0.62, .drops(12)), (0.62, .kick(7)), (0.62, .face(.star)),
+        (0.66, .sparkles(10)),
+        (1.2, .kick(6)), (1.2, .sparkles(3)), (1.2, .move(.settle, 0.8)),
+        (1.8, .face(.happy)),
+    ], calm: [
+        (0, .face(.star)), (0, .move(.glow(0.95, peak: 0.62), 1.2)),
+        (0.62, .swap), (0.62, .drops(12)), (0.62, .move(.puff, 0.5)),
+        (0.66, .sparkles(10)),
+        (1.8, .face(.happy)),
+    ])
+
+    /// Becoming another Tomo (a new one hatched, or the learner's own arrived from iCloud): the birthday's squeeze and
+    /// pop, without the party.
+    private static let newTomoCue = Cue(length: 2.0, lively: [
+        (0, .move(.evolve(squeeze: 0.62), 1.2)), (0, .move(.glow(0.95, peak: 0.62), 1.2)),
+        (0.62, .swap), (0.62, .drops(12)), (0.62, .kick(7)),
+        (1.2, .move(.settle, 0.8)),
+    ], calm: [
+        (0, .move(.glow(0.95, peak: 0.62), 1.2)),
+        (0.62, .swap), (0.62, .drops(12)), (0.62, .move(.puff, 0.5)),
+    ])
+
+    /// A script playing: its steps (lively or calm, picked when it starts), how far it has got, and what it opened.
+    private final class Playing {
+        let length: Double
+        let start: Double
+        let steps: [(at: Double, step: Cue.Step)]
+        var next = 0                           // the first step not fired yet
+        var fired: [Double] = []               // the clock when each step fired (the self-test reads it)
+        var face: Face?
+        var swap: (age: Int, look: TomoLook)?  // what `.swap` changes to; nil once it has
+
+        init(_ cue: Cue, start: Double, calm: Bool, swap: (age: Int, look: TomoLook)?) {
+            length = cue.length
+            self.start = start
+            steps = calm ? cue.calm : cue.lively
+            self.swap = swap
+        }
+    }
+
+    /// Plays a big moment. A newer one replaces the one playing, which first finishes what it opened (its shape swap).
+    /// The moment starts clean: body moves and particles that other inputs started since the last frame (the game's
+    /// win and `.proud`, sent with a level-up) are taken back, and until it ends it owns Tomo's body, face and particles
+    /// (`add`, `emit`, `shownFace`); the mouth still talks.
+    private func play(_ script: Cue, swap: (age: Int, look: TomoLook)? = nil) {
+        stir()
+        if let old = cue {
+            if let s = old.swap { age = s.age; look = s.look }
+            moves.removeAll { $0.byCue }
+        }
+        moves.removeAll { $0.start >= lastTime && $0.kind.movesBody }
+        bits.removeAll { $0.age == 0 }
+        flash = nil
+        let now = clock()
+        cue = Playing(script, start: now, calm: reduceMotion, swap: swap)
+        advanceCue(now)
+    }
+
+    /// Fires the playing script's due steps, each once and in order; a move starts at its step's own time, whatever the
+    /// frame rate. The script ends after its length. One whose time passed while Tomo wasn't drawn (a hidden island, an
+    /// app in the background) only swaps the shape.
+    private func advanceCue(_ now: Double) {
+        guard let c = cue else { return }
+        let over = now >= c.start + c.length
+        while c.next < c.steps.count, c.start + c.steps[c.next].at <= now {
+            let (at, step) = c.steps[c.next]
+            c.next += 1
+            c.fired.append(now)
+            switch step {
+            case .swap:
+                if let s = c.swap { age = s.age; look = s.look; c.swap = nil }
+            case _ where over:
+                break
+            case .face(let f):
+                c.face = f
+            case .move(let kind, let duration):
+                moves.append(Move(kind: kind, start: c.start + at, duration: duration, byCue: true))
+            case .sparkles(let n):
+                emit(.sparkle, n, fromCue: true)
+            case .drops(let n):
+                emit(.pop, n, fromCue: true)
+            case .kick(let v):
+                if !reduceMotion { jiggleVel += v }
+            }
+        }
+        if over {
+            if let s = c.swap { age = s.age; look = s.look }
+            cue = nil
         }
     }
 
@@ -968,10 +1128,14 @@ public final class TomoBlob: ObservableObject {
 
 extension TomoBlob {
     /// Reduce Motion, on a scripted clock: a win, a miss, a poke, a nudge, a level-up and a birthday keep Tomo on its
-    /// spot with only a small puff, a win's sparkles are a third, the birthday still swaps the shape, and Tomo still
-    /// blinks. The same script with it off must hop, so the check can tell.
+    /// spot with only a small puff, a win's sparkles are a third, the level-up and the birthday are a glow and star eyes,
+    /// the birthday still swaps the shape, and Tomo still blinks. The same script with it off must hop, so the check can
+    /// tell.
     static func motionSelfTest(_ check: (Bool, String) -> Void) {
-        struct Run { var moved: CGFloat = 0, swell: CGFloat = 0, squash: CGFloat = 0, sparkles = 0, age = 0, blinks = 0 }
+        struct Run {
+            var moved: CGFloat = 0, swell: CGFloat = 0, squash: CGFloat = 0, glow: CGFloat = 0
+            var sparkles = 0, age = 0, blinks = 0, stars = 0
+        }
         func run(reduce: Bool) -> Run {
             let blob = TomoBlob(look: .mascot)
             blob.reduceMotion = reduce
@@ -986,11 +1150,11 @@ extension TomoBlob {
                 (2.0, { $0.setState(.error) }), (3.0, { $0.setState(.idle) }),   // a miss
                 (3.5, { $0.poke() }),
                 (4.5, { $0.nudge() }),
-                (5.5, { $0.setState(.finished); $0.emote(.proud) }),        // a level-up (TomoGame.celebrate)
-                (7.0, { $0.setState(.idle); $0.grow(to: 1) }),               // a birthday
+                (5.5, { $0.setState(.finished); $0.emote(.proud); $0.levelUp() }),   // a level-up (TomoGame.celebrate)
+                (8.0, { $0.setState(.idle); $0.grow(to: 1) }),               // a birthday
             ]
             var next = 0, lastBlink = blob.blinkAt
-            for i in 1...(60 * 9) {
+            for i in 1...(60 * 11) {
                 t = 100 + Double(i) / 60
                 while next < script.count, 100 + script[next].at <= t { script[next].run(blob); next += 1 }
                 blob.step()
@@ -998,16 +1162,21 @@ extension TomoBlob {
                 r.moved = max(r.moved, abs(p.dx), abs(p.dy), abs(p.rot), abs(blob.jiggle))
                 r.swell = max(r.swell, p.sx - 1, p.sy - 1)
                 r.squash = max(r.squash, 1 - p.sx, 1 - p.sy)
+                r.glow = max(r.glow, p.glow)
+                if blob.shownFace == .star { r.stars += 1 }
                 if blob.blinkAt != lastBlink { r.blinks += 1; lastBlink = blob.blinkAt }
             }
             r.age = blob.age
             return r
         }
         let calm = run(reduce: true), lively = run(reduce: false)
-        check(lively.moved > 0.2, "Tomo hops and shakes for a win, a miss, a poke and a level-up")
+        check(lively.moved > 0.2, "Tomo hops and shakes for a win, a miss, a poke, a level-up and a birthday")
         check(calm.moved == 0 && calm.squash == 0 && calm.swell <= 0.046,
               String(format: "under Reduce Motion they're a puff (%.1f%% at most): no hop, shake, tip or squash",
                      calm.swell * 100))
+        check(calm.glow > 0.4 && calm.stars > 120,
+              String(format: "under Reduce Motion a level-up and a birthday still glow (%.2f) with star eyes (%.1f s)",
+                     calm.glow, Double(calm.stars) / 60))
         check(calm.age == 1, "under Reduce Motion a birthday still swaps Tomo's shape")
         check(calm.sparkles == 2 && lively.sparkles == 6, "under Reduce Motion a win has a third of the sparkles (6 → 2)")
         check(calm.blinks > 0, "under Reduce Motion Tomo still blinks")
@@ -1048,7 +1217,7 @@ extension TomoBlob {
         let still = (0..<8).allSatisfy { blob.starRock(t + Double($0) * 0.1) == 0 }
         t += 1
         blob.step()
-        check(blob.flash?.face == .star && rocks && still,
+        check(blob.shownFace == .star && rocks && still,
               "a level-up shows star eyes, rocking (still under Reduce Motion)")
 
         var love = TomoLoveCooldown()
@@ -1056,6 +1225,126 @@ extension TomoBlob {
         let later = love.show(at: 56.5), again = love.show(at: 60)
         check(first && !soon && !waiting && later && !again,
               "love from resting on Tomo (Mac pointer, iPhone long press) shows at most once every 6 s")
+    }
+
+    /// The big moments' scripts, on a clock only the check moves: each step fires once, at its time, however the frames
+    /// fall; a level-up keeps #130's timings; what the game sends with a level-up adds nothing; a newer script closes an
+    /// older one's pending swap; a moment that passed unseen only swaps the shape; and under Reduce Motion its puff never
+    /// adds to another (the rest of Reduce Motion: motionSelfTest).
+    static func cueSelfTest(_ check: (Bool, String) -> Void) {
+        var t = 100.0
+        func blob() -> TomoBlob {
+            t = 100
+            let b = TomoBlob(look: .mascot)
+            b.clock = { t }
+            b.step()
+            return b
+        }
+
+        // Frames repeated, uneven and far apart: every step fires once, never early, at the first frame past its time,
+        // and each move starts at its step's own time.
+        let b1 = blob()
+        b1.grow(to: 1)
+        var onTime = b1.cue != nil, exact = true, swappedAt: Double?
+        if let c = b1.cue {
+            for s in [0.0, 0.0, 0.1, 0.37, 0.37, 0.6, 0.62, 0.62, 0.9, 1.25, 1.25, 1.9, 2.5] {
+                t = 100 + s
+                b1.step()
+                let due = c.steps.filter { c.start + $0.at <= t }.count
+                onTime = onTime && c.next == due && c.fired.count == due
+                    && zip(c.fired, c.steps).allSatisfy { $0 >= c.start + $1.at }
+                exact = exact && b1.moves.filter(\.byCue).allSatisfy { m in c.steps.contains { c.start + $0.at == m.start } }
+                if swappedAt == nil, b1.age == 1 { swappedAt = s }
+            }
+        }
+        check(onTime && exact && swappedAt == 0.62,
+              "a script's steps each fire once, at their times (a birthday's new shape at 0.62 s), however the frames fall")
+
+        // The level-up (#130): squeeze (0–0.35 s), leap with star eyes, land (0.95–1.3 s), settle happy, over at 2.1 s.
+        let b2 = blob()
+        b2.setState(.finished)
+        b2.levelUp()
+        var squeezed: CGFloat = 1, top: (dy: CGFloat, at: Double) = (0, 0), landed: CGFloat = 1
+        var faces: [Face] = []
+        for i in 1...127 {
+            t = 100 + Double(i) / 60
+            b2.step()
+            let p = b2.pose, s = Double(i) / 60
+            if s < 0.35 { squeezed = min(squeezed, p.sy) }
+            if p.dy < top.dy { top = (p.dy, s) }
+            if s > 0.95 && s < 1.3 { landed = min(landed, p.sy) }
+            if [12, 39, 114].contains(i) { faces.append(b2.shownFace) }   // at 0.2, 0.65 and 1.9 s
+        }
+        check(squeezed < 0.85 && top.dy < -0.4 && abs(top.at - 0.65) < 0.05 && landed < 0.85
+              && faces == [.squeeze, .star, .happy] && b2.cue == nil,
+              String(format: "a level-up squeezes, leaps (highest at %.2f s) with star eyes, lands squashed, settles happy, and ends at 2.1 s",
+                     top.at))
+
+        // What celebrate sends with a level-up (the win's state, .proud), in either order, adds no hop and no sparkles.
+        func leap(_ order: Int) -> (pose: [CGFloat], early: Int) {
+            let b = blob()
+            if order == 1 { b.setState(.finished); b.emote(.proud) }
+            b.levelUp()
+            var pose: [CGFloat] = [], early = 0
+            for i in 1...126 {
+                t = 100 + Double(i) / 60
+                if order == 2, i == 1 { b.setState(.finished); b.emote(.proud) }   // the state arrives a frame later
+                b.step()
+                pose += [b.pose.dx, b.pose.dy, b.pose.rot, b.pose.sx, b.pose.sy, b.pose.glow]
+                if i < 22 { early += b.bits.count }                               // before the burst at 0.38 s
+            }
+            return (pose, early)
+        }
+        let alone = leap(0), sent = leap(1), later = leap(2)
+        check(sent.pose == alone.pose && later.pose == alone.pose && sent.early == 0 && later.early == 0,
+              "the game's win and .proud, sent with a level-up in either order, add no hop and no sparkles to it")
+
+        // A newer script closes what an older one opened: a level-up mid-birthday shows the birthday's new shape now.
+        let b3 = blob()
+        b3.grow(to: 1)
+        t = 100.3
+        b3.step()
+        let before = b3.age
+        b3.levelUp()
+        let closed = b3.age == 1 && b3.cue?.swap == nil
+            && !b3.moves.contains { if case .evolve = $0.kind { return true } else { return false } }
+        b3.grow(to: 1)                                  // the same birthday heard again: nothing more
+        t = 100.7
+        b3.step()
+        let leveling = b3.shownFace == .star
+        b3.grow(to: 2)                                  // then a birthday over a birthday
+        t = 101
+        b3.step()
+        b3.grow(to: 3)
+        let skipped = b3.age == 2
+        t = 105
+        b3.step()
+        check(before == 0 && closed && leveling && skipped && b3.age == 3 && b3.cue == nil,
+              "a newer script closes an older one's pending shape swap (a level-up or a birthday over a birthday)")
+
+        // Unseen (a hidden island, an app in the background): when Tomo is drawn again, only the shape has changed.
+        let b4 = blob()
+        b4.grow(to: 1)
+        t = 105
+        b4.step()
+        check(b4.age == 1 && b4.cue == nil && b4.bits.isEmpty && b4.jiggle == 0 && !b4.moves.contains(where: \.byCue),
+              "a birthday that passed unseen only swaps the shape: no late drops, sparkles or jiggle")
+
+        // Under Reduce Motion a big moment's puff doesn't add to one already running (a poke's, a fidget's).
+        let b5 = blob()
+        b5.reduceMotion = true
+        b5.poke()
+        t = 100.1
+        b5.step()
+        b5.levelUp()
+        var swell: CGFloat = 0
+        for i in 1...60 {
+            t = 100.1 + Double(i) / 60
+            b5.step()
+            swell = max(swell, b5.pose.sx - 1, b5.pose.sy - 1)
+        }
+        check(swell <= 0.046, String(format: "under Reduce Motion a level-up's puff doesn't add to a poke's (%.1f%% at most)",
+                                     swell * 100))
     }
 }
 
