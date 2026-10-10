@@ -52,6 +52,20 @@ struct TomoView: View {
     @ObservedObject var state: AppState
     @ObservedObject var game = TomoGame.shared
     @ObservedObject var lang = TomoLanguages.shared
+    @ObservedObject var motion = TomoMotion.shared
+
+    /// Which card the content is: a new round, the resting card, a level-up or a birthday. When it changes, the old
+    /// contents blur away as the new ones come in (`blurSwap`); a round's own answers change it in place.
+    static func cardKey(phase: TomoPhase, chat: Bool, word: String) -> String {
+        switch phase {
+        case .resting: return "rest"
+        case .grew: return "grew"
+        case .leveledUp: return "levelUp"
+        default: return (chat ? "chat:" : "picture:") + word
+        }
+    }
+
+    private var cardKey: String { Self.cardKey(phase: game.phase, chat: game.isChat, word: game.round.word) }
 
     private var wash: CardBackground<EmptyView>.Wash {
         if game.isChat, let o = game.outcome, game.phase != .thinking {
@@ -124,7 +138,11 @@ struct TomoView: View {
                     }
                 }
                 .frame(width: TomoGrid.column, height: TomoGrid.content.height, alignment: .leading)
+                // Card swaps blur-fade (#130: about 7 pt and 0.3 s); under Reduce Motion they swap at once, as before.
+                .id(cardKey)
+                .transition(motion.reduce ? .identity : .blurSwap)
             }
+            .animation(motion.reduce ? nil : .easeInOut(duration: TomoBlurSwap.duration), value: cardKey)
             .frame(width: TomoGrid.content.width, height: TomoGrid.content.height, alignment: .leading)
         }
         .frame(width: TomoGrid.content.width, height: TomoGrid.content.height)
@@ -911,5 +929,25 @@ struct OutcomeBadge: View {
         .clipShape(Capsule())
         .fixedSize()
         .help(Self.why(outcome, lang))
+    }
+}
+
+// MARK: - Card swaps
+
+/// The card's contents changing to another card (a new round, resting, a level-up): the old ones blur and fade out as
+/// the new ones blur in, about 7 pt and 0.3 s (#130). Only the contents: the card, its wash and Tomo stay.
+struct TomoBlurSwap: ViewModifier {
+    static let blur: CGFloat = 7
+    static let duration: Double = 0.3
+    let away: Bool
+
+    func body(content: Content) -> some View {
+        content.blur(radius: away ? Self.blur : 0).opacity(away ? 0 : 1)
+    }
+}
+
+extension AnyTransition {
+    static var blurSwap: AnyTransition {
+        .modifier(active: TomoBlurSwap(away: true), identity: TomoBlurSwap(away: false))
     }
 }

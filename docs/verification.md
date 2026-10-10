@@ -104,6 +104,8 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   (`window-<screen>-NNN.png`, and `window-sheet-NNN.png` for the start-over question). `TOMO_SNAPSHOT_EVERY=<seconds>`
   takes them more often (0.1, to catch a motion midway). In a headless run the card's first frame takes about 0.4 s
   to draw, so a motion as it opens shows in one or two frames.
+- `TOMO_RESTING_HOVER=1`: the resting island as it is under the pointer (a little bigger), which a headless run can't
+  move there.
 - `TOMO_PEEK=1` (or `0`): visits peek first (or open the card), whatever Settings says. `TOMO_PEEK_OPEN=<seconds>`:
   that long after a peek shows, it opens as a click on it would (without taking the keyboard), so a test run sees its
   word slide into the card. A headless run can't point at it.
@@ -124,7 +126,7 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   page → "Skip ahead a day" moves the clock live, on a copy of Tomo in memory.
 - `TOMO_DROPIN_EVERY=8`, `TOMO_NUDGE_EVERY=5`: seconds between visits and between nudge bounces.
 - `TOMO_RENDER_ICON`, `TOMO_RENDER_SHEET`, `TOMO_RENDER_SOUNDS`, `TOMO_RENDER_ANIM`, `TOMO_RENDER_CARD_FRAMES` (`=<dir>`): render
-  the icons, every age and face, every sound (WAV), or a 20-second scene (20 fps frames), then quit. The
+  the icons, every age and face, every sound (WAV), or a 25-second scene (20 fps frames), then quit. The
   sheet shows one Tomo at every age and with every face, then a crowd of other seeds. The sounds are
   `<effect>-age<N>.wav` for 1さい to 6さい, and `all-sounds.wav` (every effect at 1さい, in order).
 - `TOMO_SEED=<text>`: the seed Tomo's look is made from, in place of the saved Tomo's.
