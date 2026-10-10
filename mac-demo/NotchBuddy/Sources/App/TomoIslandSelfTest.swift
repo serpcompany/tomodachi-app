@@ -436,8 +436,9 @@ enum TomoIslandSelfTest {
         check(T.wearsBadges(.compact) && !T.wearsBadges(.peek) && !T.wearsBadges(.expanded) && !T.wearsBadges(.hidden),
               "small Tomo wears its badges resting beside the notch, not in the peek or the card")
         // Its badge stays in the left ear, left of the notch and below the screen's top edge, at every age, in the room
-        // the canvas leaves right of its frame (BotPlacement's canvas: the diameter / 0.6, 72 pt of room above).
-        var fits: [String] = []
+        // the canvas leaves right of its frame (BotPlacement's canvas: the diameter / 0.6, 72 pt of room above). Its call
+        // glow fits the canvas's room on every side, so no edge of the canvas cuts it.
+        var fits: [String] = [], glowCut: [String] = []
         for (screen, name) in [(notch, "a notch"), (flat, "no notch")] {
             let (w, h) = islandSize(mode: .compact, view: .overview, nw: screen.width, nh: screen.height)
             let (cx, cy, d, _) = botPosition(mode: .compact, view: .overview, islandW: w, islandH: h, hasNotch: screen.hasNotch)
@@ -450,15 +451,24 @@ enum TomoIslandSelfTest {
                     blob.setGrowth(CGFloat(age))
                     let f = blob.badgeFrame(size: CGSize(width: side, height: side + overhang))
                     let inIsland = f.offsetBy(dx: origin.x, dy: origin.y)
-                    if f.maxX > side + T.badgeRoom || inIsland.maxX > (w - screen.width) / 2 - IslandRestingLayout.notchClearance
+                    let room = T.canvasRoom(width: side)
+                    if f.maxX > side + room.right || inIsland.maxX > (w - screen.width) / 2 - IslandRestingLayout.notchClearance
                         || inIsland.minY < 0 || inIsland.minX < cx {
                         fits.append("\(name) age \(age): \(inIsland)")
+                    }
+                    // The glow: 1.8 R round Tomo's middle (TomoBlob.drawCallGlow), R = 0.27 of the frame's width.
+                    let R = side * 0.27, r = 1.8 * R * look.form(age).scale
+                    let mid = CGPoint(x: side / 2, y: (side + overhang) / 2 + overhang / 2 + R * 0.1)
+                    if mid.x - r < -room.left || mid.x + r > side + room.right || mid.y + r > side + overhang + room.bottom {
+                        glowCut.append("\(name) age \(age)")
                     }
                 }
             }
         }
         check(fits.isEmpty, "small Tomo's badge fits the left ear beside it at every age, with a notch and without"
               + (fits.isEmpty ? "" : " (\(fits.prefix(3).joined(separator: "; ")))"))
+        check(glowCut.isEmpty, "small Tomo's call glow fits its canvas on every side at every age, so no edge cuts it"
+              + (glowCut.isEmpty ? "" : " (cut: \(glowCut.prefix(3).joined(separator: "; ")))"))
         check(C.foldWaits(from: .expanded, to: .compact, reduceMotion: false)
               && C.foldWaits(from: .peek, to: .compact, reduceMotion: false)
               && !C.foldWaits(from: .expanded, to: .compact, reduceMotion: true)
