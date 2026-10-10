@@ -46,6 +46,12 @@ extension TomoProgress {
                 check(marks.count == sim.p.level && birthdays == sim.birthdays && marks.dropFirst().allSatisfy { $0.at != nil },
                       "\(pack.id) \(who.name): the pillar has \(marks.count) marks, birthdays at "
                       + birthdays.sorted { $0.key < $1.key }.map { "\(pack.ageLabel($0.key)) Lv \($0.value)" }.joined(separator: ", "))
+                // Its diary: on each birthday's page, Tomo says it got big, in its new age's words.
+                let pages = TomoStats(sim.p).diary(learner)
+                let big = pages.filter(\.birthday)
+                check(big.count == sim.birthdays.count
+                      && big.allSatisfy { $0.message.contains(pack.diaryLines(age: $0.age)?.birthday.say ?? "-") },
+                      "\(pack.id) \(who.name): \(pages.count) diary pages, a birthday line on each of the \(big.count) birthdays")
             }
         }
     }

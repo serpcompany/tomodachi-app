@@ -57,6 +57,15 @@ public struct TargetPack: Codable, Sendable {
         public let bye: SpokenLine
         public let asleep: SpokenLine
     }
+    /// Tomo's words in its diary (TomoDiary.swift), from an age on: after days apart (a toddler's sulk), on a run of
+    /// days in a row, on a hard day, and at a birthday.
+    public struct DiaryLines: Codable, Sendable {
+        public let fromAge: Int
+        public let missed: SpokenLine
+        public let streak: SpokenLine
+        public let hard: SpokenLine
+        public let birthday: SpokenLine
+    }
     public struct AIProfile: Codable, Sendable {
         public let persona: String     // "a {age}-year-old Japanese child"
         public let rules: [String]     // language-specific speaking rules (script, register, typical words)
@@ -116,6 +125,7 @@ public struct TargetPack: Codable, Sendable {
     public let lines: Lines
     public let reminders: [AgeLines]?      // reminders (TomoReminders), by age; none: Tomo's `invite`
     public let postcard: PostcardLines?    // Tomo's week (TomoPostcard); none: its level-up and see-you lines
+    public let diary: [DiaryLines]?        // Tomo's diary (TomoDiary), by age; none: no sulks, runs or hard days
     public let calendar: TomoCalendar?     // the language's year (TomoCalendar): the seasons' weather; none: no weather
     public let ai: AIProfile
     public let levels: [Level]             // levels[0] = level 1. Each level's age marks when Tomo grows up
@@ -145,6 +155,10 @@ public struct TargetPack: Codable, Sendable {
         return (starters + (startersByAge ?? []).flatMap(\.starters)).filter { seen.insert($0.say).inserted }
     }
     /// Tomo's reminder lines at this age (the latest set that starts at or below it).
+    /// Tomo's diary lines at this age (the latest set that starts at or below it).
+    public func diaryLines(age: Int) -> DiaryLines? {
+        (diary ?? []).filter { $0.fromAge <= age }.max { $0.fromAge < $1.fromAge }
+    }
     public func reminderLines(age: Int) -> [SpokenLine] {
         (reminders ?? []).filter { $0.fromAge <= age }.max { $0.fromAge < $1.fromAge }?.lines ?? []
     }

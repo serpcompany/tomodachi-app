@@ -85,6 +85,70 @@
       }
     }
   },
+  "diary": [
+    {
+      "fromAge": 1,
+      "missed": {
+        "say": "まってた！ もう！",
+        "romanization": "matteta! mō!",
+        "translation": {
+          "en": "I waited! Hmph!"
+        }
+      },
+      "streak": {
+        "say": "きょうも あそんだ！",
+        "romanization": "kyō mo asonda!",
+        "translation": {
+          "en": "Played today too!"
+        }
+      },
+      "hard": {
+        "say": "むずかしい〜",
+        "romanization": "muzukashii~",
+        "translation": {
+          "en": "So hard~"
+        }
+      },
+      "birthday": {
+        "say": "おおきく なった！",
+        "romanization": "ōkiku natta!",
+        "translation": {
+          "en": "I got big!"
+        }
+      }
+    },
+    {
+      "fromAge": 3,
+      "missed": {
+        "say": "ずっと まってたんだよ！ さみしかった！",
+        "romanization": "zutto mattetan da yo! samishikatta!",
+        "translation": {
+          "en": "I waited and waited! I was lonely!"
+        }
+      },
+      "streak": {
+        "say": "まいにち いっしょだね！",
+        "romanization": "mainichi issho da ne!",
+        "translation": {
+          "en": "We're together every day!"
+        }
+      },
+      "hard": {
+        "say": "きょうは むずかしかったね〜",
+        "romanization": "kyō wa muzukashikatta ne~",
+        "translation": {
+          "en": "Today was hard, huh~"
+        }
+      },
+      "birthday": {
+        "say": "みて！ おおきく なったでしょ！",
+        "romanization": "mite! ōkiku natta desho!",
+        "translation": {
+          "en": "Look! I got big, right?"
+        }
+      }
+    }
+  ],
   "calendar": [
     {
       "id": "sakura",

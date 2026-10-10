@@ -452,7 +452,21 @@
     "pillar.slide": "時間をさかのぼる：{date} · {level}",
     "pillar.slideLabel": "時間をさかのぼる",
     "pillar.justHatched": "Tomoが生まれたばかり",
-    "pillar.empty": "Tomoが1レベル育つたびに、その日と、そこまでのことばといっしょに、柱にしるしがつきます。誕生日には大きなしるし。"
+    "pillar.empty": "Tomoが1レベル育つたびに、その日と、そこまでのことばといっしょに、柱にしるしがつきます。誕生日には大きなしるし。",
+    "diary.title": "Tomoのにっき",
+    "diary.note": "いっしょにあそんだ日ごとに、Tomoが自分のことばで1ページ書きます。",
+    "diary.pages": "すべてのページ",
+    "diary.apart": "{n}日あいだがあいた",
+    "diary.apart.one": "1日あいだがあいた",
+    "diary.visits": "Tomoが来た回数 {n}回",
+    "diary.visits.one": "Tomoが来た回数 1回",
+    "diary.copy": "このページをコピー",
+    "diary.copyTitle": "Tomoのにっき · {date}",
+    "diary.earlier": "前の日",
+    "diary.later": "次の日",
+    "diary.showAll": "すべてのページを見る",
+    "diary.more": "ほか{n}語",
+    "diary.empty": "最初のことばのあと、Tomoがここに1ページ書きます。いっしょにあそんだ日ごとに、もう知っていることばで。"
   },
   "helpPhrases": [
     "なに",

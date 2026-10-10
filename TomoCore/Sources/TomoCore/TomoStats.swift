@@ -41,7 +41,7 @@ public struct TomoVisit: Equatable, Sendable {
 public struct TomoStats {
     /// The Tomo these stats describe.
     public let progress: TomoProgress
-    private let growth: [TomoStore.GrowthRow]
+    let growth: [TomoStore.GrowthRow]
 
     public init(_ progress: TomoProgress) {
         self.progress = progress
@@ -88,7 +88,7 @@ public struct TomoStats {
         summarize(progress.answerLog(from: from, to: to), from: from, to: to)
     }
 
-    private func summarize(_ rows: [TomoStore.AnswerRow], from: Date, to: Date) -> Summary {
+    func summarize(_ rows: [TomoStore.AnswerRow], from: Date, to: Date) -> Summary {
         var s = Summary(from: from, to: to)
         var met = Set<String>(), moved = Set<String>(), watered = Set<String>()
         var days = Set<Date>()
