@@ -51,7 +51,9 @@ round open on the Lock Screen card (`TomoLiveVisit.isPlaying`). The card's Play 
 are `LiveActivityIntent`s (`TomoPlayIntent`, `TomoAnswerIntent`) that iOS runs in the app's process,
 launching it in the background if needed; they reach the game through `TomoVisitHook`, set in the
 app's `init` ([#52](https://github.com/serpcompany/tomodachi-app/issues/52)). Invariants on the Mac:
-the island sits on the notch screen (else the main display) and moves when displays change; it needs
+the island sits on the notch screen (else the main display) and moves when displays change; without a
+notch it's a capsule 4 pt below the top of the screen, rounded all round, that never hides
+(`IslandScreenGeometry`, `shownMode`); it needs
 no permission; it follows the pointer through mouse event monitors (a sandboxed build gets them
 too), with no clock while the pointer is away from it; after a close, hovering doesn't reopen the
 island until the pointer has left it once; a peek counts as open; the card or the peek folds once

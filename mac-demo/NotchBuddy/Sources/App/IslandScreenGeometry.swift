@@ -1,18 +1,21 @@
 import Foundation
 
-/// Resting island dimensions, using a physical notch only when the screen has one.
+/// The island's size on its screen: the physical notch, or on a screen without one, a capsule (#130).
 struct IslandScreenGeometry {
     static let fallbackNotchWidth: CGFloat = 184
-    private static let noNotchWidth: CGFloat = 80
-    private static let noNotchHeight: CGFloat = 24
+    /// Without a notch, the resting island is a capsule this size, 4 pt below the top of the screen (`capsuleTop`):
+    /// small Tomo on its left, the right side (あそぼ！ or when words are back, and the ring) on its right, as beside a
+    /// notch, with the notch's place between them.
+    static let capsule = CGSize(width: 300, height: 30)
+    static let capsuleTop: CGFloat = 4
 
     let hasNotch: Bool
+    /// The notch, or on a screen without one, the capsule's middle between its two sides, so the resting island
+    /// (`islandSize`: the notch and a side on each of it) is the capsule.
     let width: CGFloat
     let height: CGFloat
 
-    init(screenWidth: CGFloat, safeAreaTop: CGFloat,
-         auxiliaryLeftWidth: CGFloat?, auxiliaryRightWidth: CGFloat?,
-         menuBarHeight: CGFloat) {
+    init(screenWidth: CGFloat, safeAreaTop: CGFloat, auxiliaryLeftWidth: CGFloat?, auxiliaryRightWidth: CGFloat?) {
         hasNotch = safeAreaTop > 0
         if hasNotch {
             if let left = auxiliaryLeftWidth, let right = auxiliaryRightWidth {
@@ -24,9 +27,23 @@ struct IslandScreenGeometry {
             }
             height = safeAreaTop
         } else {
-            width = Self.noNotchWidth
-            height = min(Self.noNotchHeight, menuBarHeight)
+            width = Self.capsule.width - IslandRestingLayout.ear * 2
+            height = Self.capsule.height
         }
+    }
+
+    /// How far below the top of the screen the island's top edge is: none under a notch (it's glued to it), and
+    /// `capsuleTop` for the capsule, whether it rests, peeks or is open.
+    static func top(hasNotch: Bool) -> CGFloat { hasNotch ? 0 : capsuleTop }
+
+    /// The island's corner radii, for its mode and height now. Under a notch: square on top (glued to the top of the
+    /// screen), rounded below, 14 pt resting and 22 pt open or peeking. Without one, rounded all round: fully while it
+    /// rests (half its height, under the pointer too), 22 pt open or peeking.
+    static func corners(mode: IslandMode, height: CGFloat, hasNotch: Bool) -> (top: CGFloat, bottom: CGFloat) {
+        let open = mode == .expanded || mode == .peek
+        if hasNotch { return (0, open ? IslandConst.expandedCorner : IslandConst.roundedCorner) }
+        let r = open ? IslandConst.expandedCorner : height / 2
+        return (r, r)
     }
 }
 
