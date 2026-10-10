@@ -186,6 +186,37 @@ public struct TomoStats {
             .map { Plant(id: $0.id, met: $0.introduced, stage: $0.stage, pale: $0.stage < $0.peak, steps: steps[$0.id] ?? []) }
     }
 
+    // MARK: Growing up (the height pillar)
+
+    /// A mark on the pillar: a level Tomo reached, from the hatch (Lv 1) to now. A birthday is the level where its
+    /// age went up.
+    public struct Mark: Identifiable, Equatable, Sendable {
+        public var id: Int { level }
+        public let level: Int
+        public let age: Int
+        /// The hatch, or the first level of a new age.
+        public let birthday: Bool
+        /// When, from this device's growth log (the hatch: when Tomo hatched). Nil: grown on another device.
+        public let at: Date?
+    }
+
+    /// Every level Tomo has reached, oldest first: a mark each, dated from the growth log.
+    public func marks() -> [Mark] {
+        var when: [Int: Date] = [:]
+        for row in growth where row.kind == "level" && when[row.value] == nil { when[row.value] = row.at }
+        return (1...max(progress.level, 1)).map { level in
+            Mark(level: level, age: age(onLevel: level), birthday: level == 1 || age(onLevel: level) > age(onLevel: level - 1),
+                 at: level == 1 ? progress.metAt : when[level])
+        }
+    }
+
+    /// The next birthday: the age Tomo turns and the level it comes with (nil at the last age).
+    public var nextBirthday: (age: Int, level: Int)? {
+        let levels = progress.pack.levels, now = age(onLevel: progress.level)
+        guard let i = levels.indices.first(where: { $0 >= progress.level && levels[$0].age > now }) else { return nil }
+        return (levels[i].age, i + 1)
+    }
+
     // MARK: Today
 
     /// Today, since 4 am.
