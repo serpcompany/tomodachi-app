@@ -2,6 +2,9 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident. The first days' decisions are in [decisions-2026-10-03.md](decisions-2026-10-03.md) and [decisions-2026-10-05.md](decisions-2026-10-05.md), and the ones about what Tomo teaches (the content source, word lists, levels and rounds) in [decisions-content.md](decisions-content.md).
 
+### 2026-10-11: Guilt is allowed; only to-do counts are out
+The no-guilt rule of 2026-10-10 ("Tomo misses you; it never keeps score", #129) is gone. Tomo can guilt-trip you, toddler-style. Misses, wrong answers and warnings can be red. Stats and Tomo can show streaks, missed days and miss counts. An ignored Tomo can get more intrusive (visit more often, louder), not only more expressive. The one rule left: never a growing count of things to review or do, on a badge, in the notch or in an alert; waiting shows through Tomo's mood. Quiet hours stay, as the learner's own setting. **Why:** the owner: streaks are data, and guilt trips are funny when Tomo does them; a badge of things to do feels like homework.
+
 ### 2026-10-11: The new app is "Tomodachi by Zenbu Japanese" on the App Store
 The App Store Connect record on TSMC LLC is **Tomodachi by Zenbu Japanese** (app ID `6821401516`, bundle ID `com.zenbujapanese.tomo`, SKU `zenbujapanese-tomo`, primary language English (U.S.)), with iOS and macOS versions, so one purchase covers both. The new iCloud container's schema (`Tomo`, `Item`) is deployed to Production. **Why:** the old name, "Tomodachi: Language Companion", is held by the rejected record on the old team, and the owner chose a name that ties Tomodachi to the Zenbu Japanese brand. It can still change before the first release.
 
