@@ -22,10 +22,21 @@ public struct TomoGrowthBar: View {
         self.colors = colors; self.empty = empty; self.outline = outline; self.gap = gap
     }
 
+    /// The track's width in a bar `width` wide: all of it but the goal and the gap before it.
+    public static func trackWidth(_ width: CGFloat, gap: CGFloat = 3) -> CGFloat {
+        max(0, width * (1 - TomoProgress.goalShare) - gap / 2)
+    }
+
+    /// Where the fill ends in a bar `width` wide at `progress`: along the track, and the whole bar once the level is done
+    /// (the goal filled). A shell that sends something into the bar aims here.
+    public static func filledWidth(_ width: CGFloat, progress: Double, gap: CGFloat = 3) -> CGFloat {
+        progress >= 1 ? width : trackWidth(width, gap: gap) * min(max(progress, 0) / (1 - TomoProgress.goalShare), 1)
+    }
+
     public var body: some View {
         GeometryReader { g in
             let w = g.size.width, mark = 1 - TomoProgress.goalShare
-            let track = max(0, w * mark - gap / 2), goal = max(0, w - track - gap)
+            let track = Self.trackWidth(w, gap: gap), goal = max(0, w - track - gap)
             let done = progress >= 1
             let reached = track * min(max(progress, 0) / mark, 1)
             let now = track * min(max(min(standing, progress), 0) / mark, 1)
