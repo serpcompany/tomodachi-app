@@ -90,6 +90,78 @@
       }
     }
   },
+  "diary": [
+    {
+      "fromAge": 1,
+      "missed": {
+        "say": "Waited! Hmph!",
+        "romanization": null,
+        "translation": {
+          "en": "Waited! Hmph!",
+          "ja": "まってた！ もう！"
+        }
+      },
+      "streak": {
+        "say": "Again today!",
+        "romanization": null,
+        "translation": {
+          "en": "Again today!",
+          "ja": "きょうも！"
+        }
+      },
+      "hard": {
+        "say": "So hard!",
+        "romanization": null,
+        "translation": {
+          "en": "So hard!",
+          "ja": "むずかしい！"
+        }
+      },
+      "birthday": {
+        "say": "Big now!",
+        "romanization": null,
+        "translation": {
+          "en": "Big now!",
+          "ja": "おおきく なった！"
+        }
+      }
+    },
+    {
+      "fromAge": 3,
+      "missed": {
+        "say": "You didn't come... I was lonely!",
+        "romanization": null,
+        "translation": {
+          "en": "You didn't come... I was lonely!",
+          "ja": "こなかったね… さみしかったよ！"
+        }
+      },
+      "streak": {
+        "say": "Together every day!",
+        "romanization": null,
+        "translation": {
+          "en": "Together every day!",
+          "ja": "まいにち いっしょだね！"
+        }
+      },
+      "hard": {
+        "say": "That was hard, huh?",
+        "romanization": null,
+        "translation": {
+          "en": "That was hard, huh?",
+          "ja": "むずかしかったね？"
+        }
+      },
+      "birthday": {
+        "say": "Look how big I got!",
+        "romanization": null,
+        "translation": {
+          "en": "Look how big I got!",
+          "ja": "みて、こんなに おおきく なったよ！"
+        }
+      }
+    }
+  ],
   "calendar": [
     {
       "id": "blossom",

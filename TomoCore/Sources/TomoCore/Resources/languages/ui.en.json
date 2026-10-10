@@ -454,7 +454,21 @@
     "pillar.slide": "Slide back in time: {date} · {level}",
     "pillar.slideLabel": "Slide back in time",
     "pillar.justHatched": "Tomo just hatched",
-    "pillar.empty": "Each time Tomo grows a level, it gets a mark on the pillar, with the day and the words that got it there. Birthdays get a big one."
+    "pillar.empty": "Each time Tomo grows a level, it gets a mark on the pillar, with the day and the words that got it there. Birthdays get a big one.",
+    "diary.title": "Tomo's diary",
+    "diary.note": "Tomo writes a page for each day you play together, in its own words.",
+    "diary.pages": "Every page",
+    "diary.apart": "{n} days apart",
+    "diary.apart.one": "1 day apart",
+    "diary.visits": "Tomo came by {n} times",
+    "diary.visits.one": "Tomo came by once",
+    "diary.copy": "Copy this page",
+    "diary.copyTitle": "A page from Tomo's diary · {date}",
+    "diary.earlier": "The day before",
+    "diary.later": "The day after",
+    "diary.showAll": "Show every page",
+    "diary.more": "and {n} more",
+    "diary.empty": "Tomo writes a page here after your first word. Each day you play together gets one, in words you already know."
   },
   "helpPhrases": [
     "what",

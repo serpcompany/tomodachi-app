@@ -6,7 +6,8 @@ import UniformTypeIdentifiers
 // Today ("12 answers · 3 new words · 5 days in a row"), the word garden (TomoGarden.swift: every word met, growing, for
 // today, this week or since you met, with a replay, Copy recap, and the learner's own log to export as Markdown or
 // JSON), and Tomo's week, as a postcard that comes every Monday morning: the newest one, turned over with a tap, shared
-// as a picture (#29), and every earlier one in a row underneath. On the Monday a postcard comes, it's at the top. A
+// as a picture (#29), and every earlier one in a row underneath; then Tomo's diary, a page for each day you played,
+// in its own words (TomoDiaryView.swift). On the Monday a postcard comes, it's at the top. A
 // brand-new Tomo gets an empty bed and its first postcard instead of a row of zeros. Everything shown comes from
 // TomoStats, for the Tomo passed in (its progress, look and material), so a friend could have its own; the screen
 // decides nothing. Test runs: TOMO_GARDEN=today|week|all picks the range, TOMO_GARDEN_REPLAY=<seconds> starts the
@@ -44,6 +45,7 @@ public struct TomoTogetherScreen: View {
         var lines: [TomoStats.Range: (String, String)] = [:]
         var recaps: [TomoStats.Range: String] = [:]
         var since = Date()
+        var diary: [TomoDiaryPage] = []
     }
 
     @State private var range: TomoStats.Range =
@@ -74,6 +76,7 @@ public struct TomoTogetherScreen: View {
     }
 
     public var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 if progress.isScratch {
@@ -81,11 +84,20 @@ public struct TomoTogetherScreen: View {
                 }
                 today
                 if loaded.postcardToday { week; garden } else { garden; week }
+                TomoDiarySection(progress: progress, look: look, material: material, pages: loaded.diary, copy: copy)
+                    .id("diary")
             }
             .padding(.horizontal, phone ? 16 : 24)
             .padding(.vertical, phone ? 12 : 16)
             .frame(maxWidth: 680, alignment: .leading)
             .frame(maxWidth: .infinity)
+        }
+        .task {
+            // Test runs that look at the diary (TOMO_DIARY) scroll to it.
+            guard ProcessInfo.processInfo.environment["TOMO_DIARY"] != nil else { return }
+            try? await Task.sleep(for: .seconds(1.2))
+            proxy.scrollTo("diary", anchor: .top)
+        }
         }
         .onAppear {
             load()
@@ -132,6 +144,7 @@ public struct TomoTogetherScreen: View {
             l.lines[r] = Self.lines(r, s, plants: plants.count, stats: stats, ui)
             l.recaps[r] = stats.recap(s, range: stats.rangeText(r, ui), ui)
         }
+        l.diary = stats.diary(ui)
         loaded = l
     }
 
