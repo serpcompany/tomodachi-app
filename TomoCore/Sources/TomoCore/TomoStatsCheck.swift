@@ -259,6 +259,34 @@ extension TomoStats {
         check((1...p.level).allSatisfy { lv in grewAt[lv].map { stats.level(at: $0) == lv && stats.level(at: $0.addingTimeInterval(-1)) == lv - 1 } ?? true },
               "stats: sliding back in time, Tomo's level on each mark's day is that mark's level, and one less just before")
 
+        // Tomo's diary: a page for every day the learner played, its numbers that day's, the days apart before it, the
+        // run of days, and Tomo's words: hello on the first day, a sulk after days apart, a cheer on a run, a やったー on
+        // a day it grew, and see you.
+        let diary = stats.diary(ui), playedDays = (0...20).filter(played.contains)
+        let ja = pack.diaryLines(age: 1)
+        check(diary.map(\.day) == playedDays.map { at($0, 4) }
+              && zip(diary, playedDays).allSatisfy { same($0.summary, tally($1...$1)) && $0.streak == run(endingOn: $1) },
+              "stats: the diary has a page for every day played (\(diary.count)), each with that day's numbers and run of days")
+        let apart = Dictionary(uniqueKeysWithValues: zip(playedDays.dropFirst(), playedDays).map { ($0, $0 - $1 - 1) })
+        check(zip(diary, playedDays).allSatisfy { $0.apart == (apart[$1] ?? 0) } && diary.contains { $0.apart == 7 },
+              "stats: each page knows the days apart before it (7 after the quiet week)")
+        let hello = pack.lines.hello?.say ?? "-", bye = pack.postcard?.bye.say ?? "-"
+        check(diary.first?.first == true && diary.first?.message.hasPrefix(hello) == true
+              && diary.allSatisfy { $0.message.hasSuffix(bye) && $0.first == ($0.day == diary.first?.day) },
+              "stats: the first page starts with \(hello), and every page signs off \(bye)")
+        check(diary.allSatisfy { ($0.apart > 0) == $0.message.contains(ja?.missed.say ?? "-") }
+              && diary.first { $0.apart == 7 }?.gloss.contains(ja?.missed.translation("en") ?? "-") == true,
+              "stats: after days apart Tomo sulks (\(ja?.missed.say ?? "")), and only then")
+        let grewDays = playedDays.filter { level(endOf: $0) > ($0 == 0 ? 1 : level(endOf: $0 - 1)) }
+        check(zip(diary, playedDays).allSatisfy { page, d in
+                  page.message.contains(pack.postcard?.grew.say ?? "-") == grewDays.contains(d)
+                  && page.message.contains(ja?.streak.say ?? "-") == (page.streak >= 3 && page.apart == 0)
+              } && !grewDays.isEmpty,
+              "stats: Tomo cheers on the days it grew (\(grewDays.count)) and on runs of 3 days or more")
+        check(diary.allSatisfy { $0.facts.allSatisfy { !$0.text.hasPrefix("0") } }
+              && diary.last.map { stats.diaryText($0, ui).contains($0.message) } == true,
+              "stats: no page lists a zero, and Copy this page has Tomo's words")
+
         // The learner's own log: JSON that reads back, and Markdown with a row for every week, word and answer.
         let json = stats.exportJSON(ui), log = TomoLogExport.decode(json)
         let answerRows = p.answerLog(from: start, to: at(21, 4)).count
@@ -306,6 +334,16 @@ extension TomoStats {
         let elsewhere = TomoStats(TomoProgress(pack: pack, learner: "fr", directory: dir)).marks()
         check(elsewhere.count == 12 && elsewhere.dropFirst().allSatisfy { $0.at == nil },
               "stats: levels grown on another device are on the pillar, without a day")
+        check(none.diary(ui).isEmpty, "stats: a brand-new Tomo's diary has no pages yet")
+        // A hard day: many misses, and Tomo groans about it.
+        let hard = TomoProgress(pack: pack, learner: "it", directory: dir)
+        for (k, id) in hard.visitItems(limit: 1).prefix(1).enumerated() where k == 0 {
+            for _ in 0..<6 { hard.logTry(id, mode: "sim", result: "wrong") }
+            hard.answeredRight(id, mode: "sim", wrongTries: 6, hint: false)
+        }
+        let hardPage = TomoStats(hard).diary(ui).last
+        check(hardPage?.summary.misses == 6 && hardPage?.message.contains(ja?.hard.say ?? "-") == true,
+              "stats: on a hard day (6 misses) Tomo groans: \(hardPage?.message ?? "")")
         if let id = fresh.visitItems(limit: 1).first {
             fresh.answeredRight(id, mode: "sim", wrongTries: 0, hint: false)
             check(TomoStats(fresh).todayLine(ui) == "1 answer · 1 new word", "stats: one answer: \"\(TomoStats(fresh).todayLine(ui))\"")

@@ -5,8 +5,8 @@ screens built in stages from [Stats, Take Two](reference/tomo/stats-take-two.htm
 item 2): Tomo's week as a postcard first, then the word garden, a height pillar for growing up and Tomo's
 diary, all on the same layer. The code: `TomoStats.swift` (the layer), `TomoStatsExport.swift` (the recap
 and the export), `TomoGarden.swift` (the garden), `TomoPostcard.swift` and `TomoPostcardView.swift` (Tomo's
-week), `TomoTogetherScreen.swift` (the Together screen), `TomoHeightPillar.swift` (growing up, on the Tomo
-screen).
+week), `TomoDiary.swift` and `TomoDiaryView.swift` (Tomo's diary), `TomoTogetherScreen.swift` (the Together
+screen), `TomoHeightPillar.swift` (growing up, on the Tomo screen).
 
 ## One layer
 
@@ -44,9 +44,10 @@ ladder's "ignored in a row" ([#130](https://github.com/serpcompany/tomodachi-app
 
 ## The Together screen
 
-One page, on the Mac's sidebar and as an iPhone tab: the Today line, the word garden, then Tomo's week.
-The garden is the stats screen and the postcard is its share moment, so they share a page rather than
-take a tab each; on the Monday a postcard comes, it moves to the top.
+One page, on the Mac's sidebar and as an iPhone tab: the Today line, the word garden, Tomo's week, then
+Tomo's diary. The garden is the stats screen and the postcard is its share moment, so they share a page
+rather than take a tab each; on the Monday a postcard comes, it moves to the top. The diary is last: it's
+the long read, about the days you spent together.
 
 ## The word garden
 
@@ -66,6 +67,24 @@ take a tab each; on the Monday a postcard comes, it moves to the top.
   (every answer, level-up, birthday and visit as stored, and the words now), from `TomoStats`.
 - Under Reduce Motion nothing sways or falls and Tomo stays at the side, still breathing; watered words
   get a still drop.
+
+## Tomo's diary
+
+A page for every day you played (a day starts at 4 am), written by Tomo in its own words at its age, from
+the target pack, the way the postcard's message is (`TomoStats.diary`):
+- ばあ！ on the first day; the day's words (new picture words first); a sulk after days apart (まってた！
+  もう！, at 3さい ずっと まってたんだよ！ さみしかった！); おおきく なった！ at a birthday, else a やったー
+  per level grown; a groan on a hard day (5 misses or more, and a third of the answers); a cheer on a run
+  of 3 days or more; and またね！. The pack's `diary` holds those lines by age.
+- Under Tomo's words: the day's new words as stickers (tap one for its card), and what you did: new
+  words, wins, practice, misses, words that got stronger, the run of days, the level, how often Tomo came by.
+  Never a zero.
+- A day without play has no page; in the list of pages, the days apart show as a dashed line. Tomo on the
+  page is alive at that day's form: it leaps on a day it grew, and sulks before it cheers up after days apart.
+- **Copy this page** puts the page's text on the clipboard. A brand-new Tomo's diary is a first page:
+  ばあ！ and what the diary will be.
+- On the Mac it's a book, the list of pages beside the page; on the iPhone, the page with arrows to the
+  days before and after, and the list under it.
 
 ## Growing up: the height pillar
 
@@ -106,8 +125,9 @@ The self-test plays a simulated learner for three weeks on a stopped clock and c
 the misses, the streak (across the 4 am boundary, broken by a quiet week, waiting on today), missed days,
 the garden (every word met at its stage, and the replay's stage of every word at the end of every day),
 the ranges, the recap, both exports (the JSON reads back; the Markdown has a row for everything), the
-pillar's marks (each dated when the level was reached; the level on each mark's day), the Today line and the
-postcards against its own tally (`TomoStatsCheck.swift`), plus the visit log on the game
-(`TomoVisitCheck.swift`). The growth simulations check each pillar's birthdays up to 3さい
-(`TomoGrowthCheck.swift`). Snapshots: `TOMO_OPEN_WINDOW=together` with a `seed-progress.py --history`
+pillar's marks (each dated when the level was reached; the level on each mark's day), the diary (a page per
+day played with that day's numbers, the days apart, the run of days, and Tomo's hello, sulk, cheers and
+groan exactly when they're due), the Today line and the postcards against its own tally
+(`TomoStatsCheck.swift`), plus the visit log on the game (`TomoVisitCheck.swift`). The growth simulations
+check each pillar's birthdays up to 3さい, and the diary's birthday lines (`TomoGrowthCheck.swift`). Snapshots: `TOMO_OPEN_WINDOW=together` with a `seed-progress.py --history`
 folder ([debug-flags.md](debug-flags.md)).

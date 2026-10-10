@@ -157,7 +157,7 @@ extension TomoStats {
     }
 
     /// A pack line, said and meant: its own, or a plain line with no meaning given.
-    private static func spoken(_ line: TargetPack.SpokenLine?, or fallback: String, _ learner: String) -> (say: String, gloss: String) {
+    static func spoken(_ line: TargetPack.SpokenLine?, or fallback: String, _ learner: String) -> (say: String, gloss: String) {
         line.map { ($0.say, plain($0.translation(learner))) } ?? (fallback, "")
     }
 

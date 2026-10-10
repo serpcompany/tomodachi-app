@@ -393,7 +393,7 @@ struct TomoPostcardBack: View {
 }
 
 /// Words that wrap only between words, never inside one: Japanese would otherwise break anywhere (やっ|たー).
-private struct TomoWordFlow: View {
+struct TomoWordFlow: View {
     let text: String
     let spacing: CGFloat
     let lineSpacing: CGFloat

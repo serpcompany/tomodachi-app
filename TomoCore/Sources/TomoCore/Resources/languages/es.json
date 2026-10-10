@@ -83,6 +83,39 @@
       }
     }
   },
+  "diary": [
+    {
+      "fromAge": 1,
+      "missed": {
+        "say": "¡Te esperé! ¡Hmm!",
+        "romanization": null,
+        "translation": {
+          "en": "I waited for you! Hmph!"
+        }
+      },
+      "streak": {
+        "say": "¡Hoy también!",
+        "romanization": null,
+        "translation": {
+          "en": "Today too!"
+        }
+      },
+      "hard": {
+        "say": "¡Qué difícil!",
+        "romanization": null,
+        "translation": {
+          "en": "So hard!"
+        }
+      },
+      "birthday": {
+        "say": "¡Ya soy mayor!",
+        "romanization": null,
+        "translation": {
+          "en": "I'm big now!"
+        }
+      }
+    }
+  ],
   "ai": {
     "persona": "a {age}-year-old child from Spain",
     "rules": [

@@ -436,7 +436,7 @@ private struct TomoPillarTomo: View {
 }
 
 /// Chips that wrap onto the next line, whole.
-private struct TomoChipFlow: Layout {
+struct TomoChipFlow: Layout {
     let spacing: CGFloat
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {

@@ -31,6 +31,8 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   `TOMO_PILLAR_BACK=<0…1>` slides back in time that share of the way; `TOMO_PILLAR_MARK=<level>` selects a mark (a
   negative level: the next birthday). On the Mac, `TOMO_WINDOW_HEIGHT=<points>` makes the Tomodachi window that tall,
   to see a long page (a test run's window is never on screen).
+- `TOMO_DIARY=<n>`: Together scrolls to Tomo's diary and opens the page n days played before the newest;
+  `TOMO_DIARY_WORD=first` shows its first sticker's card.
 - `TOMO_GARDEN=today|week|all`: the garden's range. `TOMO_GARDEN_REPLAY=<seconds>`: that long after it shows, the
   replay starts. `TOMO_GARDEN_WORD=newest`: the newest word's card shows. With `TOMO_SNAPSHOT_DIR`, Together also
   writes its exports and recaps there (`export.md`, `export.json`, `recap-<range>.txt`).
