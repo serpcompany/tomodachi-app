@@ -28,7 +28,11 @@ enum TomoMenus {
 
     /// The Tomo menu.
     static var tomo: [TomoCommand] {
-        [TomoCommand(title: ui("menu.dropIn"), key: "d") { TomoGame.shared.dropIn(force: true); takeKeyboard() },
+        // A visit that peeks first (Settings) stays a peek, which never takes the keyboard; the card does.
+        [TomoCommand(title: ui("menu.dropIn"), key: "d") {
+            TomoGame.shared.dropIn(force: true)
+            if !TomoGame.shared.offered { takeKeyboard() }
+        },
          TomoCommand(title: ui("menu.words"), key: "w") { TomoAppWindow.open(.words) },
          TomoCommand(title: ui("menu.restart"), key: "") { TomoAppWindow.open(confirmStartOver: true) }]   // asks first
     }

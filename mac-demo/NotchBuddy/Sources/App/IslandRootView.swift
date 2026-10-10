@@ -12,8 +12,24 @@ struct IslandRootView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             IslandContainer(state: state)
                 .frame(maxWidth: .infinity, alignment: .center)
+            // A peek opening: its word slides from the bar into the card's word slot, over both (panel coordinates).
+            if let flight = state.wordFlight {
+                TomoWordFlightView(flight: flight) { if state.wordFlight?.id == flight.id { state.wordFlight = nil } }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .allowsHitTesting(false)
+                    .id(flight.id)
+            }
         }
         .ignoresSafeArea()
+        .onChange(of: state.mode) { old, new in
+            if new != .expanded { state.wordFlight = nil }   // the card went before the word landed
+            // Under Reduce Motion the word doesn't slide: the card shows it in its place.
+            guard old == .peek, new == .expanded, !TomoMotion.shared.reduce else { return }
+            let flight = TomoWordFlight(word: TomoGame.shared.round.say, script: TomoLanguages.shared.target.script,
+                                        peek: TomoPeekLayout(hasNotch: state.hasNotch, notchHeight: state.notchHeight),
+                                        panelWidth: IslandWindowController.panelSize.width)
+            state.wordFlight = flight   // nil: nothing to say, so the card's word just shows
+        }
     }
 }
 
@@ -43,6 +59,16 @@ struct IslandContainer: View {
                     .transition(.opacity)
             }
 
+            // A visit offered as a peek: the invite over the visit's word, beside Tomo (TomoPeekLayout).
+            if state.mode == .peek {
+                TomoPeekWord(game: TomoGame.shared, layout: peekLayout)
+                    .frame(width: islandWidth, height: islandHeight, alignment: .topLeading)
+                    .clipShape(IslandShape(width: islandWidth, height: islandHeight, cornerRadius: cornerRadius))
+                    .allowsHitTesting(false)   // a click anywhere on the bar opens the card (IslandWindowController)
+                    // Opening, its word flies on into the card (TomoWordFlight): the bar's own goes at once.
+                    .transition(.asymmetric(insertion: .opacity, removal: .opacity.animation(.easeOut(duration: 0.08))))
+            }
+
             // Single BotPlacement — always alive in the view tree so spring animations
             // fire from the current position.
             BotPlacement(state: state, islandW: islandWidth, islandH: islandHeight)
@@ -63,11 +89,13 @@ struct IslandContainer: View {
                     .transition(.opacity)
             }
 
-            // Open: when an ignored visit tucks back in, as an amber line under the card (never under the help panel).
-            if state.mode == .expanded {
+            // Open or peeking: when an ignored visit tucks back in, as an amber line under the card (never under the help
+            // panel) or the peek's bar.
+            if state.mode == .expanded || state.mode == .peek {
+                let barHeight = state.mode == .peek ? peekLayout.size.height : IslandConst.layout(state.view).height
                 TomoVisitCountdownLine(game: TomoGame.shared)
                     .frame(width: max(0, islandWidth - TomoCountdownLine.inset * 2), height: TomoCountdownLine.height)
-                    .position(x: islandWidth / 2, y: TomoCountdownLine.centerY(cardHeight: IslandConst.layout(state.view).height))
+                    .position(x: islandWidth / 2, y: TomoCountdownLine.centerY(cardHeight: barHeight))
                     .allowsHitTesting(false)
                     .transition(.opacity)
             }
@@ -76,8 +104,9 @@ struct IslandContainer: View {
         .onChange(of: state.mode) { oldMode, newMode in
             let shrinking = modeOrder(newMode) < modeOrder(oldMode)
             let anim = shrinking ? closeEase : openSpring
-            let (w, h) = islandSize(mode: newMode, view: state.view, nw: state.notchWidth, nh: state.notchHeight)
-            let cr = newMode == .expanded ? IslandConst.expandedCorner : IslandConst.roundedCorner
+            let (w, h) = islandSize(mode: newMode, view: state.view, nw: state.notchWidth, nh: state.notchHeight,
+                                    hasNotch: state.hasNotch)
+            let cr = newMode == .expanded || newMode == .peek ? IslandConst.expandedCorner : IslandConst.roundedCorner
             withAnimation(anim) {
                 islandWidth  = w
                 islandHeight = h + (newMode == .expanded ? state.helpPanelHeight : 0)
@@ -102,18 +131,22 @@ struct IslandContainer: View {
         .onChange(of: state.notchHeight) { _, _ in fitToScreen() }
         .onAppear {
             fitToScreen()
-            cornerRadius = state.mode == .expanded ? IslandConst.expandedCorner : IslandConst.roundedCorner
+            cornerRadius = state.mode == .expanded || state.mode == .peek ? IslandConst.expandedCorner
+                : IslandConst.roundedCorner
         }
     }
 
+    private var peekLayout: TomoPeekLayout { TomoPeekLayout(hasNotch: state.hasNotch, notchHeight: state.notchHeight) }
+
     private func fitToScreen() {
-        let (w, h) = islandSize(mode: state.mode, view: state.view, nw: state.notchWidth, nh: state.notchHeight)
+        let (w, h) = islandSize(mode: state.mode, view: state.view, nw: state.notchWidth, nh: state.notchHeight,
+                                hasNotch: state.hasNotch)
         islandWidth  = w
         islandHeight = h + (state.mode == .expanded ? state.helpPanelHeight : 0)
     }
 
     private func modeOrder(_ m: IslandMode) -> Int {
-        switch m { case .hidden: return 0; case .compact: return 1; case .expanded: return 2 }
+        switch m { case .hidden: return 0; case .compact: return 1; case .peek: return 2; case .expanded: return 3 }
     }
 }
 
@@ -233,6 +266,7 @@ func botPosition(mode: IslandMode, view: IslandView, islandW: CGFloat, islandH: 
         return hasNotch ? (46, 16, 6, 0)
             : (islandW / 2, resting.botCenterY, resting.botDiameter, 1)
     case .compact: return (40, resting.botCenterY, resting.botDiameter, 1)
+    case .peek: return (TomoPeekLayout.tomoCenterX, islandH / 2, TomoPeekLayout.tomoDiameter(height: islandH), 1)
     case .expanded:
         let layout = IslandConst.layout(view)
         let cx = layout.botX

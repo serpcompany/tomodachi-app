@@ -13,7 +13,7 @@ macOS CI yet: CI runs only the repo checks, so the build, the self-test and the 
 | **Finish gate** | Build, self-test, repo checks, and the evidence below | Once, when the branch is done |
 
 The self-test: `TOMO_SELFTEST=1 TOMO_DATA_DIR=$(mktemp -d) <app binary>` checks the word-stage, level,
-store, sync-merge and look rules, the island's (which screen, where, Esc, opening and closing), who sees the first run, when reminders
+store, sync-merge and look rules, the island's (which screen, where, Esc, opening and closing, the peek; a visit offered as a peek runs on the game itself, about 3 s), who sees the first run, when reminders
 come, and that every moment has a short, soft sound, lower for an older Tomo; it prints each
 check and quits (exit code 1 on a failure). A new growth rule gets a new check in `TomoProgress.selfTest`, a new
 merge rule one in `TomoSync.selfTest`, an island rule one in `TomoIslandSelfTest`. It also checks growth end to end
@@ -27,7 +27,8 @@ pack's age boundary. Each run prints a `pace` line: the days to Lv 2, 5 and 10 a
 
 - **The card, the header or anything else on the island:** the snapshot matrix. Look at every image:
   picture and talking stages; English and Japanese interface; a short and a long Tomo line; the hint
-  (talking); Win, Practice, Miss and No score; resting and a level-up; and any new state the change adds.
+  (talking); Win, Practice, Miss and No score; resting and a level-up; and any new state the change adds. A change
+  to how a visit starts or opens needs them with the peek on too (`TOMO_PEEK=1 TOMO_PEEK_OPEN=2`).
 - **Growth rules:** the self-test, with a check for the new rule.
 - **The screens (Tomo, Words, Settings, About):** on the Mac, the window's snapshots with seeded progress
   (`TOMO_OPEN_WINDOW=tour`, below), in English and Japanese; on the iPhone, a simctl screenshot of each
@@ -100,7 +101,12 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
 
 - `TOMO_HEADLESS=1`: nothing shows, sounds or takes focus (above). Use it on every test run.
 - `TOMO_SNAPSHOT_DIR=<dir>`: a PNG of the island every second, and of the Tomodachi window while it's open
-  (`window-<screen>-NNN.png`, and `window-sheet-NNN.png` for the start-over question).
+  (`window-<screen>-NNN.png`, and `window-sheet-NNN.png` for the start-over question). `TOMO_SNAPSHOT_EVERY=<seconds>`
+  takes them more often (0.1, to catch a motion midway). In a headless run the card's first frame takes about 0.4 s
+  to draw, so a motion as it opens shows in one or two frames.
+- `TOMO_PEEK=1` (or `0`): visits peek first (or open the card), whatever Settings says. `TOMO_PEEK_OPEN=<seconds>`:
+  that long after a peek shows, it opens as a click on it would (without taking the keyboard), so a test run sees its
+  word slide into the card. A headless run can't point at it.
 - `TOMO_OPEN_WINDOW=<screen>` (tomo, words, settings, about, ai, testing): the Tomodachi window opens at that
   screen a second after launch (`ai` and `testing` also show the testing tools). `startOver` opens Settings
   asking to start over; `tour` shows every screen for 3 s each, then the question. On the iPhone it picks the

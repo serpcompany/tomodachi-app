@@ -139,6 +139,14 @@ public enum DropIn {
         return UserDefaults.standard.object(forKey: "tomoVisitEvery") as? Double ?? 20 * 60
     }
     public static func setEvery(_ seconds: TimeInterval) { UserDefaults.standard.set(seconds, forKey: "tomoVisitEvery") }
+    /// How a visit starts on the Mac (Settings): a peek first, a bar by the notch that opens into the card when you
+    /// point at it or click it, or the card itself (false, the default, so the owner can try both; #19). The shell
+    /// asks through `TomoGame.peeksFirst`. TOMO_PEEK=1 (or 0) overrides it for testing.
+    public static var peekFirst: Bool {
+        if let e = ProcessInfo.processInfo.environment["TOMO_PEEK"] { return e == "1" }
+        return UserDefaults.standard.bool(forKey: "tomoVisitPeeks")
+    }
+    public static func setPeekFirst(_ on: Bool) { UserDefaults.standard.set(on, forKey: "tomoVisitPeeks") }
     public static let choices: [(seconds: TimeInterval, key: String)] = [
         (10 * 60, "settings.visits.10m"), (20 * 60, "settings.visits.20m"), (45 * 60, "settings.visits.45m"),
         (2 * 3600, "settings.visits.2h"), (0, "settings.visits.off"),
@@ -233,6 +241,12 @@ public final class TomoGame: ObservableObject {
     }
     /// A visit ended unfinished: small Tomo bounces now and then until you open it. Never a count (decisions.md).
     @Published public private(set) var pending = false
+    /// The visit is offered, not asked yet: its first round shows in the shell's peek (`peekIsland`), and Tomo asks it,
+    /// out loud, only once the card opens (`acceptOffer`). The peek counts as open (`isIslandOpen`), so the visit isn't
+    /// "closed mid-visit", and its countdown runs: ignored, it leaves like any visit (`leave(ignored: true)`).
+    @Published public private(set) var offered = false
+    /// The offered round is in the peek (`present` showed it), so opening the card asks it.
+    private var offerShown = false
     private var nextNudge = Date.distantFuture
 
     /// Whether anything counts now (`TomoProgress.somethingCounts`, the rule a visit uses) and, when nothing does, when
@@ -293,6 +307,12 @@ public final class TomoGame: ObservableObject {
     // Shell hooks: the Mac island sets them in AppDelegate; the iPhone app sets its own (issue #52)
     public var openIsland: (@MainActor () -> Void)?
     public var closeIsland: (@MainActor () -> Void)?
+    /// Whether a visit peeks first (the learner's setting, `DropIn.peekFirst`). Nil: never (the iPhone).
+    public var peeksFirst: (@MainActor () -> Bool)?
+    /// Shows a visit as a peek (`offered`): the shell's bar, which opens into the card when the learner points at it
+    /// or clicks it, and then calls `acceptOffer`.
+    public var peekIsland: (@MainActor () -> Void)?
+    /// Tomo is open: its card, or a peek (which counts as open).
     public var isIslandOpen: (@MainActor () -> Bool)?
     public var focusInput: (@MainActor () -> Void)?
     /// The pointer is over Tomo's card: a visit doesn't time out while you're there.
@@ -318,6 +338,8 @@ public final class TomoGame: ObservableObject {
     private var nextDropIn = Date.distantFuture
     private var wasOpen = false
     private var ticker: Timer?
+    /// The self-test's runs say nothing, whatever the sound setting (never saved).
+    var silent = false
 
     private let speech = AVSpeechSynthesizer()
     private var voices: [String: VoiceBox] = [:]
@@ -464,6 +486,7 @@ public final class TomoGame: ObservableObject {
         isPracticeRound = false
         countsAgainAt = nil
         practiceAccepted = false
+        offered = false
     }
 
     private func syncProgress() {
@@ -535,15 +558,46 @@ public final class TomoGame: ObservableObject {
         resetDeadline(after: ignoreAfter + 1.5)
         visitStarted = Date()
         pending = false
-        openIsland?()
+        // Peek first (the learner's setting, where the shell has a peek): the first round shows in the peek and is asked
+        // once the card opens. An open card stays the card.
+        offered = peeksFirst?() == true && peekIsland != nil && isIslandOpen?() != true
+        offerShown = false
+        if !offered { openIsland?() }
         wasOpen = true
         NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.happy)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             NotificationCenter.default.post(name: .botGreet, object: nil)
         }
+        if offered {   // calling from the peek: its mouth opens once, with nothing said
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [weak self] in
+                MainActor.assumeIsolated {
+                    if self?.offered == true { NotificationCenter.default.post(name: .botTalk, object: nil) }
+                }
+            }
+        }
         transcript = []
         lastAnswer = nil
-        nextItem(delay: 1.2)
+        nextItem(delay: offered ? 0 : 1.2)   // a peek shows its word as it appears
+    }
+
+    /// The learner opened the peek (pointing at it, or a click; the shell calls this whenever the card opens): Tomo
+    /// asks the round it offered, in the card, as the word lands there. Nothing to do if nothing was offered.
+    public func acceptOffer() {
+        guard offered else { return }
+        offered = false
+        touch()
+        guard offerShown else { return }   // the round is still coming: `present` asks it
+        offerShown = false
+        let tok = bump()
+        after(0.35, tok) { [weak self] in self?.asked(tok) }
+    }
+
+    /// The visit was offered as a peek, but what comes first isn't a round to show there (Tomo rests or celebrates):
+    /// the card opens, as it would without a peek.
+    private func openOffered() {
+        guard offered else { return }
+        offered = false
+        openIsland?()
     }
 
     /// What to ask next: this visit's items, then (free play) due or new ones, then practice.
@@ -595,6 +649,7 @@ public final class TomoGame: ObservableObject {
         let tok = bump()
         after(delay, tok) { [weak self] in
             guard let self else { return }
+            self.openOffered()
             self.currentItem = nil
             self.help = nil
             self.outcome = nil
@@ -657,9 +712,9 @@ public final class TomoGame: ObservableObject {
         }
     }
 
-    private func tick() {
-        let now = Date()
-        let open = isIslandOpen?() ?? false
+    /// Every half second: the visit's clock. `now` is for the self-test (TomoVisitCheck).
+    func tick(at now: Date = Date()) {
+        let open = isIslandOpen?() ?? false   // a peek counts as open: an offered visit isn't "closed mid-visit"
         defer { wasOpen = open; publishCountdown(now) }
         // "Next at 8:37" has come: say what's left again.
         if let at = levelLeft.nextAt, at <= TomoClock.now { levelLeft = progress.levelLeft }
@@ -715,6 +770,7 @@ public final class TomoGame: ObservableObject {
     /// Ends the visit. Ignored: a quiet yawn. Finished: wave and say bye.
     private func leave(ignored: Bool) {
         let tok = bump()
+        offered = false                        // an ignored peek leaves like an ignored card, never asking
         visitRoundsLeft = nil
         nextDropIn = DropIn.nextVisit()
         listener.stop()
@@ -753,6 +809,7 @@ public final class TomoGame: ObservableObject {
 
     private func endVisit() {
         bump()
+        offered = false
         help = nil
         visitRoundsLeft = nil
         nextDropIn = DropIn.nextVisit()
@@ -847,6 +904,7 @@ public final class TomoGame: ObservableObject {
     /// A new level: a small celebration. A new level with a new age: Tomo grows up (it evolves).
     private func celebrate(_ up: (level: Int, birthday: Bool)) {
         let tok = bump()
+        openOffered()
         syncProgress()
         help = nil
         phase = up.birthday ? .grew : .leveledUp
@@ -877,14 +935,26 @@ public final class TomoGame: ObservableObject {
             self.help = nil
             self.outcome = nil
             self.phase = .asking
-            self.setBot(.question)
-            self.speak(r.say, slow: false)
-            self.resetDeadline(after: self.ignoreAfter)
-            if Self.autoplay { self.autoAnswer(tok) }
-            if let i = ProcessInfo.processInfo.environment["TOMO_AUTOLOOKUP"].flatMap(Int.init), !Self.autoExplained {
-                Self.autoExplained = true
-                self.after(1.5, tok) { [weak self] in self?.cardRequest = i }
+            // Offered: the word shows in the peek, with the visit's countdown running; asked when the card opens.
+            if self.offered {
+                self.offerShown = true
+                self.peekIsland?()
+                self.publishCountdown()   // the line shows with the peek
+                return
             }
+            self.asked(tok)
+        }
+    }
+
+    /// Tomo asks the round on its card: the question face, the word out loud, and the round's time from now.
+    private func asked(_ tok: Int) {
+        setBot(.question)
+        speak(round.say, slow: false)
+        resetDeadline(after: ignoreAfter)
+        if Self.autoplay { autoAnswer(tok) }
+        if let i = ProcessInfo.processInfo.environment["TOMO_AUTOLOOKUP"].flatMap(Int.init), !Self.autoExplained {
+            Self.autoExplained = true
+            after(1.5, tok) { [weak self] in self?.cardRequest = i }
         }
     }
 
@@ -914,6 +984,7 @@ public final class TomoGame: ObservableObject {
         let tok = bump()
         after(delay, tok) { [weak self] in
             guard let self else { return }
+            self.openOffered()
             self.line = l
             self.outcome = nil
             self.explanation = nil
@@ -1156,7 +1227,7 @@ public final class TomoGame: ObservableObject {
     // MARK: Helpers
 
     public func speak(_ text: String, slow: Bool) {
-        guard soundEnabled else { return }
+        guard soundEnabled, !silent else { return }
         guard let voice else { return }            // still being found (loadVoice): stay quiet, never guess a voice
         speech.stopSpeaking(at: .immediate)
         let u = AVSpeechUtterance(string: text)

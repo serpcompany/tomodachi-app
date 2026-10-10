@@ -30,6 +30,8 @@ final class AppState: ObservableObject {
     var mouseInIsland: Bool = false   // set by IslandWindowController every frame
     /// Tomo's help panel below the card (0 = closed). The expanded island grows by this much.
     @Published var helpPanelHeight: CGFloat = 0
+    /// A peek's word on its way into the card as the peek opens (TomoWordFlight); the card's own word waits for it.
+    @Published var wordFlight: TomoWordFlight?
 
     // Sound enabled: Tomo's switch (TomoGame.soundEnabled, persisted there)
     var soundEnabled: Bool {

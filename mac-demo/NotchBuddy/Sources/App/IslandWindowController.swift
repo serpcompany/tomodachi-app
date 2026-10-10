@@ -144,7 +144,7 @@ final class IslandWindowController: NSWindowController {
                 self.setMode(.compact)
 
             case .peek:
-                break   // nothing peeks yet: no visit offers one
+                break   // only the app shows a peek (`peek()`, peekedExternally); the rules never move to one
 
             case .home:
                 self.expand(to: .overview)
@@ -244,8 +244,8 @@ final class IslandWindowController: NSWindowController {
     /// The island's frame in the panel (AppKit coordinates, origin bottom-left): glued to the top, centred, with
     /// the help panel under an open card.
     nonisolated static func islandFrame(panel: CGSize, mode: IslandMode, view: IslandView,
-                                        notch: CGSize, help: CGFloat) -> CGRect {
-        let (w, fixedH) = islandSize(mode: mode, view: view, nw: notch.width, nh: notch.height)
+                                        notch: CGSize, help: CGFloat, hasNotch: Bool = true) -> CGRect {
+        let (w, fixedH) = islandSize(mode: mode, view: view, nw: notch.width, nh: notch.height, hasNotch: hasNotch)
         let h = fixedH + (mode == .expanded ? help : 0)
         return CGRect(x: (panel.width - w) / 2, y: panel.height - h, width: w, height: h)
     }
@@ -331,8 +331,16 @@ final class IslandWindowController: NSWindowController {
     // MARK: - Mode transitions
 
     private func modeLevel(_ m: IslandMode) -> Int {
-        switch m { case .hidden: return 0; case .compact: return 1; case .expanded: return 2 }
+        switch m { case .hidden: return 0; case .compact: return 1; case .peek: return 2; case .expanded: return 3 }
     }
+
+    /// Whether Tomo counts as open for the game (`TomoGame.isIslandOpen`): its card, or a peek, so a visit offered as a
+    /// peek isn't ended as closed mid-visit.
+    nonisolated static func countsAsOpen(_ mode: IslandMode) -> Bool { mode == .expanded || mode == .peek }
+
+    /// The card opened, however it opened (a click, a peek pointed at, the menu, a visit): the game asks what it
+    /// offered in a peek, if anything (`TomoGame.acceptOffer`).
+    var onOpen: (() -> Void)?
 
     func setMode(_ mode: IslandMode) {
         let prev = state.mode
@@ -344,6 +352,7 @@ final class IslandWindowController: NSWindowController {
         withAnimation(anim) { state.mode = mode }
         if mode == .expanded { SoundEngine.shared.play("open") }
         if prev == .expanded { SoundEngine.shared.play("close") }
+        if mode == .expanded { onOpen?() }
     }
 
     func expand(to view: IslandView) {
@@ -362,6 +371,23 @@ final class IslandWindowController: NSWindowController {
     func open() {
         checkRules(at: fsm.openedExternally(at: Self.clock))
         expand(to: .overview)
+    }
+
+    /// A visit offered as a peek (`TomoGame.peekIsland`): the bar, which opens into the card when the pointer rests on
+    /// it (the rules' 0.45 s, only for a pointer that comes in) or on a click. It never takes the keyboard. An open card
+    /// stays open.
+    func peek() {
+        guard state.mode != .expanded else { return }
+        checkRules(at: fsm.peekedExternally(at: Self.clock))
+        setMode(.peek)
+        // TOMO_PEEK_OPEN=<seconds> (snapshots): that long after it shows, the peek opens as a click on it would, but
+        // without taking the keyboard, so a test run can see the word slide into the card.
+        if let wait = ProcessInfo.processInfo.environment["TOMO_PEEK_OPEN"].flatMap(TimeInterval.init) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + wait) { [weak self] in
+                guard let self, self.state.mode == .peek else { return }
+                self.checkRules(at: self.fsm.click(at: Self.clock))
+            }
+        }
     }
 
     // MARK: - Keyboard (Escape closes) and mouse
@@ -462,7 +488,7 @@ final class IslandWindowController: NSWindowController {
         let s = AppState.shared
         let panelH = window?.frame.height ?? 320
         let panelW = window?.frame.width  ?? 720
-        let (islandW, islandH) = islandSize(mode: s.mode, view: s.view, nw: notchW, nh: notchH)
+        let (islandW, islandH) = islandSize(mode: s.mode, view: s.view, nw: notchW, nh: notchH, hasNotch: hasNotch)
         let islandMinX = (panelW - islandW) / 2
         let (cx, cy, diameter, _) = botPosition(mode: s.mode, view: s.view,
                                                 islandW: islandW, islandH: islandH, hasNotch: s.hasNotch)
@@ -512,7 +538,8 @@ final class IslandPanel: NSPanel {
     func currentIslandFrame(nw: CGFloat, nh: CGFloat) -> CGRect {
         let s = AppState.shared
         return IslandWindowController.islandFrame(panel: frame.size, mode: s.mode, view: s.view,
-                                                  notch: CGSize(width: nw, height: nh), help: s.helpPanelHeight)
+                                                  notch: CGSize(width: nw, height: nh), help: s.helpPanelHeight,
+                                                  hasNotch: s.hasNotch)
     }
 }
 
@@ -520,10 +547,13 @@ final class IslandPanel: NSPanel {
 
 func islandSize(mode: IslandMode, view: IslandView,
                 nw: CGFloat = IslandConst.notchWidth,
-                nh: CGFloat = IslandConst.notchHeight) -> (CGFloat, CGFloat) {
+                nh: CGFloat = IslandConst.notchHeight, hasNotch: Bool = true) -> (CGFloat, CGFloat) {
     switch mode {
     case .hidden:   return (nw, nh)
     case .compact:  return (nw + IslandRestingLayout.ear * 2, nh)
+    case .peek:
+        let size = TomoPeekLayout(hasNotch: hasNotch, notchHeight: nh).size
+        return (size.width, size.height)
     case .expanded: return (IslandConst.expandedWidth, IslandConst.layout(view).height)
     }
 }

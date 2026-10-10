@@ -139,6 +139,7 @@ struct TomoView: View {
                              size: CGSize(width: TomoGrid.wordWidth, height: TomoGrid.wordRow),
                              text: game.round.say, maxSize: 30, selectable: false, spacesOnly: true)
                     .frame(width: TomoGrid.wordWidth, height: TomoGrid.wordRow, alignment: .leading)
+                    .opacity(state.wordFlight == nil ? 1 : 0)   // a peek's word is still flying in (TomoWordFlight)
                 IconButton(icon: "speaker.wave.2.fill", help: lang.target.labels.again) { game.replay() }
             }
             .frame(height: TomoGrid.wordRow)
