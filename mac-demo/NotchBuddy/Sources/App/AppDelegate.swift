@@ -139,6 +139,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         TomoHotKey.shared.onPress = { [weak self] in self?.islandController?.shortcutPressed() }
         TomoHotKey.shared.start()
         TomoScrollProbe.startIfRequested(panel: islandController?.window)   // TOMO_SCROLL_PROBE: do swipes reach it?
+        // TOMO_DESKTOP (a prototype, never headless): Tomo can be dragged out of the notch onto the desktop.
+        if TomoDesktop.enabled {
+            let desktop = TomoDesktop.shared
+            desktop.restingSpot = { [weak self] in self?.islandController?.restingTomoSpot() ?? .zero }
+            desktop.islandFrame = { [weak self] in self?.islandController?.islandFrameOnScreen() ?? .zero }
+            desktop.onLeave = { AppState.shared.tomoOnDesktop = true }
+            desktop.onHome = { AppState.shared.tomoOnDesktop = false }
+            desktop.placeIfRequested(on: islandController?.window?.screen)
+        }
         TomoMenus.takeKeyboard = { [weak self] in self?.islandController?.takeKeyboard() }
         TomoAppWindow.openIfRequested()
         TomoMenus.dumpIfRequested()

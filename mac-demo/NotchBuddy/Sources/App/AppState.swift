@@ -41,6 +41,8 @@ final class AppState: ObservableObject {
     /// The card or the peek is folding, and waits while Tomo is pulled up into the notch (about 0.45 s): for the game
     /// it's closed already (`TomoGame.isIslandOpen`).
     @Published var leaving = false
+    /// TOMO_DESKTOP (a prototype): Tomo is out on the desktop (TomoDesktop), so small Tomo isn't drawn in the island.
+    @Published var tomoOnDesktop = false
 
     // Sound enabled: Tomo's switch (TomoGame.soundEnabled, persisted there)
     var soundEnabled: Bool {

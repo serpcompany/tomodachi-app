@@ -18,6 +18,11 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   to draw, and each snapshot stalls the run, so a motion as it opens shows in one or two frames.
 - `TOMO_SLOW_MOTION=<n>`: Tomo's travel between the island's states, and the island's own opening and folding, take n
   times longer, so snapshots catch each step (5 shows four or five frames of a move).
+- `TOMO_DESKTOP=1` (a prototype, #130): small Tomo can be dragged out of the notch onto the desktop, where it dozes
+  after 8 s alone and flies home along an arc when a visit is due. Never in a headless run (it puts a window on the
+  screen): try it by hand. `TOMO_DESKTOP_AT=<x,y>` starts it out there (fractions of the screen's usable area).
+  `TOMO_RENDER_DESKTOP=<dir>`: the drag, the doze and the flight home drawn offline (and under Reduce Motion), and the
+  hit test over the drawn Tomo (`hit-test.png`), then quits.
 - `TOMO_RESTING_HOVER=1`: the resting island as it is under the pointer (a little bigger), which a headless run can't
   move there.
 - `TOMO_PEEK=1` (or `0`): visits peek first (or open the card), whatever Settings says. `TOMO_PEEK_OPEN=<seconds>`:
