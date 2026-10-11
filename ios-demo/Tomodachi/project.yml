@@ -18,6 +18,9 @@ settings:
     # locally, device builds get a development profile (xcodebuild -allowProvisioningUpdates registers the
     # App IDs and the App Group the first time).
     CODE_SIGN_STYLE: Automatic
+    # The build number, the app's and the widgets' alike. testflight.sh sets it to the upload's date and time
+    # (YYMMDD.HHMM), so every upload counts up.
+    CURRENT_PROJECT_VERSION: "1"
     DEVELOPMENT_TEAM: 847HR8U8D9
     # Shared with the widgets (TomoGlance) and with the Mac (TomoSync): read from Info.plist, never hard-coded.
     TOMO_APP_GROUP: group.com.zenbujapanese.tomo
@@ -65,7 +68,7 @@ targets:
         CFBundleName: Tomodachi
         CFBundleDisplayName: Tomodachi
         CFBundleIdentifier: com.zenbujapanese.tomo
-        CFBundleVersion: "1"
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleShortVersionString: "1.1"
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
@@ -127,7 +130,7 @@ targets:
       properties:
         CFBundleDisplayName: Tomodachi
         CFBundleShortVersionString: "1.1"
-        CFBundleVersion: "1"
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         TomoAppGroup: $(TOMO_APP_GROUP)
         UIAppFonts: [TomoReady0.ttf, TomoReady1.ttf, TomoReady2.ttf, TomoSleep0.ttf, TomoSleep1.ttf, TomoSleep2.ttf]
         NSExtension:
