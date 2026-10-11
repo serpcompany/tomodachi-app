@@ -296,7 +296,7 @@
     "onboarding.notify.title": "Let words find you",
     "onboarding.notify.body": "Turn on notifications, and Tomo tells you when a word is ready: {every} at most.",
     "onboarding.notify.quiet": "Silent from {from} to {until}",
-    "onboarding.notify.guilt": "No streak guilt, no marketing blasts",
+    "onboarding.notify.onlyTomo": "Just Tomo, no marketing blasts",
     "onboarding.notify.button": "Turn on notifications",
     "onboarding.notify.later": "Not now",
     "onboarding.widget.title": "Add a widget",

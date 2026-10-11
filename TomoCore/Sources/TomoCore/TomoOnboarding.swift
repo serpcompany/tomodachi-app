@@ -158,6 +158,36 @@ public final class TomoOnboarding: ObservableObject {
               + "\(written(night, [false, true]))")
         check(written(night, [false]) == "0-0" && written(off, [true]) == "1260-480",
               "quiet hours the learner changed are written: switched off, none; switched on from none, 9 PM to 8 AM")
+
+        // Headings wrap only between their phrases (#225). Kana as escapes: Swift holds no Japanese text.
+        let a = "\u{3042}", i = "\u{3044}", u = "\u{3046}", e = "\u{3048}"
+        check(TomoLineBreaks.phrased("\(a)\(i) \(u)\(e)") == "\(a)\u{2060}\(i)\u{200B}\(u)\u{2060}\(e)"
+              && TomoLineBreaks.phrased("Tomo \(a)\(i)") == "Tomo\u{00A0}\(a)\u{2060}\(i)"
+              && TomoLineBreaks.phrased("Let words find you") == "Let words find you"
+              && TomoLineBreaks.spoken("Tomo \(a)\(i) \(u)") == "Tomo \(a)\(i)\(u)",
+              "a heading wraps only at its spaces: one between two Japanese phrases isn't drawn, one beside a single "
+              + "Japanese character never breaks, and English is unchanged")
+        // Each phrase fits an iPhone SE's line (375 pt less `TomoOnboardingView.phonePadding` each side: 327, so 11 kana at 28 pt, 13 at 25; a Latin
+        // letter is about 0.6 of one), so a heading never needs to break inside one. The headings are found in the
+        // packs, never listed here: every `onboarding.<step>.title`, the result's 「…が分かりました！」 included,
+        // at the size it's drawn (`TomoOnboardingView.headingSize`), with `{language}` as each target's name.
+        let langs = TomoLanguages.shared
+        func isHeading(_ key: String) -> Bool {
+            key.hasPrefix("onboarding.") && key.hasSuffix(".title") && key.split(separator: ".").count == 3
+        }
+        func ems(_ p: String) -> Double { p.reduce(0) { $0 + (TomoLineBreaks.isWide($1) ? 1 : 0.6) } }
+        let found = langs.learners.map { Set($0.strings.keys.filter(isHeading)) }
+        let tooLong = langs.learners.flatMap { pack in
+            pack.strings.keys.filter(isHeading).sorted().flatMap { key in
+                let size = TomoOnboardingView.headingSize(key)
+                return langs.targets.flatMap { TomoLineBreaks.phrases(pack(key, ["language": $0.name(pack.id)])) }
+                    .filter { ems($0) > ((375 - 2 * TomoOnboardingView.phonePadding) / size).rounded(.down) }.map { "\($0) (\(Int(size)) pt)" }
+            }
+        }
+        check(tooLong.isEmpty && Set(found).count == 1 && !found[0].isEmpty,
+              "every first-run heading in every ui pack (\(found.first?.count ?? 0) each, the same keys) wraps between "
+              + "phrases that fit an iPhone SE's line at its size: \(tooLong.count) too long"
+              + (tooLong.isEmpty ? "" : ": " + Set(tooLong).sorted().joined(separator: ", ")))
     }
 
     // MARK: The flow
