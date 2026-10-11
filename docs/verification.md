@@ -46,11 +46,11 @@ pack's age boundary. Each run prints a `pace` line: the days to Lv 2, 5 and 10 a
 - **The iPhone's UI journeys** (`ios-demo/Tomodachi/UITests`, XCUITest): launch, a picture round answered wrong
   then right, the practice offer, Together, Words opening at Tomo's level, and a long press on Tomo showing its
   love. Each launches on a fresh folder in the test runner's temporary folder, silent, in English, without the
-  first run, and starts once the app shows its tab with those settings (`launch` launches it again if not);
-  progress a journey needs is written there through TomoCore's own store (`TomoSeed`), and the text they look for
-  comes from `ui.en.json`. A journey waits on what the screen shows, and a state that shows for a moment must
-  outlast XCUITest's own waits, which take seconds on a busy simulator (Tomo's love stays its VoiceOver value for
-  6 s, #203).
+  first run, and starts once the app shows its tab with those settings (`launch` launches it again, once, and
+  records why); progress a journey needs is written there through TomoCore's own store (`TomoSeed`), and the text
+  they look for comes from `ui.en.json`. A journey waits on what the screen shows, and a state that shows for a
+  moment must outlast XCUITest's own waits, which take seconds on a busy simulator (Tomo's love stays its VoiceOver
+  value for 6 s, #203). A journey retries only what slowness explains, and records each retry.
 - **Test plans** (`ios-demo/Tomodachi/TestPlans`): **Unit** is TomoCore's tests on the simulator; **Pull Request**
   adds the UI journeys. Run them on your own simulator (`ios-demo/scripts/simulator.sh delete` after; never
   Simulator.app):

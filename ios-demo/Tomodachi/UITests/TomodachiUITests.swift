@@ -25,24 +25,43 @@ final class TomodachiUITests: XCTestCase {
     /// Launches the app on `folder` (a fresh one if nil), at a tab (`play`, `tomo`, `words`, `together` or
     /// `settings`), and returns once it shows that tab, chosen, with no first run: the sign that it came up with this
     /// test's settings. Launched while the simulator was still installing it, it once came up without them (the first
-    /// run, on Play) (#203); then it's launched again. XCUITest still sees the tabs under the first run, so the check
-    /// looks for the first run itself.
+    /// run, on Play) (#203); then it's launched again, once, and the relaunch is recorded with what it came up on, so
+    /// a start that's sometimes wrong shows in every run's log. A second wrong start fails. XCUITest still sees the
+    /// tabs under the first run, so the check looks for the first run itself.
     private func launch(_ folder: URL? = nil, tab: String? = nil) {
-        let dir = folder ?? TomoSeed.folder()
-        for _ in 1...2 {
+        let dir = folder ?? TomoSeed.folder(), want = tab ?? "play"
+        for attempt in 1...2 {
             app = XCUIApplication()
             app.launchEnvironment = ["TOMO_DATA_DIR": dir.path, "TOMO_HEADLESS": "1", "TOMO_LEARNER": "en",
                                      "TOMO_TARGET": "ja", "TOMO_ONBOARDING": "0"]
             if let tab { app.launchEnvironment["TOMO_OPEN_WINDOW"] = tab }
             app.launch()
-            let shown = app.tabBars.buttons[ui("screen.\(tab ?? "play")")]
-            if app.wait(for: .runningForeground, timeout: 60), shown.waitForExistence(timeout: 30), shown.isSelected,
-               !app.otherElements["firstRun"].exists {
+            let shown = app.tabBars.buttons[ui("screen.\(want)")]
+            let up = app.wait(for: .runningForeground, timeout: 60) && shown.waitForExistence(timeout: 30)
+            let firstRun = app.otherElements["firstRun"].exists
+            if up, shown.isSelected, !firstRun { return }
+            let chosen = app.tabBars.buttons.matching(NSPredicate(format: "selected == true")).firstMatch
+            let came = firstRun ? "in the first run" : !up ? "without its tabs"
+                : chosen.exists ? "on \(chosen.label)" : "on no tab"
+            if attempt == 2 {
+                XCTFail("the app opens at \(want) with the test's settings: it came up \(came), twice")
                 return
             }
+            record("relaunched: came up \(came), not at \(want) with the test's settings", screenshot: app.screenshot())
             app.terminate()
         }
-        XCTFail("the app opens at \(tab ?? "play") with the test's settings")
+    }
+
+    /// Records what a passing journey would otherwise hide (a relaunch, a second press): an activity in the result
+    /// bundle, with a screenshot kept even when the test passes, and a line in the test log.
+    private func record(_ what: String, screenshot: XCUIScreenshot? = nil) {
+        print("\(name) \(what)")
+        XCTContext.runActivity(named: what) { activity in
+            guard let screenshot else { return }
+            let shot = XCTAttachment(screenshot: screenshot)
+            shot.lifetime = .keepAlways
+            activity.add(shot)
+        }
     }
 
     private var tomo: XCUIElement { app.descendants(matching: .any)["tomo"] }
@@ -112,19 +131,31 @@ final class TomodachiUITests: XCTestCase {
 
     /// A long press on Tomo shows its love (#133), which VoiceOver hears as Tomo's value until love may show again
     /// (`TomoLoveCooldown`, 6 s). XCUITest's press returns only after it waits for the app to settle, and Tomo never
-    /// stops moving: on CI's simulators the value was read 3 to 10 s after the press began (#203). So the test waits on
-    /// the value, and if a very slow press still missed it, presses again once love may show again.
+    /// stops moving: on CI's simulators a press took 3 to 15 s, and the value was read 3 to 10 s after the touch
+    /// (#203). So the test waits on the value. A press that returned within 5 s left at least a second of love to read,
+    /// so a miss after it fails. Only after a slower press does it press again (three presses at most), once love may
+    /// show again. Which path ran is recorded.
     func testALongPressOnTomoShowsItsLove() {
         launch()
         XCTAssertTrue(tomo.waitForExistence(timeout: 20))
-        let loved = NSPredicate(format: "value == %@", ui("a11y.love"))
-        for _ in 1...2 {
+        let loved = NSPredicate(format: "value == %@", ui("a11y.love")), slow = TomoLoveCooldown.seconds - 1
+        for press in 1...3 {
+            let began = Date()
             tomo.press(forDuration: 1.2)
-            // Longer than love's cooldown, so a second press can show it again.
+            let seconds = Date().timeIntervalSince(began), took = String(format: "press %d took %.1f s", press, seconds)
+            // Longer than love's cooldown, so a press after this one can show love again.
             let shown = XCTNSPredicateExpectation(predicate: loved, object: tomo)
-            if XCTWaiter().wait(for: [shown], timeout: TomoLoveCooldown.seconds + 4) == .completed { return }
+            if XCTWaiter().wait(for: [shown], timeout: TomoLoveCooldown.seconds + 4) == .completed {
+                record("\(took) and showed love")
+                return
+            }
+            if seconds <= slow {
+                XCTFail("a long press on Tomo shows its love: \(took), and Tomo's value never became \(ui("a11y.love"))")
+                return
+            }
+            record("\(took), over \(Int(slow)) s, and its love wasn't read: pressing again", screenshot: app.screenshot())
         }
-        XCTFail("a long press on Tomo shows its love: Tomo's value is \(ui("a11y.love"))")
+        XCTFail("a long press on Tomo shows its love: three presses were too slow to read it")
     }
 }
 
