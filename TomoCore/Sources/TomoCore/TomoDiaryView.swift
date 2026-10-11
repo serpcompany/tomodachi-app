@@ -265,7 +265,7 @@ struct TomoDiaryPageView: View {
         let tilt = Double(Int(TomoGardenLayout.jitter(id) * 7) - 3) * 0.8
         return Button { word = word == id ? nil : id } label: {
             HStack(spacing: 4) {
-                if let emoji = w.emoji { Text(emoji).font(.system(size: 16)) }
+                if let emoji = w.emoji { TomoPictureView(emoji, size: 16) }
                 Text(w.say).font(.system(size: 14, weight: .bold, design: .rounded))
             }
             .padding(.horizontal, 8).padding(.vertical, 3)
@@ -281,7 +281,7 @@ struct TomoDiaryPageView: View {
     private func wordCard(_ id: String) -> some View {
         let w = progress.word(id, learner: lang.learner.id), stage = progress.items[id]?.stage ?? 0
         return HStack(alignment: .top, spacing: 10) {
-            if let emoji = w.emoji { Text(emoji).font(.system(size: 28)) }
+            if let emoji = w.emoji { TomoPictureView(emoji, size: 28) }
             VStack(alignment: .leading, spacing: 2) {
                 Text(w.say).font(.system(size: 18, weight: .bold, design: .rounded))
                 Text([w.reading, w.meaning].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "))
