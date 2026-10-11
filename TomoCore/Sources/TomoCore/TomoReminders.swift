@@ -411,7 +411,7 @@ public final class TomoReminderCenter: NSObject, ObservableObject {
         let pending = await withCheckedContinuation { (c: CheckedContinuation<[String], Never>) in
             UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
                 let f = DateFormatter()
-                f.dateFormat = "EEE d MMM HH:mm"
+                f.dateFormat = "EEE d MMM HH:mm"    // clock-ok: the system log, never shown
                 c.resume(returning: requests.compactMap { r -> (Date, String)? in
                     guard let next = (r.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate() else { return nil }
                     return (next, "\(f.string(from: next)) · \(r.content.title) · \(r.content.body)")
