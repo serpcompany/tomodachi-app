@@ -6,13 +6,14 @@ import Foundation
 // evolves Tomo once (under Reduce Motion too: TomoBlob.motionSelfTest; its small touches: touchesSelfTest; its big
 // moments' scripts: cueSelfTest; its arrivals and call glow: arrivalSelfTest; its material: materialSelfTest; its
 // hello: helloSelfTest; its badges: badgeSelfTest; its particles and weather: particleSelfTest; its dance:
-// danceSelfTest; the calendar: TomoCalendar.selfTest), and simulated learners grow on Tomo's clock, moved forward, with
-// the real rules (waits, early reviews at half the wait, new words a day, levels needing 9 of 10) from the first word to
-// the first talking question. The runs print how many days each step took: the pacing table for #38.
+// danceSelfTest; standing under a ceiling: ceilingSelfTest; the calendar: TomoCalendar.selfTest), and simulated
+// learners grow on Tomo's clock, moved forward, with the real rules (waits, early reviews at half the wait, new words a
+// day, levels needing 9 of 10) from the first word to the first talking question. The runs print how many days each
+// step took: the pacing table for #38.
 
 extension TomoProgress {
-    /// Tomo's drawing: the evolution, its motion, touches, cue scripts, arrivals, material, hello, badges, particles
-    /// and dance, and the calendar.
+    /// Tomo's drawing: the evolution, its motion, touches, cue scripts, arrivals, material, hello, badges, particles,
+    /// dance and ceiling, and the calendar.
     static func characterSelfTest(_ check: (Bool, String) -> Void) {
         evolutionSelfTest(check)
         TomoBlob.motionSelfTest(check)
@@ -24,6 +25,7 @@ extension TomoProgress {
         TomoBlob.badgeSelfTest(check)
         TomoBlob.particleSelfTest(check)
         TomoBlob.danceSelfTest(check)
+        TomoBlob.ceilingSelfTest(check)
         TomoCalendar.selfTest(check)
     }
 

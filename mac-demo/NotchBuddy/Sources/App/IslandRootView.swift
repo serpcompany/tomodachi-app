@@ -63,32 +63,31 @@ struct IslandContainer: View {
                         .clipShape(shape)
                 }
 
-            // Content
-            if state.mode == .expanded {
-                IslandContentView(state: state)
-                    .frame(width: islandWidth, height: islandHeight)
-                    .clipShape(shape)
-                    .transition(.opacity)
-            }
+            inIsland {
+                // Content
+                if state.mode == .expanded {
+                    IslandContentView(state: state)
+                        .frame(width: islandWidth, height: islandHeight)
+                        .transition(.opacity)
+                }
 
-            // A visit offered as a peek: the invite over the visit's word, beside Tomo (TomoPeekLayout).
-            if state.mode == .peek {
-                TomoPeekWord(game: TomoGame.shared, layout: peekLayout)
-                    .frame(width: islandWidth, height: islandHeight, alignment: .topLeading)
-                    .clipShape(shape)
-                    .allowsHitTesting(false)   // a click anywhere on the bar opens the card (IslandWindowController)
-                    // Opening, its word flies on into the card (TomoWordFlight): the bar's own goes at once.
-                    .transition(.asymmetric(insertion: .opacity, removal: .opacity.animation(.easeOut(duration: 0.08))))
+                // A visit offered as a peek: the invite over the visit's word, beside Tomo (TomoPeekLayout).
+                if state.mode == .peek {
+                    TomoPeekWord(game: TomoGame.shared, layout: peekLayout)
+                        .frame(width: islandWidth, height: islandHeight, alignment: .topLeading)
+                        .allowsHitTesting(false)   // a click anywhere on the bar opens the card (IslandWindowController)
+                        // Opening, its word flies on into the card (TomoWordFlight): the bar's own goes at once.
+                        .transition(.asymmetric(insertion: .opacity, removal: .opacity.animation(.easeOut(duration: 0.08))))
+                }
             }
 
             // Single BotPlacement — always alive in the view tree so spring animations
             // fire from the current position.
             BotPlacement(state: state)
-                // Keep idle animations inside the resting strip. Expanded views
-                // retain the panel's full height for particles.
+                // Tomo, its halo and its particles stay in the island: in the card, within the card (TomoGrid.tomoRoom:
+                // a squash on landing never pokes past its edge); resting or peeking, within the island.
                 .mask(alignment: .topLeading) {
-                    Rectangle().frame(width: islandWidth,
-                                      height: state.mode == .expanded ? 320 : islandHeight)
+                    TomoRoomShape(width: islandWidth, height: islandHeight, card: state.mode == .expanded ? 1 : 0)
                 }
 
             // Resting: あそぼ！ (or when words are back) and Tomo's level ring, right of the notch. Never a count.
@@ -103,13 +102,15 @@ struct IslandContainer: View {
 
             // Open or peeking: when an ignored visit tucks back in, as an amber line under the card (never under the help
             // panel) or the peek's bar.
-            if state.mode == .expanded || state.mode == .peek {
-                let barHeight = state.mode == .peek ? peekLayout.size.height : IslandConst.layout(state.view).height
-                TomoVisitCountdownLine(game: TomoGame.shared)
-                    .frame(width: max(0, islandWidth - TomoCountdownLine.inset * 2), height: TomoCountdownLine.height)
-                    .position(x: islandWidth / 2, y: TomoCountdownLine.centerY(cardHeight: barHeight))
-                    .allowsHitTesting(false)
-                    .transition(.opacity)
+            inIsland {
+                if state.mode == .expanded || state.mode == .peek {
+                    let barHeight = state.mode == .peek ? peekLayout.size.height : IslandConst.layout(state.view).height
+                    TomoVisitCountdownLine(game: TomoGame.shared)
+                        .frame(width: max(0, islandWidth - TomoCountdownLine.inset * 2), height: TomoCountdownLine.height)
+                        .position(x: islandWidth / 2, y: TomoCountdownLine.centerY(cardHeight: barHeight))
+                        .allowsHitTesting(false)
+                        .transition(.opacity)
+                }
             }
         }
         .frame(width: islandWidth, height: islandHeight, alignment: .topLeading)
@@ -168,6 +169,15 @@ struct IslandContainer: View {
     /// The island's outline now: its size and its corners (IslandScreenGeometry.corners).
     private var shape: IslandShape {
         IslandShape(width: islandWidth, height: islandHeight, cornerRadius: cornerRadius, topCornerRadius: topCorner)
+    }
+
+    /// Views that come and go with the island's state, cut by its outline as it is now. A view on its way out keeps
+    /// the size and the clip it had when it went, so the card fading as the island folds drew past the island, over
+    /// the screen (#196): this clip stays, and folds with the island, which keeps the fading card centred under it.
+    private func inIsland<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        ZStack(alignment: .top) { content() }
+            .frame(width: islandWidth, height: islandHeight, alignment: .top)
+            .clipShape(shape)
     }
 
     /// The corners for a mode at a height, set with the size (so they animate together).

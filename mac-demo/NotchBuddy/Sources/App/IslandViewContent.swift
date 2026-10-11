@@ -65,7 +65,7 @@ struct CardBackground<Content: View>: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: TomoGrid.cardCorner)
                 .fill(Color(hex: "#141518"))
                 .overlay(
                     RadialGradient(
@@ -77,16 +77,16 @@ struct CardBackground<Content: View>: View {
                         startRadius: 0,
                         endRadius: 280
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .clipShape(RoundedRectangle(cornerRadius: TomoGrid.cardCorner))
                 )
                 .overlay {
                     if case .moment(let moment) = wash {
                         TomoMomentLight(moment: moment, center: TomoGrid.tomoCenter, reach: 430, squash: 1.7)
-                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                            .clipShape(RoundedRectangle(cornerRadius: TomoGrid.cardCorner))
                     }
                 }
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: TomoGrid.cardCorner)
                         .stroke(Color.white.opacity(0.035), lineWidth: 1)
                 )
 
