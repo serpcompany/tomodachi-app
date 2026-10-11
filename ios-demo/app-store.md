@@ -59,19 +59,20 @@ Every run also gets `TOMO_SEED=variety-1` (the same blue Tomo in every shot) and
 Max simulator of your own, headless ([debug-flags.md](debug-flags.md)):
 
 ```bash
-xcrun simctl create tomodachi-shots com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro-Max com.apple.CoreSimulator.SimRuntime.iOS-27-0
-xcrun simctl boot tomodachi-shots
-xcrun simctl spawn tomodachi-shots defaults write -g AppleICUForce24HourTime -bool false   # then shut down and boot again
-xcrun simctl status_bar tomodachi-shots override --time 9:41 --batteryState discharging --batteryLevel 100 \
+shots="$(ios-demo/scripts/simulator.sh scope)-shots"   # your scope, kept apart from your test simulator
+sim=$(TOMO_SIM_DEVICE="iPhone 17 Pro Max" ios-demo/scripts/simulator.sh udid "$shots")
+xcrun simctl boot "$sim"
+xcrun simctl spawn "$sim" defaults write -g AppleICUForce24HourTime -bool false   # then shut down and boot again
+xcrun simctl status_bar "$sim" override --time 9:41 --batteryState discharging --batteryLevel 100 \
   --dataNetwork wifi --wifiBars 3 --cellularBars 4
-xcrun simctl install tomodachi-shots ios-demo/build/Build/Products/Debug-iphonesimulator/Tomodachi.app
-xcrun simctl spawn tomodachi-shots defaults write com.zenbujapanese.tomo soundEnabled -bool false
+xcrun simctl install "$sim" ios-demo/build/Build/Products/Debug-iphonesimulator/Tomodachi.app
+xcrun simctl spawn "$sim" defaults write com.zenbujapanese.tomo soundEnabled -bool false
 SIMCTL_CHILD_TOMO_DATA_DIR=<dir> SIMCTL_CHILD_TOMO_SEED=variety-1 SIMCTL_CHILD_TZ=America/Denver \
-  SIMCTL_CHILD_TOMO_OPEN_WINDOW=tomo xcrun simctl launch --terminate-running-process tomodachi-shots com.zenbujapanese.tomo
-xcrun simctl io tomodachi-shots screenshot <raw dir>/4-tomo.png
+  SIMCTL_CHILD_TOMO_OPEN_WINDOW=tomo xcrun simctl launch --terminate-running-process "$sim" com.zenbujapanese.tomo
+xcrun simctl io "$sim" screenshot <raw dir>/4-tomo.png
 ```
 
 The simulator copies the Mac's 24-hour setting, which turns the status bar's 9:41 into 09:41; the `defaults` line
 undoes that. For a moment that passes (the hatch, a Win), take screenshots in a loop and pick one, skipping frames
 where the Dynamic Island shows. Tomo is muted for test runs, so the Play screen's speaker button shows as off.
-Delete the simulator afterwards (`xcrun simctl delete tomodachi-shots`).
+Delete the simulator afterwards (`ios-demo/scripts/simulator.sh delete "$shots"`).

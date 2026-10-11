@@ -47,12 +47,13 @@ pack's age boundary. Each run prints a `pace` line: the days to Lv 2, 5 and 10 a
   folder in the test runner's temporary folder, silent, in English, without the first run; progress a journey needs
   is written there through TomoCore's own store (`TomoSeed`), and the text they look for comes from `ui.en.json`.
 - **Test plans** (`ios-demo/Tomodachi/TestPlans`): **Unit** is TomoCore's tests on the simulator; **Pull Request**
-  adds the UI journeys. Run them on a simulator of your own (create it, delete it after; never Simulator.app):
+  adds the UI journeys. Run them on your own simulator (`ios-demo/scripts/simulator.sh delete` after; never
+  Simulator.app):
 
   ```bash
-  xcrun simctl create tomo-tests com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro <an iOS runtime>
+  udid=$(ios-demo/scripts/simulator.sh udid)
   cd ios-demo/Tomodachi && xcodebuild test -scheme Tomodachi -testPlan PullRequest \
-    -destination 'platform=iOS Simulator,name=tomo-tests' -derivedDataPath ../build
+    -destination "platform=iOS Simulator,id=$udid" -derivedDataPath ../build
   ```
 
   One journey: `-only-testing:TomodachiUITests/TomodachiUITests/testThePracticeOffer`. Unsigned, as CI builds:
@@ -135,8 +136,10 @@ its data folder again every 5 minutes. When saves go through, the marking stops.
 - Debug builds share the owner's bundle ID and preferences ([#54](https://github.com/serpcompany/tomodachi-app/issues/54)).
   Launch test runs by their binary path and never `pkill` by name: that quits the owner's copy, and other
   agents' runs. If one was quit, relaunch it with `mac-demo/run.sh`.
-- iPhone: boot the simulator with `xcrun simctl boot` and capture with `simctl io … screenshot`; never
-  open Simulator.app, which puts a window on the owner's screen.
+- iPhone: use your own simulator, from `ios-demo/scripts/simulator.sh udid`, and name it by that UDID
+  in every command (never `booted` or another's name): `xcrun simctl boot <udid>`, `simctl io <udid>
+  screenshot`, then `simulator.sh delete` when the work is done. Never open Simulator.app, which puts a
+  window on the owner's screen.
 - The owner may be watching or clicking the live app. A click shows up in snapshots as an unexpected
   answer or restart.
 
