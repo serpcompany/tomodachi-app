@@ -1,5 +1,6 @@
 import Foundation
 import NaturalLanguage
+import SQLite3
 
 // MARK: - Languages: what the learner speaks × what Tomo speaks
 //
@@ -9,6 +10,7 @@ import NaturalLanguage
 //   the "is this the right language?" check, the AI's character rules, and Tomo's levels.
 //   File: Resources/languages/<id>.json (a "language pack")
 // Translations inside a pack are keyed by learner language: {"en": "doggy", "es": "perrito"}.
+// A learner's own language is never the one they learn: the interface is never the target (`allows`, #199).
 // No Swift code should contain text in a specific language. See docs/languages.md.
 
 /// Text keyed by learner language, e.g. {"en": "doggy"}. Falls back to English, then anything.
@@ -279,13 +281,63 @@ public final class TomoLanguages: ObservableObject {
         self.targets = targets
         self.learners = learners
 
+        // The system's language is never read: an iPhone or a Mac set to Japanese gets the English interface.
         let env = ProcessInfo.processInfo.environment
         let ud = UserDefaults.standard
-        let tid = env["TOMO_TARGET"] ?? ud.string(forKey: "tomoTarget") ?? "ja"
-        let lid = env["TOMO_LEARNER"] ?? ud.string(forKey: "tomoLearner") ?? "en"
-        target = targets.first { $0.id == tid } ?? targets[0]
+        let tid = Self.targetID(saved: env["TOMO_TARGET"] ?? ud.string(forKey: "tomoTarget"), among: targets.map(\.id))
+        let wanted = env["TOMO_LEARNER"] ?? ud.string(forKey: "tomoLearner") ?? "en"
+        let target = targets.first { $0.id == tid } ?? targets[0]
+        let (lid, moved) = Self.settle(wanting: wanted, target: target.id, among: learners.map(\.id))
+        self.target = target
         learner = learners.first { $0.id == lid } ?? learners[0]
+        // Saved before the rule: Settings keeps the interface it moved to, once its Tomo has moved (a failed move
+        // keeps the saved pair, so the next launch tries again). A test run's pair leaves Settings be.
+        if !Self.allows(learner: wanted, target: target.id), moved, env["TOMO_TARGET"] == nil, env["TOMO_LEARNER"] == nil {
+            ud.set(learner.id, forKey: "tomoLearner")
+        }
     }
+
+    // MARK: The pair rule (#199)
+
+    /// A learner's own language is never the one they learn, so the interface is never the language Tomo speaks. The
+    /// one place the rule lives: whatever offers or sets a pair asks it (Settings, `select`, the saved pair at launch).
+    public nonisolated static func allows(learner: String, target: String) -> Bool { learner != target }
+
+    /// The target at launch: the saved one (nil: none yet), or Japanese, as by default, when this build has no pack
+    /// for it (Spanish, left out of the iPhone's). Never just the first pack: that's English, which would make the
+    /// interface Japanese.
+    nonisolated static func targetID(saved: String?, among ids: [String]) -> String {
+        if let saved, ids.contains(saved) { return saved }
+        return ids.contains("ja") ? "ja" : ids.first ?? "ja"
+    }
+
+    /// The interface for learning `target`: `wanted` if the rule allows it and there's a pack for it, otherwise English,
+    /// otherwise the first allowed one.
+    nonisolated static func learnerID(wanting wanted: String, target: String, among ids: [String]) -> String {
+        let allowed = ids.filter { allows(learner: $0, target: target) }
+        if allowed.contains(wanted) { return wanted }
+        return allowed.contains("en") ? "en" : allowed.first ?? ids.first ?? wanted
+    }
+
+    /// The interface at launch for the saved pair. One the rule forbids (ja:ja, saved from Settings' "I speak" before
+    /// it) gets the interface it allows, and its Tomo, words and logs move there (TomoStore.move), so the learner
+    /// carries on with the same Tomo. `moved` is false only when that move failed and was undone: the saved pair
+    /// stays, so the next launch tries again, and this one shows the allowed interface all the same.
+    static func settle(wanting wanted: String, target: String, among ids: [String],
+                       directory: URL = TomoStore.directory) -> (id: String, moved: Bool) {
+        let id = learnerID(wanting: wanted, target: target, among: ids)
+        guard !allows(learner: wanted, target: target) else { return (id, true) }
+        return (id, TomoStore.move(learner: wanted, to: id, target: target, directory: directory) != .failed)
+    }
+
+    /// The interface languages a learner of `target` may pick, in pack order.
+    public func learners(for target: String) -> [LearnerPack] {
+        learners.filter { Self.allows(learner: $0.id, target: target) }
+    }
+
+    /// The interface languages Settings offers for the target now: none to pick while it's the only one (Japanese,
+    /// learned from English).
+    public var learnerChoices: [LearnerPack] { learners(for: target.id) }
 
     /// "what?", "huh", "?", "なに？", "わかんない": the learner is asking for help, not answering.
     /// Only the whole answer counts, so "なにも" (nothing) is still a real answer.
@@ -298,15 +350,184 @@ public final class TomoLanguages: ObservableObject {
         return phrases.contains { $0.lowercased() == norm }
     }
 
+    /// Learning a language the interface is in moves the interface to one the rule allows (English, if it can).
     public func select(target id: String) {
         guard let t = targets.first(where: { $0.id == id }), t.id != target.id else { return }
+        let lid = Self.learnerID(wanting: learner.id, target: t.id, among: learners.map(\.id))
+        if lid != learner.id, let l = learners.first(where: { $0.id == lid }) {
+            learner = l
+            UserDefaults.standard.set(lid, forKey: "tomoLearner")
+        }
         target = t
         UserDefaults.standard.set(id, forKey: "tomoTarget")
     }
 
+    /// Never the language Tomo speaks (`allows`).
     public func select(learner id: String) {
-        guard let l = learners.first(where: { $0.id == id }), l.id != learner.id else { return }
+        guard let l = learners.first(where: { $0.id == id }), l.id != learner.id,
+              Self.allows(learner: id, target: target.id) else { return }
         learner = l
         UserDefaults.standard.set(id, forKey: "tomoLearner")
+    }
+}
+
+// MARK: - Self-test: the pair rule, and a pair it forbids moving at launch (#199)
+
+extension TomoLanguages {
+    /// Checked by TOMO_SELFTEST (docs/verification.md), in temporary folders: never the learner's data or settings.
+    public static func selfTest() -> Bool { TomoCheck.run(selfTest(_:)) }
+
+    /// The same checks, each reported to `check`: the self-test prints them, TomoCoreTests asserts them.
+    public static func selfTest(_ check: (Bool, String) -> Void) {
+        let ids = ["en", "ja"]
+        check(allows(learner: "en", target: "ja") && allows(learner: "ja", target: "en") && !allows(learner: "ja", target: "ja"),
+              "the interface is never the language Tomo speaks")
+        check(learnerID(wanting: "ja", target: "ja", among: ids) == "en" && learnerID(wanting: "en", target: "en", among: ids) == "ja"
+              && learnerID(wanting: "ja", target: "es", among: ids) == "ja" && learnerID(wanting: "fr", target: "ja", among: ids) == "en",
+              "a pair the rule forbids gets English (Japanese while English is learned); an allowed one stays as it is")
+        check(targetID(saved: "es", among: ids) == "ja" && targetID(saved: nil, among: ids) == "ja"
+              && targetID(saved: "en", among: ids) == "en" && targetID(saved: "es", among: ["en", "es", "ja"]) == "es",
+              "a saved target this build has no pack for (Spanish, on the iPhone) is Japanese, as by default, not the first pack")
+        let lang = shared
+        check(lang.learners(for: "ja").map(\.id) == ["en"],
+              "learning Japanese, the interface is English: Settings has no interface language to pick")
+        check(lang.learners(for: "en").map(\.id) == ["ja"] && Set(lang.learners(for: "es").map(\.id)) == ["en", "ja"],
+              "the Japanese interface stays for another target: English for Japanese speakers")
+
+        guard let pack = lang.targets.first(where: { $0.id == "ja" }), pack.levels.count >= 7 else {
+            check(false, "the Japanese pack loads"); return
+        }
+        var folders: [URL] = []
+        defer { folders.forEach { try? FileManager.default.removeItem(at: $0) } }
+        func folder() -> URL {
+            let dir = FileManager.default.temporaryDirectory.appendingPathComponent("tomo-pair-\(UUID().uuidString)")
+            folders.append(dir)
+            return dir
+        }
+        let t0 = Date(timeIntervalSince1970: 1_800_000_000)
+        func day(_ n: Double) -> Date { t0.addingTimeInterval(n * 86400) }
+        let words = pack.levels.prefix(2).flatMap(\.itemIDs)
+        func word(_ n: Int, stage: Int, answered: Date) -> TomoStore.ItemRow {
+            .init(id: words[n], stage: stage, due: answered.addingTimeInterval(86400), introduced: day(0), answered: answered,
+                  right: stage, wrong: 0, peak: stage)
+        }
+        func store(_ learner: String, _ dir: URL) -> TomoStore? { TomoStore(learner: learner, target: "ja", directory: dir) }
+        // A ja:ja Tomo as a learner who picked Japanese in Settings left it: level 7, two words, a day of logs.
+        func seedJaJa(in dir: URL, met: Date) {
+            guard let s = store("ja", dir) else { return }
+            s.saveTomo(.init(metAt: met, level: 7, age: 2))
+            s.saveItem(word(0, stage: 4, answered: day(4)))
+            s.saveItem(word(1, stage: 3, answered: day(4)))
+            s.logAnswer(at: day(4), item: words[0], level: 7, mode: "picture", result: "right", wrongTries: 0, hint: false,
+                        counted: true, before: 3, after: 4)
+            s.logGrowth(at: day(3), kind: "level", value: 7)
+            s.logVisit(TomoVisit(started: day(4), opened: .card, cardAt: day(4), endedAt: day(4), ended: .finished))
+        }
+        let ownLook = TomoLook.pairSeed(learner: "ja", target: "ja", metAt: day(1))
+
+        // The launch of a learner set up as ja:ja: English, with its Tomo.
+        let only = folder()
+        seedJaJa(in: only, met: day(1))
+        let (lid, done) = settle(wanting: "ja", target: "ja", among: ids, directory: only)
+        let moved = TomoProgress(pack: pack, learner: lid, directory: only), en = store("en", only)
+        check(lid == "en" && done && moved.level == 7 && moved.age == 2 && moved.metAt == day(1)
+              && moved.items[words[0]]?.stage == 4 && moved.items[words[1]]?.stage == 3,
+              "a ja:ja learner from before opens in English with its Tomo: the same meeting, level, age and words")
+        check(moved.lookSeed == ownLook, "and the same look, though its pair changed")
+        check(en?.answerLog(from: day(0), to: day(9)).count == 1 && en?.growthEvents().map(\.value) == [7]
+              && en?.visitLog(from: day(0), to: day(9)).count == 1,
+              "its answers, growth and visits come along, so its days together and its stats stay")
+        check(store("ja", only)?.loadTomo() == nil && store("ja", only)?.loadItems().isEmpty == true,
+              "nothing is left under ja:ja")
+        check(FileManager.default.fileExists(atPath: only.appendingPathComponent("cloud-resend").path),
+              "iCloud gets it again, under en:ja, when sync starts")
+        en?.saveTomo(.init(metAt: day(1).addingTimeInterval(0.4), level: 8, age: 2))
+        check(en?.loadTomo()?.seed == ownLook, "saving the same Tomo keeps its look (a meeting stored a little more precisely too)")
+        en?.clear(at: day(6))
+        en?.saveTomo(.init(metAt: day(6), level: 1, age: 1))
+        check(en?.loadTomo()?.seed == nil, "a start over hatches a Tomo with en:ja's own look")
+
+        // A learner with an en:ja Tomo from before they switched: the two merge as two devices' Tomos do.
+        let both = folder()
+        if let s = store("en", both) {
+            s.saveTomo(.init(metAt: day(0), level: 3, age: 1))
+            s.saveItem(word(0, stage: 2, answered: day(2)))
+            s.saveItem(word(2, stage: 5, answered: day(2)))
+            s.logGrowth(at: day(1), kind: "level", value: 3)
+        }
+        seedJaJa(in: both, met: day(1))
+        let merged = TomoStore.move(learner: "ja", to: "en", target: "ja", directory: both) == .moved ? store("en", both) : nil
+        let tomo = merged?.loadTomo(), items = merged?.loadItems() ?? [:]
+        check(tomo?.metAt == day(0) && tomo?.level == 7 && tomo?.age == 2 && tomo?.seed == nil,
+              "with an en:ja Tomo too, they merge as two devices' Tomos do: the earlier meeting and its look, the higher level and age")
+        check(items.count == 3 && items[words[0]]?.stage == 4 && items[words[1]]?.stage == 3 && items[words[2]]?.stage == 5,
+              "every word of both, each as it was answered last")
+        check(merged?.answerLog(from: day(0), to: day(9)).count == 1 && merged?.growthEvents().map(\.value) == [3],
+              "the answers come along; the moved Tomo's growth log stays with the life it tells")
+        let older = folder()
+        if let s = store("en", older) {
+            s.saveTomo(.init(metAt: day(5), level: 2, age: 1))
+            s.logGrowth(at: day(5), kind: "level", value: 2)
+        }
+        seedJaJa(in: older, met: day(1))
+        TomoStore.move(learner: "ja", to: "en", target: "ja", directory: older)
+        let kept = store("en", older)?.loadTomo()
+        check(kept?.metAt == day(1) && kept?.level == 7 && kept?.seed == ownLook
+              && store("en", older)?.growthEvents().map(\.value) == [7] && store("ja", older)?.growthEvents().map(\.value) == [2],
+              "when the moved Tomo met the learner first, it's the one kept, with its look and its growth marks")
+
+        // A move that fails is undone, and the next launch tries again.
+        func sql(_ dir: URL, _ text: String) {
+            var db: OpaquePointer?
+            if sqlite3_open(dir.appendingPathComponent("learner.sqlite").path, &db) == SQLITE_OK { sqlite3_exec(db, text, nil, nil, nil) }
+            sqlite3_close(db)
+        }
+        // A read that fails (a renamed column here; a busy file or an I/O error alike) isn't "nothing to move".
+        let unread = folder()
+        seedJaJa(in: unread, met: day(1))
+        sql(unread, "ALTER TABLE tomo RENAME COLUMN age TO years")
+        check(settle(wanting: "ja", target: "ja", among: ids, directory: unread) == ("en", false)
+              && store("ja", unread)?.loadItems().count == 2 && store("en", unread)?.loadItems().isEmpty == true,
+              "a move that can't read the ja:ja Tomo keeps it and the saved pair, so the next launch tries again")
+        sql(unread, "ALTER TABLE tomo RENAME COLUMN years TO age")
+        check(settle(wanting: "ja", target: "ja", among: ids, directory: unread) == ("en", true)
+              && store("en", unread)?.loadTomo()?.level == 7, "and that launch moves it")
+        // A trigger fails the words' copy as a full disk would: SQLite undoes the transaction by itself, and whatever
+        // runs after it would no longer be part of one.
+        let full = folder()
+        seedJaJa(in: full, met: day(1))
+        sql(full, "CREATE TRIGGER full BEFORE INSERT ON item WHEN NEW.learner = 'en' BEGIN SELECT RAISE(ROLLBACK, 'full'); END")
+        let stayed = store("ja", full)
+        check(settle(wanting: "ja", target: "ja", among: ids, directory: full) == ("en", false)
+              && stayed?.loadTomo()?.level == 7 && stayed?.loadItems().count == 2
+              && stayed?.answerLog(from: day(0), to: day(9)).count == 1 && stayed?.growthEvents().map(\.value) == [7]
+              && store("en", full)?.loadTomo() == nil
+              && !FileManager.default.fileExists(atPath: full.appendingPathComponent("cloud-resend").path),
+              "a move that fails half-way (a full disk) is undone: the ja:ja Tomo, words and logs stay, and so does the saved pair")
+        // That launch shows English, so the app hatches an en:ja Tomo, which levels up once. The next launch merges.
+        sql(full, "DROP TRIGGER full")
+        let clock = TomoClock.stopped
+        TomoClock.stopped = day(7)
+        _ = TomoProgress(pack: pack, learner: "en", directory: full)
+        TomoClock.stopped = clock
+        let back = store("en", full)
+        back?.logGrowth(at: day(7), kind: "level", value: 2)
+        let retried = settle(wanting: "ja", target: "ja", among: ids, directory: full), again = back?.loadTomo()
+        check(retried == ("en", true) && again?.metAt == day(1) && again?.level == 7 && again?.seed == ownLook
+              && back?.loadItems().count == 2 && back?.growthEvents().map(\.value) == [7]
+              && stayed?.loadTomo() == nil && stayed?.loadItems().isEmpty == true,
+              "and the next launch merges it with the Tomo hatched meanwhile: the moved Tomo is kept, with its look and growth marks")
+
+        // Nothing to move.
+        let empty = folder()
+        check(TomoStore.move(learner: "ja", to: "en", target: "ja", directory: empty) == .nothing
+              && !FileManager.default.fileExists(atPath: empty.path), "with nothing saved, nothing moves and no file is made")
+        let fine = folder()
+        store("en", fine)?.saveTomo(.init(metAt: day(0), level: 4, age: 1))
+        check(settle(wanting: "en", target: "ja", among: ids, directory: fine) == ("en", true)
+              && settle(wanting: "en", target: targetID(saved: "es", among: ids), among: ids, directory: fine) == ("en", true)
+              && store("en", fine)?.loadTomo()?.level == 4
+              && !FileManager.default.fileExists(atPath: fine.appendingPathComponent("cloud-resend").path),
+              "an English speaker learning Japanese opens as before, untouched, and so does one left on Spanish (the iPhone has no pack)")
     }
 }

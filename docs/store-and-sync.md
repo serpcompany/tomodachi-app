@@ -11,6 +11,14 @@ logs feed is in [stats.md](stats.md); the other systems are mapped in
 has its own Tomo. `tomo` and `item` hold the current state; `answer`, `growth` and `visit` (each
 time together, from TomoGame) are logs, read by `TomoStats` ([stats.md](stats.md)). Start over
 clears the words and notes when (`tomo.reset_at`), never the logs. `TOMO_DATA_DIR` moves the file.
+A pair the language rule forbids (ja:ja, from before
+[#199](https://github.com/serpcompany/tomodachi-app/issues/199)) moves at launch (`TomoStore.move`): its
+Tomo, words and logs go to the pair it's allowed, and every Tomo is sent to iCloud again (`cloud-resend`).
+Most ja:ja testers also have the en:ja Tomo their first run hatched: then the two merge by sync's rules, so the
+earlier-met Tomo and its look are kept, with its own growth log (the other's stays behind; answers and visits move). The
+move is all or nothing: a failed read or write undoes it and keeps the saved pair, so the next launch tries again. The moved Tomo keeps its look in `tomo.seed`, kept while it's
+the same Tomo (the same `met_at` second); the seed stays on the device, so another device that only ever
+gets this Tomo from iCloud draws it from its own pair's seed. Its old records stay in iCloud, where no allowed pair reads them.
 Planned: Language Reference IDs as item ids and sync with the Zenbu apps
 ([#28](https://github.com/serpcompany/tomodachi-app/issues/28)).
 
