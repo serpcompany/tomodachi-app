@@ -5,11 +5,12 @@ import TomoCore
 
 // MARK: - Tomo on the Lock Screen (Live Activity), shared by the app and the widget extension
 //
-// An invitation, with a quick round on request. When something is waiting, Tomo calls you over ("A new word
-// is ready to learn") with a Play button; when nothing is, Tomo sleeps beside a live countdown to the next
-// words. The activity's stale date is that moment, so the card turns to "ready" by itself even if the app
-// never runs. Play (TomoPlayIntent) opens one round on the card: Tomo's word and its choices, answered by
-// TomoAnswerIntent. Both run in the app's process (LiveActivityIntent), which plays them in TomoGame.
+// An invitation, with a quick round on request. When something counts, Tomo wants to play (lit amber, as small
+// Tomo glows on the Mac) and there's a Play button; when nothing does, Tomo rests until it's back ("Back at 10:12").
+// It never says how many words are waiting. The activity's stale date is the moment it's back, so the card turns to
+// "ready" by itself even if the app never runs. Play (TomoPlayIntent) opens one round on the card: Tomo's word and
+// its choices, answered by TomoAnswerIntent. Both run in the app's process (LiveActivityIntent), which plays them in
+// TomoGame.
 // All text arrives already in the learner's language; the widget extension has no language packs.
 
 struct TomoVisitAttributes: ActivityAttributes {
@@ -31,6 +32,10 @@ struct TomoVisitAttributes: ActivityAttributes {
         var right: Bool?              // nil while asking
         var result: String?           // "Win +1", "Miss", …
         var note: String?             // after a right answer: the reading and meaning
+        /// The answer's light, as on the Mac (TomoMoment's raw value): "win" or "practice"; none for a miss.
+        var moment: String?
+
+        var light: TomoMoment? { moment.flatMap(TomoMoment.init(rawValue:)) }
     }
 }
 

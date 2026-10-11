@@ -6,13 +6,15 @@ import WidgetKit
 
 // MARK: - Tomo on the Lock Screen and in the Dynamic Island (issue #52)
 //
-// Two rows beside Tomo. Ready: what's waiting ("A new word is ready to learn") over its age, level and
-// experience bar, and a round Play button at the edge. Play opens one round right on the card: Tomo's word
-// and its choices (TomoVisitActivity.swift); Tomo reacts, and a few seconds after a right answer the card
-// invites again. Not yet: Tomo sleeps, and the first row says when the next words come ("New words at 10:12";
-// a ticking countdown loses its seconds on the Lock Screen, which shows "9:--"). Tomo moves
-// everywhere here (TomoMovingMascot); each update also swaps its pose with a short transition. The compact
-// Dynamic Island keeps Tomo's call ("あそぼ！"). Tapping anywhere else opens the app.
+// Two rows beside Tomo, saying what it's doing and never how many words are waiting (decisions.md, 2026-10-11).
+// Ready: "Tomo wants to play" over its age, level and experience bar, and a round Play button at the edge; the card,
+// Tomo's glow and the Dynamic Island's rim light amber, as small Tomo does on the Mac (TomoMoment.waiting). Play opens
+// one round right on the card: Tomo's word and its choices (TomoVisitActivity.swift); Tomo reacts, the card lights
+// the answer's moment (green for a win, blue for practice), and a few seconds after a right answer the card invites
+// again. Not yet: Tomo sleeps, unlit, and the first row says when it's back ("Back at 10:12"; a ticking countdown
+// loses its seconds on the Lock Screen, which shows "9:--"). Tomo moves everywhere here (TomoMovingMascot); each
+// update also swaps its pose with a short transition. The compact Dynamic Island keeps Tomo's call ("あそぼ！").
+// Tapping anywhere else opens the app.
 
 struct TomoVisitLiveActivity: Widget {
     var body: some WidgetConfiguration {
@@ -25,7 +27,7 @@ struct TomoVisitLiveActivity: Widget {
                 }
             }
             .padding(14)
-            .activityBackgroundTint(Color(red: 0.06, green: 0.09, blue: 0.11))
+            .activityBackgroundTint(TomoGlanceLight.wash(Color(red: 0.06, green: 0.09, blue: 0.11), light(context)))
             .activitySystemActionForegroundColor(.white)
         } dynamicIsland: { context in
             let g = context.state.glance, ready = isReady(context), round = shownRound(context)
@@ -56,7 +58,14 @@ struct TomoVisitLiveActivity: Widget {
             } minimal: {
                 TomoMovingMascot(glance: g, ready: ready, size: 24)
             }
+            .keylineTint(light(context)?.color)
         }
+    }
+
+    /// The moment's light, as on the Mac: a round's answer (a win or practice), else amber while Tomo wants to play.
+    private func light(_ context: ActivityViewContext<TomoVisitAttributes>) -> TomoMoment? {
+        if let round = shownRound(context) { return round.light }
+        return isReady(context) ? .waiting : nil
     }
 
     /// The round on the card, until its stale date: a few seconds after a right answer, or an abandoned round.
@@ -78,6 +87,7 @@ struct TomoCardView: View {
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             TomoMovingMascot(glance: glance, ready: ready, size: 84)
+                .background { TomoGlanceLight.glow(ready ? .waiting : nil, size: 84) }
             TomoCardText(glance: glance, ready: ready)
             if ready { TomoPlayButton(glance: glance, size: 52) }
         }
@@ -142,7 +152,7 @@ struct TomoRoundMascot: View {
     }
 }
 
-/// What Tomo says, and the result once answered ("Win +1", "Miss").
+/// What Tomo says, and the result once answered ("Win +1", "Miss"), in its moment's colour (a miss has none: red).
 struct TomoRoundLine: View {
     let round: TomoVisitAttributes.CardRound
 
@@ -156,7 +166,8 @@ struct TomoRoundLine: View {
                 Text(result)
                     .font(.system(size: 12, weight: .bold, design: .rounded))
                     .padding(.horizontal, 8).padding(.vertical, 3)
-                    .background((round.right == true ? Color.green : Color.red).opacity(0.35), in: Capsule())
+                    .background((round.light?.color ?? Color(red: 0.96, green: 0.31, blue: 0.37)).opacity(0.4),
+                                in: Capsule())
                     .transition(.scale.combined(with: .opacity))
             }
         }
@@ -199,8 +210,8 @@ struct TomoRoundChoices: View {
     }
 }
 
-/// Two rows: what's waiting (or, until the next words, "New words at 10:12"), then Tomo's age, level and
-/// experience bar.
+/// Two rows: what Tomo's doing ("Tomo wants to play", in amber; until it's back, "Back at 10:12"), then its age, level
+/// and experience bar.
 struct TomoCardText: View {
     let glance: TomoGlance
     let ready: Bool
@@ -214,6 +225,7 @@ struct TomoCardText: View {
                         .foregroundStyle(Color.white.opacity(0.8))
                 } else {
                     Text(glance.waiting ? glance.status : glance.statusLater)
+                        .foregroundStyle(TomoMoment.waiting.color)
                         .contentTransition(.opacity)
                 }
             }
@@ -242,11 +254,14 @@ struct TomoCardText: View {
 @MainActor
 private func previewGlance(waiting: Bool) -> TomoGlance {
     let ui = TomoLanguages.shared.learner, target = TomoLanguages.shared.target
+    let state = TomoGlance.state(somethingCounts: waiting)
     return TomoGlance(growth: 1, age: target.ageLabel(3), level: ui("level", ["n": "12"]), progress: 0.4,
-                      waiting: waiting, status: waiting ? ui("glance.due", ["n": "3"]) : ui("glance.done"),
-                      nextDue: waiting ? nil : .now.addingTimeInterval(95 * 60), statusLater: ui("glance.waiting"),
+                      waiting: waiting, status: ui(state.status),
+                      nextDue: waiting ? nil : .now.addingTimeInterval(95 * 60),
+                      statusLater: ui(TomoGlance.state(somethingCounts: true).status),
                       about: ui("glance.about"), invite: target.lines.invite ?? target.lines.practice,
-                      nextLabel: ui("glance.next"), play: ui("glance.play"), updated: .now.addingTimeInterval(-30 * 60))
+                      nextLabel: ui("rest.back"), play: ui("glance.play"), updated: .now.addingTimeInterval(-30 * 60),
+                      moment: state.moment)
 }
 
 /// The first picture round in the pack.

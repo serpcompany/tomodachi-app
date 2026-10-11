@@ -43,12 +43,12 @@ extension TomoOnboardingView {
                                message: reminderMessage, now: ui("onboarding.sketch.now"))
                 .scaleEffect(fit)
         case .lockScreen:
-            LockCardSketch(width: w, status: ui("glance.new"), age: game.age, level: ui("level", ["n": "\(game.level)"]),
+            LockCardSketch(width: w, status: ui("glance.wants"), age: game.age, level: ui("level", ["n": "\(game.level)"]),
                            progress: game.levelProgress)
                 .scaleEffect(fit)
         case .widget:
             PhoneScreenSketch(tab: widgetTab, app: appName, age: game.age, level: ui("level", ["n": "\(game.level)"]),
-                              status: ui("glance.new"), progress: game.levelProgress)
+                              status: ui("glance.wants"), progress: game.levelProgress)
                 .scaleEffect(fit)
                 .offset(x: PhoneSketches.phoneX * fit)
         case .notify:

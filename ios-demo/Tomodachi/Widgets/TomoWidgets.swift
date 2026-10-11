@@ -4,13 +4,14 @@ import WidgetKit
 
 // MARK: - Home Screen and Lock Screen widgets (issues #52, #88)
 //
-// Small: Tomo, its age, and a red dot when something is waiting. Medium: the same plus the level and its
-// experience bar. On the Lock Screen (the first run's widget how-to points there): age and level with the bar and
-// what's waiting (rectangular), the bar around Tomo's age (circular), or one line (inline); iOS draws these in one
-// tint, so they're text and a gauge. The app writes a TomoGlance to the App Group whenever progress changes and asks WidgetKit
-// to reload; when nothing is waiting, a second entry turns the red dot on at the next due time.
-// Tomo moves the way it does on the Lock Screen (TomoMovingMascot): asking when something waits, asleep until
-// the next words otherwise.
+// They say what Tomo is doing, never how many words are waiting (decisions.md, 2026-10-11): it wants to play, lit in
+// the moment's amber as small Tomo glows on the Mac (TomoMoment), or it rests until a time ("Back at 10:12").
+// Small: Tomo, its age, and what it's doing. Medium: the same plus the level and its experience bar. On the Lock
+// Screen (the first run's widget how-to points there): age and level with the bar and what Tomo's doing
+// (rectangular), the bar around Tomo's age (circular), or one line (inline); iOS draws these in one tint, so they're
+// text and a gauge. The app writes a TomoGlance to the App Group whenever progress changes and asks WidgetKit to
+// reload; when Tomo rests, a second entry has it want to play at the next due time (`cameDue`).
+// Tomo moves the way it does on the Lock Screen (TomoMovingMascot): asking when it wants to play, asleep otherwise.
 
 @main
 struct TomoWidgetBundle: WidgetBundle {
@@ -52,10 +53,7 @@ struct TomoTimeline: TimelineProvider {
         let glance = TomoGlance.load() ?? .placeholder
         var entries = [TomoEntry(date: .now, glance: glance)]
         if let next = glance.nextDue, next > .now {
-            var later = glance
-            later.waiting = true
-            later.status = glance.statusLater
-            entries.append(TomoEntry(date: next, glance: later))
+            entries.append(TomoEntry(date: next, glance: glance.cameDue))
         }
         completion(Timeline(entries: entries, policy: .never))   // the app reloads it when progress changes
     }
@@ -75,7 +73,8 @@ struct TomoWidgetView: View {
             }
             .foregroundStyle(Color.white)
             .containerBackground(for: .widget) {
-                LinearGradient(colors: [Color(red: 0.07, green: 0.12, blue: 0.15), Color(red: 0.04, green: 0.05, blue: 0.07)],
+                LinearGradient(colors: [TomoGlanceLight.wash(Color(red: 0.07, green: 0.12, blue: 0.15), glance.light),
+                                        Color(red: 0.04, green: 0.05, blue: 0.07)],
                                startPoint: .top, endPoint: .bottom)
             }
         }
@@ -92,20 +91,22 @@ struct TomoWidgetView: View {
             .gaugeStyle(.accessoryCircularCapacity)
             .widgetAccentable()
         case .accessoryInline:
-            Text(glance.waiting ? "\(glance.invite) \(glance.status)" : glance.status)
+            if glance.waiting { Text("\(glance.invite) \(glance.status)") } else { TomoGlanceLine.text(glance) }
         default:
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(glance.age) · \(glance.level)")
                     .font(.system(size: 15, weight: .bold, design: .rounded)).widgetAccentable()
                 Gauge(value: bar) { EmptyView() }.gaugeStyle(.accessoryLinearCapacity)
-                Text(glance.status).font(.system(size: 13, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.7)
+                TomoGlanceLine.text(glance).font(.system(size: 13, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.7)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
+    /// Tomo, in the moment's light: an amber glow behind it while it wants to play, as on the Mac.
     private func tomo(_ size: CGFloat) -> some View {
         TomoMovingMascot(glance: glance, ready: glance.waiting, size: size)
+            .background { TomoGlanceLight.glow(glance.light, size: size) }
     }
 
     private var small: some View {
@@ -113,20 +114,15 @@ struct TomoWidgetView: View {
             HStack {
                 ageChip
                 Spacer()
-                if glance.waiting { redDot }
             }
             tomo(100).frame(maxWidth: .infinity, maxHeight: .infinity)
-            Text(glance.status)
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
-                .foregroundStyle(Color.white.opacity(0.75))
-                .lineLimit(1).minimumScaleFactor(0.7)
+            TomoGlanceLine(glance: glance, size: 12, lines: 1)
         }
     }
 
     private var medium: some View {
         HStack(spacing: 14) {
             tomo(120)
-                .overlay(alignment: .topTrailing) { if glance.waiting { redDot } }
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 6) {
                     Text(appName).font(.system(size: 16, weight: .bold, design: .rounded)).lineLimit(1)
@@ -145,9 +141,7 @@ struct TomoWidgetView: View {
                     }
                 }
                 .frame(height: 6)
-                Text(glance.status)
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
-                    .lineLimit(2).minimumScaleFactor(0.8)
+                TomoGlanceLine(glance: glance, size: 14, lines: 2)
             }
         }
     }
@@ -161,8 +155,46 @@ struct TomoWidgetView: View {
                 .background(Color(red: 0.29, green: 0.2, blue: 0.14), in: Capsule())
         }
     }
+}
 
-    private var redDot: some View {
-        Circle().fill(Color(red: 1, green: 0.27, blue: 0.3)).frame(width: 12, height: 12)
+/// What Tomo is doing, in one line: it wants to play (in the moment's colour), or it rests until a time ("Back at
+/// 10:12", the time filled in from `nextDue`), else "Tomo is resting". Never how many words.
+struct TomoGlanceLine: View {
+    let glance: TomoGlance
+    let size: CGFloat
+    let lines: Int
+
+    var body: some View {
+        Self.text(glance)
+            .font(.system(size: size, weight: .semibold, design: .rounded))
+            .foregroundStyle(glance.waiting ? (glance.light?.color ?? .white) : Color.white.opacity(0.75))
+            .lineLimit(lines).minimumScaleFactor(0.7)
+    }
+
+    /// The words alone (the Lock Screen draws them in its own tint).
+    static func text(_ glance: TomoGlance) -> Text {
+        if !glance.waiting, let next = glance.nextDue, next > .now {
+            let parts = glance.nextLabel.components(separatedBy: "{time}")
+            return Text(parts[0]) + Text(next, style: .time) + Text(parts.count > 1 ? parts[1] : "")
+        }
+        return Text(glance.status)
+    }
+}
+
+/// The moment's light where iOS draws Tomo: the colours TomoMoment gives the Mac's card and notch.
+enum TomoGlanceLight {
+    /// A soft glow behind Tomo, as small Tomo's call glow on the Mac: none without a moment.
+    @ViewBuilder static func glow(_ moment: TomoMoment?, size: CGFloat) -> some View {
+        if let moment {
+            RadialGradient(colors: [moment.color.opacity(0.5 * moment.strength), moment.color.opacity(0)],
+                           center: .center, startRadius: 0, endRadius: size * 0.62)
+                .frame(width: size * 1.3, height: size * 1.3)
+        }
+    }
+
+    /// A background washed a little toward the moment's colour, as the Mac's island washes in it.
+    static func wash(_ base: Color, _ moment: TomoMoment?, amount: Double = 0.22) -> Color {
+        guard let moment else { return base }
+        return base.mix(with: moment.color, by: amount * moment.strength)
     }
 }

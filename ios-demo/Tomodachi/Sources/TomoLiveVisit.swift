@@ -80,8 +80,8 @@ final class TomoLiveVisit {
         shown.picked = id
         shown.right = id == r.answer
         switch game.outcome {
-        case .win(true): shown.result = ui("outcome.win")
-        case .win(false): shown.result = ui("outcome.practice")
+        case .win(true): shown.result = ui("outcome.win"); shown.moment = TomoMoment.win.rawValue
+        case .win(false): shown.result = ui("outcome.practice"); shown.moment = TomoMoment.practice.rawValue
         case .loss: shown.result = ui("outcome.loss")
         default: break
         }
