@@ -67,6 +67,9 @@ scripts/finish-gate.sh    # the finish gate: build, swift test, self-test, repo 
 - **Test runs never touch the owner's Tomo or screen:** always pass `TOMO_DATA_DIR=<a temp dir>`
   and `TOMO_HEADLESS=1` (invisible, silent, never takes the keyboard), never `pkill` by name, and
   never open Simulator.app (`xcrun simctl` runs headless).
+- **Simulators are headless and yours alone:** `ios-demo/scripts/simulator.sh udid` gives each agent
+  its own; drive it with `xcrun simctl` and XCUITest, never the iOS Simulator MCP tool (it asks the
+  owner's permission for every new simulator), and `simulator.sh delete` it before you hand back.
 
 ## Rules
 
