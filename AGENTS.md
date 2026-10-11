@@ -52,12 +52,14 @@ cd mac-demo/NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configurati
 mac-demo/scripts/release-beta.sh --owner && mac-demo/run.sh    # rebuilds and relaunches the owner's copy
 cd TomoCore && swift test    # the shared package and its tests (30 s); iPhone: ios-demo/README.md
 node .github/scripts/check-docs.mjs && node .github/scripts/check-swift-text.mjs
+scripts/finish-gate.sh    # the finish gate: build, swift test, self-test, repo checks
 ```
 
 - **Inner loop:** the incremental build (seconds). Run `xcodegen` only when files were added or removed.
   For rules, `swift test --filter <Class>`; the island's: `TOMO_SELFTEST=1`, with a temp `TOMO_DATA_DIR`.
-- **Finish gate:** the build, `swift test`, the self-test, the repo checks, and the evidence the change
-  needs. A UI change needs the snapshot matrix; see [docs/verification.md](docs/verification.md). macOS CI runs
+- **Finish gate:** `scripts/finish-gate.sh` runs the build, `swift test`, the self-test and the
+  repo checks, and stops non-zero at the first failure. Add the evidence the change needs: a UI
+  change needs the snapshot matrix ([docs/verification.md](docs/verification.md)). macOS CI runs
   TomoCore's tests, both builds and the iPhone's UI journeys once a PR is ready for review.
 - **Test runs never touch the owner's Tomo or screen:** always pass `TOMO_DATA_DIR=<a temp dir>` and
   `TOMO_HEADLESS=1` (invisible, silent, never takes the keyboard), never `pkill` by name, and never open
