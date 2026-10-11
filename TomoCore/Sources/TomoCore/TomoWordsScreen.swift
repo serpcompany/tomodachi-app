@@ -258,9 +258,10 @@ public struct TomoWordsScreen: View {
     }
 }
 
-/// A word's stage as a colored capsule: grey (not met, locked) to deep teal, and purple for forever. Light mode deepens
-/// the teal stage by stage; dark mode brightens it. Every stage reads at 5:1 or more on its mode's card (#195 dark,
-/// #207 light; checked by `selfTest`), and a light colour keeps its hue as it darkens (OKLCH).
+/// A word's stage as a colored capsule: grey (not met, locked), then teal to green, and purple for forever. Dark mode
+/// tints each capsule with its text's colour, brighter stage by stage; light mode fills it from a pale tone to a solid
+/// one (#236). Every stage reads at 5:1 or more on its mode's card (#195 dark, #207 light) and stands apart from the
+/// stage before it (#236), checked by `selfTest`.
 public struct TomoStagePill: View {
     let group: String
     let text: String
@@ -279,15 +280,28 @@ public struct TomoStagePill: View {
 
     /// A stage's look in light or dark mode; nil for one without (not met, locked), drawn in the secondary colour.
     static func look(_ group: String, dark: Bool) -> Look? {
-        let hex: String? = switch group {
-        case "heard":   dark ? "#87BDBA" : "#0E625F"
-        case "knows":   dark ? "#28D79F" : "#035C42"
-        case "good":    dark ? "#47E5BE" : "#02513E"
-        case "loves":   dark ? "#7EEDD2" : "#024635"
-        case "forever": dark ? "#B9ABEB" : "#6042B8"
+        if dark {
+            let hex: String? = switch group {
+            case "heard":   "#87BDBA"
+            case "knows":   "#28D79F"
+            case "good":    "#47E5BE"
+            case "loves":   "#7EEDD2"
+            case "forever": "#B9ABEB"
+            default:        nil
+            }
+            return hex.map { Look(text: $0, fill: $0, opacity: 0.15) }
+        }
+        // Light: opaque fills, so a pill looks the same on the page and on a word card. Pale sky, mint, green, then
+        // solid green and solid purple with white text: each step darker than the last, so the order shows without
+        // telling the hues apart (#236).
+        return switch group {
+        case "heard":   Look(text: "#036D87", fill: "#E0F6FF", opacity: 1)
+        case "knows":   Look(text: "#036455", fill: "#AEEBDC", opacity: 1)
+        case "good":    Look(text: "#005226", fill: "#87D49C", opacity: 1)
+        case "loves":   Look(text: "#FFFFFF", fill: "#017C3E", opacity: 1)
+        case "forever": Look(text: "#FFFFFF", fill: "#7850DA", opacity: 1)
         default:        nil
         }
-        return hex.map { Look(text: $0, fill: $0, opacity: 0.15) }
     }
 
     public var body: some View {
@@ -307,8 +321,8 @@ extension TomoStagePill {
     /// iPhone's cards are darker, where a stage reads better still.
     static let darkCard = "#2B2B2B"
 
-    /// The darkest light card a pill sits on: the Mac's word card measures #F4F4F4 in light mode; the Mac's page is
-    /// white, where a stage reads better still. The iPhone is always dark.
+    /// The darkest light card a pill sits on: the Mac's word card measures #F4F4F4 in light mode, and the Mac's page is
+    /// white. Light fills are opaque, so a stage reads the same on either. The iPhone is always dark.
     static let lightCard = "#F2F2F2"
 
     /// How far apart two neighbouring stages must look, in OKLab: about 0.02 is just noticeable side by side. The light
