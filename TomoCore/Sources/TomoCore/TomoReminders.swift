@@ -148,6 +148,9 @@ public enum TomoReminders {
 
     // MARK: Saying it
 
+    /// What a reminder says is waiting: words coming back, or a new one; never how many (decisions.md, 2026-10-11).
+    public static func statusKey(due: Int) -> String { due > 0 ? "glance.back" : "glance.new" }
+
     /// "Up to 13 a day, 8:00 AM to 9:00 PM, only when a word is ready."
     @MainActor public static func summary(_ s: TomoReminderSettings) -> String {
         let ui = TomoLanguages.shared.learner
@@ -352,10 +355,11 @@ public final class TomoReminderCenter: NSObject, ObservableObject {
         await log()
     }
 
-    /// Tomo's line at its age, then what's waiting: "あそぼ！" / "Let's play! · 3 words waiting".
+    /// Tomo's line at its age, then what's waiting, never how many: "あそぼ！" / "Let's play! · Some words you know are
+    /// back" (or "A new word is ready to learn"; decisions.md, 2026-10-11: no growing count).
     private static func content(for slot: TomoReminders.Slot, line: TargetPack.SpokenLine?) -> UNMutableNotificationContent {
         let lang = TomoLanguages.shared, ui = lang.learner
-        let status = slot.due > 1 ? ui("glance.due", ["n": "\(slot.due)"]) : slot.due == 1 ? ui("glance.due.one") : ui("glance.new")
+        let status = ui(TomoReminders.statusKey(due: slot.due))
         let c = UNMutableNotificationContent()
         c.title = line?.say ?? lang.target.lines.invite ?? lang.target.lines.practice
         c.body = line.map { ui("reminder.body", ["line": $0.translation(ui.id), "status": status]) } ?? status

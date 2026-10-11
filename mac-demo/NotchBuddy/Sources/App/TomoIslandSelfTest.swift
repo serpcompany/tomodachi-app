@@ -391,6 +391,7 @@ enum TomoIslandSelfTest {
     /// how it comes and goes, and that the card's light and the island's come from the same Tomo.
     private static func light(_ check: (Bool, String) -> Void) {
         TomoMoment.selfTest(check)
+        TomoGlance.selfTest(check)
         typealias L = TomoIslandLight
         let win = TomoMoment.card(phase: .right, outcome: .win(counted: true))
         check(L.moment(mode: .compact, view: .overview, card: nil, somethingCounts: true) == .waiting

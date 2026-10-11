@@ -132,7 +132,8 @@ final class TomoPhoneShell: ObservableObject {
         // Testing (TOMO_CARD_COUNTDOWN=<seconds>): nothing waiting, next words in that many seconds.
         if let secs = ProcessInfo.processInfo.environment["TOMO_CARD_COUNTDOWN"].flatMap(Double.init) {
             glance.waiting = false
-            glance.status = TomoLanguages.shared.learner("glance.done")
+            glance.status = TomoLanguages.shared.learner(TomoGlance.state(somethingCounts: false).status)
+            glance.moment = nil
             glance.nextDue = (lastGlance?.nextDue).map { $0 } ?? Date().addingTimeInterval(secs)
         }
         glance.updated = lastGlance?.updated ?? glance.updated
