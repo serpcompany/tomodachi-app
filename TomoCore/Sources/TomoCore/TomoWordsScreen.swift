@@ -246,8 +246,8 @@ public struct TomoWordsScreen: View {
 }
 
 /// A word's stage as a colored capsule: grey (not met, locked) to deep teal, and purple for forever. Light mode deepens
-/// the teal stage by stage; dark mode brightens it, so every stage reads at 5:1 or more on a dark card (#195; checked by
-/// `selfTest`).
+/// the teal stage by stage; dark mode brightens it. Every stage reads at 5:1 or more on its mode's card (#195 dark,
+/// #207 light; checked by `selfTest`), and a light colour keeps its hue as it darkens (OKLCH).
 public struct TomoStagePill: View {
     let group: String
     let text: String
@@ -264,11 +264,11 @@ public struct TomoStagePill: View {
     /// A stage's colour in light or dark mode; nil for one without (not met, locked), drawn in the secondary colour.
     static func hex(_ group: String, dark: Bool) -> String? {
         switch group {
-        case "heard":   dark ? "#87BDBA" : "#5BA4A0"
-        case "knows":   dark ? "#28D79F" : "#1D9E75"
-        case "good":    dark ? "#47E5BE" : "#13876A"
-        case "loves":   dark ? "#7EEDD2" : "#0F6E56"
-        case "forever": dark ? "#B9ABEB" : "#7B61D9"
+        case "heard":   dark ? "#87BDBA" : "#0E625F"
+        case "knows":   dark ? "#28D79F" : "#035C42"
+        case "good":    dark ? "#47E5BE" : "#02513E"
+        case "loves":   dark ? "#7EEDD2" : "#024635"
+        case "forever": dark ? "#B9ABEB" : "#6042B8"
         default:        nil
         }
     }
