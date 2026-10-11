@@ -14,7 +14,8 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
 - `TOMO_SNAPSHOT_DIR=<dir>`: a PNG of the island every second, and of the Tomodachi window while it's open
   (`window-<screen>-NNN.png`, and `window-sheet-NNN.png` for the start-over question), and the picture Together
   shares (`postcard-share-<day>.png`). `TOMO_SNAPSHOT_EVERY=<seconds>` takes them more often (0.1, to catch a motion
-  midway). `TOMO_APPEARANCE=light|dark` draws the window in either. In a headless run the card's first frame takes about 0.4 s
+  midway). Materials only draw on screen, so the window's snapshots show its sidebar's selected row in the colour of a
+  window that isn't in front (#239). `TOMO_APPEARANCE=light|dark` draws the window in either. In a headless run the card's first frame takes about 0.4 s
   to draw, and each snapshot stalls the run, so a motion as it opens shows in one or two frames.
 - `TOMO_SLOW_MOTION=<n>`: Tomo's travel between the island's states, the island's own opening and folding, and the
   first run's fade from one step's text to the next take n times longer, so snapshots catch each step (5 shows four or
