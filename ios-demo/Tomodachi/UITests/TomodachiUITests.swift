@@ -127,6 +127,71 @@ final class TomodachiUITests: XCTestCase {
         expectWordsAtLevel(14)
     }
 
+    /// Words keeps your place when you come back to its tab (#218). Back from Play before you've scrolled, it's still
+    /// at Tomo's level, and nothing there waits for a move; then your swipes stay where you leave them, and so does the
+    /// list when you're back from Play again. XCUITest can't scroll an iPhone with no scroll phase (keys don't move
+    /// the list, and pointer scrolling isn't supported), so VoiceOver's and the keyboard's pages are TomoLanding's
+    /// checks.
+    func testWordsKeepsYourPlaceWhenYouComeBack() {
+        launch(TomoSeed.atLevel(14), tab: "words")
+        expectWordsAtLevel(14)
+        let play = app.tabBars.buttons[ui("screen.play")], words = app.tabBars.buttons[ui("screen.words")]
+        play.tap()
+        words.tap()
+        expectWordsAtLevel(14)
+        let list = app.scrollViews["words.list"]
+        list.swipeUp()
+        let first = expectWordsStay(away: 14, "after a swipe")
+        list.swipeUp()
+        let second = expectWordsStay(away: 14, "after another swipe")
+        XCTAssertTrue(second.level > first.level || second.level == first.level && second.y < first.y - 1,
+                      "the second swipe moved the list on: \(second), from \(first)")
+        play.tap()
+        words.tap()
+        let back = expectWordsStay(away: 14, "back from Play")
+        XCTAssertTrue(back.level == second.level && abs(back.y - second.y) <= 1,
+                      "back from Play, the list is where it was: \(back), not \(second)")
+    }
+
+    /// Where the list rests: the level at its top (the last header at or above the chips' edge, or the first header
+    /// below it), and that header's y. Read once the list has stopped (the same twice, 1 s apart), then three times
+    /// over 2 s, and it mustn't change; Lv `level`'s header is never right under the chips, where a landing puts it.
+    /// The journey's swipes only go down the list, so Lv `level` stays above the chips unless the list is pulled back.
+    private func expectWordsStay(away level: Int, _ when: String) -> (level: Int, y: CGFloat) {
+        let chips = app.scrollViews["words.stages"]
+        let headers = app.staticTexts.matching(NSPredicate(format: "identifier BEGINSWITH 'words.level.'"))
+        func place() -> (level: Int, y: CGFloat) {
+            let edge = chips.frame.maxY
+            let all = headers.allElementsBoundByIndex.map {
+                (level: Int($0.identifier.dropFirst("words.level.".count)) ?? 0, y: $0.frame.minY - edge)
+            }
+            return all.filter { $0.y <= 1 }.max { $0.y < $1.y } ?? all.min { $0.y < $1.y } ?? (0, 0)
+        }
+        func same(_ a: (level: Int, y: CGFloat), _ b: (level: Int, y: CGFloat)) -> Bool {
+            a.level == b.level && abs(a.y - b.y) <= 1
+        }
+        var last = place()
+        for _ in 0..<5 {
+            sleep(1)
+            let now = place()
+            if same(now, last) { break }
+            last = now
+        }
+        var seen: [(level: Int, y: CGFloat)] = []
+        for i in 0..<3 {
+            if i > 0 { sleep(1) }
+            let header = app.staticTexts["words.level.\(level)"]
+            let gap = header.exists ? header.frame.minY - chips.frame.maxY : -1
+            XCTAssertFalse(header.exists && (0...40).contains(gap),
+                           "\(when), Lv \(level) isn't pulled back under the chips")
+            seen.append(place())
+        }
+        print("\(name) \(when): the list's top \(seen)")
+        XCTAssertNotEqual(seen[0].level, 0, "\(when), a level's header is in the list")
+        XCTAssertTrue(seen.allSatisfy { same($0, seen[0]) }, "\(when), the list stays where it is: \(seen)")
+        return seen[0]
+    }
+
     /// Lv `level`'s header and its first word show right under the stage chips.
     private func expectWordsAtLevel(_ level: Int) {
         let chips = app.scrollViews["words.stages"]
