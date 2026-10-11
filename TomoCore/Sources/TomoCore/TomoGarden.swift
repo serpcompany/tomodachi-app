@@ -306,7 +306,7 @@ struct TomoPlantCard: View {
     var body: some View {
         let w = progress.word(plant.id, learner: lang.learner.id)
         HStack(alignment: .top, spacing: 10) {
-            if let emoji = w.emoji { Text(emoji).font(.system(size: 30)) }
+            if let emoji = w.emoji { TomoPictureView(emoji, size: 30) }
             VStack(alignment: .leading, spacing: 2) {
                 Text(w.say).font(.system(size: 20, weight: .bold, design: .rounded))
                 Text([w.reading, w.meaning].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "))

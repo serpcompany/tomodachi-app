@@ -301,9 +301,9 @@ public struct TomoTogetherScreen: View {
             }
             .buttonStyle(.bordered)
             .disabled(replayStart != nil)
-            Slider(value: Binding(get: { k }, set: { scrub = $0 >= 0.999 ? nil : $0; replayStart = nil; plantShown = nil }),
-                   in: 0...1)
-                .tint(TomoGardenColors(dark: false).win)
+            // Its knob shows at the track's end in light mode too (TomoSlider, #195).
+            TomoSlider(value: Binding(get: { k }, set: { scrub = $0 >= 0.999 ? nil : $0; replayStart = nil; plantShown = nil }),
+                       tint: TomoGardenColors(dark: false).win)
                 .accessibilityLabel(lang.learner("garden.day"))
                 .accessibilityValue(TomoStats.shortDay(day, lang.learner))
             Text(TomoStats.shortDay(day, lang.learner)).font(.callout.monospacedDigit()).foregroundStyle(.secondary)

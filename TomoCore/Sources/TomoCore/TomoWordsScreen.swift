@@ -110,7 +110,7 @@ public struct TomoWordsScreen: View {
         let item = progress.items[id]
         return HStack(alignment: .center, spacing: 10) {
             Group {
-                if let emoji = w.emoji { Text(emoji).font(.system(size: 22)) }
+                if let emoji = w.emoji { TomoPictureView(emoji, size: 22) }   // a dark one on a light disc in dark mode
                 else { Image(systemName: "text.bubble").foregroundStyle(.secondary) }   // asked by meaning
             }
             .frame(width: 30)
@@ -146,10 +146,12 @@ public struct TomoWordsScreen: View {
     }
 }
 
-/// A word's stage as a colored capsule: grey (not met, locked) to deep teal, and purple for forever.
+/// A word's stage as a colored capsule: grey (not met, locked) to deep teal, and purple for forever. Light mode deepens
+/// the teal stage by stage; dark mode brightens it, so every stage reads at 5:1 or more on a dark card (#195).
 public struct TomoStagePill: View {
     let group: String
     let text: String
+    @Environment(\.colorScheme) private var scheme
 
     public init(group: String, text: String) {
         self.group = group
@@ -157,12 +159,13 @@ public struct TomoStagePill: View {
     }
 
     private var color: Color {
+        let dark = scheme == .dark
         switch group {
-        case "heard":   return Color(hex: "#5BA4A0")
-        case "knows":   return Color(hex: "#1D9E75")
-        case "good":    return Color(hex: "#13876A")
-        case "loves":   return Color(hex: "#0F6E56")
-        case "forever": return Color(hex: "#7B61D9")
+        case "heard":   return Color(hex: dark ? "#87BDBA" : "#5BA4A0")
+        case "knows":   return Color(hex: dark ? "#28D79F" : "#1D9E75")
+        case "good":    return Color(hex: dark ? "#47E5BE" : "#13876A")
+        case "loves":   return Color(hex: dark ? "#7EEDD2" : "#0F6E56")
+        case "forever": return Color(hex: dark ? "#B9ABEB" : "#7B61D9")
         default:        return .secondary
         }
     }

@@ -219,9 +219,12 @@ slot: open at login on the Mac (`TomoLoginItem`, off until the learner turns it 
 the iPhone ([#88](https://github.com/serpcompany/tomodachi-app/issues/88)). The Mac's main menu and
 its menu bar icon's menu share one list of commands (`TomoMenus`). Invariants: the screens read
 `TomoGame`, `TomoProgress` and `TomoStats` and decide nothing themselves; Start over always asks
-first; the testing tools (`TomoTestingTools`, after ⌥-clicking the menu bar icon) never touch the
-saved Tomo. New screens take the Tomo they show (its progress, look and material), so a friend can
-have its own: Together does ([stats.md](stats.md)), and takes the clipboard from the shell (`copy`), since
-TomoCore has no pasteboard.
+first; colours read in light and dark mode (a system colour, or a light and a dark value), a dark
+picture gets a light disc on a dark card (`TomoPictureView`), and sliders are `TomoSlider`
+([#195](https://github.com/serpcompany/tomodachi-app/issues/195)); the testing tools
+(`TomoTestingTools`, after ⌥-clicking the menu bar icon) never touch the saved Tomo. New screens
+take the Tomo they show (its progress, look and material), so a friend can have its own: Together
+does ([stats.md](stats.md)), and takes the clipboard from the shell (`copy`), since TomoCore has no
+pasteboard.
 
 The research behind these systems is mapped in [research/README.md](research/README.md).

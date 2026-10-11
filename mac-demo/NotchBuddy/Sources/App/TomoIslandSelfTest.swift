@@ -140,6 +140,7 @@ enum TomoIslandSelfTest {
         music(check)
         rules(check)
         TomoGame.offerSelfTest(check)
+        TomoPicture.selfTest(check)   // a dark picture gets a light disc on the card (#195)
         return ok
     }
 

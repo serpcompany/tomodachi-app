@@ -45,10 +45,15 @@ public struct TomoGrowthScreen: View {
                     Label(lang.learner("words.testing"), systemImage: "flask").foregroundStyle(.orange)
                 }
                 if let play {
+                    // On the Mac the style picks the label's colour: white on teal, and a readable one on grey while the
+                    // window is behind another (a fixed white vanished there in light mode, #195). The iPhone's is
+                    // always teal, and its Form would tint the icon green.
                     Button(action: play) {
                         Label(lang.learner("tomo.play"), systemImage: "play.fill")
                             .font(.body.weight(.semibold))
+                            #if os(iOS)
                             .foregroundStyle(.white)
+                            #endif
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)

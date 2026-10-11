@@ -286,8 +286,8 @@ public struct TomoHeightPillar: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(lang.learner("pillar.slide", ["date": longDay(day ?? TomoClock.now), "level": lang.learner("level", ["n": "\(level)"])]))
                 .font(.caption).foregroundStyle(.secondary)
-            Slider(value: Binding(get: { 1 - (back ?? 0) }, set: { back = $0 >= 0.999 ? nil : 1 - $0 }), in: 0...1)
-                .tint(Color(hex: "#CFA273"))
+            TomoSlider(value: Binding(get: { 1 - (back ?? 0) }, set: { back = $0 >= 0.999 ? nil : 1 - $0 }),
+                       tint: Color(hex: "#CFA273"))   // its knob shows at the track's end in light mode (#195)
                 .accessibilityLabel(lang.learner("pillar.slideLabel"))
                 .accessibilityValue(longDay(day ?? TomoClock.now))
                 .frame(maxWidth: .infinity)
@@ -353,7 +353,10 @@ public struct TomoHeightPillar: View {
         let w = progress.word(id, learner: lang.learner.id), item = progress.items[id]
         let stage = item?.stage ?? 0, group = TomoPlantDrawing.group(max(stage, 1)), pale = (item?.peak ?? 0) > stage
         return VStack(alignment: .leading, spacing: 3) {
-            Text([w.emoji, w.say].compactMap { $0 }.joined(separator: " ")).font(.system(size: 13.5, weight: .bold, design: .rounded))
+            HStack(spacing: 4) {
+                if let emoji = w.emoji { TomoPictureView(emoji, size: 13.5) }   // a dark one on a light disc in dark mode
+                Text(w.say).font(.system(size: 13.5, weight: .bold, design: .rounded))
+            }
             HStack(spacing: 2) {
                 ForEach(0..<5, id: \.self) { k in
                     Circle().fill(k <= group ? Color.teal.opacity(pale && k == group ? 0.35 : 1) : Color.secondary.opacity(0.25))

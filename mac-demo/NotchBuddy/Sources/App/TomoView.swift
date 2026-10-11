@@ -326,7 +326,7 @@ private struct ChoiceTile: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 2) {
-                Text(choice.emoji ?? "").font(.system(size: 36))
+                TomoPictureView(choice.emoji ?? "", size: 36, darkCard: true)   // a dark one on a light disc (#195)
                 if let label = choice.label {
                     Text(label).font(.system(size: 10, weight: .medium)).foregroundColor(Color(hex: "#9398A1"))
                         .lineLimit(1).minimumScaleFactor(0.8)
