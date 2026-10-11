@@ -59,8 +59,9 @@ targets:
         buildPhase: resources
       # The privacy manifest (#231), in every build: no tracking, no data collected (progress syncs to the learner's
       # own iCloud), and Apple's reason for each required-reason API the app and TomoCore call: UserDefaults (CA92.1,
-      # the app's own; the Mac has no App Group) and the boot-time clock (35F9.1, CACurrentMediaTime for animation and
-      # cooldowns). A new one (file timestamps, disk space, active keyboards, another reason) goes in here before it
+      # the app's own; the Mac has no App Group) and the boot-time clock (35F9.1). CACurrentMediaTime (animation,
+      # cooldowns) isn't on Apple's list but reads mach_absolute_time, so it's declared to be safe. A new one (file
+      # timestamps, disk space, active keyboards, another reason) goes in here before it
       # ships.
       - path: Resources/PrivacyInfo.xcprivacy
         buildPhase: resources
