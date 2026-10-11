@@ -18,7 +18,7 @@ store, because `TomoGame` hatches a Tomo when there's none (on the Mac, in `Notc
 before the main menu reads the game). The guided round answers through `TomoProgress`, so the first
 word counts; the visit clock is held while the window is open, and the flow ends with
 `TomoGame.reload()`, which is Tomo's first visit. Invariants: the "done" mark is `onboarding.json`
-in the data folder, never UserDefaults (Debug builds share the owner's defaults); a learner with a
+in the data folder, never UserDefaults (it follows `TOMO_DATA_DIR`, which defaults don't); a learner with a
 saved Tomo never sees a hatch; a preview never writes `onboarding.json`, the saved Tomo, or a
 setting that wasn't changed in it; a device that joins the iCloud Tomo during the flow (an older
 `metAt` arrives) gets "welcome back", followed by the device's own setup; the Lock Screen card

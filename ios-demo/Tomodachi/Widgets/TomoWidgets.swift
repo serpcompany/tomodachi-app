@@ -34,7 +34,8 @@ struct TomoWidget: Widget {
     }
 }
 
-/// The app's name, from the bundle (it's a name, not text to translate).
+/// The app's name in the widget gallery, from the bundle (it's a name, not text to translate): "Tomodachi Debug" for a
+/// Debug build (#54), so the owner can tell its widgets from their own. The widget itself draws `TomoIdentity.appName`.
 let appName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? ""
 
 struct TomoEntry: TimelineEntry {
@@ -125,7 +126,7 @@ struct TomoWidgetView: View {
             tomo(120)
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 6) {
-                    Text(appName).font(.system(size: 16, weight: .bold, design: .rounded)).lineLimit(1)
+                    Text(TomoIdentity.appName).font(.system(size: 16, weight: .bold, design: .rounded)).lineLimit(1)
                     ageChip
                 }
                 Text(glance.level)

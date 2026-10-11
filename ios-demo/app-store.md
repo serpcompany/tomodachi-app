@@ -67,9 +67,9 @@ xcrun simctl spawn "$sim" defaults write -g AppleICUForce24HourTime -bool false 
 xcrun simctl status_bar "$sim" override --time 9:41 --batteryState discharging --batteryLevel 100 \
   --dataNetwork wifi --wifiBars 3 --cellularBars 4
 xcrun simctl install "$sim" ios-demo/build/Build/Products/Debug-iphonesimulator/Tomodachi.app
-xcrun simctl spawn "$sim" defaults write com.zenbujapanese.tomo soundEnabled -bool false
+xcrun simctl spawn "$sim" defaults write com.zenbujapanese.tomo.debug soundEnabled -bool false
 SIMCTL_CHILD_TOMO_DATA_DIR=<dir> SIMCTL_CHILD_TOMO_SEED=variety-1 SIMCTL_CHILD_TZ=America/Denver \
-  SIMCTL_CHILD_TOMO_OPEN_WINDOW=tomo xcrun simctl launch --terminate-running-process "$sim" com.zenbujapanese.tomo
+  SIMCTL_CHILD_TOMO_OPEN_WINDOW=tomo xcrun simctl launch --terminate-running-process "$sim" com.zenbujapanese.tomo.debug
 xcrun simctl io "$sim" screenshot <raw dir>/4-tomo.png
 ```
 

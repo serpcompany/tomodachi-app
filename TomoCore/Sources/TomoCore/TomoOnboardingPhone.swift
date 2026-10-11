@@ -77,7 +77,7 @@ extension TomoOnboardingView {
     /// Which how-to the widget step shows.
     var widgetTab: WidgetTab { model.widgetOnHomeScreen ? .homeScreen : .lockScreen }
 
-    private var appName: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "" }
+    private var appName: String { TomoIdentity.appName }
     private var reminderLine: TargetPack.SpokenLine? { lang.target.reminderLines(age: game.stage).first }
     private var reminderMessage: String {
         let status = ui("glance.new")

@@ -25,11 +25,18 @@ settings:
     # Shared with the widgets (TomoGlance) and with the Mac (TomoSync): read from Info.plist, never hard-coded.
     TOMO_APP_GROUP: group.com.zenbujapanese.tomo
     TOMO_ICLOUD_CONTAINER: iCloud.com.zenbujapanese.tomo
+    # The app's name on the Home Screen and in the widget gallery. Tomo's own screens draw CFBundleName, the same in
+    # every build, so the screens and the store screenshots don't change.
+    TOMO_DISPLAY_NAME: Tomodachi
   configs:
     # iCloud sync (TomoSync): Debug builds use CloudKit's Development environment, TestFlight and the App Store
     # Production. Xcode sets the iCloud and push environments in the entitlements when it exports.
+    # A Debug build is its own app (#54): its own App Group, so it never writes the owner's widgets; the iCloud
+    # container is shared, in the Development environment.
     Debug:
       TOMO_ICLOUD_ENV: Development
+      TOMO_APP_GROUP: group.com.zenbujapanese.tomo.debug
+      TOMO_DISPLAY_NAME: Tomodachi Debug
     Release:
       TOMO_ICLOUD_ENV: Production
 
@@ -66,7 +73,7 @@ targets:
       path: Resources/Info.plist
       properties:
         CFBundleName: Tomodachi
-        CFBundleDisplayName: Tomodachi
+        CFBundleDisplayName: $(TOMO_DISPLAY_NAME)
         CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)   # one place: the target's build setting
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleShortVersionString: "1.1"
@@ -83,12 +90,15 @@ targets:
         # leaves its listener out of iOS builds, so the app never asks (#92).
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.zenbujapanese.tomo
+        PRODUCT_BUNDLE_IDENTIFIER: com.zenbujapanese.tomo   # Release: TestFlight and the App Store (testflight.sh checks)
         PRODUCT_NAME: Tomodachi
         INFOPLIST_FILE: Resources/Info.plist
         TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_ENTITLEMENTS: Resources/Tomodachi.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon   # Tomo on sky blue, drawn from its code (TOMO_RENDER_ICON)
+      configs:
+        Debug:
+          PRODUCT_BUNDLE_IDENTIFIER: com.zenbujapanese.tomo.debug   # its own app beside the owner's (#54)
     postBuildScripts:
       - name: Leave out the Spanish draft
         script: '"$SRCROOT/../scripts/strip-packs.sh" "$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH"'
@@ -128,7 +138,8 @@ targets:
     info:
       path: Widgets/Info.plist
       properties:
-        CFBundleDisplayName: Tomodachi
+        CFBundleName: Tomodachi   # the widget draws it (TomoWidgets.swift); the gallery shows the display name
+        CFBundleDisplayName: $(TOMO_DISPLAY_NAME)
         CFBundleShortVersionString: "1.1"
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         TomoAppGroup: $(TOMO_APP_GROUP)
@@ -143,6 +154,9 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_ENTITLEMENTS: Widgets/Widgets.entitlements
         SKIP_INSTALL: YES
+      configs:
+        Debug:
+          PRODUCT_BUNDLE_IDENTIFIER: com.zenbujapanese.tomo.debug.widgets   # inside the Debug app's ID, as iOS requires
     postBuildScripts:
       - name: Leave out the Spanish draft
         script: '"$SRCROOT/../scripts/strip-packs.sh" "$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH"'

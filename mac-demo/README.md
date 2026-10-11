@@ -45,7 +45,10 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 
 Signing is automatic with TSMC LLC's team `847HR8U8D9`, the iPhone app's (iCloud sync needs one team), so Xcode
 must be signed in to it. `-allowProvisioningUpdates` lets Xcode make the profiles; the first build on a
-new Mac also needs `-allowProvisioningDeviceRegistration` to register it.
+new Mac also needs `-allowProvisioningDeviceRegistration` to register it. A Debug build is its own app,
+`com.zenbujapanese.tomo.debug` ("Tomodachi Debug"), with its own preferences, data folder
+(`~/Library/Application Support/com.zenbujapanese.tomo.debug`) and keychain items, so it never touches the owner's
+copy ([#54](https://github.com/serpcompany/tomodachi-app/issues/54)). Only Release builds, the owner's copy and the betas, are `com.zenbujapanese.tomo`.
 
 `xcodegen` regenerates the project from `NotchBuddy/project.yml`; it's needed only when files are added
 or removed. The self-test and the snapshot matrix are in [docs/verification.md](../docs/verification.md), the debug
