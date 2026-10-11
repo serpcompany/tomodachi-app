@@ -29,7 +29,10 @@ screen), `TomoHeightPillar.swift` (growing up, on the Tomo screen).
 - **Days:** a day starts at 4 am, like the daily new words, so an answer at 1 am belongs to the day before;
   Tomo's week starts on Monday at 4 am. **The streak** is days in a row with at least one answer; before
   today's first answer it's still yesterday's, and a day with none breaks it once that day is over.
-  **Missed days** are days with no answer since the stats began.
+  **Missed days** are days with no answer since the stats began. **Days together** ("Day 17 together") count
+  those days from the one Tomo hatched, which is Day 1, on this device's time zone: one rule
+  (`TomoStats.dayTogether`) for the Tomo screen, the diary's pages, the postcard, the pillar and the export, so
+  the diary's page for today and the Tomo screen agree, and the count moves at 4 am ([#224](https://github.com/serpcompany/tomodachi-app/issues/224)).
 - Streaks, misses and missed days are data, and screens may show them (decisions.md, 2026-10-11). The one
   rule: never a growing count of things to review or do ([concepts.md](concepts.md)). Ignored visits are
   counted (`ignoredVisits`) but left off the Today line and the postcards for now: a choice, since Tomo's
@@ -128,6 +131,8 @@ the ranges, the recap, both exports (the JSON reads back; the Markdown has a row
 pillar's marks (each dated when the level was reached; the level on each mark's day), the diary (a page per
 day played with that day's numbers, the days apart, the run of days, and Tomo's hello, sulk, cheers and
 groan exactly when they're due), the Today line and the postcards against its own tally
-(`TomoStatsCheck.swift`), plus the visit log on the game (`TomoVisitCheck.swift`). The growth simulations
+(`TomoStatsCheck.swift`), and that the diary's page for today and the Tomo screen say the same "Day N together"
+in English and Japanese: late in the day, just after midnight, on the nights the clocks go back and forward, and
+after a flight to another time zone. `TomoVisitCheck.swift` checks the visit log on the game. The growth simulations
 check each pillar's birthdays up to 3さい, and the diary's birthday lines (`TomoGrowthCheck.swift`). Snapshots: `TOMO_OPEN_WINDOW=together` with a `seed-progress.py --history`
 folder ([debug-flags.md](debug-flags.md)).
