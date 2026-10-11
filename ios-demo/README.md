@@ -4,17 +4,8 @@ Tomodachi on the iPhone ([#52](https://github.com/serpcompany/tomodachi-app/issu
 
 A new learner's first launch shows the first run full screen over all of it: the hatch, the first word, how Tomo comes to you, the rhythm and quiet hours for reminders, the notification prompt, the widget how-to and the Lock Screen card, yes or not now (`TomoOnboarding`, `Shell.phone`).
 
-| File | What |
-|---|---|
-| `Tomodachi/Sources/TomodachiApp.swift` | The app, and `TomoPhoneShell`: sets `TomoGame`'s closures (open = the app is active; `onBotState` → Tomo). The app follows Reduce Motion for every live Tomo (`TomoMotion`) |
-| `Tomodachi/Sources/TomoPhoneHome.swift` | The tabs: Play (`TomoPhoneView`) and TomoCore's Tomo, Words, Together and Settings screens, with About in Settings. Settings shows the reminders' settings (`TomoReminderSettingsView`, from TomoCore) |
-| `Tomodachi/Sources/TomoPhoneFirstRun.swift` | The first run, full screen over the tabs; `TomoPhoneShell` holds the game, the Lock Screen card and the reminders until it's done (`endFirstRun`) |
-| `Tomodachi/Sources/TomoPhoneView.swift` | The play screen: header and level bar, `TomoBlobView` (tap: a poke; long press: love, `TomoLoveCooldown`), what Tomo says, the result, the answers |
-| `Tomodachi/Sources/TomoWordSheet.swift` | Tap a word in Tomo's line: its word card, with Open in Zenbu and the iPhone's dictionary (`UIReferenceLibraryViewController`) |
-| `Tomodachi/Widgets/TomoWidgets.swift` | The Home Screen widget (small, medium) and the Lock Screen widget (rectangular, circular, inline): reads the `TomoGlance` the shell writes to the App Group, draws the mascot with `TomoMovingMascot` (Lock Screen: text and a gauge) |
-| `Tomodachi/Sources/TomoLiveVisit.swift`, `Shared/TomoVisitActivity.swift`, `Widgets/TomoVisitLiveActivity.swift` | Tomo's Lock Screen card and Dynamic Island (a Live Activity, only once the learner said yes): "A new word is ready to learn" with the experience bar and a Play button that opens one round on the card (`TomoPlayIntent`, `TomoAnswerIntent`), or asleep, saying when the next words come |
-| `Tomodachi/Widgets/TomoMovingMascot.swift`, `Widgets/Fonts/` | The mascot moving on widgets and the Lock Screen: a seconds timer set in a font whose digits are frames of the mascot (`TomoLook.mascot`). Rebuild the fonts after changing the mascot or Tomo's drawing: `TOMO_RENDER_CARD_FRAMES=<dir>` on the Mac app, then `python3 ios-demo/scripts/make-frame-font.py <dir> ios-demo/Tomodachi/Widgets/Fonts` (needs `pip install fonttools pillow`) |
-| `Tomodachi/project.yml` | XcodeGen spec. iOS 18+, iPhone only, bundle ID `com.zenbujapanese.tomo` (same as the Mac app). No microphone or speech-recognition permission: answers are choices, and TomoCore leaves its listener out of iOS builds. The last build phase of the app and the widget runs `scripts/strip-packs.sh`, which leaves the Spanish draft pack out (the iPhone has no way to pick it) |
+Its files, and how the widgets and the Lock Screen card draw what the app writes:
+[docs/iphone.md](../docs/iphone.md).
 
 The play screen fits the Play tab from an iPhone SE (375 × 667) up: Tomo, its line and the answers share the height there is (`TomoPhoneView.fit`). Text follows Dynamic Type up to a cap, so it grows inside its row; VoiceOver reads the bar, Tomo, its line (in the Japanese voice, with each word's card as an action) and every choice. Tomo's voice and peeps use the `.ambient` audio session: the Ring/Silent switch mutes them, and they play over the learner's music. To check a short screen: an `iPhone SE (3rd generation)` simulator; for large text, `xcrun simctl ui <device> content_size accessibility-large`.
 

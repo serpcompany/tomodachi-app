@@ -10,9 +10,9 @@ review; the Mac's island checks and the snapshots run locally.
 
 | Level | What to run | When |
 |---|---|---|
-| **Inner loop** | The incremental build (`xcodebuild … build` in [AGENTS.md](../AGENTS.md); `xcodegen` first only when files were added or removed). For rules, `swift test --filter <TestClass>` in `TomoCore` | While editing |
+| **Inner loop** | The incremental build (`xcodebuild … build` in [AGENTS.md](../AGENTS.md); `xcodegen` first only when files were added or removed). For rules, `swift test --filter <TestClass>` in `TomoCore`; for the island's, `TOMO_SELFTEST=1` with a temp `TOMO_DATA_DIR` (below) | While editing |
 | **Push** | `cd TomoCore && swift test` (about 30 s), `node .github/scripts/check-docs.mjs` and `node .github/scripts/check-swift-text.mjs` | Before each push |
-| **Finish gate** | `scripts/finish-gate.sh` (build, `swift test`, self-test, repo checks), the UI journeys a change touches, and the evidence below. CI on the final commit runs the Pull Request plan; without it, run that plan once locally | Once, when the branch is done |
+| **Finish gate** | `scripts/finish-gate.sh` (build, `swift test`, self-test, repo checks; it stops non-zero at the first failure), the UI journeys a change touches, and the evidence below. CI on the final commit runs the Pull Request plan; without it, run that plan once locally | Once, when the branch is done |
 
 - **After a merge:** CI doesn't run `TOMO_SELFTEST` or the snapshots, so the agent that merges runs
   the self-test on main right after merging, unless main's tree is the one it already ran on
