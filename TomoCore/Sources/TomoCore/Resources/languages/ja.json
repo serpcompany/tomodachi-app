@@ -161,6 +161,12 @@
       "from": "12-15",
       "until": "02-28",
       "weather": "snow"
+    },
+    {
+      "id": "obon",
+      "from": "08-13",
+      "until": "08-16",
+      "dance": "bonOdori"
     }
   ],
   "reminders": [

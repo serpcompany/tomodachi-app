@@ -58,6 +58,11 @@ Each lives 2 s at most and all are gone when the moment ends; under Reduce Motio
 - The season's weather (`weather`, from the target language's calendar, `TomoCalendar.weatherToday`): the island
   passes it only to Tomo's card (`TomoCharacterView.weather`), and the Mac's Tomo screen to its Tomo. A few flakes or
   petals fall behind Tomo, worked out from the clock, so nothing is emitted; under Reduce Motion, a third, slower.
+- Dancing to music (`dance`): the island turns it on while Music or Spotify plays and small Tomo rests, outside quiet
+  hours (`TomoCharacterView.dance`; the players' own notifications, `TomoMusic`). Tomo's own bounce and sway at 112
+  BPM, or the 盆踊り side-step at half speed on the days the language's calendar says (`TomoCalendar.danceToday`). A
+  loop on the clock, not a script: it fades in and out, a script takes over while one plays, and it's off under Reduce
+  Motion.
 - When it says hello: the island the first time Tomo shows after launch, greeting the launch visit's card instead of
   dripping into it, and when the Mac wakes (`TomoCharacterView.saysHello`); the iPhone's play screen when it first
   appears.

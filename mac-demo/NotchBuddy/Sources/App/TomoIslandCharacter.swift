@@ -14,6 +14,7 @@ import TomoCore
 /// (`wearsBadges`: a "…" bubble while it checks an answer, a Zz while it dozes), drawn just right of its frame. The
 /// canvas reaches past its frame for them and for the call glow (`canvasRoom`). Its host says how strongly it glows to
 /// ask to play (`callGlow`), and the strand and the hello's drop hang from the island's top edge, straight above it.
+/// While music plays and it rests, it dances (`dance`, TomoMusic).
 struct TomoCharacterView: View {
     @ObservedObject var state: AppState
     var particleOverhang: CGFloat = 0
@@ -25,6 +26,10 @@ struct TomoCharacterView: View {
     @State private var greeted = false
     /// The season's weather (TomoCalendar), looked up when the card opens.
     @State private var todaysWeather: TomoWeather?
+    /// Music playing in Music or Spotify (TomoMusic), quiet hours now, and how Tomo dances today (TomoCalendar).
+    @ObservedObject private var music = TomoMusic.shared
+    @State private var quiet = false
+    @State private var todaysDance = TomoDance.bounce
 
     /// What Tomo does when the island changes: drips in when the app brought it out (a visit, as its card or its peek:
     /// `AppState.arrivals`), and is pulled up into the notch when the card or the peek closes with nowhere to rest
@@ -84,14 +89,23 @@ struct TomoCharacterView: View {
         mode != .hidden && (waking || !greeted)
     }
 
+    /// Tomo dances while music plays (TomoMusic) and it rests beside the notch: visits win (the card, the peek), and so
+    /// do quiet hours. How it dances is the day's (`TomoCalendar.danceToday`: the 盆踊り during お盆).
+    nonisolated static func dance(playing: Bool, mode: IslandMode, quiet: Bool, today: TomoDance) -> TomoDance? {
+        playing && mode == .compact && !quiet ? today : nil
+    }
+
+    /// The learner unlocking the Mac, delivered at once even though Tomodachi isn't the active app (TomoDistributed).
+    static let unlocks = TomoDistributed(["com.apple.screenIsUnlocked"])
+
     /// When Tomo says hello again: the screens waking (from sleep, or the display's own), the learner unlocking the Mac,
     /// and coming back to their session (fast user switching). No permission needed for any of them.
     /// TOMO_HELLO=<seconds>: a wake that long after Tomo first shows, for snapshots (a test run can't sleep the Mac).
     static let wakes: AnyPublisher<Void, Never> = {
         let workspace = NSWorkspace.shared.notificationCenter
-        var all = [workspace.publisher(for: NSWorkspace.screensDidWakeNotification),
-                   DistributedNotificationCenter.default().publisher(for: Notification.Name("com.apple.screenIsUnlocked")),
-                   workspace.publisher(for: NSWorkspace.sessionDidBecomeActiveNotification)]
+        var all = [workspace.publisher(for: NSWorkspace.screensDidWakeNotification).eraseToAnyPublisher(),
+                   unlocks.publisher,
+                   workspace.publisher(for: NSWorkspace.sessionDidBecomeActiveNotification).eraseToAnyPublisher()]
             .map { $0.map { _ in () }.eraseToAnyPublisher() }
         if let after = ProcessInfo.processInfo.environment["TOMO_HELLO"].flatMap(Double.init) {
             all.append(Just(()).delay(for: .seconds(after), scheduler: RunLoop.main).eraseToAnyPublisher())
@@ -121,6 +135,7 @@ struct TomoCharacterView: View {
                     blob.callGlow = callGlow()
                     blob.showsBadges = Self.wearsBadges(state.mode)
                     blob.weather = Self.weather(mode: state.mode, view: state.view, today: todaysWeather)
+                    blob.dance = Self.dance(playing: music.playing, mode: state.mode, quiet: quiet, today: todaysDance)
                     blob.step()
                     blob.draw(context, size: geo.size)
                 }
@@ -154,6 +169,8 @@ struct TomoCharacterView: View {
             if leaving { blob.pullUp() } else if IslandWindowController.countsAsOpen(state.mode) { blob.appear() }
         }
         .onAppear {
+            TomoMusic.shared.start()
+            checkDay()
             todaysWeather = TomoCalendar.weatherToday
             if Self.testBadge == "dozing" { blob.dozeAfter = 2 }
             blob.setState(shownState, force: true)
@@ -170,7 +187,15 @@ struct TomoCharacterView: View {
         .onReceive(Self.wakes) { _ in
             if Self.saysHello(greeted: greeted, waking: true, mode: state.mode) { blob.hello() }
         }
+        // Music starting, and once a minute while it plays: quiet hours, and the day's dance.
+        .onChange(of: music.playing) { _, playing in if playing { checkDay() } }
+        .onReceive(Timer.publish(every: 60, on: .main, in: .common).autoconnect()) { _ in if music.playing { checkDay() } }
         .tomoReactions(blob)
+    }
+
+    private func checkDay() {
+        quiet = DropIn.quietEnds() != nil
+        todaysDance = TomoCalendar.danceToday
     }
 
     /// Cursor direction relative to Tomo, −1…1 (positive y = above).
