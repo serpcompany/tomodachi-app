@@ -347,7 +347,7 @@ public final class TomoSync {
             default:
                 NSLog("Tomo sync: couldn't save \(id.recordName): \(failure.error.localizedDescription)")
                 retryLater.insert(id)
-                FileManager.default.createFile(atPath: resendURL.path, contents: nil)
+                Self.resendAtStart(in: directory)
             }
         }
         engine.state.add(pendingRecordZoneChanges: retry)
@@ -469,7 +469,14 @@ public final class TomoSync {
     // MARK: Engine state (TomoStore.directory/cloud-state.json, cloud-resend)
 
     private var stateURL: URL { directory.appendingPathComponent("cloud-state.json") }
-    private var resendURL: URL { directory.appendingPathComponent("cloud-resend") }
+    private var resendURL: URL { Self.resendURL(in: directory) }
+    private static func resendURL(in dir: URL) -> URL { dir.appendingPathComponent("cloud-resend") }
+
+    /// Every saved Tomo and word in `dir` is sent again when sync next starts there: after a save iCloud refused, or
+    /// when the store moved a Tomo to another pair (TomoStore.move, at launch before sync starts).
+    static func resendAtStart(in dir: URL) {
+        FileManager.default.createFile(atPath: resendURL(in: dir).path, contents: nil)
+    }
 
     private func loadState() -> CKSyncEngine.State.Serialization? {
         guard let data = try? Data(contentsOf: stateURL) else { return nil }

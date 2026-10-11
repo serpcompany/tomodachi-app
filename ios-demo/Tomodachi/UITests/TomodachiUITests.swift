@@ -328,6 +328,21 @@ final class TomodachiUITests: XCTestCase {
         XCTFail("a long press on Tomo shows its love: three presses were too slow to read it")
     }
 
+    /// A learner's own language is never the one they learn (#199). One who picked the Japanese interface before
+    /// (ja:ja) opens in English with the same Tomo, and Settings, scrolled to its end, has no interface language to
+    /// pick while Japanese is the only target. `launch` waits for the English tabs, so a Japanese interface fails there.
+    func testAJapaneseInterfaceFromBeforeOpensInEnglishWithItsTomo() {
+        launch(TomoSeed.atLevel(14, learner: "ja"), env: ["TOMO_LEARNER": "ja"])
+        XCTAssertTrue(app.staticTexts[ui("level", ["n": "14"])].waitForExistence(timeout: 20), "its Tomo came along, at Lv 14")
+        app.tabBars.buttons[ui("screen.settings")].tap()
+        let restart = app.buttons[ui("settings.restart")]
+        for _ in 0..<6 where !(restart.exists && restart.isHittable) { app.swipeUp() }
+        XCTAssertTrue(restart.exists, "Settings scrolled down to Start over, under where the interface language was")
+        let speaks = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", ui("settings.speak")))
+        XCTAssertEqual(speaks.count, 0, "no interface language to pick")
+        record("Settings at its end, with no interface language", screenshot: app.screenshot())
+    }
+
     /// A Debug build is its own app (#54): the app's own checks (TOMO_SELFTEST, TomoIdentity) pass on the iPhone. Its
     /// ID, name, data folder and keychain service are the Debug app's, and so are its App Group and its widgets'. The
     /// app writes them to the data folder before Tomo shows.
@@ -373,10 +388,11 @@ enum TomoSeed {
     }
 
     /// Tomo at `level`, at that level's age: every word of the levels before it known at stages 2 to 6 (due in a day
-    /// or more), and its own level's words just met.
-    static func atLevel(_ level: Int) -> URL {
+    /// or more), and its own level's words just met. `learner`: the interface it was saved under (`ja`: a ja:ja setup
+    /// from before #199).
+    static func atLevel(_ level: Int, learner: String = "en") -> URL {
         let dir = folder(), now = Date()
-        guard let store = TomoStore(learner: "en", target: "ja", directory: dir) else { return dir }
+        guard let store = TomoStore(learner: learner, target: "ja", directory: dir) else { return dir }
         store.saveTomo(.init(metAt: now.addingTimeInterval(-30 * 86400), level: level, age: pack.levels[level - 1].age))
         for (n, words) in pack.levels.prefix(level).map(\.itemIDs).enumerated() {
             for (i, id) in words.enumerated() {

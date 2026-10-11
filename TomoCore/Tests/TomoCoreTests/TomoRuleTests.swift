@@ -77,6 +77,12 @@ final class TomoSyncTests: TomoCheckCase {
     func testTheMergeRules() { expect(TomoSync.selfTest) }
 }
 
+/// A learner's own language is never the one they learn (#199): the interface is never the target, and a pair saved
+/// before the rule (ja:ja) opens in English with its Tomo, words, logs and look.
+final class TomoLanguagePairTests: TomoCheckCase {
+    func testTheInterfaceIsNeverTheTarget() { expect(TomoLanguages.selfTest) }
+}
+
 /// Who sees the first run, when reminders come, every moment's sound, and the moment's light.
 final class TomoAppRuleTests: TomoCheckCase {
     func testWhoSeesTheFirstRun() { expect(TomoOnboarding.selfTest) }

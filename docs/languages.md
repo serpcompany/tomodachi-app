@@ -21,7 +21,12 @@ Code: `TomoCore/Sources/TomoCore/TomoLanguage.swift` holds:
 - `LanguageContext` (the pair, passed to background work)
 - `TomoLanguages` (the current selection)
 
-Change them in **Settings** (I speak / I'm learning; the first release is Japanese only, so "I'm learning" shows only with the testing tools, `TomoFeatures`). The menus and the screens switch to the new interface language right away. For testing: `TOMO_TARGET=en`, `TOMO_LEARNER=ja`.
+**A learner's own language is never the one they learn** ([#199](https://github.com/serpcompany/tomodachi-app/issues/199)): the interface is never the target. `TomoLanguages.allows` is the rule, in one place, and everything that offers or sets a pair asks it:
+- **Settings** offers "I speak" only when the target leaves more than one interface (`learnerChoices`), so not while Japanese is the only target, and "I'm learning" only with the testing tools (`TomoFeatures`). Learning the interface's language moves the interface to English (or the other one). The menus and the screens switch right away.
+- **The first run** asks neither, and **the system's language** is never read: a Mac or iPhone set to Japanese gets English.
+- **At launch**, a saved pair the rule forbids (ja:ja, from before) gets the interface it allows, and its Tomo moves there (`TomoStore.move`, below).
+
+For testing: `TOMO_TARGET=en TOMO_LEARNER=ja` (the Japanese interface, learning English). `TOMO_LEARNER=ja` alone gets English.
 
 ## What a language pack contains
 
@@ -76,6 +81,7 @@ English is for learners who speak Japanese, so every English word needs a Japane
 ## Decided
 
 - **One Tomo per language pair.** Progress is saved keyed by `(learner, target)`, so switching "I speak" or "I'm learning" brings that pair's saved Tomo.
+- **A pair the rule forbids moves, Tomo and all.** A ja:ja setup from before #199 opens as en:ja: its Tomo, words and logs move there, and its look comes along (`tomo.seed`). If en:ja had a Tomo too, they merge as two devices' Tomos do ([store-and-sync.md](store-and-sync.md)).
 - **Item ids are namespaced by target language.** For Japanese they become Zenbu Language Reference IDs (`ja:<LRID>`).
 - **"Tomo" stays the character's name in every language** for now.
 - **A Japanese heading marks where it may wrap with a space between two phrases** (「ことばのほうから 来てもらおう」):

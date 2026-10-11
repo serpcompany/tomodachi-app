@@ -40,7 +40,7 @@ extension TomoProgress {
         packsSelfTest(check, in: dir)
         let lang = TomoLanguages.shared
         for pack in lang.targets {
-            let learner = lang.learners.first { $0.id != pack.id } ?? lang.learner
+            let learner = lang.learners(for: pack.id).first ?? lang.learner
             // Every pack to its first talking question; the small placeholder packs on to their last level.
             let toEnd = pack.levels.count <= 10
             for who in [TomoGrowthSim.perfect, TomoGrowthSim.realistic] {
@@ -69,7 +69,7 @@ extension TomoProgress {
     static func packsSelfTest(_ check: (Bool, String) -> Void, in dir: URL) {
         let lang = TomoLanguages.shared
         for pack in lang.targets {
-            let learner = lang.learners.first { $0.id != pack.id } ?? lang.learner
+            let learner = lang.learners(for: pack.id).first ?? lang.learner
             let p = TomoProgress(pack: pack, learner: learner.id, directory: dir.appendingPathComponent("packs-\(pack.id)"))
             let levels = pack.levels, ids = levels.flatMap(\.itemIDs), name = "\(pack.id) → \(learner.id)"
             guard let first = levels.first else { check(false, "\(name): the pack has levels"); continue }

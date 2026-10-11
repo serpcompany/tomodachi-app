@@ -148,11 +148,17 @@ public struct TomoLook: Equatable, Sendable {
     @MainActor public static var current = TomoLook.mascot
 
     /// The seed for a saved Tomo: the second it first appeared, in this language pair. Saved and synced with
-    /// the Tomo already, and new when the learner starts over (a new Tomo hatches).
+    /// the Tomo already, and new when the learner starts over (a new Tomo hatches). A Tomo moved here from a pair
+    /// the rule no longer allows keeps the seed it had there (`saved`, TomoStore.move).
     /// TOMO_SEED=<text> pins it, for snapshots of a known Tomo.
-    public static func seed(learner: String, target: String, metAt: Date) -> String {
+    public static func seed(learner: String, target: String, metAt: Date, saved: String? = nil) -> String {
         if let s = ProcessInfo.processInfo.environment["TOMO_SEED"] { return s }
-        return "\(learner)-\(target)-\(Int(metAt.timeIntervalSince1970.rounded(.down)))"
+        return saved ?? pairSeed(learner: learner, target: target, metAt: metAt)
+    }
+
+    /// A pair's own seed for a Tomo met at `metAt`, in whole seconds.
+    static func pairSeed(learner: String, target: String, metAt: Date) -> String {
+        "\(learner)-\(target)-\(Int(metAt.timeIntervalSince1970.rounded(.down)))"
     }
 }
 
