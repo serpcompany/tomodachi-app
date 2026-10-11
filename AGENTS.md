@@ -36,11 +36,12 @@ the [SERP engineering standards](https://github.com/serpcompany/serp/tree/main/d
   [docs/reference/tomo/](docs/reference/tomo/) and [coucou/](docs/reference/coucou/).
 - **Research:** [docs/research/README.md](docs/research/README.md) holds the evidence behind the issues
   (levels, the data schema, word lists, voices, learning modes, answer checking, AI cost).
-- **Beta testers:** [docs/beta-testing.md](docs/beta-testing.md) is what testers are told. Update it when
-  something they see changes.
+- **Beta testers:** [docs/beta-testing.md](docs/beta-testing.md) is what testers are told. Update it
+  when something they see changes.
 - **Plans, ideas and open questions:**
   [GitHub issues](https://github.com/serpcompany/tomodachi-app/issues), one each, labeled
-  `next`, `idea`, `researched` or `question`.
+  `next`, `idea`, `researched` or `question`. `idea` and `question` are what SERP's git workflow
+  calls `brainstorm`: not ready to build.
 - **The dictionary, Language Reference IDs and the word splitter (Sudachi):**
   `../zenbujapanese-monorepo`, read-only from here.
 
