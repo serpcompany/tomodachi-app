@@ -146,6 +146,7 @@ enum TomoIslandSelfTest {
         TomoPicture.selfTest(check)   // a dark picture gets a light disc on the card (#195)
         TomoStagePill.selfTest(check)   // each stage's colour reads at 5:1 or more on a light and a dark card (#195, #207)
         TomoLanding.selfTest(check)   // Words lands on Tomo's level until the learner scrolls (#193, #218)
+        TomoLargeTextCheck.selfTest(check)   // the iPhone's Tomo and Words fit an SE at the largest text (#213, #233)
         TomoGame.whatsLeftFitSelfTest(check, place: "the card's goal row", size: GoalLine.size,
                                       width: GoalLine.textWidth)   // one line, never cut (#211)
         TomoIdentity.selfTest(check)   // a Debug build is its own app, with its own data folder and keychain (#54)

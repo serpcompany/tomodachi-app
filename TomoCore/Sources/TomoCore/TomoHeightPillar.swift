@@ -288,7 +288,12 @@ public struct TomoHeightPillar: View {
 
     private func slider(marks: [TomoStats.Mark], day: Date?, level: Int) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(lang.learner("pillar.slide", ["date": longDay(TomoStats.dayStart(of: day ?? TomoClock.now)), "level": lang.learner("level", ["n": "\(level)"])]))
+            // Wrapped between its phrases at the largest text, never inside a word or the date (#233).
+            let sep = lang.learner("list.separator")
+            TomoPhrases(parts: lang.learner("pillar.slide", ["date": Self.wholeDay(TomoStats.dayStart(of: day ?? TomoClock.now),
+                                                                                   learner: lang.learner.id),
+                                                             "level": lang.learner("level", ["n": "\(level)"])])
+                            .components(separatedBy: sep), separator: sep)
                 .font(.caption).foregroundStyle(.secondary)
             // The light wood's edge in light mode, a brighter wood in dark; its knob shows at the track's end (#195).
             TomoSlider(value: Binding(get: { 1 - (back ?? 0) }, set: { back = $0 >= 0.999 ? nil : 1 - $0 }),
@@ -331,7 +336,9 @@ public struct TomoHeightPillar: View {
         let words = (progress.pack.levels.indices.contains(m.level - 1) ? progress.pack.levels[m.level - 1].itemIDs : [])
             .filter { progress.items[$0] != nil }
         return VStack(alignment: .leading, spacing: 8) {
-            Text([markLabel(m), m.day.map(longDay)].compactMap { $0 }.joined(separator: " · ")).font(.title3.weight(.bold))
+            // The level and its day, each whole: at the largest text it wraps between them, never inside the date (#233).
+            TomoPhrases(parts: [markLabel(m), m.day.map(longDay)].compactMap { $0 }, separator: lang.learner("list.separator"))
+                .font(.title3.weight(.bold))
             Group {
                 if m.level == 1 {
                     Text(lang.learner("pillar.hatchedOn"))
@@ -404,9 +411,17 @@ public struct TomoHeightPillar: View {
     // Every date the pillar writes is Tomo's day (4 am to 4 am): a mark's `day`, and the slider's moment's day, so a
     // level reached at 1:30 am reads the same date and day together as its diary page (#224).
 
-    private func longDay(_ d: Date) -> String {
+    private func longDay(_ d: Date) -> String { Self.longDay(d, learner: lang.learner.id) }
+
+    /// `longDay` that never wraps inside ("Sun, Oct\u{00A0}11"), for a line that wraps between its words.
+    static func wholeDay(_ d: Date, learner: String) -> String {
+        longDay(d, learner: learner).replacingOccurrences(of: " ", with: "\u{00A0}")
+    }
+
+    /// A mark's day, "Fri, Oct 2" or 「10月2日(金)」.
+    static func longDay(_ d: Date, learner: String) -> String {
         let f = DateFormatter()
-        f.locale = Locale(identifier: lang.learner.id)
+        f.locale = Locale(identifier: learner)
         f.setLocalizedDateFormatFromTemplate("EEEMMMd")
         return f.string(from: d)
     }

@@ -39,6 +39,12 @@ final class TomoWordsLandingTests: TomoCheckCase {
     func testWordsLandsOnTomosLevelUntilTheLearnerScrolls() { expect(TomoLanding.selfTest) }
 }
 
+/// The iPhone's Tomo and Words screens at the largest text on an SE (#213, #233): every word fits its row, and every
+/// phrase the Tomo screen says fits its line, so none breaks inside a word.
+final class TomoLargeTextTests: TomoCheckCase {
+    func testWordsAndPhrasesFitAnSEAtTheLargestText() { expect(TomoLargeTextCheck.selfTest) }
+}
+
 /// One Tomo across devices: the merge rules and the store's sync columns (no iCloud).
 final class TomoSyncTests: TomoCheckCase {
     func testTheMergeRules() { expect(TomoSync.selfTest) }

@@ -38,7 +38,8 @@ pack's age boundary. Each run prints a `pace` line: the days to Lv 2, 5 and 10 a
 - **TomoCore's tests** (`TomoCore/Tests/TomoCoreTests`, `cd TomoCore && swift test`, about 30 s): every rule
   check as XCTest. Word stages, levels and the store; the stats against a simulated learner; every pack and the
   simulated learners; Tomo's drawing, look and the calendar; sync merges; the first run; reminders and the
-  iPhone's one Lock Screen card; sounds; the moment's light; a visit that peeks first. Each check is a function that reports to a `check` closure
+  iPhone's one Lock Screen card; sounds; the moment's light; a visit that peeks first; the iPhone's Tomo and Words at
+  the largest text on an SE (every word fits its row, every phrase of the Tomo screen its line: `TomoLargeTextCheck`). Each check is a function that reports to a `check` closure
   (`TomoCheck.swift`): the tests fail with the check's own words, and `TOMO_SELFTEST=1` prints the same checks
   plus the Mac's island rules (`TomoIslandSelfTest`, in the app). A new rule gets its check beside the others and
   runs in both. The tests set `TOMO_DATA_DIR` to a fresh temporary folder before anything opens a store. A check
