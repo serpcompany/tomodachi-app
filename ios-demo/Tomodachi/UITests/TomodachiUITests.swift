@@ -113,7 +113,7 @@ final class TomodachiUITests: XCTestCase {
 
     /// Words opens at Tomo's level (#193): the level's header and its first word show under the stage chips. The rows
     /// are lazy, so the jump to Lv 14 lands on estimated heights for the 13 levels above it; it once left the header
-    /// scrolled away under the chips.
+    /// scrolled away under the chips. Reading the screen lays the list out anew, which once moved it on to Lv 16 (#218).
     func testWordsOpensAtTomosLevel() {
         let level = 14
         launch(TomoSeed.atLevel(level), tab: "words")
