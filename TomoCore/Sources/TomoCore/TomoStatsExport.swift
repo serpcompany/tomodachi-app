@@ -88,13 +88,14 @@ extension TomoStats {
         (try? TomoLogExport.encoder.encode(log(ui))) ?? Data()
     }
 
-    /// The log as Markdown: Tomo, then a table of weeks, the words and every answer.
-    public func exportMarkdown(_ ui: LearnerPack) -> String {
+    /// The log as Markdown: Tomo, then a table of weeks, the words and every answer (its time on the person's own 12-
+    /// or 24-hour clock, `hourCycle`).
+    public func exportMarkdown(_ ui: LearnerPack, hourCycle: Locale.HourCycle = Locale.current.hourCycle) -> String {
         let log = log(ui), pack = progress.pack
         let day = DateFormatter(), time = DateFormatter()
         day.locale = Locale(identifier: ui.id)
         day.dateStyle = .medium
-        time.locale = day.locale
+        time.locale = tomoClockLocale(ui.id, hourCycle: hourCycle)   // each answer's time, on the person's own clock
         time.dateStyle = .short
         time.timeStyle = .short
         func row(_ cells: [String]) -> String {

@@ -122,6 +122,7 @@ public struct TomoGlance: Codable, Sendable, Hashable {
               "a glance saved before the light and the app's line still reads, unlit")
         followsTheApp(check)
         followsTheClock(check)
+        TomoGame.restLinesSelfTest(check)
     }
 
     /// The Lock Screen card, the Dynamic Island and the widgets say what the app says (#192), on a testing Tomo in a
