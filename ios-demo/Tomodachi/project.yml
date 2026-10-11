@@ -66,6 +66,13 @@ targets:
         type: group
       - path: Assets.xcassets
         buildPhase: resources
+      # The privacy manifest (#231), in every build: no tracking, no data collected (progress syncs to the learner's
+      # own iCloud), and Apple's reason for each required-reason API the app and TomoCore call: UserDefaults (CA92.1,
+      # the app's own; 1C8F.1, the App Group's, TomoGlance) and the boot-time clock (35F9.1, CACurrentMediaTime for
+      # animation and cooldowns). A new one (file timestamps, disk space, active keyboards, another reason) goes in
+      # here and in the widgets' (Widgets/PrivacyInfo.xcprivacy) before it ships.
+      - path: Resources/PrivacyInfo.xcprivacy
+        buildPhase: resources
     dependencies:
       - package: TomoCore
       - target: TomoWidgets
@@ -123,6 +130,9 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
 
   # Home Screen widgets (issue #52). Reads TomoGlance from the App Group; draws Tomo with TomoMovingChick.
+  # Its privacy manifest, Widgets/PrivacyInfo.xcprivacy, is a resource from the folder (#231), with the app's reasons:
+  # the widgets read only the App Group's UserDefaults, but their binary links all of TomoCore, and Apple's upload
+  # check reads each binary.
   TomoWidgets:
     type: app-extension
     platform: iOS
