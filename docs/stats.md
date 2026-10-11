@@ -17,8 +17,8 @@ screen), `TomoHeightPillar.swift` (growing up, on the Tomo screen).
 - It counts from that Tomo's logs in `TomoStore`: `answer` (every try), `growth` (level-ups and
   birthdays) and `visit` (below), only since the Tomo hatched. Start over begins the stats again; the logs
   stay. A testing Tomo has no logs.
-- The logs stay on each device until they sync ([#62](https://github.com/serpcompany/tomodachi-app/issues/62),
-  Francis's), so stats show what happened on this device. A level reached on the other device shows as the
+- The logs stay on each device until they sync (sync is Francis's; [store-and-sync.md](store-and-sync.md)), so
+  stats show what happened on this device. A level reached on the other device shows as the
   level now.
 
 ## What counts
