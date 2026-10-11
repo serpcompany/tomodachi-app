@@ -340,7 +340,8 @@ extension TomoStagePill {
             for stage in stages {
                 guard let look = look(stage, dark: dark) else { check(false, "stages: \(stage) has a \(mode) look"); continue }
                 let ratio = contrast(look, over: card)
-                check(ratio >= 5, "stages: \(stage) (\(look.text) on \(look.fill)) reads at \(String(format: "%.2f", ratio)):1 on a \(mode) card, 5:1 or more")
+                let fill = look.opacity < 1 ? "\(look.fill) at \(Int(look.opacity * 100))%" : look.fill
+                check(ratio >= 5, "stages: \(stage) (\(look.text) on \(fill)) reads at \(String(format: "%.2f", ratio)):1 on a \(mode) card, 5:1 or more")
                 if let before {
                     let apart = distance(before.look, look, over: card)
                     check(apart >= minimumStep, "stages: \(before.stage) and \(stage) are \(String(format: "%.3f", apart)) apart on a \(mode) card (OKLab), \(minimumStep) or more")
