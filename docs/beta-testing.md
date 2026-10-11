@@ -7,7 +7,7 @@ Tomo is a little blob of jelly who lives next to your MacBook's notch and only s
 1. You need **macOS 15 or later** (Apple Silicon or Intel).
 2. Unzip `Tomodachi-0.2.0-beta.zip` and move **Tomodachi.app** to Applications.
 3. Open it. The first time, your Tomo hatches in a short welcome: answer its first word, pick how often it
-   visits and its quiet hours, and whether Tomodachi opens when you log in (Tomo can only visit while it's
+   visits and its quiet hours (or switch them off), and whether Tomodachi opens when you log in (Tomo can only visit while it's
    open), then it pops out of the notch and waves. (If you already have a Tomo, it just pops out.)
    Tomodachi has a Dock icon and a small Tomo icon in the menu bar.
 
@@ -41,7 +41,7 @@ Tomo is a little blob of jelly who lives next to your MacBook's notch and only s
 
 Install **TestFlight** from the App Store, then open the invite link we send you. Signed in to the same iCloud account on both, the iPhone and the Mac share one Tomo: play on either and the other catches up (iPhone 1.1 and Mac beta 0.2.0 or later). If both already had a Tomo, they merge.
 
-- **The first time:** your Tomo hatches and asks its first word, then you pick how often Tomo may find you (hourly unless you change it), quiet hours (9 PM to 8 AM), whether Tomo may send notifications (it says why before iOS asks), how to add a widget (skip it if you like), and whether Tomo sits on your Lock Screen. If your Tomo is already on your Mac, it says "welcome back" instead of hatching. If you had the app before, you won't see this.
+- **The first time:** your Tomo hatches and asks its first word, then you pick how often Tomo may find you (hourly unless you change it), quiet hours (9 PM to 8 AM, or switch them off), whether Tomo may send notifications (it says why before iOS asks), how to add a widget (skip it if you like), and whether Tomo sits on your Lock Screen. If your Tomo is already on your Mac, it says "welcome back" instead of hatching. If you had the app before, you won't see this.
 - **Reminders:** when words are ready, Tomo sends a notification at the rhythm you picked, never in quiet hours. If you don't come by for two days, it slows down to once a morning, and after a week it waits for you. Tap one to play.
 
 - **Play in the app:** the same rounds as on the Mac. Tap a word in Tomo's line to look it up. Hold a finger on Tomo and it shows its love. When nothing counts, Tomo rests on the screen and says when it's back; Practice is there if you want it.

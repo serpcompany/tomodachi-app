@@ -242,7 +242,9 @@ public final class TomoOnboarding: ObservableObject {
         }
         if shell == .mac {
             var s = TomoReminderCenter.shared.settings
-            if reminders.quietFrom != startSettings.quietFrom || reminders.quietUntil != startSettings.quietUntil {
+            // Off is off, whichever equal times were saved: switching it on and off again changes nothing.
+            let bothOff = !reminders.hasQuietHours && !startSettings.hasQuietHours
+            if !bothOff && (reminders.quietFrom != startSettings.quietFrom || reminders.quietUntil != startSettings.quietUntil) {
                 s.quietFrom = reminders.quietFrom
                 s.quietUntil = reminders.quietUntil
                 TomoReminderCenter.shared.settings = s

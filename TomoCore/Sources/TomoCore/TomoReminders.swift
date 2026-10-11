@@ -66,7 +66,7 @@ public struct TomoReminderSettings: Equatable, Sendable {
 public enum TomoReminders {
     public static let daily: TimeInterval = 86_400
     /// The rhythm choices, the reference's (#83). `key` names the texts: `reminders.every.<key>` ("Hourly"),
-    /// `reminders.tag.<key>` ("The classic") and `reminders.phrase.<key>` ("every hour").
+    /// `reminders.tag.<key>` ("The sweet spot") and `reminders.phrase.<key>` ("every hour").
     public static let choices: [(every: TimeInterval, key: String)] = [
         (15 * 60, "15m"), (30 * 60, "30m"), (3600, "1h"), (2 * 3600, "2h"), (4 * 3600, "4h"), (daily, "daily"),
     ]
