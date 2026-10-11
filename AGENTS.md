@@ -39,7 +39,8 @@ repo follows the
 - **The Coucou fork:** [docs/coucou-fork.md](docs/coucou-fork.md) says what we may ship, which
   Coucou files we changed, and what's switched off. Our design pages are in
   [docs/reference/tomo/](docs/reference/tomo/). Coucou's screens and media (look only, reserved) are
-  in the private `serpcompany/tomodachi-reference` repo, cloned at `../tomodachi-reference`.
+  in the private [tomodachi-reference](https://github.com/serpcompany/tomodachi-reference) repo,
+  cloned next to the main checkout.
 - **Research:** [docs/research/README.md](docs/research/README.md) holds the evidence behind the
   issues (levels, the data schema, word lists, voices, learning modes, answer checking, AI cost).
 - **Beta testers:** [docs/beta-testing.md](docs/beta-testing.md) is what testers are told. Update
@@ -49,7 +50,7 @@ repo follows the
   `idea`, `researched` or `question`. `idea` and `question` are what SERP's git workflow calls
   `brainstorm`: not ready to build.
 - **The dictionary, Language Reference IDs and the word splitter (Sudachi):**
-  `../zenbujapanese-monorepo`, read-only from here.
+  `zenbujapanese-monorepo`, cloned next to the main checkout, read-only from here.
 
 ## Build and check
 
