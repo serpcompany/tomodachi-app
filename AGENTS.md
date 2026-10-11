@@ -37,8 +37,9 @@ repo follows the
 - **Running the demo app:** [mac-demo/README.md](mac-demo/README.md) covers running, rebuilding,
   beta builds and icons. The iPhone app: [ios-demo/README.md](ios-demo/README.md).
 - **The Coucou fork:** [docs/coucou-fork.md](docs/coucou-fork.md) says what we may ship, which
-  Coucou files we changed, and what's switched off. Design pages, ours and Coucou's (look only), are
-  in [docs/reference/tomo/](docs/reference/tomo/) and [coucou/](docs/reference/coucou/).
+  Coucou files we changed, and what's switched off. Our design pages are in
+  [docs/reference/tomo/](docs/reference/tomo/). Coucou's screens and media (look only, reserved) are
+  in the private `serpcompany/tomodachi-reference` repo, cloned at `../tomodachi-reference`.
 - **Research:** [docs/research/README.md](docs/research/README.md) holds the evidence behind the
   issues (levels, the data schema, word lists, voices, learning modes, answer checking, AI cost).
 - **Beta testers:** [docs/beta-testing.md](docs/beta-testing.md) is what testers are told. Update
