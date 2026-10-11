@@ -85,6 +85,7 @@ Each lives 2 s at most and all are gone when the moment ends; under Reduce Motio
 - A material's pass is fixed fills: no blur or particles at rest, so a Tomo at rest costs what it did.
 - No material moves Tomo under Reduce Motion (`TomoBlob.motionSelfTest` runs every material).
 - A badge says what Tomo is doing, never how many of anything (`TomoBlob.Badge`).
-- Under a ceiling, nothing it draws at rest or in its idle moves reaches past it (`TomoBlob.ceilingSelfTest`, rendered).
+- Under a ceiling, nothing it draws at rest or in its idle moves reaches past it (`TomoBlob.ceilingSelfTest`, rendered on
+  macOS, where the island is).
 - Nothing emits at rest: particles come only with moments, and the weather never reaches the resting island
   (`TomoBlob.particleSelfTest`).

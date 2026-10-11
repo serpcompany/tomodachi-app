@@ -2429,6 +2429,10 @@ extension TomoBlob {
 }
 
 extension TomoBlob {
+    #if os(macOS)
+    // Rendered checks of the ceiling, macOS only: only the Mac island sets one (its small Tomo), and on the iOS
+    // simulator ImageRenderer can time out, turning a 3 s test into minutes (#196).
+
     /// The highest point anything is drawn at in a canvas of `size` (points, y down), from a render at `scale`; nil when
     /// nothing is drawn.
     public static func drawnTop(size: CGSize, scale: CGFloat = 2, _ draw: @escaping (GraphicsContext, CGSize) -> Void) -> CGFloat? {
@@ -2479,27 +2483,30 @@ extension TomoBlob {
         }
         return out
     }
+    #endif
 
     /// Under a ceiling (#196): small Tomo, in a room 30 pt tall that it stands in the middle of (the island without a
     /// notch), with the ceiling 1 pt inside the room's top, draws nothing above the room at any age, at rest, stretched or
-    /// hopping, while without the ceiling the tallest forms do; a Tomo that fits is drawn at its own size, and none is
-    /// drawn under half of it. The render finds a drawn line where it is.
+    /// hopping, while without the ceiling the tallest forms do (rendered, macOS only: the island is the Mac's); a Tomo
+    /// that fits is drawn at its own size, and none is drawn under half of it. The render finds a drawn line where it is.
     static func ceilingSelfTest(_ check: (Bool, String) -> Void) {
+        let d: CGFloat = 20, side = d / 0.6, overhang: CGFloat = 72, spot: CGFloat = 15
+        let size = CGSize(width: side, height: side + overhang)
+        let roomTop = size.height / 2 + overhang / 2 - spot     // the canvas is centred overhang / 2 above Tomo's spot
+        let looks = [TomoLook.mascot] + (0..<16).map { TomoLook(seed: "ceiling-\($0)") }
+        #if os(macOS)
         let bar = drawnTop(size: CGSize(width: 20, height: 40)) { ctx, _ in
             ctx.fill(Path(CGRect(x: 2, y: 13, width: 10, height: 4)), with: .color(.white))
         }
         check(bar == 13, "a render finds the highest thing drawn in it (a bar 13 pt down: \(bar.map { "\($0)" } ?? "none"))")
 
-        let d: CGFloat = 20, side = d / 0.6, overhang: CGFloat = 72, spot: CGFloat = 15
-        let size = CGSize(width: side, height: side + overhang)
-        let roomTop = size.height / 2 + overhang / 2 - spot     // the canvas is centred overhang / 2 above Tomo's spot
-        let looks = [TomoLook.mascot] + (0..<16).map { TomoLook(seed: "ceiling-\($0)") }
         let under = pokesAbove(roomTop, ceiling: roomTop + 1, size: size, overhang: overhang, looks: looks)
         let without = pokesAbove(roomTop, ceiling: nil, size: size, overhang: overhang, looks: looks)
         check(under.isEmpty && !without.isEmpty,
               "under a ceiling small Tomo draws nothing above the room at any age, at rest, stretched or hopping"
               + (under.isEmpty ? " (\(without.count) of \(looks.count * TomoLook.ages * 3) would without it)"
                  : ": \(under.prefix(3).joined(separator: "; "))"))
+        #endif
         var fits: [CGFloat] = []
         for look in looks {
             for age in 0..<TomoLook.ages {
