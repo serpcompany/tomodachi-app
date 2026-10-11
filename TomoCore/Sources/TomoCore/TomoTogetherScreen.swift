@@ -222,14 +222,29 @@ public struct TomoTogetherScreen: View {
     }
 
     /// Today, this week or since we met: a segmented control, or at the accessibility sizes a menu showing the range
-    /// chosen, since a segmented control can't wrap (#216).
+    /// chosen, since a segmented control can't wrap (#216). The menu's label is a `TomoPhrase` (one line, a little
+    /// smaller if it must be): the stock menu picker wrapped "出会っ / てから" and cut both lines at its edges.
     private var rangePicker: some View {
         let picker = Picker(lang.learner("garden.title"), selection: $range) {
             ForEach(TomoStats.Range.allCases, id: \.self) { r in Text(lang.learner("garden.range.\(r.rawValue)")).tag(r) }
         }
         .labelsHidden()
+        let chosen = lang.learner("garden.range.\(range.rawValue)")
         return Group {
-            if largeText { picker.pickerStyle(.menu) } else { picker.pickerStyle(.segmented).fixedSize() }
+            if largeText {
+                Menu {
+                    picker.pickerStyle(.inline)
+                } label: {
+                    HStack(spacing: 6) {
+                        TomoPhrase(text: chosen)
+                        Image(systemName: "chevron.up.chevron.down").imageScale(.small)
+                    }
+                }
+                .accessibilityLabel(lang.learner("garden.title"))
+                .accessibilityValue(chosen)
+            } else {
+                picker.pickerStyle(.segmented).fixedSize()
+            }
         }
         .onChange(of: range) { _, _ in plantShown = nil }
     }
@@ -477,9 +492,8 @@ public struct TomoTogetherScreen: View {
 
 /// The garden's summary line, and the Today line: one part wraps like a sentence; several are phrases ("17 misses",
 /// "10月5日〜10月11日", "5 days in a row") joined by the list separator, which wrap between phrases and never inside
-/// one, so a number stays with its unit and a date stays whole. A phrase too wide for a whole line shrinks a little
-/// (to 0.75); only one wider still (the iPhone's largest text) wraps inside itself, keeping the separator on its last
-/// word, rather than being cut (#197).
+/// one, so a number stays with its unit and a date stays whole. Each is a `TomoPhrase`, keeping the separator on its
+/// last word.
 private struct TomoPhrases: View {
     let parts: [String]
     let separator: String
@@ -494,14 +508,24 @@ private struct TomoPhrases: View {
                     let mark = separator.trimmingCharacters(in: .whitespaces)
                     let phrase = i < parts.count - 1
                         ? part + (separator.first?.isWhitespace == true ? "\u{00A0}" : "") + mark : part
-                    ViewThatFits(in: .horizontal) {
-                        Text(phrase).lineLimit(1)
-                        TomoShrinkable(scale: 0.75) { Text(phrase).lineLimit(1).minimumScaleFactor(0.75) }
-                        Text(phrase).fixedSize(horizontal: false, vertical: true)
-                    }
+                    TomoPhrase(text: phrase)
                 }
             }
             .accessibilityElement(children: .combine)
+        }
+    }
+}
+
+/// One phrase on one line. Too wide for a whole line, it shrinks a little (to 0.75); only one wider still (the
+/// iPhone's largest text) wraps inside itself rather than being cut (#197).
+private struct TomoPhrase: View {
+    let text: String
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            Text(text).lineLimit(1)
+            TomoShrinkable(scale: 0.75) { Text(text).lineLimit(1).minimumScaleFactor(0.75) }
+            Text(text).fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -567,25 +591,28 @@ private struct TomoPostcardMini: View {
 public struct TomoTodayLine: View {
     let parts: [String]
     let separator: String
-
-    public init(text: String) {
-        parts = [text]
-        separator = ""
-    }
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     /// Its phrases ("22 answers", "5 days in a row", `TomoStats.todayParts`), wrapping between them and never inside
     /// one, as the garden's summary does (`TomoPhrases`).
-    init(parts: [String], separator: String) {
+    public init(parts: [String], separator: String) {
         self.parts = parts
         self.separator = separator
     }
 
     public var body: some View {
-        Label {
-            if parts.count < 2 { Text(parts.first ?? "") } else { TomoPhrases(parts: parts, separator: separator) }
-        } icon: {
-            Image(systemName: "sun.max.fill").foregroundStyle(.orange)
+        let sun = Image(systemName: "sun.max.fill").foregroundStyle(.orange)
+        if typeSize.isAccessibilitySize {
+            // The sun beside a column of phrases. In a list row (the Tomo screen) at these sizes, a label puts its icon
+            // in the text's first line and indents only that line, which indented each phrase's first line (#216).
+            HStack(alignment: .firstTextBaseline, spacing: 10) { sun; line }
+        } else {
+            Label { line } icon: { sun }
         }
+    }
+
+    @ViewBuilder private var line: some View {
+        if parts.count < 2 { Text(parts.first ?? "") } else { TomoPhrases(parts: parts, separator: separator) }
     }
 }
 
