@@ -217,8 +217,8 @@ public struct TomoHeightPillar: View {
                     .padding(.leading, 5)
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text(markLabel(m)).font(.system(size: big ? 14 : 12.5, weight: .semibold, design: .rounded))
-                    if let at = m.at, scale == .levels || m.level == progress.level {
-                        Text(m.level == progress.level && scale == .ages ? lang.learner("pillar.now") : numericDay(at))
+                    if let day = m.day, scale == .levels || m.level == progress.level {
+                        Text(m.level == progress.level && scale == .ages ? lang.learner("pillar.now") : numericDay(day))
                             .font(.system(size: 10, weight: .medium, design: .monospaced))
                             .foregroundStyle(isSelected ? .primary : .secondary)
                     }
@@ -274,7 +274,7 @@ public struct TomoHeightPillar: View {
     }
 
     private func markAccessibility(_ m: TomoStats.Mark) -> String {
-        [markLabel(m), m.at.map(longDay) ?? lang.learner("pillar.elsewhere")].joined(separator: ", ")
+        [markLabel(m), m.day.map(longDay) ?? lang.learner("pillar.elsewhere")].joined(separator: ", ")
     }
 
     // MARK: Sliding back in time
@@ -288,13 +288,13 @@ public struct TomoHeightPillar: View {
 
     private func slider(marks: [TomoStats.Mark], day: Date?, level: Int) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(lang.learner("pillar.slide", ["date": longDay(day ?? TomoClock.now), "level": lang.learner("level", ["n": "\(level)"])]))
+            Text(lang.learner("pillar.slide", ["date": longDay(TomoStats.dayStart(of: day ?? TomoClock.now)), "level": lang.learner("level", ["n": "\(level)"])]))
                 .font(.caption).foregroundStyle(.secondary)
             // The light wood's edge in light mode, a brighter wood in dark; its knob shows at the track's end (#195).
             TomoSlider(value: Binding(get: { 1 - (back ?? 0) }, set: { back = $0 >= 0.999 ? nil : 1 - $0 }),
                        tint: Color(hex: scheme == .dark ? "#D9B07F" : "#CFA273"))
                 .accessibilityLabel(lang.learner("pillar.slideLabel"))
-                .accessibilityValue(longDay(day ?? TomoClock.now))
+                .accessibilityValue(longDay(TomoStats.dayStart(of: day ?? TomoClock.now)))
                 .frame(maxWidth: .infinity)
         }
         .frame(maxWidth: phone ? .infinity : 300, alignment: .leading)
@@ -331,18 +331,18 @@ public struct TomoHeightPillar: View {
         let words = (progress.pack.levels.indices.contains(m.level - 1) ? progress.pack.levels[m.level - 1].itemIDs : [])
             .filter { progress.items[$0] != nil }
         return VStack(alignment: .leading, spacing: 8) {
-            Text([markLabel(m), m.at.map(longDay)].compactMap { $0 }.joined(separator: " · ")).font(.title3.weight(.bold))
+            Text([markLabel(m), m.day.map(longDay)].compactMap { $0 }.joined(separator: " · ")).font(.title3.weight(.bold))
             Group {
                 if m.level == 1 {
                     Text(lang.learner("pillar.hatchedOn"))
-                } else if m.at == nil {
+                } else if m.day == nil {
                     Text(lang.learner("pillar.elsewhere"))
                 } else if m.birthday {
                     Text(lang.learner("pillar.birthday", ["age": lang.target.ageLabel(m.age), "n": "\(m.level)",
-                                                          "day": "\(progress.daysTogether(at: m.at!))"]))
+                                                          "day": "\(progress.daysTogether(at: m.day!))"]))
                     + Text(" ") + Text(lang.learner("growth.age.\(min(m.age, 6))"))
                 } else {
-                    Text(lang.learner("pillar.grewTo", ["n": "\(m.level)", "day": "\(progress.daysTogether(at: m.at!))"]))
+                    Text(lang.learner("pillar.grewTo", ["n": "\(m.level)", "day": "\(progress.daysTogether(at: m.day!))"]))
                 }
             }
             .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
@@ -400,6 +400,9 @@ public struct TomoHeightPillar: View {
     }
 
     // MARK: Days
+
+    // Every date the pillar writes is Tomo's day (4 am to 4 am): a mark's `day`, and the slider's moment's day, so a
+    // level reached at 1:30 am reads the same date and day together as its diary page (#224).
 
     private func longDay(_ d: Date) -> String {
         let f = DateFormatter()
