@@ -214,7 +214,7 @@ public struct TomoOnboardingView: View {
         let word = TomoWords.bare(r.say)
         guard let back = model.comesBack else { return ui("onboarding.result.stick.later", ["word": word]) }
         let f = DateFormatter()
-        f.locale = Locale(identifier: lang.learner.id)
+        f.locale = tomoClockLocale(lang.learner.id)
         f.timeStyle = .short
         return ui("onboarding.result.stick.body", ["word": word, "time": f.string(from: back)])
     }

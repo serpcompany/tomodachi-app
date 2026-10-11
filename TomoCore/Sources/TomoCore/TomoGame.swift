@@ -1367,9 +1367,13 @@ extension TomoGame {
     /// that isn't when Tomo's back anyway.
     public var restLines: (back: String, left: String) {
         let same = levelLeft.nextAt.map { abs($0.timeIntervalSince(countsAgainAt ?? .distantPast)) < 60 } ?? true
-        return (timeText("rest.back", until: countsAgainAt, lang), whatsLeft(when: !same))
+        return (backText(until: countsAgainAt, lang), whatsLeft(when: !same))
     }
 }
+
+/// When Tomo's back, as its resting card says it: "Back at 10:12" (`until` on Tomo's clock). The iPhone's Lock Screen
+/// card, Dynamic Island and widgets get this same line in their TomoGlance, so none of them can say another time.
+@MainActor public func backText(until: Date?, _ lang: TomoLanguages) -> String { timeText("rest.back", until: until, lang) }
 
 /// "Back at 10:12" (`key`, with `{time}`), or the `key.now` variant when there's no time to give. A time on
 /// another day uses the `key.later` variant if the language has one ("Back tomorrow, 4:00 AM", not "at tomorrow").
@@ -1380,10 +1384,21 @@ extension TomoGame {
     return lang.learner(today ? key : later, ["time": tomoTime(until, lang)])
 }
 
+/// The locale every time of day Tomo shows is written in: the learner's language, on the person's own 12- or 24-hour
+/// clock (the device's setting, the one its Lock Screen and menu bar clocks use), so it's "2:57 PM" or "14:57" as the
+/// person chose, in English or Japanese. A locale made from the language alone would bring the language's habit
+/// instead (12-hour for English), and the iPhone's Lock Screen card, which iOS draws on the device's clock, said
+/// another time than the app (#192).
+public func tomoClockLocale(_ language: String, hourCycle: Locale.HourCycle = Locale.current.hourCycle) -> Locale {
+    var c = Locale.Components(identifier: language)
+    c.hourCycle = hourCycle
+    return Locale(components: c)
+}
+
 /// A time on Tomo's clock, short and for the middle of a sentence: "8:37 AM", or "tomorrow, 4:00 AM".
 @MainActor public func tomoTime(_ date: Date, _ lang: TomoLanguages) -> String {
     let f = DateFormatter()
-    f.locale = Locale(identifier: lang.learner.id)
+    f.locale = tomoClockLocale(lang.learner.id)
     f.timeStyle = .short
     f.formattingContext = .middleOfSentence
     if !Calendar.current.isDateInToday(wallClock(date)) { f.dateStyle = .short; f.doesRelativeDateFormatting = true }
@@ -1395,7 +1410,7 @@ extension TomoGame {
 /// "tomorrow, 4:00 AM"); further off, the day ("10/14").
 @MainActor public func tomoNextTime(_ date: Date, _ lang: TomoLanguages) -> String {
     let f = DateFormatter()
-    f.locale = Locale(identifier: lang.learner.id)
+    f.locale = tomoClockLocale(lang.learner.id)
     if date.timeIntervalSince(TomoClock.now) < 86400 { f.timeStyle = .short } else { f.setLocalizedDateFormatFromTemplate("Md") }
     return f.string(from: wallClock(date))
 }
