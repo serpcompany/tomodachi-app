@@ -12,6 +12,8 @@ This page says what we may use, which Coucou files we changed, what we deleted, 
   - The sounds are deleted; Tomo's are synthesized in `TomoSounds.swift`. `release-beta.sh` refuses a
     build that bundles a Coucou sound.
   - The icons are drawn from Tomo's own code.
+  - Coucou's screens and media never go in this public repo. The design reference copies are in the
+    private [tomodachi-reference](https://github.com/serpcompany/tomodachi-reference) repo (#109).
   - Coucou's character code is deleted. The last version is in git history
     (`git show 43a5ada:mac-demo/NotchBuddy/Sources/App/BotEngine.swift`) and upstream. Read it for
     technique only: Mochi's look, expressions and animations are reserved.
