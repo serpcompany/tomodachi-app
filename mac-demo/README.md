@@ -68,10 +68,12 @@ mac-demo/scripts/release-beta.sh --owner         # the owner's copy in build/own
 - **Notarizing** uses that same Xcode account, as Organizer's "Distribute App" does, so there are no notary
   credentials to store. The script uploads the archive, waits for Apple (usually a few minutes, at most 30),
   then staples the ticket.
-- **Output:** `mac-demo/build/release/Tomodachi-<version>-beta.zip`: universal (Apple Silicon and Intel),
-  macOS 15+. The version is `CFBundleShortVersionString` in `NotchBuddy/project.yml`.
-- **What the script checks:** your Developer ID team, the hardened runtime, iCloud on CloudKit's
-  Production environment with production push, and that no Coucou sounds are bundled. It checks again after notarizing, along with the stapled ticket and Gatekeeper.
+- **Output:** `build/release/Tomodachi-<version>-beta.zip` (universal, macOS 15+; the version is
+  `CFBundleShortVersionString` in `NotchBuddy/project.yml`). Its archive, with the dSYMs, stays in
+  `build/archives/Tomodachi-<version>-<YYMMDD-HHMM>.xcarchive`, never deleted.
+- **What the script checks:** the bundle ID (`com.zenbujapanese.tomo`), your Developer ID team, the
+  hardened runtime, iCloud on CloudKit's Production environment with production push, and that no
+  Coucou sounds are bundled; again after notarizing, with the stapled ticket and Gatekeeper.
 - **What to send testers:** the zip, plus [docs/beta-testing.md](../docs/beta-testing.md).
 
 ## Mac App Store (not set up yet)

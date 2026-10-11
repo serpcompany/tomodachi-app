@@ -19,6 +19,16 @@ archive=../build/Tomodachi.xcarchive
 rm -rf "$archive" ../build/export
 xcodebuild archive -scheme Tomodachi -configuration Release -destination 'generic/platform=iOS' \
   -archivePath "$archive" -derivedDataPath ../build -allowProvisioningUpdates CURRENT_PROJECT_VERSION="$build"
+# Only the product's identity goes to TestFlight (SERP's native-app-build-identity standard): the app is
+# com.zenbujapanese.tomo and its widgets com.zenbujapanese.tomo.widgets, never a Debug or test build's.
+check_identity() {
+  local app="$1/Products/Applications/Tomodachi.app" id widgets
+  id=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$app/Info.plist" 2>/dev/null || true)
+  [[ "$id" == "com.zenbujapanese.tomo" ]] || { echo "error: the archived app's bundle ID is '$id', not com.zenbujapanese.tomo" >&2; exit 1; }
+  widgets=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$app/PlugIns/TomoWidgets.appex/Info.plist" 2>/dev/null || true)
+  [[ "$widgets" == "com.zenbujapanese.tomo.widgets" ]] || { echo "error: the widgets' bundle ID is '$widgets', not com.zenbujapanese.tomo.widgets" >&2; exit 1; }
+}
+check_identity "$archive"
 key="$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID:-none}.p8"
 if [[ -n "${ASC_KEY_ID:-}" && -n "${ASC_ISSUER_ID:-}" && -f "$key" ]]; then
   local_options="$(mktemp -d)/ExportOptions.plist"
