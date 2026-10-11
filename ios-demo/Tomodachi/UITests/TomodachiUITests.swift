@@ -73,8 +73,9 @@ final class TomodachiUITests: XCTestCase {
     private let largestText = ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
 
     /// What on the screen is wider than the phone, if anything: a text, button, slider or segmented control past
-    /// either edge, scrolled out of sight too, but not in a row that scrolls sideways (Together's earlier postcards).
-    private func wider() throws -> String? {
+    /// either edge, scrolled out of sight too, but not in a row that scrolls sideways: Together's earlier postcards,
+    /// in its scrolling screen, or `sideways` (Words' stage chips, over its list).
+    private func wider(sideways: Set<String> = []) throws -> String? {
         let window = app.windows.firstMatch.frame
         var wider: [String] = []
         func look(_ e: XCUIElementSnapshot, scrolls: Int) {
@@ -84,7 +85,7 @@ final class TomodachiUITests: XCTestCase {
                 wider.append("'\(e.label)' at x \(Int(f.minX))…\(Int(f.maxX))")
             }
             let inner = scrolls + (e.elementType == .scrollView ? 1 : 0)
-            if inner < 2 { e.children.forEach { look($0, scrolls: inner) } }
+            if inner < 2, !sideways.contains(e.identifier) { e.children.forEach { look($0, scrolls: inner) } }
         }
         look(try app.snapshot(), scrolls: 0)
         return wider.isEmpty ? nil : "\(wider.count) are, " + wider.prefix(6).joined(separator: ", ")
@@ -189,13 +190,19 @@ final class TomodachiUITests: XCTestCase {
     /// Every word and phrase in every pack is `TomoLargeTextCheck`'s; this is the screens' own layout.
     func testTomoAndWordsFitTheLargestText() throws {
         launch(TomoSeed.atLevel(154), tab: "tomo", arguments: largestText)
-        XCTAssertTrue(app.buttons[ui("tomo.play")].waitForExistence(timeout: 20), "Play with Tomo")
+        XCTAssertTrue(app.staticTexts[ui("level", ["n": "154"])].waitForExistence(timeout: 20), "Tomo at Lv 154")
         let window = app.windows.firstMatch.frame
         let onTomo = try wider()
         XCTAssertNil(onTomo, "on Tomo, nothing is wider than the phone (0…\(Int(window.maxX))): \(onTomo ?? "")")
+        // The list makes its rows as they scroll in: down to the play button, under Tomo's lines.
+        let play = app.buttons[ui("tomo.play")]
+        for _ in 0..<6 where !(play.exists && play.isHittable) { app.swipeUp() }
+        XCTAssertTrue(play.exists && play.isHittable, "Play with Tomo, scrolled to")
+        let toPlay = try wider()
+        XCTAssertNil(toPlay, "down to Play with Tomo, nothing is wider than the phone: \(toPlay ?? "")")
         app.tabBars.buttons[ui("screen.words")].tap()
         expectWordsAtLevel(154)
-        let onWords = try wider()
+        let onWords = try wider(sideways: ["words.stages"])
         XCTAssertNil(onWords, "on Words at Lv 154, nothing is wider than the phone (0…\(Int(window.maxX))): \(onWords ?? "")")
     }
 

@@ -39,14 +39,15 @@ pack's age boundary. Each run prints a `pace` line: the days to Lv 2, 5 and 10 a
   check as XCTest. Word stages, levels and the store; the stats against a simulated learner; every pack and the
   simulated learners; Tomo's drawing, look and the calendar; sync merges; the first run; reminders and the
   iPhone's one Lock Screen card; sounds; the moment's light; a visit that peeks first; the iPhone's Tomo and Words at
-  the largest text on an SE (every word fits its row, every phrase of the Tomo screen its line: `TomoLargeTextCheck`). Each check is a function that reports to a `check` closure
+  the largest text on an SE (every word fits its row, every phrase of the Tomo screen its line, and Play with Tomo
+  breaks only between its phrases: `TomoLargeTextCheck`). Each check is a function that reports to a `check` closure
   (`TomoCheck.swift`): the tests fail with the check's own words, and `TOMO_SELFTEST=1` prints the same checks
   plus the Mac's island rules (`TomoIslandSelfTest`, in the app). A new rule gets its check beside the others and
   runs in both. The tests set `TOMO_DATA_DIR` to a fresh temporary folder before anything opens a store. A check
   never rests on chance: random draws it looks at come from a seed (Tomo's particles: `TomoBlob.dice`, #203).
 - **The iPhone's UI journeys** (`ios-demo/Tomodachi/UITests`, XCUITest): launch, a picture round answered wrong
   then right, the practice offer, Together (and, at the largest text, nothing on it wider than the phone and its range
-  menu whole), Words at Tomo's level (opened, tapped from Play, and keeping your place when you come back), a long press
+  menu whole), Tomo and Words at the largest text (nothing on either wider than the phone), Words at Tomo's level (opened, tapped from Play, and keeping your place when you come back), a long press
   on Tomo showing its love, and the build's own identity checks (`TOMO_SELFTEST=1` in the app). Each launches on a fresh
   folder in the test runner's temporary folder, silent, in English, without the first run, and starts once the app shows its tab with those settings (`launch` launches it again, once, and
   records why); progress a journey needs is written there through TomoCore's own store (`TomoSeed`), and the text
