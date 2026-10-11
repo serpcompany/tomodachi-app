@@ -37,6 +37,13 @@ schemes:
         Tomodachi: all
     run:
       config: Debug
+    # Test plans (#55; docs/verification.md): Unit is TomoCore's tests; Pull Request adds the UI journeys.
+    test:
+      config: Debug
+      testPlans:
+        - path: TestPlans/PullRequest.xctestplan
+          defaultPlan: true
+        - path: TestPlans/Unit.xctestplan
 
 targets:
   Tomodachi:
@@ -83,6 +90,24 @@ targets:
       - name: Leave out the Spanish draft
         script: '"$SRCROOT/../scripts/strip-packs.sh" "$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH"'
         basedOnDependencyAnalysis: false
+
+  # The key journeys, run headless on a simulator (#55): launch, a picture round, the practice offer, Together, love.
+  # Seeds a journey's progress through TomoCore's own store, in the runner's temporary folder (TOMO_DATA_DIR).
+  TomodachiUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+        type: group
+    dependencies:
+      - target: Tomodachi
+      - package: TomoCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.zenbujapanese.tomo.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Tomodachi
+        TARGETED_DEVICE_FAMILY: "1"
 
   # Home Screen widgets (issue #52). Reads TomoGlance from the App Group; draws Tomo with TomoMovingChick.
   TomoWidgets:

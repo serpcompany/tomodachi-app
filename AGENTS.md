@@ -49,15 +49,15 @@ the [SERP engineering standards](https://github.com/serpcompany/serp/tree/main/d
 ```bash
 cd mac-demo/NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug -derivedDataPath ../build -allowProvisioningUpdates build
 mac-demo/scripts/release-beta.sh --owner && mac-demo/run.sh    # rebuilds and relaunches the owner's copy
-cd TomoCore && swift build    # the shared package alone; the iPhone build is in ios-demo/README.md
+cd TomoCore && swift test    # the shared package and its tests (30 s); iPhone: ios-demo/README.md
 node .github/scripts/check-docs.mjs && node .github/scripts/check-swift-text.mjs
 ```
 
 - **Inner loop:** the incremental build (seconds). Run `xcodegen` only when files were added or removed.
-  For growth rules, run `TOMO_SELFTEST=1` with `TOMO_DATA_DIR=<a temp dir>`.
-- **Finish gate:** the build, the self-test, the repo checks, and the evidence the change needs. A UI
-  change needs the snapshot matrix; see [docs/verification.md](docs/verification.md). There's no macOS
-  CI yet, so CI runs only the repo checks and the link check.
+  For rules, `swift test --filter <Class>`; the island's: `TOMO_SELFTEST=1`, with a temp `TOMO_DATA_DIR`.
+- **Finish gate:** the build, `swift test`, the self-test, the repo checks, and the evidence the change
+  needs. A UI change needs the snapshot matrix; see [docs/verification.md](docs/verification.md). macOS CI runs
+  TomoCore's tests, both builds and the iPhone's UI journeys once a PR is ready for review.
 - **Test runs never touch the owner's Tomo or screen:** always pass `TOMO_DATA_DIR=<a temp dir>` and
   `TOMO_HEADLESS=1` (invisible, silent, never takes the keyboard), never `pkill` by name, and never open
   Simulator.app (`xcrun simctl` runs headless).

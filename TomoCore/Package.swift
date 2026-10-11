@@ -16,5 +16,11 @@ let package = Package(
             resources: [.copy("Resources/languages")],
             swiftSettings: [.enableExperimentalFeature("StrictConcurrency")]
         ),
+        // The rule checks as XCTest (`swift test`; docs/verification.md). Temp folders only, never the learner's data.
+        .testTarget(
+            name: "TomoCoreTests",
+            dependencies: ["TomoCore"],
+            swiftSettings: [.enableExperimentalFeature("StrictConcurrency")]
+        ),
     ]
 )

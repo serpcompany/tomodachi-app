@@ -1,0 +1,113 @@
+name: Apple
+
+# The Apple side of the full check (#55; docs/verification.md): TomoCore's tests, the Mac and iPhone apps built
+# unsigned, and the iPhone's UI journeys on a simulator. GitHub's macOS runners are free for this public repository;
+# still, draft PRs skip these jobs (SERP's CI standard), and they run once the PR is ready for review, on every push
+# after that, and on main. No secrets: nothing here signs, uploads, or talks to iCloud. The builds are unsigned
+# (CODE_SIGNING_ALLOWED=NO) and leave iCloud out (TOMO_ICLOUD_ENV= empties Info.plist's TomoICloudEnvironment, so
+# TomoSync stays off: CloudKit stops an app that lacks the entitlement).
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  TOMO_HEADLESS: "1"
+
+jobs:
+  tomocore:
+    name: TomoCore tests (swift test)
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: xcode-27
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use the pinned Xcode (.xcode-version)
+        run: sudo xcode-select -s "/Applications/Xcode_$(cat .xcode-version).app" && xcodebuild -version
+      - name: swift test
+        working-directory: TomoCore
+        run: swift test
+
+  apps:
+    name: Build the Mac and iPhone apps (unsigned)
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: xcode-27
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use the pinned Xcode (.xcode-version)
+        run: sudo xcode-select -s "/Applications/Xcode_$(cat .xcode-version).app" && xcodebuild -version
+      - name: Mac app
+        run: >
+          xcodebuild -project mac-demo/NotchBuddy/NotchBuddy.xcodeproj -scheme NotchBuddy -configuration Debug
+          -derivedDataPath build/mac CODE_SIGNING_ALLOWED=NO TOMO_ICLOUD_ENV= build
+      - name: iPhone app and widgets
+        run: >
+          xcodebuild -project ios-demo/Tomodachi/Tomodachi.xcodeproj -scheme Tomodachi -configuration Debug
+          -destination 'generic/platform=iOS Simulator' -derivedDataPath build/ios CODE_SIGNING_ALLOWED=NO
+          TOMO_ICLOUD_ENV= build
+
+  iphone-ui:
+    name: iPhone UI journeys (Pull Request plan)
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: xcode-27
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      # A slow suite runs once per tree: a pull request's passing run leaves a receipt, and the push of the same tree
+      # to main skips the suite (SERP's CI standard).
+      - name: Look for this tree's receipt
+        id: receipt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tree=$(git rev-parse HEAD^{tree})
+          echo "tree=$tree" >> "$GITHUB_OUTPUT"
+          found=0
+          if [ "${{ github.event_name }}" = "push" ]; then
+            found=$(gh api "repos/${{ github.repository }}/actions/artifacts?name=passed-iphone-ui-$tree" --jq .total_count || echo 0)
+          fi
+          echo "found=$found" >> "$GITHUB_OUTPUT"
+      - name: Use the pinned Xcode (.xcode-version)
+        if: steps.receipt.outputs.found == '0'
+        run: sudo xcode-select -s "/Applications/Xcode_$(cat .xcode-version).app" && xcodebuild -version
+      - name: Its own simulator
+        if: steps.receipt.outputs.found == '0'
+        id: sim
+        run: |
+          runtime=$(xcrun simctl list runtimes -j | jq -r '[.runtimes[] | select(.platform == "iOS" and .isAvailable)] | last | .identifier')
+          udid=$(xcrun simctl create tomo-ci com.apple.CoreSimulator.SimDeviceType.iPhone-17 "$runtime")
+          echo "udid=$udid" >> "$GITHUB_OUTPUT"
+      - name: Unit and UI tests, the Pull Request plan
+        if: steps.receipt.outputs.found == '0'
+        run: >
+          xcodebuild test -project ios-demo/Tomodachi/Tomodachi.xcodeproj -scheme Tomodachi -testPlan PullRequest
+          -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" -derivedDataPath build/ios
+          -resultBundlePath build/PullRequest.xcresult CODE_SIGNING_ALLOWED=NO TOMO_ICLOUD_ENV=
+      - name: Keep the results of a failed run
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iphone-ui-results
+          path: build/PullRequest.xcresult
+          retention-days: 7
+      - name: Leave a receipt for this tree
+        if: steps.receipt.outputs.found == '0'
+        run: echo "${{ steps.receipt.outputs.tree }}" > receipt.txt
+      - uses: actions/upload-artifact@v4
+        if: steps.receipt.outputs.found == '0'
+        with:
+          name: passed-iphone-ui-${{ steps.receipt.outputs.tree }}
+          path: receipt.txt
+          retention-days: 30
