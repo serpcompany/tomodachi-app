@@ -33,6 +33,7 @@ screen), `TomoHeightPillar.swift` (growing up, on the Tomo screen).
   those days from the one Tomo hatched, which is Day 1, on this device's time zone: one rule
   (`TomoStats.dayTogether`) for the Tomo screen, the diary's pages, the postcard, the pillar and the export, so
   the diary's page for today and the Tomo screen agree, and the count moves at 4 am ([#224](https://github.com/serpcompany/tomodachi-app/issues/224)).
+  A Tomo met between midnight and 4 am was met on the day before, like its first diary page, so it's Day 2 at 4 am.
 - Streaks, misses and missed days are data, and screens may show them (decisions.md, 2026-10-11). The one
   rule: never a growing count of things to review or do ([concepts.md](concepts.md)). Ignored visits are
   counted (`ignoredVisits`) but left off the Today line and the postcards for now: a choice, since Tomo's
@@ -93,7 +94,8 @@ the target pack, the way the postcard's message is (`TomoStats.diary`):
 
 On the Tomo screen's Growing up, since it's about Tomo rather than what you did: the way a Japanese family
 marks a child's height on a wooden pillar (柱のきず), Tomo gets a mark for every level it reaches
-(`TomoStats.marks`, from the growth log), with the day, and a big one at the hatch and each birthday. Tomo
+(`TomoStats.marks`, from the growth log), with its day (`Mark.day`, Tomo's day: a level reached at 1:30 am is
+dated the day before, like its diary page), and a big one at the hatch and each birthday. Tomo
 stands beside it at its age's form, bigger through each age.
 - **Levels:** this age's marks, from its birthday up (the newest ones when there are many), and the next
   birthday dashed above them, with Tomo's next form asleep beside it. Slide back in time and Tomo shrinks to
@@ -132,7 +134,8 @@ pillar's marks (each dated when the level was reached; the level on each mark's 
 day played with that day's numbers, the days apart, the run of days, and Tomo's hello, sulk, cheers and
 groan exactly when they're due), the Today line and the postcards against its own tally
 (`TomoStatsCheck.swift`), and that the diary's page for today and the Tomo screen say the same "Day N together"
-in English and Japanese: late in the day, just after midnight, on the nights the clocks go back and forward, and
-after a flight to another time zone. `TomoVisitCheck.swift` checks the visit log on the game. The growth simulations
+in English and Japanese: late in the day, just after midnight, on the nights the clocks go back and forward,
+after a flight to another time zone, and for a Tomo met at 1 am; and that the pillar dates the hatch and levels
+reached at 1:30 am as their diary pages. `TomoVisitCheck.swift` checks the visit log on the game. The growth simulations
 check each pillar's birthdays up to 3さい, and the diary's birthday lines (`TomoGrowthCheck.swift`). Snapshots: `TOMO_OPEN_WINDOW=together` with a `seed-progress.py --history`
 folder ([debug-flags.md](debug-flags.md)).

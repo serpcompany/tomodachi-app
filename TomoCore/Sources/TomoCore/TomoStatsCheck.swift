@@ -388,9 +388,12 @@ extension TomoStats {
     /// "Day N together" (#224): the diary's page for today and the Tomo screen say the same day, counted on Tomo's 4 am
     /// days from the day it hatched (Day 1), in English and Japanese. One Tomo hatches in New York on the Friday evening
     /// before the clocks go back (Sunday 1 November 2026, 2 am), one on the Saturday morning before they go forward
-    /// (Sunday 14 March 2027), and one in Tokyo before its learner flies to Los Angeles. At each moment the learner
-    /// answers a word, so today has a page: late in the day, later than Tomo hatched, and just after midnight (still the
-    /// day before's page) among them. Then every page's day follows from the first page's (Day 1) and the days apart.
+    /// (Sunday 14 March 2027), one in Tokyo before its learner flies to Los Angeles, and one at 1 am, so it belongs to the
+    /// day before and is on Day 2 at 4 am. At each moment the learner answers a word, so today has a page: late in the
+    /// day, later than Tomo hatched, and just after midnight (still the day before's page) among them. Then every page's
+    /// day follows from the first page's (Day 1) and the days apart, and the pillar's hatch mark is dated as the first
+    /// page. Last, a learner who plays only at 1:30 am: each level Tomo reaches is dated on the pillar as the diary page it
+    /// grew on, with the same day together.
     static func daysTogetherSelfTest(_ check: (Bool, String) -> Void) {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("tomo-days-\(UUID().uuidString)")
         let zone = NSTimeZone.default, savedNew = TomoProgress.newPerDayForChecks
@@ -430,6 +433,10 @@ extension TomoStats {
                 (tokyo, [2026, 10, 1, 23, 0], 1), (tokyo, [2026, 10, 2, 0, 30], 1), (tokyo, [2026, 10, 2, 21, 30], 2),
                 // In Los Angeles Tomo hatched at 5 am on Thursday 1 October, so Friday is still Day 2.
                 (la, [2026, 10, 2, 10, 0], 2), (la, [2026, 10, 3, 0, 30], 2), (la, [2026, 10, 3, 9, 0], 3)]),
+            // Met at 1 am: still the day before's (Sunday's), so Day 1 until 4 am and Day 2 from then, not for 24 hours.
+            ("a Tomo met at 1 am", ny, [2026, 10, 5, 1, 0], [
+                (ny, [2026, 10, 5, 1, 30], 1), (ny, [2026, 10, 5, 3, 50], 1), (ny, [2026, 10, 5, 4, 0], 2),
+                (ny, [2026, 10, 6, 0, 30], 2), (ny, [2026, 10, 6, 4, 0], 3)]),
         ]
         for (k, tomo) in tomos.enumerated() {
             guard let met = date(tomo.zone, tomo.met), let hatchZone = TimeZone(identifier: tomo.zone) else {
@@ -466,6 +473,43 @@ extension TomoStats {
                   && pages.map(\.dayNumber) == Array(Set(tomo.moments.map(\.day))).sorted(),
                   "days together (\(tomo.name)): the first page is Day 1, and each page's day follows from the days apart "
                   + "(\(pages.map(\.dayNumber)))")
+            let hatch = TomoStats(p).marks().first?.day.map { longDay($0, en) } ?? "-"
+            let firstPage = pages.first.map { longDay($0.day, en) } ?? "-"
+            check(hatch == firstPage, "days together (\(tomo.name)): the pillar's hatch mark is dated \(hatch), "
+                  + "the diary's first page \(firstPage)")
+        }
+
+        // A learner who plays only at 1:30 am, from the night after Tomo hatched until it reaches Lv 3 (the first levels'
+        // words know it after five nights). Each level-up comes in the night, so its mark is dated the day before, on the
+        // diary page it grew on, with that page's day together.
+        guard let owlMet = date(ny, [2026, 9, 28, 21, 0]), let firstNight = date(ny, [2026, 9, 29, 1, 30]),
+              let nyZone = TimeZone(identifier: ny) else { check(false, "days together: the night owl's dates"); return }
+        let owlFolder = dir.appendingPathComponent("night-owl")
+        try? FileManager.default.createDirectory(at: owlFolder, withIntermediateDirectories: true)
+        NSTimeZone.default = nyZone
+        TomoClock.stopped = owlMet
+        let owl = TomoProgress(pack: pack, learner: "en", directory: owlFolder)
+        for night in 0..<14 where owl.level < 3 {
+            TomoClock.stopped = calendar.date(byAdding: .day, value: night, to: firstNight)
+            for _ in 0..<40 {
+                guard let id = owl.visitItems(limit: 1).first else { break }
+                owl.answeredRight(id, mode: "sim", wrongTries: 0, hint: false)
+                _ = owl.levelUpIfReady()
+                TomoClock.stopped = TomoClock.now.addingTimeInterval(15)
+            }
+        }
+        let owlStats = TomoStats(owl), owlPages = owlStats.diary(en)
+        let ups = owlStats.marks().dropFirst().filter { $0.at != nil }
+        check(owl.level >= 3 && ups.count == owl.level - 1,
+              "days together (a learner who plays at 1:30 am): Tomo reached Lv \(owl.level) in the night")
+        for m in ups {
+            let at = m.at ?? .distantPast, hour = calendar.component(.hour, from: at)
+            let page = owlPages.first { $0.summary.levelFrom < m.level && m.level <= $0.summary.levelTo }
+            let pillar = m.day.map { "\(longDay($0, en)), day \(owl.daysTogether(at: $0))" } ?? "-"
+            let diary = page.map { "\(longDay($0.day, en)), day \($0.dayNumber)" } ?? "-"
+            check(hour < 4 && pillar == diary,
+                  "days together (a learner who plays at 1:30 am): Lv \(m.level), reached at \(hour) am, is on the pillar on "
+                  + "\(pillar) and in the diary on \(diary)")
         }
     }
 }

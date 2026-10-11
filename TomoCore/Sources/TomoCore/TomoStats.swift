@@ -198,6 +198,9 @@ public struct TomoStats {
         public let birthday: Bool
         /// When, from this device's growth log (the hatch: when Tomo hatched). Nil: grown on another device.
         public let at: Date?
+        /// The day it's dated by (its 4 am start): Tomo's day `at` belongs to, so a level reached at 1:30 am is on the
+        /// day before, the same as its diary page and its day together (#224).
+        public var day: Date? { at.map(TomoStats.dayStart(of:)) }
     }
 
     /// Every level Tomo has reached, oldest first: a mark each, dated from the growth log.
