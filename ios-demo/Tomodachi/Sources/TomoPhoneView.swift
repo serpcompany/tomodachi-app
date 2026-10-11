@@ -21,7 +21,8 @@ struct TomoPhoneView: View {
     @ScaledMetric(relativeTo: .body) private var dynamicScale: CGFloat = 1
     /// A long press on Tomo shows its love at most once every 6 s (TomoLoveCooldown, shared with the Mac).
     @State private var love = TomoLoveCooldown()
-    /// Tomo shows its love right now: VoiceOver (and the UI tests) hear it as Tomo's value for a moment.
+    /// Tomo shows its love right now: VoiceOver (and the UI tests) hear it as Tomo's value until love may show again
+    /// (6 s). A shorter moment (2.5 s) was often gone before XCUITest's long press returned on a busy simulator (#203).
     @State private var loving = false
 
     private var growth: CGFloat { game.growthStep }
@@ -74,7 +75,7 @@ struct TomoPhoneView: View {
                         if love.show(at: CACurrentMediaTime()) {
                             NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.love)
                             loving = true
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { loving = false }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + TomoLoveCooldown.seconds) { loving = false }
                         }
                     }
                     .accessibilityElement()

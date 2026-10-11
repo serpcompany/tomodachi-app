@@ -22,14 +22,27 @@ final class TomodachiUITests: XCTestCase {
         app?.terminate()
     }
 
-    /// Launches the app on `folder` (a fresh one if nil), at a tab.
+    /// Launches the app on `folder` (a fresh one if nil), at a tab (`play`, `tomo`, `words`, `together` or
+    /// `settings`), and returns once it shows that tab, chosen, with no first run: the sign that it came up with this
+    /// test's settings. Launched while the simulator was still installing it, it once came up without them (the first
+    /// run, on Play) (#203); then it's launched again. XCUITest still sees the tabs under the first run, so the check
+    /// looks for the first run itself.
     private func launch(_ folder: URL? = nil, tab: String? = nil) {
         let dir = folder ?? TomoSeed.folder()
-        app = XCUIApplication()
-        app.launchEnvironment = ["TOMO_DATA_DIR": dir.path, "TOMO_HEADLESS": "1", "TOMO_LEARNER": "en",
-                                 "TOMO_TARGET": "ja", "TOMO_ONBOARDING": "0"]
-        if let tab { app.launchEnvironment["TOMO_OPEN_WINDOW"] = tab }
-        app.launch()
+        for _ in 1...2 {
+            app = XCUIApplication()
+            app.launchEnvironment = ["TOMO_DATA_DIR": dir.path, "TOMO_HEADLESS": "1", "TOMO_LEARNER": "en",
+                                     "TOMO_TARGET": "ja", "TOMO_ONBOARDING": "0"]
+            if let tab { app.launchEnvironment["TOMO_OPEN_WINDOW"] = tab }
+            app.launch()
+            let shown = app.tabBars.buttons[ui("screen.\(tab ?? "play")")]
+            if app.wait(for: .runningForeground, timeout: 60), shown.waitForExistence(timeout: 30), shown.isSelected,
+               !app.otherElements["firstRun"].exists {
+                return
+            }
+            app.terminate()
+        }
+        XCTFail("the app opens at \(tab ?? "play") with the test's settings")
     }
 
     private var tomo: XCUIElement { app.descendants(matching: .any)["tomo"] }
@@ -97,14 +110,21 @@ final class TomodachiUITests: XCTestCase {
         XCTAssertGreaterThanOrEqual(first.frame.minY, header.frame.maxY, "its first word is below the header")
     }
 
-    /// A long press on Tomo shows its love (#133), which VoiceOver hears as Tomo's value.
+    /// A long press on Tomo shows its love (#133), which VoiceOver hears as Tomo's value until love may show again
+    /// (`TomoLoveCooldown`, 6 s). XCUITest's press returns only after it waits for the app to settle, and Tomo never
+    /// stops moving: on CI's simulators the value was read 3 to 10 s after the press began (#203). So the test waits on
+    /// the value, and if a very slow press still missed it, presses again once love may show again.
     func testALongPressOnTomoShowsItsLove() {
         launch()
         XCTAssertTrue(tomo.waitForExistence(timeout: 20))
-        tomo.press(forDuration: 1.2)
         let loved = NSPredicate(format: "value == %@", ui("a11y.love"))
-        expectation(for: loved, evaluatedWith: tomo)
-        waitForExpectations(timeout: 5)
+        for _ in 1...2 {
+            tomo.press(forDuration: 1.2)
+            // Longer than love's cooldown, so a second press can show it again.
+            let shown = XCTNSPredicateExpectation(predicate: loved, object: tomo)
+            if XCTWaiter().wait(for: [shown], timeout: TomoLoveCooldown.seconds + 4) == .completed { return }
+        }
+        XCTFail("a long press on Tomo shows its love: Tomo's value is \(ui("a11y.love"))")
     }
 }
 

@@ -29,6 +29,9 @@ private struct TomoPhoneFirstRun: ViewModifier {
                 if let model = shell.firstRun {
                     TomoOnboardingView(model: model)
                         .frame(width: geo.size.width, height: geo.size.height)
+                        // The UI tests look for it: XCUITest still sees the tabs under it (#203).
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("firstRun")
                         .transition(.move(edge: .bottom))
                 }
             }

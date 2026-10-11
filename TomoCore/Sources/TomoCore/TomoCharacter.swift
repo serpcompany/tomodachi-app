@@ -90,6 +90,9 @@ public final class TomoBlob: ObservableObject {
     private var flash: (face: Face, until: Double)?
     private var moves: [Move] = []
     private var bits: [Bit] = []
+    /// Where the particles' random draws come from: the system's in the app; the checks seed it, so a check sees the
+    /// same burst every run (`particleSelfTest`, #203).
+    var dice = TomoDice()
     private var pose = Pose()              // this frame's moves, summed in step()
 
     // Smoothed values and secondary motion
@@ -1087,48 +1090,49 @@ public final class TomoBlob: ObservableObject {
     /// Particles fly at this pace under Reduce Motion, and only a third of them.
     private static let calmPace: CGFloat = 0.4
 
-    /// While a big moment plays, only its own particles fly (`fromCue`).
+    /// While a big moment plays, only its own particles fly (`fromCue`). Every draw comes from `dice`.
     private func emit(_ kind: Bit.Kind, _ count: Int, fromCue: Bool = false) {
         guard !isMini, !isAway, cue == nil || fromCue else { return }
         let count = reduceMotion ? max(1, Int((Double(count) / 3).rounded())) : count
         let first = bits.count
+        func draw(_ range: ClosedRange<CGFloat>) -> CGFloat { .random(in: range, using: &dice) }
         for _ in 0..<count {
             switch kind {
             case .sparkle:
-                let a = CGFloat.random(in: 0...(2 * .pi))
-                let speed = CGFloat.random(in: 0.7...1.2)
+                let a = draw(0...(2 * .pi))
+                let speed = draw(0.7...1.2)
                 bits.append(Bit(kind: kind, pos: CGPoint(x: cos(a) * 0.9, y: sin(a) * 0.9 - 0.1),
                                 vel: CGVector(dx: cos(a) * speed, dy: sin(a) * speed - 0.5),
-                                life: .random(in: 0.6...0.9), size: .random(in: 0.12...0.2), spin: .random(in: -4...4)))
+                                life: draw(0.6...0.9), size: draw(0.12...0.2), spin: draw(-4...4)))
             case .heart:
-                bits.append(Bit(kind: kind, pos: CGPoint(x: .random(in: -0.6...0.6), y: -0.9),
-                                vel: CGVector(dx: .random(in: -0.3...0.3), dy: .random(in: -0.9 ... -0.6)),
-                                life: .random(in: 1.0...1.4), size: .random(in: 0.22...0.3), spin: 0))
+                bits.append(Bit(kind: kind, pos: CGPoint(x: draw(-0.6...0.6), y: -0.9),
+                                vel: CGVector(dx: draw(-0.3...0.3), dy: draw(-0.9 ... -0.6)),
+                                life: draw(1.0...1.4), size: draw(0.22...0.3), spin: 0))
             case .z:
                 bits.append(Bit(kind: kind, pos: CGPoint(x: 0.6, y: -0.8),
                                 vel: CGVector(dx: 0.25, dy: -0.45), life: 1.8, size: 0.3, spin: 0))
             case .pop:                         // drops of Tomo's own colour, flung out as it evolves
-                let a = CGFloat.random(in: 0...(2 * .pi))
-                let speed = CGFloat.random(in: 1.2...2.0)
+                let a = draw(0...(2 * .pi))
+                let speed = draw(1.2...2.0)
                 bits.append(Bit(kind: kind, pos: CGPoint(x: cos(a) * 0.6, y: sin(a) * 0.6),
                                 vel: CGVector(dx: cos(a) * speed, dy: sin(a) * speed - 1.2),
-                                life: .random(in: 0.7...1.0), size: .random(in: 0.08...0.15), spin: 0))
+                                life: draw(0.7...1.0), size: draw(0.08...0.15), spin: 0))
             case .dust:                        // out from all round Tomo, drifting up, then slowly settling
-                let a = CGFloat.random(in: 0...(2 * .pi)), d = CGFloat.random(in: 0.3...1.0)
-                let speed = CGFloat.random(in: 0.35...1.1)
+                let a = draw(0...(2 * .pi)), d = draw(0.3...1.0)
+                let speed = draw(0.35...1.1)
                 var b = Bit(kind: kind, pos: CGPoint(x: cos(a) * d, y: sin(a) * d - 0.15),
                             vel: CGVector(dx: cos(a) * speed, dy: sin(a) * speed - 0.6),
-                            life: .random(in: 1.0...1.6), size: .random(in: 0.045...0.09), spin: 0)
-                b.tint = .random(in: 0..<3)
-                b.phase = .random(in: 0...(2 * .pi))
+                            life: draw(1.0...1.6), size: draw(0.045...0.09), spin: 0)
+                b.tint = Int.random(in: 0..<3, using: &dice)
+                b.phase = draw(0...(2 * .pi))
                 bits.append(b)
             case .confetti:                    // tossed up from its head, tumbling and fluttering down
-                let a = CGFloat.random(in: (-0.67 * .pi)...(-0.33 * .pi)), speed = CGFloat.random(in: 1.6...2.6)
-                var b = Bit(kind: kind, pos: CGPoint(x: .random(in: -0.35...0.35), y: -0.5),
+                let a = draw((-0.67 * .pi)...(-0.33 * .pi)), speed = draw(1.6...2.6)
+                var b = Bit(kind: kind, pos: CGPoint(x: draw(-0.35...0.35), y: -0.5),
                             vel: CGVector(dx: cos(a) * speed, dy: sin(a) * speed),
-                            life: .random(in: 1.2...1.8), size: .random(in: 0.06...0.1), spin: .random(in: -6...6))
-                b.tint = .random(in: 0..<4)
-                b.phase = .random(in: 0...(2 * .pi))
+                            life: draw(1.2...1.8), size: draw(0.06...0.1), spin: draw(-6...6))
+                b.tint = Int.random(in: 0..<4, using: &dice)
+                b.phase = draw(0...(2 * .pi))
                 bits.append(b)
             }
         }
@@ -2207,18 +2211,44 @@ extension TomoBlob {
     }
 }
 
+/// Random numbers for Tomo's particles (`TomoBlob.dice`): the system's, or the same numbers every run from a seed
+/// (SplitMix64), so a check on a burst of particles never fails on a rare draw (#203).
+struct TomoDice: RandomNumberGenerator {
+    private var seeded: UInt64?
+
+    /// The system's random numbers: the app's.
+    init() {}
+    /// The same numbers from the same seed: the checks'.
+    init(seed: UInt64) { seeded = seed }
+
+    mutating func next() -> UInt64 {
+        guard var z = seeded else {
+            var system = SystemRandomNumberGenerator()
+            return system.next()
+        }
+        z &+= 0x9E37_79B9_7F4A_7C15
+        seeded = z
+        z = (z ^ (z >> 30)) &* 0xBF58_476D_1CE4_E5B9
+        z = (z ^ (z >> 27)) &* 0x94D0_49BB_1331_11EB
+        return z ^ (z >> 31)
+    }
+}
+
 extension TomoBlob {
     /// Big moments' particles and the season's weather (#137), on a clock only the check moves: a level-up bursts sparkle
     /// dust and a birthday tosses confetti in Tomo's own colours, each piece living 2 s at most and all gone when the
     /// moment ends; under Reduce Motion a third as many, slower; nothing emits at rest (small Tomo resting, glowing and
     /// dozing for two minutes, or in the card with its weather); the weather is a few flakes inside the canvas, worked out
-    /// from the clock, fewer and slower under Reduce Motion.
-    static func particleSelfTest(_ check: (Bool, String) -> Void) {
+    /// from the clock, fewer and slower under Reduce Motion. Each Tomo's particles are drawn from `seed`, so every run
+    /// sees the same bursts: unseeded, a birthday's 26 pieces of confetti missed one of its four colours about once in
+    /// 450 runs (#203).
+    static func particleSelfTest(seed: UInt64 = 203, _ check: (Bool, String) -> Void) {
         var t = 100.0
         func blob(reduce: Bool = false) -> TomoBlob {
             t = 100
             let b = TomoBlob(look: TomoLook(seed: "particles"), material: .own)
             b.reduceMotion = reduce
+            b.dice = TomoDice(seed: seed)
             b.clock = { t }
             b.step()
             return b
