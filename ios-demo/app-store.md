@@ -10,7 +10,9 @@ The listing is for **version 1.1**, the build on TestFlight. Version 1.0 was rej
 Connect it becomes 1.1 and gets that build. It's still the app's first release, so **What's New** stays empty: App
 Store Connect only asks for it from the second release on. Shipping is
 [#80](https://github.com/serpcompany/tomodachi-app/issues/80); the privacy policy has to name Tomodachi first
-([#105](https://github.com/serpcompany/tomodachi-app/issues/105)).
+([#105](https://github.com/serpcompany/tomodachi-app/issues/105)). The version is set by hand, in
+`Tomodachi/project.yml` (the app's and the widgets'), only when a new App Store version opens; release-please
+versions the repo and the Mac app, not the iPhone ([decisions.md](../docs/decisions.md)).
 
 ## The listing
 

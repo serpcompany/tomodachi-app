@@ -69,7 +69,8 @@ mac-demo/scripts/release-beta.sh --owner         # the owner's copy in build/own
   credentials to store. The script uploads the archive, waits for Apple (usually a few minutes, at most 30),
   then staples the ticket.
 - **Output:** `build/release/Tomodachi-<version>-beta.zip` (universal, macOS 15+; the version is
-  `CFBundleShortVersionString` in `NotchBuddy/project.yml`). Its archive, with the dSYMs, stays in
+  `CFBundleShortVersionString` in `NotchBuddy/project.yml`, which release-please bumps when a release PR
+  merges ([CHANGELOG.md](../CHANGELOG.md)), never by hand). Its archive, with the dSYMs, stays in
   `build/archives/Tomodachi-<version>-<YYMMDD-HHMM>.xcarchive`, never deleted.
 - **What the script checks:** the bundle ID (`com.zenbujapanese.tomo`), your Developer ID team, the
   hardened runtime, iCloud on CloudKit's Production environment with production push, and that no
