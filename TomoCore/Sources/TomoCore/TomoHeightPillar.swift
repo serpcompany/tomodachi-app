@@ -286,8 +286,9 @@ public struct TomoHeightPillar: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(lang.learner("pillar.slide", ["date": longDay(day ?? TomoClock.now), "level": lang.learner("level", ["n": "\(level)"])]))
                 .font(.caption).foregroundStyle(.secondary)
+            // The light wood's edge in light mode, a brighter wood in dark; its knob shows at the track's end (#195).
             TomoSlider(value: Binding(get: { 1 - (back ?? 0) }, set: { back = $0 >= 0.999 ? nil : 1 - $0 }),
-                       tint: Color(hex: "#CFA273"))   // its knob shows at the track's end in light mode (#195)
+                       tint: Color(hex: scheme == .dark ? "#D9B07F" : "#CFA273"))
                 .accessibilityLabel(lang.learner("pillar.slideLabel"))
                 .accessibilityValue(longDay(day ?? TomoClock.now))
                 .frame(maxWidth: .infinity)

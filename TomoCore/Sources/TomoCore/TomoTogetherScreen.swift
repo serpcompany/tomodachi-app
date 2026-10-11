@@ -21,6 +21,7 @@ public struct TomoTogetherScreen: View {
     private let version: Int
     private let copy: ((String) -> Void)?
     @ObservedObject private var lang = TomoLanguages.shared
+    @Environment(\.colorScheme) private var scheme
 
     /// `progress`, `look` and `material`: the Tomo these are about (the learner's own: its progress, its look and
     /// `.own`). `version`: bump it when its progress changes (TomoGame's `progressVersion`), so the numbers are read again.
@@ -251,7 +252,7 @@ public struct TomoTogetherScreen: View {
                 }
             }
             if !loaded.plants.isEmpty {
-                let c = TomoGardenColors(dark: false)
+                let c = TomoGardenColors(dark: scheme == .dark)   // as the garden draws them in this mode
                 let key = [(c.win, "garden.key.win"), (c.practice, "garden.key.practice")]
                 ViewThatFits {
                     HStack(spacing: 12) { ForEach(key, id: \.1) { dotLabel($0.0, $0.1) } }
@@ -303,7 +304,7 @@ public struct TomoTogetherScreen: View {
             .disabled(replayStart != nil)
             // Its knob shows at the track's end in light mode too (TomoSlider, #195).
             TomoSlider(value: Binding(get: { k }, set: { scrub = $0 >= 0.999 ? nil : $0; replayStart = nil; plantShown = nil }),
-                       tint: TomoGardenColors(dark: false).win)
+                       tint: TomoGardenColors(dark: scheme == .dark).win)
                 .accessibilityLabel(lang.learner("garden.day"))
                 .accessibilityValue(TomoStats.shortDay(day, lang.learner))
             Text(TomoStats.shortDay(day, lang.learner)).font(.callout.monospacedDigit()).foregroundStyle(.secondary)
