@@ -498,7 +498,7 @@ public final class TomoGame: ObservableObject {
 
     private func syncProgress() {
         TomoLook.current = TomoLook(seed: TomoLook.seed(learner: lang.learner.id, target: lang.target.id,
-                                                        metAt: progress.metAt))
+                                                        metAt: progress.metAt, saved: progress.lookSeed))
         stage = progress.age
         level = progress.level
         levelKnown = progress.levelKnown

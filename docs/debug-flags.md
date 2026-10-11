@@ -59,7 +59,9 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   `reset`, `show`) syncs that folder and quits, printing the Tomo ([verification.md](verification.md)).
 - `TOMO_STAGE=3 TOMO_AUTOCHAT="しごと してる|うん"`: a testing Tomo at that age, typing those answers. Testing
   ages run in memory; saved progress isn't touched.
-- `TOMO_TARGET=es`, `TOMO_LEARNER=ja`: the language pair.
+- `TOMO_TARGET=es`, `TOMO_LEARNER=ja`: the language pair. The interface is never the target ([languages.md](languages.md)):
+  `TOMO_LEARNER=ja` while learning Japanese gets English, and moves a ja:ja Tomo in the data folder to en:ja. The
+  Japanese interface needs another target: `TOMO_TARGET=en TOMO_LEARNER=ja`.
 - `TOMO_TIME_TRAVEL=<hours>`: Tomo's clock starts that far ahead, so due words come back. Answers given
   while ahead are saved with those dates, so only in a test run's `TOMO_DATA_DIR`. The window's Testing
   page → "Skip ahead a day" moves the clock live, on a copy of Tomo in memory.

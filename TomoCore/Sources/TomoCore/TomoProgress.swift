@@ -89,6 +89,8 @@ public final class TomoProgress {
     public internal(set) var level = 1         // set inside TomoCore only by the rules below and the self-test
     public internal(set) var age = 1
     public private(set) var metAt = Date()
+    /// The seed of a Tomo moved here from another pair, whose look it keeps (TomoStore.move); nil: this pair's own.
+    public private(set) var lookSeed: String?
     public internal(set) var items: [String: Item] = [:]
     /// Testing ages run on an in-memory Tomo; the saved one isn't touched.
     public private(set) var isScratch = false
@@ -120,6 +122,7 @@ public final class TomoProgress {
         if let t = store?.loadTomo() {
             level = min(max(t.level, 1), max(pack.levels.count, 1))
             metAt = t.metAt
+            lookSeed = t.seed
             // Never younger than its level: a Tomo saved before the pack's ages moved (or seeded without an age) is
             // that level's age now, so its next birthday comes at the pack's next age boundary.
             age = max(t.age, current?.age ?? 1)
@@ -179,6 +182,7 @@ public final class TomoProgress {
         level = 1
         age = pack.levels.first?.age ?? 1
         metAt = TomoClock.now
+        lookSeed = nil
         save()
     }
 

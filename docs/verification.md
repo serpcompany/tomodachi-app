@@ -75,12 +75,13 @@ passes: [hand-checks.md](hand-checks.md).
 ## Evidence a change needs
 
 - **The card, the header or anything else on the island:** the snapshot matrix. Look at every image:
-  picture and talking stages; English and Japanese interface; a short and a long Tomo line; the hint
+  picture and talking stages; English and Japanese interface (Japanese learns English: `TOMO_TARGET=en`
+  `TOMO_LEARNER=ja`); a short and a long Tomo line; the hint
   (talking); Win, Practice, Miss and No score; resting and a level-up; and any new state the change adds. A change
   to how a visit starts or opens needs them with the peek on too (`TOMO_PEEK=1 TOMO_PEEK_OPEN=2`).
 - **Growth rules:** the self-test, with a check for the new rule.
 - **The screens (Tomo, Words, Together, Settings, About):** on the Mac, the window's snapshots with seeded progress
-  (`TOMO_OPEN_WINDOW=tour`, [debug-flags.md](debug-flags.md)), in English and Japanese; on the iPhone, a simctl screenshot of each
+  (`TOMO_OPEN_WINDOW=tour`, [debug-flags.md](debug-flags.md)), in English and Japanese (learning English); on the iPhone, a simctl screenshot of each
   (`SIMCTL_CHILD_TOMO_OPEN_WINDOW=<screen>`), on a regular and an SE-size simulator. Stats need a seed with logs
   (`--history`): both sides of the postcard (`TOMO_POSTCARD_TURN`), a quiet week, a brand-new Tomo (no seed),
   and Monday (`TOMO_TIME_TRAVEL` to Monday morning) on the Tomo screen.
@@ -95,7 +96,7 @@ passes: [hand-checks.md](hand-checks.md).
   `showspectrumpic` sheet.
 - **Sync:** the self-test, and `TOMO_SYNC_CHECK` runs for the case it changes (below).
 - **The first run:** its window's snapshots at every step (`TOMO_ONBOARDING=1 TOMO_AUTOPLAY=1`), in English
-  and Japanese, and `TOMO_ONBOARDING=welcomeBack`. On the iPhone, `simctl io` screenshots of every step on a
+  and Japanese (learning English), and `TOMO_ONBOARDING=welcomeBack`. On the iPhone, `simctl io` screenshots of every step on a
   regular iPhone and an iPhone SE, in both languages ([ios-demo/README.md](../ios-demo/README.md)).
 - **Reminders:** the self-test (`TomoReminders.selfTest`), and the pending ones on a simulator
   (`TOMO_REMINDERS_LOG=1`), checked against quiet hours.

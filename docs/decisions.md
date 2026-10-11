@@ -2,6 +2,20 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident. The first days' decisions are in [decisions-2026-10-03.md](decisions-2026-10-03.md), [decisions-2026-10-05.md](decisions-2026-10-05.md), [decisions-2026-10-06.md](decisions-2026-10-06.md) and [decisions-2026-10-07.md](decisions-2026-10-07.md), and the ones about what Tomo teaches (the content source, word lists, levels and rounds) in [decisions-content.md](decisions-content.md).
 
+### 2026-10-12: A learner's own language is never the one they learn
+The interface language is never the target language: one rule in TomoCore (`TomoLanguages.allows`), asked by
+everything that offers or sets a pair. While Japanese is the only target, nothing offers or sets a Japanese
+interface: Settings shows "I speak" only when the target leaves more than one interface to pick (none today), the first
+run never asked, and the system's language is never read, so a Mac or iPhone set to Japanese gets English. A ja:ja setup
+from before (Settings' "I speak 日本語") opens in English at its next launch with its Tomo, words and logs, which move to
+en:ja (`TomoStore.move`) with the Tomo's look. If en:ja had a Tomo too, the two merge as two devices' Tomos do: the
+earlier meeting and its look, the higher level and age, each word's copy answered last. `ui.ja.json` and the Japanese
+interface stay for a later target, English for Japanese speakers ([#199](https://github.com/serpcompany/tomodachi-app/issues/199)).
+**Why:** the owner: someone doesn't learn their own language with this app. A ja:ja learner saw English glosses
+everywhere (the packs have no Japanese meanings) and a first run written for someone who can't speak Japanese; hiding
+the glosses for ja:ja (#199's first decision) or writing a pack for it went with the pair. The merge follows sync's
+rule because any other choice would be undone by the learner's other devices, which keep the earlier meeting.
+
 ### 2026-10-11: Debug builds are their own app, `com.zenbujapanese.tomo.debug`
 Debug builds of both apps carry the product's bundle ID plus `.debug` (the widgets `com.zenbujapanese.tomo.debug.widgets`) and are "Tomodachi Debug" to the system: the Home Screen, the widget gallery, window titles and About. Release builds (the owner's copy, the betas, TestFlight and the App Store) keep `com.zenbujapanese.tomo`, and their scripts refuse any other. Everything Tomo keeps follows the bundle ID: the preferences, the data folder, the keychain service (the bundle ID, no longer `co.zenbu.tomodachi`) and the iPhone's App Group (`group.com.zenbujapanese.tomo.debug`). So a Debug run, even without `TOMO_DATA_DIR`, never reads or writes the owner's Tomo, settings or keys ([#54](https://github.com/serpcompany/tomodachi-app/issues/54)). A Debug build never opens at login either: `TomoLoginItem` never calls the login-item API in one, and its first run and Settings say so instead of showing the switch, so a copy run from Xcode can't start next to the owner's Tomo at login. Debug keeps the one iCloud container, in CloudKit's Development environment as before. Tomo's own screens draw `CFBundleName`, "Tomodachi" in every build, so snapshots and the store screenshots (taken from Debug builds) don't change. **Why:** SERP's [native-app-build-identity](https://github.com/serpcompany/serp/blob/main/docs/engineering/standards/native-app-build-identity.md) standard; until now only each run's discipline kept the owner's copy safe. A Debug iCloud container of its own was ruled out: a container can never be deleted, and the Development environment already keeps tests apart from learners. Nothing moves: the owner runs a Release build, and AI keys saved by earlier Debug builds stay where they were, unread.
 
