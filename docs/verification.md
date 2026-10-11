@@ -23,7 +23,7 @@ review; the Mac's island checks and the snapshots run locally.
   installed, say so in the PR and treat CI's compile as the one that counts.
 
 The self-test: `TOMO_SELFTEST=1 TOMO_DATA_DIR=$(mktemp -d) <app binary>` checks the word-stage, level,
-store, sync-merge and look rules, the island's (which screen, where, Esc, opening and closing, the peek; a visit offered as a peek runs on the game itself, about 3 s, and logs as one), the stats (a learner simulated for three weeks, against its own tally: `TomoStatsCheck.swift`), who sees the first run, when reminders
+store, sync-merge and look rules, the island's (which screen, where, Esc, opening and closing, the peek; a visit offered as a peek runs on the game itself, about 3 s, and logs as one), the Tomodachi window's sidebar (every row's label stands out, selected or not, in light and dark, drawn as its snapshots are: `TomoAppWindow.selfTest`), the stats (a learner simulated for three weeks, against its own tally: `TomoStatsCheck.swift`), who sees the first run, when reminders
 come, and that every moment has a short, soft sound, lower for an older Tomo; it prints each
 check and quits (exit code 1 on a failure). A new growth rule gets a new check in `TomoProgress.rulesSelfTest`, a new
 merge rule one in `TomoSync.selfTest`, an island rule one in `TomoIslandSelfTest`. It also checks growth end to end

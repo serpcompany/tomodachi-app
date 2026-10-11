@@ -40,6 +40,18 @@ enum TomoAppWindow {
     }
 
     private static func make() -> NSWindow {
+        let win = newWindow()
+        // TOMO_APPEARANCE=light|dark: snapshots in either, whatever this Mac uses.
+        if let look = ProcessInfo.processInfo.environment["TOMO_APPEARANCE"] {
+            NSApp.appearance = NSAppearance(named: look == "dark" ? .darkAqua : .aqua)
+        }
+        window = win
+        startSnapshots()
+        return win
+    }
+
+    /// The window with its content, not yet shown (the self-test draws one that never is).
+    private static func newWindow() -> NSWindow {
         let win = NSWindow(contentRect: NSRect(origin: .zero, size: size),
                            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                            backing: .buffered, defer: false)
@@ -47,14 +59,8 @@ enum TomoAppWindow {
         win.titleVisibility = .hidden
         win.titlebarAppearsTransparent = true
         win.minSize = minSize
-        // TOMO_APPEARANCE=light|dark: snapshots in either, whatever this Mac uses.
-        if let look = ProcessInfo.processInfo.environment["TOMO_APPEARANCE"] {
-            NSApp.appearance = NSAppearance(named: look == "dark" ? .darkAqua : .aqua)
-        }
         win.contentView = NSHostingView(rootView: TomoAppView(play: { TomoMenus.openIsland() }))
         win.isReleasedWhenClosed = false
-        window = win
-        startSnapshots()
         return win
     }
 
@@ -114,9 +120,27 @@ enum TomoAppWindow {
     }
 
     private static func capture(_ view: NSView?, to url: URL) {
-        guard let view, let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return }
-        view.cacheDisplay(in: view.bounds, to: rep)
+        guard let view, let rep = snapshot(view) else { return }
         try? rep.representation(using: .png, properties: [:])?.write(to: url)
+    }
+
+    /// The view as the snapshots and the self-test draw it. A selected sidebar row's highlight is a material (an
+    /// NSVisualEffectView, `.selection`), which only the window server draws: drawn offscreen, as here, it comes out
+    /// solid black, and a light-mode label on it vanishes (#239). So while the picture is taken, each one stands
+    /// aside for the colour a selection has in a window that isn't in front (a test run's never is). In a window in
+    /// front the highlight is emphasized, which draws offscreen in the accent colour as on screen, and is left alone.
+    private static func snapshot(_ view: NSView) -> NSBitmapImageRep? {
+        guard let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return nil }
+        let standIns = selections(in: view).map(SelectionStandIn.init(for:))
+        view.cacheDisplay(in: view.bounds, to: rep)
+        standIns.forEach { $0.remove() }
+        return rep
+    }
+
+    private static func selections(in view: NSView) -> [NSVisualEffectView] {
+        let own: [NSVisualEffectView] = (view as? NSVisualEffectView).map { [$0] } ?? []
+        return own.filter { $0.material == .selection && !$0.isEmphasized && !$0.isHidden }
+            + view.subviews.flatMap(selections)
     }
 
     private static func captureLayers(_ view: NSView?, to url: URL) {
@@ -135,6 +159,154 @@ enum TomoAppWindow {
         ctx.cgContext.scaleBy(x: scale, y: scale)
         layer.render(in: ctx.cgContext)
         try? rep.representation(using: .png, properties: [:])?.write(to: url)
+    }
+
+    // MARK: The self-test (TOMO_SELFTEST): every sidebar label shows
+
+    /// Drawn as the snapshots draw it, in light and dark, with each screen selected in turn, every sidebar row's label
+    /// stands out from its row: at least 3:1, WCAG's floor for large text (#239: the selected row's label vanished in
+    /// light mode). The window is never shown, and the screen that was selected comes back.
+    static func selfTest(_ check: (Bool, String) -> Void) {
+        let nav = TomoScreenNav.shared, was = nav.screen
+        defer { nav.screen = was }
+        let win = newWindow()
+        for (look, name) in [(NSAppearance.Name.aqua, "light"), (.darkAqua, "dark")] {
+            win.appearance = NSAppearance(named: look)
+            var weakest: (contrast: Double, row: String)?, followed = true
+            for (n, screen) in [TomoScreen.tomo, .words, .together, .settings, .about].enumerated() {
+                nav.screen = screen
+                RunLoop.main.run(until: Date().addingTimeInterval(0.2))   // SwiftUI moves the selection
+                guard let view = win.contentView else { followed = false; continue }
+                view.layoutSubtreeIfNeeded()
+                let rows = sidebarRows(in: view)
+                followed = followed && rows.firstIndex(where: \.isSelected) == (screen == .about ? rows.count - 1 : n)
+                    && rows.filter(\.isSelected).count == 1
+                guard let picture = snapshot(view).flatMap({ Picture($0, of: view) }) else { followed = false; continue }
+                for (i, row) in rows.enumerated() {
+                    let contrast = picture.labelContrast(row, profile: i == 0, in: view)
+                    if contrast < weakest?.contrast ?? .infinity {
+                        weakest = (contrast, "row \(i + 1)\(row.isSelected ? ", selected," : "") on \(screen.rawValue)")
+                    }
+                }
+            }
+            let contrast = weakest?.contrast ?? 0
+            check(followed && contrast >= 3,
+                  "the window's sidebar, \(name): every row's label shows, selected or not (weakest "
+                  + String(format: "%.1f:1", contrast) + ": \(weakest?.row ?? "no rows")"
+                  + (followed ? ")" : "; the selection didn't follow the screen)"))
+        }
+    }
+
+    /// The sidebar's rows, top to bottom (the pages' own lists are right of it).
+    private static func sidebarRows(in view: NSView) -> [NSTableRowView] {
+        func all(_ v: NSView) -> [NSTableRowView] {
+            let own: [NSTableRowView] = (v as? NSTableRowView).map { [$0] } ?? []
+            return own + v.subviews.flatMap(all)
+        }
+        func frame(_ row: NSTableRowView) -> NSRect { row.convert(row.bounds, to: view) }
+        let rows = all(view).filter { frame($0).height > 1 && frame($0).maxX <= TomoSidebar.width + 1 }
+        return rows.sorted { view.isFlipped ? frame($0).minY < frame($1).minY : frame($0).maxY > frame($1).maxY }
+    }
+}
+
+/// In a snapshot, a selection's highlight as the screen shows it in a window that isn't in front: the same rounded
+/// shape, in the system's colour for it (`TomoAppWindow.snapshot`). It hides the material while it stands in.
+private final class SelectionStandIn: NSView {
+    private let material: NSVisualEffectView
+    private let radius: CGFloat
+
+    init(for material: NSVisualEffectView) {
+        self.material = material
+        radius = material.layer?.cornerRadius ?? 0
+        super.init(frame: material.frame)
+        material.superview?.addSubview(self, positioned: .above, relativeTo: material)
+        material.isHidden = true
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    override func draw(_ dirtyRect: NSRect) {
+        NSColor.unemphasizedSelectedContentBackgroundColor.setFill()
+        NSBezierPath(roundedRect: bounds, xRadius: radius, yRadius: radius).fill()
+    }
+
+    func remove() {
+        removeFromSuperview()
+        material.isHidden = false
+    }
+}
+
+// MARK: - The sidebar's layout, shared by its rows and the self-test
+
+private enum TomoSidebar {
+    static let width: CGFloat = 220
+    /// A screen's row: its icon, then the gap before its label.
+    static let icon: CGFloat = 22, iconGap: CGFloat = 8
+    /// The top row: live Tomo, then the gap before its name.
+    static let avatar: CGFloat = 40, avatarGap: CGFloat = 10
+}
+
+/// A snapshot's pixels in sRGB, on the window's background, for the self-test to measure.
+@MainActor
+private struct Picture {
+    private let bytes: [UInt8]
+    private let width: Int, height: Int, scale: CGFloat
+
+    init?(_ rep: NSBitmapImageRep, of view: NSView) {
+        guard let image = rep.cgImage, let space = CGColorSpace(name: CGColorSpace.sRGB) else { return nil }
+        let width = image.width, height = image.height
+        self.width = width; self.height = height; scale = CGFloat(width) / max(view.bounds.width, 1)
+        var bytes = [UInt8](repeating: 0, count: width * height * 4)
+        var background = NSColor.windowBackgroundColor.cgColor
+        view.effectiveAppearance.performAsCurrentDrawingAppearance { background = NSColor.windowBackgroundColor.cgColor }
+        let drawn: Bool = bytes.withUnsafeMutableBytes { buffer in
+            guard let ctx = CGContext(data: buffer.baseAddress, width: width, height: height, bitsPerComponent: 8,
+                                      bytesPerRow: width * 4, space: space,
+                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return false }
+            let all = CGRect(x: 0, y: 0, width: width, height: height)
+            ctx.setFillColor(background)
+            ctx.fill(all)
+            ctx.draw(image, in: all)
+            return true
+        }
+        guard drawn else { return nil }
+        self.bytes = bytes
+    }
+
+    /// WCAG's relative luminance of the pixel `x` across and `y` down.
+    private func luminance(_ x: Int, _ y: Int) -> Double {
+        let i = (min(max(y, 0), height - 1) * width + min(max(x, 0), width - 1)) * 4
+        func linear(_ c: UInt8) -> Double {
+            let v = Double(c) / 255
+            return v <= 0.04045 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4)
+        }
+        return 0.2126 * linear(bytes[i]) + 0.7152 * linear(bytes[i + 1]) + 0.0722 * linear(bytes[i + 2])
+    }
+
+    /// How far the row's label stands out from the row: the contrast with the row's background (sampled near the
+    /// row's right end, past any label) that 10 square points of the label's ink reach, so a stray pixel can't pass.
+    func labelContrast(_ row: NSTableRowView, profile: Bool, in view: NSView) -> Double {
+        let frame = row.convert(row.bounds, to: view)
+        let cell = (row.numberOfColumns > 0 ? row.view(atColumn: 0) as? NSView : nil) ?? row
+        let cellFrame = cell.convert(cell.bounds, to: view)
+        let start = cellFrame.minX + (profile ? TomoSidebar.avatar + TomoSidebar.avatarGap
+                                              : TomoSidebar.icon + TomoSidebar.iconGap)
+        let label = NSRect(x: start, y: cellFrame.minY + 2, width: frame.maxX - 16 - start, height: cellFrame.height - 4)
+        func pixel(_ p: NSPoint) -> (Int, Int) {
+            (Int(p.x * scale), Int((view.isFlipped ? p.y : view.bounds.height - p.y) * scale))
+        }
+        let (bx, by) = pixel(NSPoint(x: frame.maxX - 14, y: frame.midY))
+        let background = luminance(bx, by)
+        let (x0, ya) = pixel(NSPoint(x: label.minX, y: label.minY)), (x1, yb) = pixel(NSPoint(x: label.maxX, y: label.maxY))
+        var contrasts: [Double] = []
+        for y in min(ya, yb)..<max(ya, yb) {
+            for x in x0..<max(x0, x1) {
+                let l = luminance(x, y)
+                contrasts.append((max(l, background) + 0.05) / (min(l, background) + 0.05))
+            }
+        }
+        let ink = Int(10 * scale * scale)
+        return contrasts.count > ink ? contrasts.sorted(by: >)[ink] : 1
     }
 }
 
@@ -163,7 +335,7 @@ private struct TomoAppView: View {
     var body: some View {
         HStack(spacing: 0) {
             sidebar
-                .frame(width: 220)
+                .frame(width: TomoSidebar.width)
                 .background(SidebarMaterial())
             Divider()
             VStack(alignment: .leading, spacing: 0) {
@@ -195,11 +367,11 @@ private struct TomoAppView: View {
     }
 
     private func row(_ screen: TomoScreen) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TomoSidebar.iconGap) {
             Image(systemName: screen.icon)
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(.white)
-                .frame(width: 22, height: 22)
+                .frame(width: TomoSidebar.icon, height: TomoSidebar.icon)
                 .background(screen.color.gradient)
                 .clipShape(RoundedRectangle(cornerRadius: 6))
             Text(lang.learner(screen.titleKey))
@@ -232,8 +404,8 @@ private struct TomoProfileRow: View {
     @ObservedObject var lang = TomoLanguages.shared
 
     var body: some View {
-        HStack(spacing: 10) {
-            TomoLiveAvatar(size: 40, material: .own)
+        HStack(spacing: TomoSidebar.avatarGap) {
+            TomoLiveAvatar(size: TomoSidebar.avatar, material: .own)
             VStack(alignment: .leading, spacing: 1) {
                 Text(lang.learner("screen.tomo")).font(.system(size: 14, weight: .semibold))
                 Text("\(game.age) · \(lang.learner("level", ["n": "\(game.level)"]))")
