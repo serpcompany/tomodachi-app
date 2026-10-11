@@ -12,7 +12,7 @@ import UserNotifications
 //   Without the learner answering, what's ready only grows, so every reminder after it has something too.
 // - Never sooner than one rhythm after now (now is the last time the learner played, or opened the app).
 // - At most one per rhythm, and never in quiet hours: a time that falls in them moves to when they end. Daily is
-//   each morning, when quiet hours end.
+//   each morning (`TomoReminderSettings.morning`): when quiet hours end, or at 8 AM with them off, never at night.
 // - Gentle when ignored: at the rhythm for two days, then once a morning, and nothing a week after the first.
 // - At most 48 pending, under iOS's limit of 64.
 // Each one is Tomo speaking at its age (the pack's `reminders`, with a translation) plus what's waiting.
@@ -44,6 +44,11 @@ public struct TomoReminderSettings: Equatable, Sendable {
                                                       lockScreen: true)
 
     public var hasQuietHours: Bool { quietFrom != quietUntil }
+
+    /// When a Daily reminder comes, and the once-a-morning ones after two days ignored, in minutes after midnight:
+    /// when quiet hours end, or with them off, 8 AM, the end of the usual ones (#208). Off is saved as equal times
+    /// (0:00 to 0:00 by the switch), which say nothing about the morning, so a Daily reminder never comes at night.
+    public var morning: Int { hasQuietHours ? quietUntil : Self.standard.quietUntil }
 
     public static func load(_ d: UserDefaults = .standard) -> TomoReminderSettings {
         let s = standard
@@ -100,9 +105,9 @@ public enum TomoReminders {
         }
         func awake(_ t: Date) -> Date { isQuiet(t, s, calendar: calendar) ? next(s.quietUntil, after: t, calendar) : t }
 
-        // Daily: each morning, when quiet hours end (at least a few hours after playing, so not right away).
+        // Daily: each morning (`morning`), at least a few hours after playing, so not right away.
         let isDaily = every >= daily
-        let first = isDaily ? next(s.quietUntil, after: max(ready, now.addingTimeInterval(dailyGap)), calendar)
+        let first = isDaily ? next(s.morning, after: max(ready, now.addingTimeInterval(dailyGap)), calendar)
             : awake(max(ready, now.addingTimeInterval(every)))
         var slots: [Slot] = []
         var t = first
@@ -110,13 +115,13 @@ public enum TomoReminders {
         let rhythmEnd = first.addingTimeInterval(isDaily ? stopAfter : rhythmFor)
         while t < rhythmEnd && slots.count < maxPending {
             slots.append(slot(t))
-            t = isDaily ? next(s.quietUntil, after: t, calendar) : awake(t.addingTimeInterval(every))
+            t = isDaily ? next(s.morning, after: t, calendar) : awake(t.addingTimeInterval(every))
         }
         guard !isDaily, let last = slots.last?.at else { return slots }
-        var morning = next(s.quietUntil, after: max(last, rhythmEnd.addingTimeInterval(-1)), calendar)
+        var morning = next(s.morning, after: max(last, rhythmEnd.addingTimeInterval(-1)), calendar)
         while morning < first.addingTimeInterval(stopAfter) && slots.count < maxPending {
             slots.append(slot(morning))
-            morning = next(s.quietUntil, after: morning, calendar)
+            morning = next(s.morning, after: morning, calendar)
         }
         return slots
     }
@@ -154,7 +159,7 @@ public enum TomoReminders {
     /// "Up to 13 a day, 8:00 AM to 9:00 PM, only when a word is ready."
     @MainActor public static func summary(_ s: TomoReminderSettings) -> String {
         let ui = TomoLanguages.shared.learner
-        if s.every >= daily { return ui("reminders.summary.daily", ["time": clock(s.quietUntil)]) }
+        if s.every >= daily { return ui("reminders.summary.daily", ["time": clock(s.morning)]) }
         let n = "\(perDay(s))"
         guard s.hasQuietHours else { return ui("reminders.summary.allDay", ["n": n]) }
         return ui("reminders.summary", ["n": n, "from": clock(s.quietUntil), "until": clock(s.quietFrom)])
@@ -242,6 +247,37 @@ public enum TomoReminders {
         noQuiet.quietUntil = 0
         check(plan(now: at(8, 22), settings: noQuiet, due: [], newAt: at(8, 22), calendar: cal).first?.at == at(8, 23),
               "without quiet hours, nights count too")
+        // A Daily reminder never comes at night (#208): when quiet hours end, moving when they change, and with them
+        // off (saved as 0:00 to 0:00), at 8 AM. Played at 10 PM on Thursday.
+        func dailyPlan(_ from: Int, _ until: Int) -> [Slot] {
+            var q = once
+            q.quietFrom = from
+            q.quietUntil = until
+            return plan(now: at(8, 22), settings: q, due: [], newAt: at(8, 22), calendar: cal)
+        }
+        func times(_ p: [Slot]) -> String {
+            Set(p.map { String(format: "%02d:%02d", hm($0.at) / 60, hm($0.at) % 60) }).sorted().joined(separator: ", ")
+        }
+        let dailyOff = dailyPlan(0, 0), dailyOn = dailyPlan(22 * 60, 7 * 60)
+        let dailyLater = dailyPlan(22 * 60, 9 * 60 + 30)
+        check(dailyOff.count == 7 && dailyOff.first?.at == at(9, 8) && dailyOff.allSatisfy { hm($0.at) == 8 * 60 },
+              "daily, quiet hours off: each morning at 8 AM, never at midnight (\(times(dailyOff)))")
+        check(dailyOn.count == 7 && dailyOn.first?.at == at(9, 7) && dailyOn.allSatisfy { hm($0.at) == 7 * 60 },
+              "daily, quiet hours 22:00 to 07:00: each morning at 7:00 (\(times(dailyOn)))")
+        check(dailyLater.count == 7 && dailyLater.first?.at == at(9, 9, 30)
+              && dailyLater.allSatisfy { hm($0.at) == 9 * 60 + 30 },
+              "daily, quiet hours changed to end at 9:30: it moves to 9:30 (\(times(dailyLater)))")
+        var onceOff = once
+        onceOff.quietFrom = 0
+        onceOff.quietUntil = 0
+        check(summary(onceOff) == TomoLanguages.shared.learner("reminders.summary.daily", ["time": clock(8 * 60)]),
+              "Settings, daily with quiet hours off: \"\(summary(onceOff))\"")
+        var slowOff = noQuiet
+        slowOff.every = 4 * 3600
+        let ignored = plan(now: now, settings: slowOff, due: words, newAt: nil, calendar: cal)
+        let mornings = ignored.filter { $0.at >= (ignored.first?.at ?? now).addingTimeInterval(rhythmFor) }
+        check(!mornings.isEmpty && mornings.allSatisfy { hm($0.at) == 8 * 60 },
+              "quiet hours off, ignored for two days: once a morning at 8 AM, never at midnight (\(times(mornings)))")
         check(perDay(s) == 13 && perDay(fast) == 52 && perDay(once) == 1, "hourly, 8 AM to 9 PM: 13 a day")
         // The Mac's visits by the notch keep the same quiet hours.
         check(!visitAllowed(at: at(8, 23), s, calendar: cal) && !visitAllowed(at: at(9, 7, 59), s, calendar: cal)
