@@ -48,7 +48,7 @@ final class TomodachiUITests: XCTestCase {
     func testAPictureRoundWrongThenRight() {
         launch()
         let right = app.buttons["👋"], wrong = app.buttons["🚃"]
-        XCTAssertTrue(right.waitForExistence(timeout: 20), "the first word (バイバイ) asks for 👋")
+        XCTAssertTrue(right.waitForExistence(timeout: 20), "the first word (bye-bye) asks for 👋")
         wrong.tap()
         XCTAssertTrue(app.staticTexts[ui("outcome.loss")].waitForExistence(timeout: 5), "a wrong picture is a Miss")
         XCTAssertTrue(right.isHittable, "the round stays, for another try")

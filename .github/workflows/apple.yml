@@ -28,7 +28,7 @@ env:
 jobs:
   tomocore:
     name: TomoCore tests (swift test)
-    if: true   # verification run on the draft PR; the draft gate comes back in the next commit
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: xcode-27
     timeout-minutes: 20
     steps:
@@ -41,7 +41,7 @@ jobs:
 
   apps:
     name: Build the Mac and iPhone apps (unsigned)
-    if: true   # verification run on the draft PR; the draft gate comes back in the next commit
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: xcode-27
     timeout-minutes: 30
     steps:
@@ -60,7 +60,7 @@ jobs:
 
   iphone-ui:
     name: iPhone UI journeys (Pull Request plan)
-    if: true   # verification run on the draft PR; the draft gate comes back in the next commit
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: xcode-27
     timeout-minutes: 45
     steps:
