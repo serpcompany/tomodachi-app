@@ -132,6 +132,32 @@ public final class TomoOnboarding: ObservableObject {
         check(needsFirstRun(in: dir), "a first run quit halfway shows again")
         Saved(started: Date(), finished: Date()).save(to: dir)
         check(!needsFirstRun(in: dir), "a finished first run never shows again")
+
+        // Quiet hours (#194): the first run writes them only if the learner changed them. Off is off whatever equal
+        // times were saved (the owner keeps 0:00 to 0:00 on purpose); switched on, they're the saved hours again.
+        func hours(_ from: Int, _ until: Int) -> TomoReminderSettings {
+            var s = TomoReminderSettings.standard
+            s.quietFrom = from
+            s.quietUntil = until
+            return s
+        }
+        /// The step opened on `saved` and its switch was flipped through `flips`: what the flow writes at the end.
+        func written(_ saved: TomoReminderSettings, _ flips: [Bool] = []) -> String {
+            var picked = saved
+            for on in flips { (picked.quietFrom, picked.quietUntil) = quietHours(on, saved: saved) }
+            return quietHoursToSave(saved: saved, picked: picked).map { "\($0.from)-\($0.until)" } ?? "nothing"
+        }
+        let off = hours(0, 0), offAtFive = hours(300, 300), night = hours(22 * 60, 7 * 60)
+        check(written(off) == "nothing" && written(off, [true, false]) == "nothing"
+              && written(offAtFive) == "nothing" && written(offAtFive, [true, false]) == "nothing",
+              "quiet hours saved off (0:00 to 0:00, or 5:00 to 5:00) stay off and unwritten, even switched on and off: "
+              + "\(written(offAtFive, [true, false]))")
+        check(written(night) == "nothing" && written(night, [false, true]) == "nothing"
+              && quietHours(true, saved: night) == (22 * 60, 7 * 60),
+              "saved quiet hours 22:00 to 7:00 are kept, and switched off and on again they're back: "
+              + "\(written(night, [false, true]))")
+        check(written(night, [false]) == "0-0" && written(off, [true]) == "1260-480",
+              "quiet hours the learner changed are written: switched off, none; switched on from none, 9 PM to 8 AM")
     }
 
     // MARK: The flow
@@ -240,19 +266,55 @@ public final class TomoOnboarding: ObservableObject {
             DropIn.setEvery(visitEvery)
             game.rescheduleVisits()
         }
+        // Quiet hours: only what the learner changed (quietHoursToSave); the saved ones stay as they are otherwise.
+        let center = TomoReminderCenter.shared
+        let quiet = Self.quietHoursToSave(saved: startSettings, picked: reminders)
         if shell == .mac {
-            var s = TomoReminderCenter.shared.settings
-            if reminders.quietFrom != startSettings.quietFrom || reminders.quietUntil != startSettings.quietUntil {
-                s.quietFrom = reminders.quietFrom
-                s.quietUntil = reminders.quietUntil
-                TomoReminderCenter.shared.settings = s
+            if let quiet {
+                var s = center.settings
+                s.quietFrom = quiet.from
+                s.quietUntil = quiet.until
+                center.settings = s
             }
             if let item = loginItem, openAtLogin != item.isOn() { item.set(openAtLogin) }
         }
-        if shell == .phone { TomoReminderCenter.shared.settings = reminders }
+        if shell == .phone {
+            var s = reminders
+            if quiet == nil {
+                s.quietFrom = center.settings.quietFrom
+                s.quietUntil = center.settings.quietUntil
+            }
+            center.settings = s
+        }
         if !preview { Saved(started: started, finished: Date()).save() }
         onFinish?()
         onFinish = nil
+    }
+
+    // MARK: Quiet hours
+
+    /// The quiet hours step's switch: on brings back the hours saved before the flow (the learner chose "on", not
+    /// new times), or the usual 9 PM to 8 AM when none were; off is none.
+    public func setQuietHours(_ on: Bool) {
+        let q = Self.quietHours(on, saved: startSettings)
+        reminders.quietFrom = q.from
+        reminders.quietUntil = q.until
+    }
+
+    /// Quiet hours switched `on` or off, from the ones `saved` before the flow, in minutes after midnight.
+    static func quietHours(_ on: Bool, saved: TomoReminderSettings) -> (from: Int, until: Int) {
+        guard on else { return (0, 0) }
+        let q = saved.hasQuietHours ? saved : .standard
+        return (q.quietFrom, q.quietUntil)
+    }
+
+    /// The quiet hours the flow writes when it ends, or nil to leave the saved ones alone. Off is off whichever equal
+    /// times were saved (the owner keeps them off on purpose), so off at the start and at the end writes nothing,
+    /// and so do the saved hours brought back; only hours the learner changed are written.
+    static func quietHoursToSave(saved: TomoReminderSettings, picked: TomoReminderSettings) -> (from: Int, until: Int)? {
+        if !saved.hasQuietHours && !picked.hasQuietHours { return nil }
+        if picked.quietFrom == saved.quietFrom && picked.quietUntil == saved.quietUntil { return nil }
+        return (picked.quietFrom, picked.quietUntil)
     }
 
     private func go(_ s: Step) {

@@ -111,7 +111,7 @@ extension TomoReminderSettingsView {
             } footer: {
                 if forVisits { Text(ui("reminders.settings.quietNote.mac")) }
             }
-            .environment(\.locale, Locale(identifier: lang.learner.id))
+            .environment(\.locale, tomoClockLocale(lang.learner.id))
         }
     }
 }
