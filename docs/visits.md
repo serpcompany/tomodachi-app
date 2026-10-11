@@ -34,8 +34,8 @@ device) to the reminders to schedule; `TomoReminderCenter` schedules them with
 runs; then every progress change, and the app coming and going, schedules again.
 `TomoReminderSettingsView` is their settings page. Invariants: a reminder only when something
 counts; never sooner than one rhythm after now, never in quiet hours; a Daily one, and the
-once-a-morning ones after two days ignored, never at night (`TomoReminderSettings.morning`: when
-quiet hours end, or 8 AM with them off); at most 48 pending (iOS keeps
+once-a-morning ones after two days ignored, at `TomoReminderSettings.morning` (when quiet hours end, or
+8 AM with them off, so never at midnight); at most 48 pending (iOS keeps
 64); the iOS prompt only after its reason (the first run's "Let words find you", or the Settings
 switch); `TOMO_SELFTEST` checks the rules (`TomoReminders.selfTest`). The Mac has no reminders: its
 visits are its cadence.

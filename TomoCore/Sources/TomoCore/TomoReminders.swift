@@ -12,7 +12,7 @@ import UserNotifications
 //   Without the learner answering, what's ready only grows, so every reminder after it has something too.
 // - Never sooner than one rhythm after now (now is the last time the learner played, or opened the app).
 // - At most one per rhythm, and never in quiet hours: a time that falls in them moves to when they end. Daily is
-//   each morning (`TomoReminderSettings.morning`): when quiet hours end, or at 8 AM with them off, never at night.
+//   each morning (`TomoReminderSettings.morning`): when quiet hours end (the learner's choice), or at 8 AM with them off, never at midnight.
 // - Gentle when ignored: at the rhythm for two days, then once a morning, and nothing a week after the first.
 // - At most 48 pending, under iOS's limit of 64.
 // Each one is Tomo speaking at its age (the pack's `reminders`, with a translation) plus what's waiting.
