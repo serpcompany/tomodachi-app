@@ -297,6 +297,28 @@ extension TomoStats {
         let md = stats.exportMarkdown(ui), tableRows = md.split(separator: "\n").filter { $0.hasPrefix("| ") }.count
         check(md.hasPrefix("# \(ui("export.title"))") && tableRows == 6 + (weeks.count + 1) + p.items.count + answerRows,
               "stats: the Markdown export has a row for every week (\(weeks.count) and this one), word and answer")
+        // Its answers' times are on the person's own clock, in each language (#197): an afternoon answer reads
+        // "6:29 PM" or "18:29", 「午後6:29」 or 「18:29」, as the device's 12- or 24-hour setting says.
+        if let pm = log?.answers.map(\.at).first(where: { Calendar.current.component(.hour, from: $0) >= 13 }) {
+            var rows: [String] = []
+            for learner in lang.learners {
+                for cycle in [Locale.HourCycle.oneToTwelve, .zeroToTwentyThree] {
+                    let f = DateFormatter()
+                    f.locale = tomoClockLocale(learner.id, hourCycle: cycle)
+                    f.dateStyle = .short
+                    f.timeStyle = .short
+                    let time = f.string(from: pm), twelve = cycle == .oneToTwelve
+                    check(stats.exportMarkdown(learner, hourCycle: cycle).contains("| \(time) |")
+                          && time.contains(f.pmSymbol) == twelve,
+                          "stats: in \(learner.id) on a \(twelve ? 12 : 24)-hour clock, the Markdown export writes an "
+                          + "afternoon answer's time \"\(time)\"")
+                    rows.append(time)
+                }
+            }
+            check(Set(rows).count == rows.count, "stats: each language and clock writes it its own way (\(rows))")
+        } else {
+            check(false, "stats: the simulated learner answers in the afternoon")
+        }
 
         // The postcard comes on Monday morning: Monday 5 October at 3:59 it isn't there yet, at 4 am it is, and that
         // Monday is the day it came.
