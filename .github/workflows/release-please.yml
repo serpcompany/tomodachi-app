@@ -1,0 +1,28 @@
+name: Release Please
+
+# Keeps one "release: Tomodachi x.y.z" PR open from the Conventional Commits on main (SERP's
+# git-workflow.md, Releases). Merging it tags v<version>, publishes the GitHub release with its notes,
+# and bumps the Mac app's version (NotchBuddy/project.yml and its Info.plist). Nobody types versions or
+# tags by hand. The Mac beta is still built and signed on the owner's Mac (mac-demo/scripts/release-beta.sh).
+# The iPhone's version is the App Store's, set by hand (docs/decisions.md).
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# One run at a time, none cancelled: each push rewrites the same release PR.
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
