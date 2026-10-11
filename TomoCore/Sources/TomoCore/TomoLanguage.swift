@@ -465,20 +465,35 @@ extension TomoLanguages {
         check(merged?.answerLog(from: day(0), to: day(9)).count == 1 && merged?.growthEvents().map(\.value) == [3],
               "the answers come along; the moved Tomo's growth log stays with the life it tells")
         let older = folder()
-        store("en", older)?.saveTomo(.init(metAt: day(5), level: 2, age: 1))
+        if let s = store("en", older) {
+            s.saveTomo(.init(metAt: day(5), level: 2, age: 1))
+            s.logGrowth(at: day(5), kind: "level", value: 2)
+        }
         seedJaJa(in: older, met: day(1))
         TomoStore.move(learner: "ja", to: "en", target: "ja", directory: older)
         let kept = store("en", older)?.loadTomo()
-        check(kept?.metAt == day(1) && kept?.level == 7 && kept?.seed == ownLook,
-              "when the moved Tomo met the learner first, it's the one kept, with its look")
+        check(kept?.metAt == day(1) && kept?.level == 7 && kept?.seed == ownLook
+              && store("en", older)?.growthEvents().map(\.value) == [7] && store("ja", older)?.growthEvents().map(\.value) == [2],
+              "when the moved Tomo met the learner first, it's the one kept, with its look and its growth marks")
 
-        // A move that fails half-way is undone. A trigger fails the words' copy as a full disk would: SQLite undoes the
-        // transaction by itself, and whatever runs after it would no longer be part of one.
+        // A move that fails is undone, and the next launch tries again.
         func sql(_ dir: URL, _ text: String) {
             var db: OpaquePointer?
             if sqlite3_open(dir.appendingPathComponent("learner.sqlite").path, &db) == SQLITE_OK { sqlite3_exec(db, text, nil, nil, nil) }
             sqlite3_close(db)
         }
+        // A read that fails (a renamed column here; a busy file or an I/O error alike) isn't "nothing to move".
+        let unread = folder()
+        seedJaJa(in: unread, met: day(1))
+        sql(unread, "ALTER TABLE tomo RENAME COLUMN age TO years")
+        check(settle(wanting: "ja", target: "ja", among: ids, directory: unread) == ("en", false)
+              && store("ja", unread)?.loadItems().count == 2 && store("en", unread)?.loadItems().isEmpty == true,
+              "a move that can't read the ja:ja Tomo keeps it and the saved pair, so the next launch tries again")
+        sql(unread, "ALTER TABLE tomo RENAME COLUMN years TO age")
+        check(settle(wanting: "ja", target: "ja", among: ids, directory: unread) == ("en", true)
+              && store("en", unread)?.loadTomo()?.level == 7, "and that launch moves it")
+        // A trigger fails the words' copy as a full disk would: SQLite undoes the transaction by itself, and whatever
+        // runs after it would no longer be part of one.
         let full = folder()
         seedJaJa(in: full, met: day(1))
         sql(full, "CREATE TRIGGER full BEFORE INSERT ON item WHEN NEW.learner = 'en' BEGIN SELECT RAISE(ROLLBACK, 'full'); END")
@@ -489,11 +504,19 @@ extension TomoLanguages {
               && store("en", full)?.loadTomo() == nil
               && !FileManager.default.fileExists(atPath: full.appendingPathComponent("cloud-resend").path),
               "a move that fails half-way (a full disk) is undone: the ja:ja Tomo, words and logs stay, and so does the saved pair")
+        // That launch shows English, so the app hatches an en:ja Tomo, which levels up once. The next launch merges.
         sql(full, "DROP TRIGGER full")
-        check(settle(wanting: "ja", target: "ja", among: ids, directory: full) == ("en", true)
-              && store("en", full)?.loadTomo()?.level == 7 && store("en", full)?.loadItems().count == 2
+        let clock = TomoClock.stopped
+        TomoClock.stopped = day(7)
+        _ = TomoProgress(pack: pack, learner: "en", directory: full)
+        TomoClock.stopped = clock
+        let back = store("en", full)
+        back?.logGrowth(at: day(7), kind: "level", value: 2)
+        let retried = settle(wanting: "ja", target: "ja", among: ids, directory: full), again = back?.loadTomo()
+        check(retried == ("en", true) && again?.metAt == day(1) && again?.level == 7 && again?.seed == ownLook
+              && back?.loadItems().count == 2 && back?.growthEvents().map(\.value) == [7]
               && stayed?.loadTomo() == nil && stayed?.loadItems().isEmpty == true,
-              "and the next launch moves it")
+              "and the next launch merges it with the Tomo hatched meanwhile: the moved Tomo is kept, with its look and growth marks")
 
         // Nothing to move.
         let empty = folder()

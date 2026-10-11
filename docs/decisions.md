@@ -10,8 +10,9 @@ run never asked, and the system's language is never read, so a Mac or iPhone set
 from before (Settings' "I speak 日本語") opens in English at its next launch with its Tomo, words and logs, which move to
 en:ja (`TomoStore.move`) with the Tomo's look. Most have an en:ja Tomo too (the first run hatched it), and then the two
 merge as two devices' Tomos do: the earlier-met Tomo and its look, the higher level and age, each word's copy answered
-last; the answers and visits move, and the moved Tomo's growth log stays behind. The move is all or nothing, and a
-failed one is tried again at the next launch. `ui.ja.json` and the Japanese
+last; the answers and visits move, and the growth log of the Tomo kept is the one en:ja keeps. The move is all or
+nothing, and a failed one is tried again at the next launch; that launch shows a new en:ja Tomo until the retry merges
+theirs back. `ui.ja.json` and the Japanese
 interface stay for a later target, English for Japanese speakers ([#199](https://github.com/serpcompany/tomodachi-app/issues/199)).
 **Why:** the owner: someone doesn't learn their own language with this app. A ja:ja learner saw English glosses
 everywhere (the packs have no Japanese meanings) and a first run written for someone who can't speak Japanese; hiding
