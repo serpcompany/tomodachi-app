@@ -144,6 +144,8 @@ enum TomoIslandSelfTest {
         TomoPicture.selfTest(check)   // a dark picture gets a light disc on the card (#195)
         TomoStagePill.selfTest(check)   // each stage's colour reads at 5:1 or more on a dark card (#195)
         TomoLanding.selfTest(check)   // Words lands on Tomo's level until the learner scrolls or it holds still (#193)
+        TomoGame.whatsLeftFitSelfTest(check, place: "the card's goal row", size: GoalLine.size,
+                                      width: GoalLine.textWidth)   // one line, never cut (#211)
         return ok
     }
 

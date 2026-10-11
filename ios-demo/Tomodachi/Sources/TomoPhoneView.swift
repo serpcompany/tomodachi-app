@@ -53,14 +53,15 @@ struct TomoPhoneView: View {
                     .accessibilityElement()
                     .accessibilityLabel(ui("a11y.bar", ["next": "\(game.level + 1)"]))
                     .accessibilityValue("\(Int((game.levelProgress * 100).rounded()))%")
-                // What's left before the next level, and when the next word is ready
+                // What's left before the next level, and when the next word is ready: one line, whose longest form
+                // fits at the largest text on an iPhone SE (TomoGame.restLinesSelfTest has this row's numbers)
                 if !typing {
                     Label { Text(game.phase == .resting ? game.restLines.left : game.whatsLeft()) } icon: {
                         Image(systemName: "flag.fill").foregroundStyle(Color(hex: "#34D399"))
                     }
                         .font(.system(size: 13 * textScale, weight: .medium))
                         .foregroundStyle(Color(hex: "#9EA3AC"))
-                        .lineLimit(1).minimumScaleFactor(0.75)
+                        .lineLimit(1).minimumScaleFactor(TomoGame.whatsLeftMinScale)
                         .padding(.horizontal, 20)
                         .padding(.top, 8)
                 }
