@@ -265,6 +265,7 @@ public enum TomoReminders {
         let wait = after.due.min().map { $0.timeIntervalSince(TomoClock.now) } ?? 0
         check(after.newAt == nil && after.due.count == pack.levels[0].itemIDs.count && wait > 3600 && wait <= 2 * 3600,
               "a whole level learned: no new words until it levels up, the first due in \(Int(wait / 60)) min")
+        TomoLockCard.selfTest(check)
     }
 }
 
