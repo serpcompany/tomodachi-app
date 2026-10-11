@@ -143,8 +143,9 @@ extension TomoOnboardingView {
     }
 
     /// Quiet hours: a switch, like Settings', then the times. Off (from = until, as the learner may have saved them)
-    /// reads as off, never as a span from midnight to midnight; turning it on starts from the usual 9 PM to 8 AM. The
-    /// flow saves them only if they changed (TomoOnboarding.finish).
+    /// reads as off, never as a span from midnight to midnight; turning it on brings back the learner's saved hours,
+    /// or the usual 9 PM to 8 AM. The flow saves them only if the learner changed them (TomoOnboarding.setQuietHours,
+    /// quietHoursToSave).
     var quietPage: some View {
         let on = model.reminders.hasQuietHours
         return VStack(alignment: .leading, spacing: 12) {
@@ -156,7 +157,7 @@ extension TomoOnboardingView {
                         .font(.system(size: 15, weight: .semibold))
                     Spacer(minLength: 8)
                     Toggle(ui(isPhone ? "reminders.settings.quietOn" : "reminders.settings.quietOn.mac"),
-                           isOn: Binding(get: { model.reminders.hasQuietHours }, set: { quietHours($0) }))
+                           isOn: Binding(get: { model.reminders.hasQuietHours }, set: { model.setQuietHours($0) }))
                         .labelsHidden()
                         .toggleStyle(.switch)
                         .tint(Paint.accent)
@@ -178,13 +179,6 @@ extension TomoOnboardingView {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .animation(.easeInOut(duration: 0.25), value: on)
-    }
-
-    /// The switch: on starts from the usual quiet hours, off is none (both as Settings does).
-    private func quietHours(_ on: Bool) {
-        let standard = TomoReminderSettings.standard
-        model.reminders.quietFrom = on ? standard.quietFrom : 0
-        model.reminders.quietUntil = on ? standard.quietUntil : 0
     }
 
     private func timeBox(_ label: String, minutes: Binding<Int>) -> some View {
