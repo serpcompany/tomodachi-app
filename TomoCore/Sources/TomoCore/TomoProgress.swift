@@ -219,7 +219,7 @@ public final class TomoProgress {
     }
 
     /// What's left before the next level: how many more words have to reach "knows it", and when the next of them
-    /// counts (nil: one counts now). Shown as "1 more word to Lv 2 · next at 8:37".
+    /// counts (nil: one counts now). Shown as "1 more word to Lv 2 · next one at 8:37" (`TomoGame.whatsLeft`).
     public struct Left: Equatable, Sendable {
         public var words: Int
         public var nextAt: Date?
