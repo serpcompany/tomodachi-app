@@ -1362,19 +1362,37 @@ extension TomoGame {
         Self.restLines(back: countsAgainAt, levelLeft, level: level, last: levelIsLast, lang.learner)
     }
 
+    /// What's left, and when a resting Tomo's back, as the Tomo screen wraps them (#233): `whatsLeft()`, or
+    /// `restLines.left` while Tomo rests, as its phrases ("9 more words to Lv 15", "ready now"), and `restLines.back`
+    /// (nil while Tomo's awake), each keeping the pack's marks where it may wrap (`TomoLineBreaks`).
+    public var leftPhrases: (left: [String], back: String?) {
+        guard phase == .resting else { return (Self.whatsLeftParts(levelLeft, level: level, last: levelIsLast, lang.learner), nil) }
+        let rest = Self.restParts(back: countsAgainAt, levelLeft, level: level, last: levelIsLast, lang.learner)
+        return (rest.left, rest.back)
+    }
+
     /// The line shrinks no further than this on the Mac card's goal row and the iPhone header, where it's one line in
     /// a fixed row (`whatsLeftFitSelfTest`).
     public static let whatsLeftMinScale: CGFloat = 0.75
 
+    /// What's left as one line, for a row that never wraps: its phrases (`whatsLeftParts`) joined, without their marks.
     public static func whatsLeft(_ left: TomoProgress.Left, level: Int, last: Bool, when: Bool = true,
                                  _ ui: LearnerPack, hourCycle: Locale.HourCycle = Locale.current.hourCycle) -> String {
+        TomoLineBreaks.spoken(whatsLeftParts(left, level: level, last: last, when: when, ui, hourCycle: hourCycle)
+            .joined(separator: " · "))
+    }
+
+    /// What's left as its phrases: the words to go, then when the next of them counts. Each keeps the pack's marks
+    /// ("Lv\u{00A0}15まで あと9語"), for a view that wraps between phrases and never inside one (the Tomo screen).
+    public static func whatsLeftParts(_ left: TomoProgress.Left, level: Int, last: Bool, when: Bool = true,
+                                      _ ui: LearnerPack, hourCycle: Locale.HourCycle = Locale.current.hourCycle) -> [String] {
         let next = "\(level + 1)"
-        guard left.words > 0 else { return ui(last ? "left.lastDone" : "left.done", ["next": next]) }
+        guard left.words > 0 else { return [ui(last ? "left.lastDone" : "left.done", ["next": next])] }
         let n = "\(left.words)", one = left.words == 1
         let words = last ? ui(one ? "left.last.one" : "left.last", ["n": n])
             : ui(one ? "left.one" : "left.many", ["n": n, "next": next])
-        guard when else { return words }
-        return words + " · " + (left.nextAt.map { nextText($0, ui, hourCycle) } ?? ui("left.ready"))
+        guard when else { return [words] }
+        return [words, left.nextAt.map { nextText($0, ui, hourCycle) } ?? ui("left.ready")]
     }
 
     /// When the level's next word counts: "next one at 6:59 PM" today, and "next one tomorrow" without the time, so
@@ -1382,7 +1400,7 @@ extension TomoGame {
     /// or with the next day's new words, so another day is tomorrow; a later one (only in made-up data) gets its date.
     private static func nextText(_ at: Date, _ ui: LearnerPack, _ hourCycle: Locale.HourCycle) -> String {
         Calendar.current.isDateInTomorrow(wallClock(at)) ? ui("left.next.tomorrow")
-            : timeText("left.next", until: at, ui, hourCycle: hourCycle)
+            : timeText("left.next", until: at, ui, hourCycle: hourCycle, marked: true)
     }
 
     /// A resting Tomo's two lines give one time when they're one event: what's left to grow drops its time when its
@@ -1392,8 +1410,16 @@ extension TomoGame {
     /// `tomoTime`'s, so they're written alike. Checked by `restLinesSelfTest`.
     public static func restLines(back: Date?, _ left: TomoProgress.Left, level: Int, last: Bool,
                                  _ ui: LearnerPack) -> (back: String, left: String) {
+        let rest = restParts(back: back, left, level: level, last: last, ui)
+        return (TomoLineBreaks.spoken(rest.back), TomoLineBreaks.spoken(rest.left.joined(separator: " · ")))
+    }
+
+    /// `restLines` with the pack's marks kept, what's left as its phrases (`whatsLeftParts`).
+    static func restParts(back: Date?, _ left: TomoProgress.Left, level: Int, last: Bool,
+                          _ ui: LearnerPack) -> (back: String, left: [String]) {
         let same = left.nextAt.map { abs($0.timeIntervalSince(back ?? .distantPast)) < 60 } ?? true
-        return (timeText("rest.back", until: back, ui), whatsLeft(left, level: level, last: last, when: !same, ui))
+        return (timeText("rest.back", until: back, ui, marked: true),
+                whatsLeftParts(left, level: level, last: last, when: !same, ui))
     }
 
     /// The resting header's times in every ui pack, and the iPhone header's room for what's left (TOMO_SELFTEST and
@@ -1408,15 +1434,39 @@ extension TomoGame {
             let two = restLines(back: back, .init(words: 9, nextAt: later), level: 62, last: false, ui)
             let next = restLines(back: back, .init(words: 9, nextAt: tomorrow), level: 62, last: false, ui)
             check(one.back == timeText("rest.back", until: back, ui) && one.back.contains(tomoTime(back, ui))
-                  && one.left == ui("left.many", ["n": "9", "next": "63"])
+                  && one.left == TomoLineBreaks.spoken(ui("left.many", ["n": "9", "next": "63"]))
                   && two.back == one.back && two.left.contains(tomoTime(later, ui))
                   && two.left.hasSuffix(timeText("left.next", until: later, ui))
                   && ui("left.next", ["time": ""]).trimmingCharacters(in: .whitespaces).count > 1
-                  && next.left == one.left + " · " + ui("left.next.tomorrow") && !next.left.contains(tomoTime(tomorrow, ui)),
+                  && next.left == one.left + " · " + TomoLineBreaks.spoken(ui("left.next.tomorrow"))
+                  && !next.left.contains(tomoTime(tomorrow, ui)),
                   "\(ui.id): resting, the header gives one time when Tomo's back as the level's next word counts "
                   + "(\"\(one.back)\", \"\(one.left)\"), says what a later one is (\"\(two.left)\"), and names the day "
                   + "alone for tomorrow's (\"\(next.left)\")")
         }
+        // What's left on one line (the Mac card's goal row, the iPhone header, Settings) is its phrases joined, without
+        // the pack's phrase marks, and awake it reads as resting does (#233). Some pack marks them, so this can fail.
+        var shown: [String] = [], marked = false
+        for ui in TomoLanguages.shared.learners {
+            for left in [TomoProgress.Left(words: 9, nextAt: nil), .init(words: 9, nextAt: later), .init(words: 1, nextAt: tomorrow),
+                         .init(words: 0, nextAt: nil)] {
+                for (level, last) in [(62, false), (63, true)] {
+                    let parts = whatsLeftParts(left, level: level, last: last, ui)
+                    let line = whatsLeft(left, level: level, last: last, ui)
+                    marked = marked || parts.contains(where: TomoLineBreaks.isMarked)
+                    let bare = !line.contains { [TomoLineBreaks.join, TomoLineBreaks.phraseBreak, TomoLineBreaks.keep].contains($0) }
+                    if line != TomoLineBreaks.spoken(parts.joined(separator: " · ")) || !bare || TomoLineBreaks.isMarked(line) {
+                        shown.append("\(ui.id) \"\(line)\"")
+                    }
+                }
+            }
+            let awake = whatsLeft(.init(words: 9, nextAt: later), level: 62, last: false, ui)
+            let resting = restLines(back: back, .init(words: 9, nextAt: later), level: 62, last: false, ui).left
+            if awake != resting { shown.append("\(ui.id) awake \"\(awake)\", resting \"\(resting)\"") }
+        }
+        check(marked && shown.isEmpty,
+              "what's left on one line shows none of the pack's phrase marks, in every ui pack, awake as resting: "
+              + (shown.isEmpty ? "none shows" : shown.prefix(4).joined(separator: ", ")))
         // The iPhone header (TomoPhoneView), from the numbers its view draws with (TomoPhoneHeader): what's left at
         // its size, grown by Dynamic Type to the cap, between the margins on the narrowest iPhone (an SE, 375 pt),
         // less the flag and the label's gap (about 1.6 em).
@@ -1466,7 +1516,7 @@ extension TomoGame {
     }
 
     /// A time on Tomo's clock that's `hour`:`minute` on the wall clock, `days` from today.
-    private static func wallDate(hour: Int, minute: Int, days: Int = 0) -> Date {
+    static func wallDate(hour: Int, minute: Int, days: Int = 0) -> Date {
         let cal = Calendar.current
         let day = cal.date(byAdding: .day, value: days, to: Date()) ?? Date()
         let wall = cal.date(bySettingHour: hour, minute: minute, second: 0, of: day) ?? day
@@ -1498,12 +1548,18 @@ public enum TomoPhoneHeader {
 
 /// "Back at 10:12" (`key`, with `{time}`), or the `key.now` variant when there's no time to give. A time on
 /// another day uses the `key.later` variant if the language has one ("Back tomorrow, 4:00 AM", not "at tomorrow").
+/// One line, without the pack's phrase marks; `marked` keeps them, for a view that wraps between phrases (#233).
 @MainActor public func timeText(_ key: String, until: Date?, _ ui: LearnerPack,
-                                hourCycle: Locale.HourCycle = Locale.current.hourCycle) -> String {
-    guard let until else { return ui("\(key).now") }
-    let later = "\(key).later"
-    let today = Calendar.current.isDateInToday(wallClock(until)) || ui.strings[later] == nil
-    return ui(today ? key : later, ["time": tomoTime(until, ui, hourCycle: hourCycle)])
+                                hourCycle: Locale.HourCycle = Locale.current.hourCycle, marked: Bool = false) -> String {
+    let line: String
+    if let until {
+        let later = "\(key).later"
+        let today = Calendar.current.isDateInToday(wallClock(until)) || ui.strings[later] == nil
+        line = ui(today ? key : later, ["time": tomoTime(until, ui, hourCycle: hourCycle)])
+    } else {
+        line = ui("\(key).now")
+    }
+    return marked ? line : TomoLineBreaks.spoken(line)
 }
 
 /// The locale every time of day Tomo shows is written in: the learner's language, on the person's own 12- or 24-hour

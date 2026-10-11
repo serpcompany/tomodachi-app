@@ -397,11 +397,13 @@ struct TomoWordFlow: View {
     let text: String
     let spacing: CGFloat
     let lineSpacing: CGFloat
+    /// A word too long for its line shrinks this far at most.
+    static let minScale: CGFloat = 0.5
 
     var body: some View {
         TomoFlowLayout(spacing: spacing, lineSpacing: lineSpacing) {
             ForEach(Array(text.split(separator: " ").enumerated()), id: \.offset) { _, word in
-                Text(word).lineLimit(1).minimumScaleFactor(0.5)
+                Text(word).lineLimit(1).minimumScaleFactor(Self.minScale)
             }
         }
     }

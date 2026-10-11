@@ -89,6 +89,14 @@ English is for learners who speak Japanese, so every English word needs a Japane
   breaks (`TomoLineBreaks`). A step's heading is its `onboarding.<step>.title`, drawn by `title`: the self-test finds
   every one in the packs and checks that each phrase fits an iPhone SE's line at the heading's size, so none breaks
   inside a word.
+- **The Tomo screen's lines and the Today line mark their phrases the same way** (「今日は まだ これから」, #233).
+  Where a phrase starts or ends with a number or a time, the mark is a zero-width space (`\u200b`, as in
+  「{needed}語中\u200b{known}語わかる」), and a number stays with its word through a no-break space (`Lv\u00a0{next}`).
+  A line that never wraps (the card, the iPhone header, the Lock Screen) shows them without the marks
+  (`TomoGame.whatsLeft`, `timeText`, checked by `restLinesSelfTest`). The Tomo screen's days line has a marked key of
+  its own (`growth.days`), since the diary and the postcards draw `words.days` as it is. The self-test
+  (`TomoLargeTextCheck`) checks that every phrase fits an iPhone SE at the largest text, that Play with Tomo breaks only
+  between its phrases at every accessibility size, and that every word Tomo says fits its Words row.
 - **Times of day are in the learner language, on the device's 12- or 24-hour clock** (`tomoClockLocale`):
   a language alone would bring its own clock (English 12-hour, Japanese 24-hour), whatever the learner set.
   Every one goes through it (`tomoTime` for a line).

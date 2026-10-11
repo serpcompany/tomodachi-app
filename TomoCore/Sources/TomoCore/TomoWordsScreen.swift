@@ -91,6 +91,8 @@ public struct TomoWordsScreen: View {
     /// The space between a reading's words, which grows with its text.
     @ScaledMetric(relativeTo: .caption) private var readingSpace: CGFloat = 3
     @ScaledMetric(relativeTo: .callout) private var meaningSpace: CGFloat = 4
+    /// The word's size, which grows with Dynamic Type as body text does, up to `sayMax` (#213).
+    @ScaledMetric(relativeTo: .body) private var saySize: CGFloat = Self.sayBase
 
     /// Opens the list at `level`: Words opens, or Tomo's level changes.
     private func land(_ level: Int, _ proxy: ScrollViewProxy) {
@@ -201,7 +203,7 @@ public struct TomoWordsScreen: View {
                 // The word and its reading on one line, or the reading under the word when both don't fit. Either
                 // wraps only at its spaces, and a word too long for the line on its own shrinks to fit: nothing
                 // breaks mid-word ("イナイイ / ナイバー！") or ends in "…".
-                let say = Font.system(size: 15, weight: .semibold)
+                let say = Font.system(size: min(saySize, Self.sayMax), weight: .semibold)
                 ViewThatFits(in: .horizontal) {
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
                         Text(w.say).font(say).fixedSize()
@@ -216,9 +218,13 @@ public struct TomoWordsScreen: View {
                         }
                     }
                 }
-                // The meaning wraps at its spaces too; only a word longer than the line breaks inside.
+                // The meaning wraps at its spaces too. A word longer than the line shrinks a little (to 0.75:
+                // "congratulations!" at the largest text on an SE) and only one longer still breaks inside, as a run of
+                // Japanese with no spaces may (#213).
                 TomoFlowLayout(spacing: meaningSpace, lineSpacing: 0) {
-                    ForEach(Array(w.meaning.split(separator: " ").enumerated()), id: \.offset) { _, word in Text(word) }
+                    ForEach(Array(w.meaning.split(separator: " ").enumerated()), id: \.offset) { _, word in
+                        TomoPhrase(text: String(word))
+                    }
                 }
                 .font(.callout).foregroundStyle(.secondary)
                 .accessibilityElement(children: .ignore).accessibilityLabel(w.meaning)
@@ -235,6 +241,19 @@ public struct TomoWordsScreen: View {
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("words.word.\(id)")
     }
+
+    /// The word's size at the default text size: on the iPhone, body text's (17 pt), so it stays bigger than its
+    /// meaning (callout) at every size; on the Mac, which has no Dynamic Type, 15 pt as before.
+    #if os(iOS)
+    static let sayBase: CGFloat = 17
+    #else
+    static let sayBase: CGFloat = 15
+    #endif
+
+    /// The word grows no bigger than this: the meaning's own size at the largest text (callout, 51 pt), so the word
+    /// keeps up with it, and the longest word in any pack still fits an iPhone SE's row at `TomoWordFlow.minScale`
+    /// (`TomoLargeTextCheck`).
+    static let sayMax: CGFloat = 51
 
     /// A word's stage, and when it's due.
     private func stage(_ item: TomoStore.ItemRow?, locked: Bool, alignment: HorizontalAlignment) -> some View {

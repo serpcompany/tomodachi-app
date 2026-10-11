@@ -69,6 +69,28 @@ final class TomodachiUITests: XCTestCase {
 
     private var tomo: XCUIElement { app.descendants(matching: .any)["tomo"] }
 
+    /// The largest text size (AX5), as launch arguments.
+    private let largestText = ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+
+    /// What on the screen is wider than the phone, if anything: a text, button, slider or segmented control past
+    /// either edge, scrolled out of sight too, but not in a row that scrolls sideways: Together's earlier postcards,
+    /// in its scrolling screen, or `sideways` (Words' stage chips, over its list).
+    private func wider(sideways: Set<String> = []) throws -> String? {
+        let window = app.windows.firstMatch.frame
+        var wider: [String] = []
+        func look(_ e: XCUIElementSnapshot, scrolls: Int) {
+            let f = e.frame
+            if [.staticText, .button, .slider, .segmentedControl].contains(e.elementType),
+               f.minX < window.minX - 0.5 || f.maxX > window.maxX + 0.5 {
+                wider.append("'\(e.label)' at x \(Int(f.minX))…\(Int(f.maxX))")
+            }
+            let inner = scrolls + (e.elementType == .scrollView ? 1 : 0)
+            if inner < 2, !sideways.contains(e.identifier) { e.children.forEach { look($0, scrolls: inner) } }
+        }
+        look(try app.snapshot(), scrolls: 0)
+        return wider.isEmpty ? nil : "\(wider.count) are, " + wider.prefix(6).joined(separator: ", ")
+    }
+
     // MARK: Journeys
 
     /// Launch: a brand-new Tomo opens on the play screen, alive, at Lv 1, asking its first word.
@@ -119,25 +141,9 @@ final class TomodachiUITests: XCTestCase {
     /// wrap, made the whole screen wider, cutting every line at both edges. Then the menu, on Since we met (the longest
     /// range): it changes the garden, and its label is whole (the stock menu picker wrapped it and cut both lines).
     func testTogetherFitsTheLargestText() throws {
-        launch(TomoSeed.levelOneJustLearned(), tab: "together",
-               arguments: ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])
+        launch(TomoSeed.levelOneJustLearned(), tab: "together", arguments: largestText)
         XCTAssertTrue(app.staticTexts[ui("garden.title")].waitForExistence(timeout: 20), "the word garden")
         let window = app.windows.firstMatch.frame
-        // Everything on the screen, scrolled out of sight too, but not a row that scrolls sideways (earlier postcards).
-        func wider() throws -> String? {
-            var wider: [String] = []
-            func look(_ e: XCUIElementSnapshot, scrolls: Int) {
-                let f = e.frame
-                if [.staticText, .button, .slider, .segmentedControl].contains(e.elementType),
-                   f.minX < window.minX - 0.5 || f.maxX > window.maxX + 0.5 {
-                    wider.append("'\(e.label)' at x \(Int(f.minX))…\(Int(f.maxX))")
-                }
-                let inner = scrolls + (e.elementType == .scrollView ? 1 : 0)
-                if inner < 2 { e.children.forEach { look($0, scrolls: inner) } }
-            }
-            look(try app.snapshot(), scrolls: 0)
-            return wider.isEmpty ? nil : "\(wider.count) are, " + wider.prefix(6).joined(separator: ", ")
-        }
         let first = try wider()
         XCTAssertNil(first, "nothing is wider than the phone (0…\(Int(window.maxX))): \(first ?? "")")
         XCTAssertFalse(app.segmentedControls.firstMatch.exists, "the range picker is a menu, not a segmented control")
@@ -176,6 +182,28 @@ final class TomodachiUITests: XCTestCase {
         }
         let after = try wider()
         XCTAssertNil(after, "on Since we met too, nothing is wider than the phone: \(after ?? "")")
+    }
+
+    /// Tomo and Words at the largest text (AX5, #213, #233), in one launch: nothing on either screen is wider than the
+    /// phone. On Tomo, the age beside or over the level, the lines and the play button with its icon beside it; on
+    /// Words at Lv 154, each word at its largest beside its picture, over meanings as long as "congratulations!".
+    /// Every word and phrase in every pack is `TomoLargeTextCheck`'s; this is the screens' own layout.
+    func testTomoAndWordsFitTheLargestText() throws {
+        launch(TomoSeed.atLevel(154), tab: "tomo", arguments: largestText)
+        XCTAssertTrue(app.staticTexts[ui("level", ["n": "154"])].waitForExistence(timeout: 20), "Tomo at Lv 154")
+        let window = app.windows.firstMatch.frame
+        let onTomo = try wider()
+        XCTAssertNil(onTomo, "on Tomo, nothing is wider than the phone (0…\(Int(window.maxX))): \(onTomo ?? "")")
+        // The list makes its rows as they scroll in: down to the play button, under Tomo's lines.
+        let play = app.buttons[ui("tomo.play")]
+        for _ in 0..<6 where !(play.exists && play.isHittable) { app.swipeUp() }
+        XCTAssertTrue(play.exists && play.isHittable, "Play with Tomo, scrolled to")
+        let toPlay = try wider()
+        XCTAssertNil(toPlay, "down to Play with Tomo, nothing is wider than the phone: \(toPlay ?? "")")
+        app.tabBars.buttons[ui("screen.words")].tap()
+        expectWordsAtLevel(154)
+        let onWords = try wider(sideways: ["words.stages"])
+        XCTAssertNil(onWords, "on Words at Lv 154, nothing is wider than the phone (0…\(Int(window.maxX))): \(onWords ?? "")")
     }
 
     /// Words opens at Tomo's level (#193): the level's header and its first word show under the stage chips. The rows

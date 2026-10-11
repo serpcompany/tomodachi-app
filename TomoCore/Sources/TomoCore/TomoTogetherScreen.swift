@@ -490,41 +490,81 @@ public struct TomoTogetherScreen: View {
     }
 }
 
-/// The garden's summary line, and the Today line: one part wraps like a sentence; several are phrases ("17 misses",
-/// "10月5日〜10月11日", "5 days in a row") joined by the list separator, which wrap between phrases and never inside
-/// one, so a number stays with its unit and a date stays whole. Each is a `TomoPhrase`, keeping the separator on its
-/// last word.
-private struct TomoPhrases: View {
+/// The garden's summary line, the Today line and the Tomo screen's lines: one part wraps like a sentence; several are
+/// phrases ("17 misses", "10月5日〜10月11日", "5 days in a row") joined by the list separator, which wrap between phrases
+/// and never inside one, so a number stays with its unit and a date stays whole. Each is a `TomoPhrase`, keeping the
+/// separator on its last word. A part that marks its own phrases (`TomoLineBreaks`: 「次の1語は 明日から」) is a
+/// `TomoPhrase` alone too, so it wraps only there (#233).
+struct TomoPhrases: View {
     let parts: [String]
     let separator: String
+    /// How far a phrase shrinks before it wraps (`TomoPhrase`).
+    var scale: CGFloat = 0.75
 
     var body: some View {
         if parts.count < 2 {
-            Text(parts.first ?? "").fixedSize(horizontal: false, vertical: true)
+            let part = parts.first ?? ""
+            if TomoLineBreaks.isMarked(part) { TomoPhrase(text: part, scale: scale) }
+            else { Text(part).fixedSize(horizontal: false, vertical: true) }
         } else {
             TomoChipFlow(spacing: 4, lineSpacing: 1) {
-                ForEach(Array(parts.enumerated()), id: \.offset) { i, part in
-                    // The separator ends its line, never starts the next or stands alone
-                    let mark = separator.trimmingCharacters(in: .whitespaces)
-                    let phrase = i < parts.count - 1
-                        ? part + (separator.first?.isWhitespace == true ? "\u{00A0}" : "") + mark : part
-                    TomoPhrase(text: phrase)
+                ForEach(Array(Self.drawn(parts, separator: separator).enumerated()), id: \.offset) { _, phrase in
+                    TomoPhrase(text: phrase, scale: scale)
                 }
             }
             .accessibilityElement(children: .combine)
         }
     }
+
+    /// The phrases as they're drawn: each but the last ends with the separator, kept on its last word ("12 answers ·"),
+    /// so the separator ends its line, never starts the next or stands alone. `TomoLargeTextCheck` measures these.
+    static func drawn(_ parts: [String], separator: String) -> [String] {
+        let mark = separator.trimmingCharacters(in: .whitespaces)
+        let joint = (separator.first?.isWhitespace == true ? "\u{00A0}" : "") + mark
+        return parts.enumerated().map { i, part in i < parts.count - 1 ? part + joint : part }
+    }
 }
 
-/// One phrase on one line. Too wide for a whole line, it shrinks a little (to 0.75); only one wider still (the
-/// iPhone's largest text) wraps inside itself rather than being cut (#197).
-private struct TomoPhrase: View {
+/// One phrase on one line. Too wide for a whole line, it shrinks a little (to `scale`, 0.75); only one wider still (the
+/// iPhone's largest text) wraps: between the phrases it marks (`TomoLineBreaks`), each on a line of its own shrinking a
+/// little if it must, so 「次の1語は / 明日から」 never breaks inside a word (#233); one with no marks, inside itself
+/// rather than being cut (#197).
+struct TomoPhrase: View {
     let text: String
+    var scale: CGFloat = 0.75
+    @Environment(\.multilineTextAlignment) private var alignment
+
+    var body: some View {
+        let line = TomoLineBreaks.spoken(text)   // on one line, a mark takes no room
+        ViewThatFits(in: .horizontal) {
+            Text(line).lineLimit(1)
+            TomoShrinkable(scale: scale) { Text(line).lineLimit(1).minimumScaleFactor(scale) }
+            if TomoLineBreaks.isMarked(text) {
+                TomoChipFlow(spacing: 0, lineSpacing: 1, centered: alignment == .center) {
+                    ForEach(Array(TomoLineBreaks.phrases(text).enumerated()), id: \.offset) { _, phrase in
+                        TomoOneLine(text: phrase, scale: scale)
+                    }
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(line)
+                .accessibilityAddTraits(.isStaticText)
+            } else {
+                Text(text).fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+}
+
+/// One of a phrase's marked phrases: on one line, shrinking as far as `scale` to fit; wider still, it wraps inside
+/// itself rather than being cut.
+private struct TomoOneLine: View {
+    let text: String
+    let scale: CGFloat
 
     var body: some View {
         ViewThatFits(in: .horizontal) {
             Text(text).lineLimit(1)
-            TomoShrinkable(scale: 0.75) { Text(text).lineLimit(1).minimumScaleFactor(0.75) }
+            TomoShrinkable(scale: scale) { Text(text).lineLimit(1).minimumScaleFactor(scale) }
             Text(text).fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -532,7 +572,7 @@ private struct TomoPhrase: View {
 
 /// Its one-line text, offered as `scale` of its width: `ViewThatFits` picks it while the text, shrunk that far
 /// (`minimumScaleFactor`), still fits the line, and it shrinks into the width it's given.
-private struct TomoShrinkable: Layout {
+struct TomoShrinkable: Layout {
     let scale: CGFloat
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
@@ -591,7 +631,6 @@ private struct TomoPostcardMini: View {
 public struct TomoTodayLine: View {
     let parts: [String]
     let separator: String
-    @Environment(\.dynamicTypeSize) private var typeSize
 
     /// Its phrases ("22 answers", "5 days in a row", `TomoStats.todayParts`), wrapping between them and never inside
     /// one, as the garden's summary does (`TomoPhrases`).
@@ -601,18 +640,28 @@ public struct TomoTodayLine: View {
     }
 
     public var body: some View {
-        let sun = Image(systemName: "sun.max.fill").foregroundStyle(.orange)
-        if typeSize.isAccessibilitySize {
-            // The sun beside a column of phrases. In a list row (the Tomo screen) at these sizes, a label puts its icon
-            // in the text's first line and indents only that line, which indented each phrase's first line (#216).
-            HStack(alignment: .firstTextBaseline, spacing: 10) { sun; line }
-        } else {
-            Label { line } icon: { sun }
-        }
+        TomoPhraseLabel(parts: parts, separator: separator) { Image(systemName: "sun.max.fill").foregroundStyle(.orange) }
     }
+}
 
-    @ViewBuilder private var line: some View {
-        if parts.count < 2 { Text(parts.first ?? "") } else { TomoPhrases(parts: parts, separator: separator) }
+/// Phrases (`TomoPhrases`) with an icon: the Today line's sun, the Tomo screen's flag and clock. At the accessibility
+/// sizes, the icon beside a column of phrases. In a list row (the Tomo screen) at these sizes, a label puts its icon
+/// in the text's first line and indents only that line, which indented each phrase's first line (#216).
+struct TomoPhraseLabel<Icon: View>: View {
+    let parts: [String]
+    let separator: String
+    var scale: CGFloat = 0.75
+    @ViewBuilder let icon: Icon
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    var body: some View {
+        let phrases = TomoPhrases(parts: parts, separator: separator, scale: scale)
+        if typeSize.isAccessibilitySize {
+            // VoiceOver reads the phrases alone, as it reads a label by its title (and the play button's icon).
+            HStack(alignment: .firstTextBaseline, spacing: 10) { icon.accessibilityHidden(true); phrases }
+        } else {
+            Label { phrases } icon: { icon }
+        }
     }
 }
 

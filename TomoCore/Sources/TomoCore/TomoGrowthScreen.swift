@@ -10,6 +10,7 @@ import SwiftUI
 public struct TomoGrowthScreen: View {
     @ObservedObject var game = TomoGame.shared
     @ObservedObject var lang = TomoLanguages.shared
+    @Environment(\.dynamicTypeSize) private var typeSize
     private let play: (() -> Void)?
     private let together: (() -> Void)?
 
@@ -49,7 +50,7 @@ public struct TomoGrowthScreen: View {
                     // window is behind another (a fixed white vanished there in light mode, #195). The iPhone's is
                     // always teal, and its Form would tint the icon green.
                     Button(action: play) {
-                        Label(lang.learner("tomo.play"), systemImage: "play.fill")
+                        playLabel
                             .font(.body.weight(.semibold))
                             #if os(iOS)
                             .foregroundStyle(.white)
@@ -93,19 +94,51 @@ public struct TomoGrowthScreen: View {
         .formStyle(.grouped)
     }
 
+    /// "Play with Tomo": one line, or two wrapped between its phrases (「Tomoと / あそぶ」, never inside "Tomo",
+    /// #233), a little smaller if a phrase is wider than the button. At the accessibility sizes the icon sits beside
+    /// the text, since a label's icon in the text's first line left "Tomo" too little room. `TomoLargeTextCheck` lays
+    /// out `playTitle` with `playLines` and `playScale` at each of those sizes.
+    @ViewBuilder private var playLabel: some View {
+        let text = lang.learner("tomo.play")
+        let title = Text(Self.playTitle(text)).lineLimit(Self.playLines).minimumScaleFactor(Self.playScale)
+            .accessibilityLabel(TomoLineBreaks.spoken(text))
+        if typeSize.isAccessibilitySize {
+            HStack(alignment: .firstTextBaseline, spacing: 8) { Image(systemName: "play.fill").accessibilityHidden(true); title }
+        } else {
+            Label { title } icon: { Image(systemName: "play.fill") }
+        }
+    }
+
+    /// The play button's text as it's drawn: breaking only between the phrases its pack marks (`TomoLineBreaks`).
+    static func playTitle(_ text: String) -> String { TomoLineBreaks.wrapping(text) }
+    /// The play button's lines at most, and how far its text shrinks to fit them.
+    static let playLines = 2, playScale: CGFloat = 0.6
+
     // MARK: Tomo, its age and level, the bar and what's left
+
+    /// How far a phrase of the hero's lines shrinks before it wraps: a little more than elsewhere (0.75), as the first
+    /// run's headings do, so 「午後10:58から」 keeps its line beside the flag at the largest text on an SE.
+    static let lineScale: CGFloat = 0.7
 
     @ViewBuilder private var hero: some View {
         #if os(iOS)
         // The iPhone's Tomo tab: Tomo big, over its numbers.
         VStack(spacing: 10) {
             TomoLiveAvatar(size: 132, material: .own)
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(game.age).font(.system(size: 28, weight: .bold, design: .rounded))
-                Text(lang.learner("level", ["n": "\(game.level)"])).font(.title3.weight(.semibold))
-                    .foregroundStyle(.secondary)
+            // The age grows with Dynamic Type as the level does, so it stays the bigger of the two (#233); side by
+            // side, or the level under the age when both don't fit.
+            let age = Text(game.age).font(.system(.title, design: .rounded, weight: .bold))
+            let level = Text(lang.learner("level", ["n": "\(game.level)"])).font(.title3.weight(.semibold))
+                .foregroundStyle(.secondary)
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) { age; level }
+                VStack(spacing: 2) { age; level }
             }
-            Text(lang.learner("words.days", ["n": "\(progress.daysTogether)"])).font(.callout).foregroundStyle(.secondary)
+            // One line, a little smaller when it must be, or two between its phrases (「いっしょに / 1234日目」), at
+            // the largest text on an SE in Japanese. Its own key marks them; the diary and postcards use `words.days`.
+            TomoPhrase(text: lang.learner("growth.days", ["n": "\(progress.daysTogether)"]), scale: Self.lineScale)
+                .multilineTextAlignment(.center)
+                .font(.callout).foregroundStyle(.secondary)
             stats.padding(.top, 4)
         }
         .frame(maxWidth: .infinity)
@@ -128,25 +161,30 @@ public struct TomoGrowthScreen: View {
     }
 
     /// The bar (the card's bar: the goal at its end fills only when the level is done), the words known, what's left
-    /// and when the next word is ready; when Tomo rests, when it's back.
+    /// and when the next word is ready; when Tomo rests, when it's back. Each line wraps between its phrases and never
+    /// inside one ("Lv 15", 「あと9語」), so the largest text never splits a number from its word (#233).
     private var stats: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        let sep = lang.learner("list.separator")
+        let known = progress.isLastLevel
+            ? lang.learner("words.lastLevel", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)"])
+            : lang.learner("words.toNext", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)",
+                                            "next": "\(game.level + 1)"])
+        let left = game.leftPhrases
+        return VStack(alignment: .leading, spacing: 6) {
             TomoGrowthBar(progress: game.levelProgress, standing: game.levelStanding,
                           colors: [.teal.opacity(0.7), .teal], empty: Color.secondary.opacity(0.18),
                           outline: Color.secondary.opacity(0.4))
                 .frame(height: 6)
                 .padding(.vertical, 2)
-            Text(progress.isLastLevel
-                 ? lang.learner("words.lastLevel", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)"])
-                 : lang.learner("words.toNext", ["known": "\(game.levelKnown)", "needed": "\(game.levelNeeded)",
-                                                 "next": "\(game.level + 1)"]))
+            TomoPhrases(parts: known.components(separatedBy: sep), separator: sep, scale: Self.lineScale)
                 .font(.callout).foregroundStyle(.secondary)
-            Label { Text(game.phase == .resting ? game.restLines.left : game.whatsLeft()) } icon: {
+            TomoPhraseLabel(parts: left.left, separator: sep, scale: Self.lineScale) {
                 Image(systemName: "flag.fill").foregroundStyle(.teal)
             }
             .font(.callout.weight(.medium))
-            if game.phase == .resting {
-                Label(game.restLines.back, systemImage: "clock").font(.callout).foregroundStyle(.secondary)
+            if let back = left.back {
+                TomoPhraseLabel(parts: [back], separator: sep, scale: Self.lineScale) { Image(systemName: "clock") }
+                    .font(.callout).foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

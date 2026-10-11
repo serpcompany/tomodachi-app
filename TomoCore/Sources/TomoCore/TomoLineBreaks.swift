@@ -4,7 +4,10 @@ import Foundation
 /// characters, even inside a word ("生ま / れます"). A heading in the packs marks its phrases with a space between two
 /// Japanese characters ("ことばのほうから 来てもらおう"): drawn through `phrased`, it wraps only there and the space
 /// isn't drawn, so a heading too long for its lines shrinks (its `minimumScaleFactor`) instead of breaking a word.
-/// English and other spaced text wraps at its spaces, as before.
+/// English and other spaced text wraps at its spaces, as before. The Tomo screen's lines and the Today line mark theirs
+/// the same way (#233). Where a phrase starts or ends with a number or a time ("{known}", "{time}"), a space there
+/// wouldn't be between two Japanese characters, so the pack marks it with a zero-width space ("\u200b"), which never
+/// shows; and a number stays with its word through a no-break space ("Lv\u00a0{next}").
 enum TomoLineBreaks {
     /// Lets nothing break on either side of it (Unicode's word joiner).
     static let join: Character = "\u{2060}"
@@ -25,15 +28,28 @@ enum TomoLineBreaks {
                 continue
             }
             out.append(c[i])
-            if let after, !c[i].isWhitespace, !after.isWhitespace, isWide(c[i]) || isWide(after) { out.append(join) }
+            if let after, !c[i].isWhitespace, !after.isWhitespace, c[i] != phraseBreak, after != phraseBreak,
+               isWide(c[i]) || isWide(after) { out.append(join) }
         }
         return out
     }
 
-    /// `s` as it reads, for VoiceOver: the phrase marks and the joins taken out.
+    /// `s` as it reads, for VoiceOver: the phrase marks and the joins taken out. Text that's always one line (the card,
+    /// the iPhone header, the Lock Screen) shows a marked line this way too (`timeText`, `TomoGame.whatsLeft`).
     static func spoken(_ s: String) -> String {
         String(phrased(s).filter { $0 != join && $0 != phraseBreak }.map { $0 == keep ? " " : $0 })
     }
+
+    /// Whether `s` marks its phrases: a space between two Japanese characters, or a zero-width space.
+    static func isMarked(_ s: String) -> Bool {
+        let c = Array(s)
+        return c.contains(phraseBreak)
+            || c.indices.dropFirst().dropLast().contains { c[$0] == " " && isWide(c[$0 - 1]) && isWide(c[$0 + 1]) }
+    }
+
+    /// A phrase as a view that wraps draws it (#233): `phrased` when it marks its phrases, so 「次の1語は 明日から」
+    /// wraps only between them; as it is when it doesn't, so a sentence wraps as a sentence does.
+    static func wrapping(_ s: String) -> String { isMarked(s) ? phrased(s) : s }
 
     /// The pieces `phrased` may wrap between, as they read.
     static func phrases(_ s: String) -> [String] {
