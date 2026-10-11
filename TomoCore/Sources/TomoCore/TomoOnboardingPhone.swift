@@ -89,7 +89,7 @@ extension TomoOnboardingView {
 
     var phoneVisitsPage: some View {
         VStack(alignment: .leading, spacing: 12) {
-            title(ui("onboarding.visits.title"))
+            title("onboarding.visits.title")
             bodyText(ui("onboarding.visits.phone.body"))
             VStack(alignment: .leading, spacing: 10) {
                 row(icon: "bell.badge.fill", ui("onboarding.visits.phone.notify"))
@@ -103,7 +103,7 @@ extension TomoOnboardingView {
 
     var phoneRhythmPage: some View {
         VStack(alignment: .leading, spacing: 8) {
-            title(ui("onboarding.rhythm.title"))
+            title("onboarding.rhythm.title")
             bodyText(ui("onboarding.rhythm.phone.body"))
             VStack(spacing: 6) {
                 ForEach(TomoReminders.choices.indices, id: \.self) { i in
@@ -149,7 +149,7 @@ extension TomoOnboardingView {
     var quietPage: some View {
         let on = model.reminders.hasQuietHours
         return VStack(alignment: .leading, spacing: 12) {
-            title(ui("onboarding.quiet.title"))
+            title("onboarding.quiet.title")
             bodyText(ui(isPhone ? "onboarding.quiet.body" : "onboarding.quiet.body.mac"))
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
@@ -196,14 +196,15 @@ extension TomoOnboardingView {
     var notifyPage: some View {
         let s = model.reminders
         return VStack(alignment: .leading, spacing: 12) {
-            title(ui("onboarding.notify.title"))
+            title("onboarding.notify.title")
             bodyText(ui("onboarding.notify.body", ["every": ui("reminders.phrase." + TomoReminders.key(for: s.every))]))
             VStack(alignment: .leading, spacing: 10) {
                 if s.hasQuietHours {
                     row(icon: "moon.zzz.fill", ui("onboarding.notify.quiet", ["from": TomoReminders.clock(s.quietFrom),
                                                                              "until": TomoReminders.clock(s.quietUntil)]))
                 }
-                row(icon: "hand.raised.fill", ui("onboarding.notify.guilt"))
+                // Only Tomo's reminders come; nothing about streaks or guilt (#153: the rule is no growing to-do count)
+                row(icon: "hand.raised.fill", ui("onboarding.notify.onlyTomo"))
             }
             .padding(.top, 2)
         }
@@ -213,7 +214,7 @@ extension TomoOnboardingView {
     var widgetPage: some View {
         let tab = widgetTab == .lockScreen ? "lock" : "home"
         return VStack(alignment: .leading, spacing: 10) {
-            title(ui("onboarding.widget.title"))
+            title("onboarding.widget.title")
             HStack(spacing: 4) {
                 tabButton(ui("onboarding.widget.tab.lock"), .lockScreen)
                 tabButton(ui("onboarding.widget.tab.home"), .homeScreen)
@@ -254,7 +255,7 @@ extension TomoOnboardingView {
     /// build has no switch (`offersLogin`, #54): the card says it never opens at login.
     var loginPage: some View {
         VStack(alignment: .leading, spacing: 12) {
-            title(ui("onboarding.login.title"))
+            title("onboarding.login.title")
             bodyText(ui("onboarding.login.body"))
             Group {
                 if model.offersLogin {
@@ -285,7 +286,7 @@ extension TomoOnboardingView {
 
     var lockScreenPage: some View {
         VStack(alignment: .leading, spacing: 12) {
-            title(ui("onboarding.lock.title"))
+            title("onboarding.lock.title")
             bodyText(ui("onboarding.lock.body"))
         }
         .frame(maxWidth: .infinity, alignment: .leading)

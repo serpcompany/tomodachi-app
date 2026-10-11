@@ -167,11 +167,10 @@ extension TomoProgress {
         return out
     }
 
-    /// Days since Tomo hatched, counting today as day 1.
+    /// "Day N together" today: the day Tomo hatched is Day 1 (`TomoStats.dayTogether`, on Tomo's 4 am days).
     public var daysTogether: Int { daysTogether(at: TomoClock.now) }
 
-    /// Days since Tomo hatched at a time, counting that day as day 1 (a postcard's last day).
-    public func daysTogether(at t: Date) -> Int {
-        max(1, (Calendar.current.dateComponents([.day], from: metAt, to: t).day ?? 0) + 1)
-    }
+    /// "Day N together" on the day `t` belongs to (a diary page's day, a postcard's last day, a pillar mark's), by the
+    /// same rule as today's, so the diary's page for today always says what the Tomo screen does.
+    public func daysTogether(at t: Date) -> Int { TomoStats.dayTogether(at: t, met: metAt) }
 }
