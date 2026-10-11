@@ -371,12 +371,10 @@ public final class TomoSync {
     // MARK: Self-test (TOMO_SELFTEST=1) and the two-folder check (TOMO_SYNC_CHECK)
 
     /// The merge rules and the store's sync columns, in a temporary folder. No iCloud.
-    public static func selfTest() -> Bool {
-        var ok = true
-        func check(_ c: Bool, _ what: String) {
-            print((c ? "ok    " : "FAIL  ") + what)
-            if !c { ok = false }
-        }
+    public static func selfTest() -> Bool { TomoCheck.run(selfTest(_:)) }
+
+    /// The same checks, each reported to `check`: the self-test prints them, TomoCoreTests asserts them.
+    public static func selfTest(_ check: (Bool, String) -> Void) {
         let t0 = Date(timeIntervalSince1970: 1_800_000_000), never = Date(timeIntervalSince1970: 0)
         func day(_ n: Double) -> Date { t0.addingTimeInterval(n * 86400) }
         let mac = TomoState(metAt: day(0), level: 4, age: 1, resetAt: never)
@@ -408,7 +406,7 @@ public final class TomoSync {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("tomo-sync-selftest-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: dir) }
         guard let store = TomoStore(learner: "en", target: "ja", directory: dir) else {
-            check(false, "the store opens"); return false
+            check(false, "the store opens"); return
         }
         var heard: [TomoStore.Change.Kind] = []
         let listener = TomoStore.didChange
@@ -429,7 +427,6 @@ public final class TomoSync {
         check(heard.count == before && store.loadItems()["ja:wanwan"] == late, "what arrives is saved without echoing back")
         store.setCloudFields("tomo.en.ja", Data([1, 2, 3]))
         check(store.cloudFields("tomo.en.ja") == Data([1, 2, 3]), "CloudKit's record fields are kept")
-        return ok
     }
 
     /// Sync from a test folder (TOMO_SYNC_CHECK with TOMO_DATA_DIR and TOMO_SYNC=1, a Debug build: CloudKit's

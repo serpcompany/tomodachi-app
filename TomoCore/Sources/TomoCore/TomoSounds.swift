@@ -187,12 +187,10 @@ public final class TomoSounds {
     }
 
     /// For the self-test (TOMO_SELFTEST): every moment has a short, soft sound, lower for an older Tomo.
-    public static func selfTest() -> Bool {
-        var ok = true
-        func check(_ c: Bool, _ what: String) {
-            print((c ? "ok    " : "FAIL  ") + what)
-            if !c { ok = false }
-        }
+    public static func selfTest() -> Bool { TomoCheck.run(selfTest(_:)) }
+
+    /// The same checks, each reported to `check`: the self-test prints them, TomoCoreTests asserts them.
+    public static func selfTest(_ check: (Bool, String) -> Void) {
         func list(_ names: [String]) -> String { names.isEmpty ? "" : ": " + names.joined(separator: ", ") }
         var missing: [String] = [], loud: [String] = [], long: [String] = [], higher: [String] = []
         for e in Effect.allCases {
@@ -211,7 +209,6 @@ public final class TomoSounds {
         check(loud.isEmpty, "no sound peaks above -3 dBFS\(list(loud))")
         check(long.isEmpty, "sounds are short: a level-up or birthday 1.5 s, the rest 0.6 s\(list(long))")
         check(higher.isEmpty, "Tomo's sounds are lower at 6 than at 1\(list(higher))")
-        return ok
     }
 
     private static func write(_ b: AVAudioPCMBuffer, to url: URL) {

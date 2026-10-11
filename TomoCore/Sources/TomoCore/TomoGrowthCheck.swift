@@ -11,15 +11,9 @@ import Foundation
 // the first talking question. The runs print how many days each step took: the pacing table for #38.
 
 extension TomoProgress {
-    /// The pack walk, the evolution and the simulated learners. `check` prints each result.
-    static func growthSelfTest(_ check: (Bool, String) -> Void) {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("tomo-growth-\(UUID().uuidString)")
-        defer { try? FileManager.default.removeItem(at: dir) }
-        let savedOffset = TomoClock.offset, savedNew = newPerDayForChecks
-        defer { TomoClock.offset = savedOffset; TomoClock.stopped = nil; newPerDayForChecks = savedNew }
-        newPerDayForChecks = 10                        // the default, whatever the learner chose in Settings
-
-        packsSelfTest(check, in: dir)
+    /// Tomo's drawing: the evolution, its motion, touches, cue scripts, arrivals, material, hello, badges, particles
+    /// and dance, and the calendar.
+    static func characterSelfTest(_ check: (Bool, String) -> Void) {
         evolutionSelfTest(check)
         TomoBlob.motionSelfTest(check)
         TomoBlob.touchesSelfTest(check)
@@ -31,6 +25,17 @@ extension TomoProgress {
         TomoBlob.particleSelfTest(check)
         TomoBlob.danceSelfTest(check)
         TomoCalendar.selfTest(check)
+    }
+
+    /// The pack walk and the simulated learners, in a temporary folder on a stopped clock. `check` gets each result.
+    static func simulationSelfTest(_ check: (Bool, String) -> Void) {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("tomo-growth-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let savedOffset = TomoClock.offset, savedNew = newPerDayForChecks
+        defer { TomoClock.offset = savedOffset; TomoClock.stopped = nil; newPerDayForChecks = savedNew }
+        newPerDayForChecks = 10                        // the default, whatever the learner chose in Settings
+
+        packsSelfTest(check, in: dir)
         let lang = TomoLanguages.shared
         for pack in lang.targets {
             let learner = lang.learners.first { $0.id != pack.id } ?? lang.learner

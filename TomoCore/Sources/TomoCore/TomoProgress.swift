@@ -428,12 +428,20 @@ public final class TomoProgress {
     // MARK: Self-test (TOMO_SELFTEST=1)
 
     /// Checks the rules and the store in a temporary folder, prints each result, returns false on a failure.
-    public static func selfTest() -> Bool {
-        var ok = true
-        func check(_ c: Bool, _ what: String) {
-            print((c ? "ok    " : "FAIL  ") + what)
-            if !c { ok = false }
-        }
+    public static func selfTest() -> Bool { TomoCheck.run(selfTest(_:)) }
+
+    /// The same checks, each reported to `check`: the self-test prints them, TomoCoreTests asserts them. The word
+    /// stages and the store (`rulesSelfTest`), the stats (`TomoStats.selfTest`), Tomo's drawing and the calendar
+    /// (`characterSelfTest`), and the packs and the simulated learners (`simulationSelfTest`).
+    public static func selfTest(_ check: (Bool, String) -> Void) {
+        rulesSelfTest(check)
+        TomoStats.selfTest(check)
+        characterSelfTest(check)
+        simulationSelfTest(check)
+    }
+
+    /// The word stages, levels, the bar, free play and the store, in a temporary folder.
+    static func rulesSelfTest(_ check: (Bool, String) -> Void) {
         typealias S = TomoSRS
         check(S.next(after: 0, wrongTries: 2, hint: false) == 1, "a new item's first right answer → just heard (1)")
         check(S.next(after: 3, wrongTries: 0, hint: false) == 4, "right on time → up one")
@@ -450,7 +458,7 @@ public final class TomoProgress {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("tomo-selftest-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: dir) }
         guard let pack = TomoLanguages.shared.targets.first(where: { $0.id == "ja" }) else {
-            check(false, "the Japanese pack loads"); return false
+            check(false, "the Japanese pack loads"); return
         }
         let savedOffset = TomoClock.offset
         defer { TomoClock.offset = savedOffset }
@@ -607,8 +615,5 @@ public final class TomoProgress {
               && loaded.growthLog().last.map { $0.kind == "age" && $0.value == age20 } == true,
               "a Tomo saved at level \(lv20) as \(pack.ageLabel(1)) loads as \(pack.ageLabel(age20)), saved and logged")
 
-        TomoStats.selfTest(check)
-        growthSelfTest(check)
-        return ok
     }
 }

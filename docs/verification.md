@@ -2,27 +2,56 @@
 
 How to check a change to the demo app, and what evidence each kind of change needs. Tomo lives in the
 notch and test runs stay invisible, so computer-use can't drive it; debug environment variables do instead
-([debug-flags.md](debug-flags.md), with seeded progress). There's no macOS CI yet: CI runs only the repo checks, so
-the build, the self-test and the snapshots run locally.
+([debug-flags.md](debug-flags.md), with seeded progress). Automated tests run without a human (below): TomoCore's
+tests, and the iPhone's UI journeys on a simulator. macOS CI runs them, and builds both apps, once a PR is ready for
+review; the Mac's island checks and the snapshots run locally.
 
 ## Levels
 
 | Level | What to run | When |
 |---|---|---|
-| **Inner loop** | The incremental build (`xcodebuild … build` in [AGENTS.md](../AGENTS.md); `xcodegen` first only when files were added or removed). For growth rules, the self-test | While editing |
-| **Push** | `node .github/scripts/check-docs.mjs` and `node .github/scripts/check-swift-text.mjs` (CI runs both, plus the link check) | Before each push |
-| **Finish gate** | Build, self-test, repo checks, and the evidence below | Once, when the branch is done |
+| **Inner loop** | The incremental build (`xcodebuild … build` in [AGENTS.md](../AGENTS.md); `xcodegen` first only when files were added or removed). For rules, `swift test --filter <TestClass>` in `TomoCore` | While editing |
+| **Push** | `cd TomoCore && swift test` (about 30 s), `node .github/scripts/check-docs.mjs` and `node .github/scripts/check-swift-text.mjs` | Before each push |
+| **Finish gate** | Build, self-test (`TOMO_SELFTEST`, for the island), repo checks, the UI journeys a change touches, and the evidence below. CI on the final commit runs the Pull Request plan; without it, run that plan once locally | Once, when the branch is done |
 
 The self-test: `TOMO_SELFTEST=1 TOMO_DATA_DIR=$(mktemp -d) <app binary>` checks the word-stage, level,
 store, sync-merge and look rules, the island's (which screen, where, Esc, opening and closing, the peek; a visit offered as a peek runs on the game itself, about 3 s, and logs as one), the stats (a learner simulated for three weeks, against its own tally: `TomoStatsCheck.swift`), who sees the first run, when reminders
 come, and that every moment has a short, soft sound, lower for an older Tomo; it prints each
-check and quits (exit code 1 on a failure). A new growth rule gets a new check in `TomoProgress.selfTest`, a new
+check and quits (exit code 1 on a failure). A new growth rule gets a new check in `TomoProgress.rulesSelfTest`, a new
 merge rule one in `TomoSync.selfTest`, an island rule one in `TomoIslandSelfTest`. It also checks growth end to end
 (`TomoGrowthCheck.swift`, about 20 s): every level of every pack can be finished (enough words a round can ask,
 each item in one level, ages never going down, talking on the first 3さい level, the last level holding), and a
 perfect and a realistic learner, simulated on a stopped clock with the real rules, grow from the first word to the
 first talking question with nothing going backwards, every level-up and birthday logged and each birthday on the
 pack's age boundary. Each run prints a `pace` line: the days to Lv 2, 5 and 10 and to each birthday.
+
+## Automated tests
+
+- **TomoCore's tests** (`TomoCore/Tests/TomoCoreTests`, `cd TomoCore && swift test`, about 30 s): every rule
+  check as XCTest. Word stages, levels and the store; the stats against a simulated learner; every pack and the
+  simulated learners; Tomo's drawing, look and the calendar; sync merges; the first run; reminders; sounds; the
+  moment's light; a visit that peeks first. Each check is a function that reports to a `check` closure
+  (`TomoCheck.swift`): the tests fail with the check's own words, and `TOMO_SELFTEST=1` prints the same checks
+  plus the Mac's island rules (`TomoIslandSelfTest`, in the app). A new rule gets its check beside the others and
+  runs in both. The tests set `TOMO_DATA_DIR` to a fresh temporary folder before anything opens a store.
+- **The iPhone's UI journeys** (`ios-demo/Tomodachi/UITests`, XCUITest): launch, a picture round answered wrong
+  then right, the practice offer, Together, and a long press on Tomo showing its love. Each launches on a fresh
+  folder in the test runner's temporary folder, silent, in English, without the first run; progress a journey needs
+  is written there through TomoCore's own store (`TomoSeed`), and the text they look for comes from `ui.en.json`.
+- **Test plans** (`ios-demo/Tomodachi/TestPlans`): **Unit** is TomoCore's tests on the simulator; **Pull Request**
+  adds the UI journeys. Run them on a simulator of your own (create it, delete it after; never Simulator.app):
+
+  ```bash
+  xcrun simctl create tomo-tests com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro <an iOS runtime>
+  cd ios-demo/Tomodachi && xcodebuild test -scheme Tomodachi -testPlan PullRequest \
+    -destination 'platform=iOS Simulator,name=tomo-tests' -derivedDataPath ../build
+  ```
+
+  One journey: `-only-testing:TomodachiUITests/TomodachiUITests/testThePracticeOffer`. Unsigned, as CI builds:
+  add `CODE_SIGNING_ALLOWED=NO TOMO_ICLOUD_ENV=` (no iCloud: CloudKit stops an app without the entitlement).
+- **CI** (`.github/workflows/apple.yml`, GitHub's `xcode-27` runners, Xcode pinned in `.xcode-version`): `swift test`,
+  the Mac and iPhone apps built unsigned, and the Pull Request plan on a simulator of its own. Draft PRs skip it; a
+  PR's passing UI run leaves a receipt, so main doesn't run the same tree again. No secrets.
 
 ## Evidence a change needs
 

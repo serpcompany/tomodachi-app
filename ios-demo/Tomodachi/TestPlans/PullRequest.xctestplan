@@ -1,0 +1,36 @@
+{
+  "configurations": [
+    {
+      "id": "8B5E2E0A-55A1-4B0F-9C1E-6D2A0F7E5502",
+      "name": "Default",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {
+    "environmentVariableEntries": [
+      {
+        "key": "TOMO_HEADLESS",
+        "value": "1"
+      }
+    ],
+    "testTimeoutsEnabled": true,
+    "defaultTestExecutionTimeAllowance": 300
+  },
+  "testTargets": [
+    {
+      "target": {
+        "containerPath": "container:../../TomoCore",
+        "identifier": "TomoCoreTests",
+        "name": "TomoCoreTests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:Tomodachi.xcodeproj",
+        "identifier": "F0E1920F14D148FB561FB461",
+        "name": "TomodachiUITests"
+      }
+    }
+  ],
+  "version": 1
+}

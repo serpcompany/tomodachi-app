@@ -186,12 +186,10 @@ public enum TomoReminders {
     // MARK: Self-test (TOMO_SELFTEST=1)
 
     /// The scheduling rules on a fixed clock (Tokyo, so the test doesn't depend on the Mac's time zone).
-    @MainActor public static func selfTest() -> Bool {
-        var ok = true
-        func check(_ c: Bool, _ what: String) {
-            print((c ? "ok    " : "FAIL  ") + what)
-            if !c { ok = false }
-        }
+    @MainActor public static func selfTest() -> Bool { TomoCheck.run(selfTest(_:)) }
+
+    /// The same checks, each reported to `check`: the self-test prints them, TomoCoreTests asserts them.
+    @MainActor public static func selfTest(_ check: (Bool, String) -> Void) {
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = TimeZone(identifier: "Asia/Tokyo") ?? .current
         func at(_ day: Int, _ h: Int, _ m: Int = 0) -> Date {
@@ -252,7 +250,7 @@ public enum TomoReminders {
 
         // From real progress: right after a whole level is learned, the first reminder is when those words are due.
         guard let pack = TomoLanguages.shared.targets.first(where: { $0.id == "ja" }) else {
-            check(false, "the Japanese pack loads"); return false
+            check(false, "the Japanese pack loads"); return
         }
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("tomo-reminders-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: dir) }
@@ -264,7 +262,6 @@ public enum TomoReminders {
         let wait = after.due.min().map { $0.timeIntervalSince(TomoClock.now) } ?? 0
         check(after.newAt == nil && after.due.count == pack.levels[0].itemIDs.count && wait > 3600 && wait <= 2 * 3600,
               "a whole level learned: no new words until it levels up, the first due in \(Int(wait / 60)) min")
-        return ok
     }
 }
 
