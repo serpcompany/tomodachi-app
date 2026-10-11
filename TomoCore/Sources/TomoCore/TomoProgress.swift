@@ -1,6 +1,6 @@
 import Foundation
 
-// MARK: - How Tomo grows: word stages, levels and ages (issue #3, docs/concepts.md)
+// MARK: - How Tomo grows: word stages, levels and ages (issue #3, docs/growth.md)
 //
 // Word stages follow WaniKani's published rules, written as our own code with our own names:
 //   0 new · 1–4 just heard · 5–6 knows it · 7 good at it · 8 loves it · 9 forever (never asked again)

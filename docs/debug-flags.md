@@ -44,6 +44,19 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   from a `seed-progress.py --edge` folder.
 - `TOMO_AUTOREOPEN=<seconds>`: that long after Tomo first tucks back in, it opens once, the way a click on
   small Tomo does (free play), to see what the learner gets then (the resting card, or what counts now).
+- `TOMO_AUTOLOOKUP=<n>`: 1.5 s after Tomo first asks, the card of word n (from 0) in Tomo's line opens, as a
+  click on it would (`TomoLineView`), once a run. `TOMO_AUTOHINT=1` and `TOMO_AUTOEXPLAIN=<text>` (`-` for the
+  whole line) open the hint or Explain the same way, but only in the typed conversation, which is switched off
+  (`TomoGame.talkAsChoices`).
+- `TOMO_AI_PROVIDER=<anthropic|openai|gemini|openrouter|groq|ollama|custom>`, `TOMO_AI_MODEL`,
+  `TOMO_AI_BASE_URL`, `TOMO_AI_KEY`: the AI provider, over the AI page's and `OPENAI_API_KEY` or
+  `ANTHROPIC_API_KEY` (`TomoAI.config`). Debug builds only: Release builds have no AI.
+- `TOMO_GROW=step|level|birthday`: 3 s after launch, grows Tomo that much on a copy in memory and celebrates,
+  as the menu's Grow items do ([verification.md](verification.md)).
+- `TOMO_DUMP_MENU=<file>`: writes the main menu and the menu bar icon's menu, with their shortcuts, since a
+  headless run can't press them.
+- `TOMO_SYNC=1`: a test run (`TOMO_DATA_DIR`) syncs only with it; `TOMO_SYNC_CHECK=<step>` (`play:N`, `blind:N`,
+  `reset`, `show`) syncs that folder and quits, printing the Tomo ([verification.md](verification.md)).
 - `TOMO_STAGE=3 TOMO_AUTOCHAT="しごと してる|うん"`: a testing Tomo at that age, typing those answers. Testing
   ages run in memory; saved progress isn't touched.
 - `TOMO_TARGET=es`, `TOMO_LEARNER=ja`: the language pair.
@@ -57,6 +70,8 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   snow from 32 s, petals from 34 s, and dancing to music: its bounce from 36 s, the 盆踊り from 40 s), then quit. The
   sheet shows one Tomo at every age and with every face, then a crowd of other seeds. The sounds are
   `<effect>-age<N>.wav` for 1さい to 6さい, and `all-sounds.wav` (every effect at 1さい, in order).
+  `TOMO_ICON_BG="#top,#bottom"`: the iPhone icon's gradient for `TOMO_RENDER_ICON`, to try other backgrounds
+  (`#8FD3FF,#3E9BEA` otherwise).
 - `TOMO_SEED=<text>`: the seed Tomo's look is made from, in place of the saved Tomo's.
 - `TOMO_SHORTCUT=<saved JSON>`: the shortcut to play, whatever Settings says, without saving it (a test run never
   registers a hot key). `TOMO_SHORTCUT_PRESS=<seconds,…>`: the shortcut pressed at those times after launch.

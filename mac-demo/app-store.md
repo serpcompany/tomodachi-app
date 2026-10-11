@@ -1,7 +1,7 @@
 # Mac App Store listing (draft)
 
-The Mac App Store isn't set up yet. Testers get Developer ID betas ([README.md](README.md), "Beta builds for
-testers"). This is the listing written as if it were, so it's ready when the app is.
+The Mac App Store isn't set up yet. Testers get Developer ID betas
+([beta-builds.md](beta-builds.md)). This is the listing written as if it were, so it's ready when the app is.
 
 ## What isn't set up
 

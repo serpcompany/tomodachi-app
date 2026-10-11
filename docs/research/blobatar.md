@@ -8,7 +8,7 @@ them, and can it animate in the notch? ([#84](https://github.com/serpcompany/tom
 
 **Outcome:** the owner chose to replace the chick with the blob after all, keeping our own faces and
 moves, evolving at every birthday, and showing a fixed mascot on widgets
-([decisions.md](../decisions.md), 2026-10-07). The research below is as it was written.
+([decisions-2026-10-07.md](../decisions-2026-10-07.md)). The research below is as it was written.
 
 Blobatar can run in the notch technically, but it would replace Tomo rather than make Tomo unique. Don't
 adopt its look. Take its **method** instead: hash a seed made once, at hatching, into a few traits of
@@ -27,7 +27,7 @@ our own chick's drawing, so every Tomo is still a chick but no two look alike.
   and 1 star, and one maintainer each.
 - **Notch, as a product:** no. A blob is an avatar meant for a 32–48 px chat list. Our chick has a
   body, belly, wings, feet, beak, tuft and an eggshell, and 11 faces and 14 moves (hop, flap, peck,
-  preen…). Those are the hatching story ([decisions.md](../decisions.md): "Tomo is a hiyoko"). A blob has
+  preen…). Those are the hatching story ([decisions-2026-10-05.md](../decisions-2026-10-05.md): "Tomo is a hiyoko"). A blob has
   nothing to hatch out of, no wings to flap, and no beak to talk with.
 
 ## What a blob looks like
