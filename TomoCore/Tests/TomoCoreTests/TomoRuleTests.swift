@@ -32,6 +32,12 @@ final class TomoContrastTests: TomoCheckCase {
     func testStageColoursReadOnADarkCard() { expect(TomoStagePill.selfTest) }
 }
 
+/// Words opens at Tomo's level and keeps landing there while its lazy rows are laid out, until the learner scrolls (with
+/// or without a scroll phase) or the list holds still (#193).
+final class TomoWordsLandingTests: TomoCheckCase {
+    func testWordsLandsOnTomosLevelUntilTheLearnerScrolls() { expect(TomoLanding.selfTest) }
+}
+
 /// One Tomo across devices: the merge rules and the store's sync columns (no iCloud).
 final class TomoSyncTests: TomoCheckCase {
     func testTheMergeRules() { expect(TomoSync.selfTest) }
