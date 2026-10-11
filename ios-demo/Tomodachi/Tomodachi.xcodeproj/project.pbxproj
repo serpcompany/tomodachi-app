@@ -514,7 +514,8 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 6.0;
-				TOMO_APP_GROUP = group.com.zenbujapanese.tomo;
+				TOMO_APP_GROUP = group.com.zenbujapanese.tomo.debug;
+				TOMO_DISPLAY_NAME = "Tomodachi Debug";
 				TOMO_ICLOUD_CONTAINER = iCloud.com.zenbujapanese.tomo;
 				TOMO_ICLOUD_ENV = Development;
 			};
@@ -566,7 +567,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomo.debug;
 				PRODUCT_NAME = Tomodachi;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -600,7 +601,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomo.widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zenbujapanese.tomo.debug.widgets;
 				PRODUCT_NAME = TomoWidgets;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -666,6 +667,7 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 6.0;
 				TOMO_APP_GROUP = group.com.zenbujapanese.tomo;
+				TOMO_DISPLAY_NAME = Tomodachi;
 				TOMO_ICLOUD_CONTAINER = iCloud.com.zenbujapanese.tomo;
 				TOMO_ICLOUD_ENV = Production;
 			};

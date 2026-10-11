@@ -258,30 +258,35 @@ private struct SidebarMaterial: NSViewRepresentable {
 
 // MARK: - Settings: what only the Mac has
 
-/// Open at login (TomoLoginItem), off until the learner turns it on.
+/// Open at login (TomoLoginItem), off until the learner turns it on. A Debug build never opens at login (#54): no
+/// switch, only why, as in its first run.
 private struct TomoLoginItemSection: View {
     @ObservedObject var lang = TomoLanguages.shared
     @State private var openAtLogin = TomoLoginItem.isOn
     @State private var needsApproval = TomoLoginItem.needsApproval
 
     var body: some View {
-        Section {
-            Toggle(lang.learner("settings.openAtLogin"), isOn: Binding(
-                get: { openAtLogin },
-                set: { openAtLogin = TomoLoginItem.set($0); needsApproval = TomoLoginItem.needsApproval }))
-            if needsApproval {
-                HStack {
-                    Text(lang.learner("settings.openAtLoginApprove")).font(.callout).foregroundStyle(.secondary)
-                    Spacer()
-                    Button(lang.learner("settings.openLoginItems")) { TomoLoginItem.openSystemSettings() }
+        if TomoLoginItem.allowed {
+            Section {
+                Toggle(lang.learner("settings.openAtLogin"), isOn: Binding(
+                    get: { openAtLogin },
+                    set: { openAtLogin = TomoLoginItem.set($0); needsApproval = TomoLoginItem.needsApproval }))
+                if needsApproval {
+                    HStack {
+                        Text(lang.learner("settings.openAtLoginApprove")).font(.callout).foregroundStyle(.secondary)
+                        Spacer()
+                        Button(lang.learner("settings.openLoginItems")) { TomoLoginItem.openSystemSettings() }
+                    }
                 }
+            } footer: {
+                Text(lang.learner("settings.openAtLoginNote")).font(.caption).foregroundStyle(.secondary)
             }
-        } footer: {
-            Text(lang.learner("settings.openAtLoginNote")).font(.caption).foregroundStyle(.secondary)
-        }
-        .onAppear {   // the learner may have changed it in System Settings → Login Items
-            openAtLogin = TomoLoginItem.isOn
-            needsApproval = TomoLoginItem.needsApproval
+            .onAppear {   // the learner may have changed it in System Settings → Login Items
+                openAtLogin = TomoLoginItem.isOn
+                needsApproval = TomoLoginItem.needsApproval
+            }
+        } else {
+            Section { Text(lang.learner("login.debug")).foregroundStyle(.secondary) }
         }
     }
 }

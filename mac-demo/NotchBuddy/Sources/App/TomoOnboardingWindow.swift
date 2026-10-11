@@ -24,8 +24,10 @@ enum TomoOnboardingWindow {
     static let size = NSSize(width: 460, height: 690)
 
     /// The "Let Tomo find you" step's login item. A test run (TOMO_HEADLESS) never changes the owner's: it only says
-    /// what it would have done.
-    private static let loginItem: (isOn: @MainActor () -> Bool, set: @MainActor (Bool) -> Void) = (
+    /// what it would have done. A Debug build has none (TomoLoginItem.allowed, #54): the step shows why, not a switch.
+    static let loginItem: (isOn: @MainActor () -> Bool, set: @MainActor (Bool) -> Void)? =
+        TomoLoginItem.allowed ? macLoginItem : nil
+    private static let macLoginItem: (isOn: @MainActor () -> Bool, set: @MainActor (Bool) -> Void) = (
         { TomoLoginItem.isOn },
         { on in
             if TomoHeadless.isOn { NSLog("Tomo first run: open at login → %@ (a test run doesn't change it)", on ? "on" : "off") }

@@ -23,17 +23,17 @@ final class TomodachiUITests: XCTestCase {
     }
 
     /// Launches the app on `folder` (a fresh one if nil), at a tab (`play`, `tomo`, `words`, `together` or
-    /// `settings`), and returns once it shows that tab, chosen, with no first run: the sign that it came up with this
-    /// test's settings. Launched while the simulator was still installing it, it once came up without them (the first
-    /// run, on Play) (#203); then it's launched again, once, and the relaunch is recorded with what it came up on, so
-    /// a start that's sometimes wrong shows in every run's log. A second wrong start fails. XCUITest still sees the
-    /// tabs under the first run, so the check looks for the first run itself.
-    private func launch(_ folder: URL? = nil, tab: String? = nil) {
+    /// `settings`), with any more flags in `env`, and returns once it shows that tab, chosen, with no first run: the
+    /// sign that it came up with this test's settings. Launched while the simulator was still installing it, it once
+    /// came up without them (the first run, on Play) (#203); then it's launched again, once, and the relaunch is
+    /// recorded with what it came up on, so a start that's sometimes wrong shows in every run's log. A second wrong
+    /// start fails. XCUITest still sees the tabs under the first run, so the check looks for the first run itself.
+    private func launch(_ folder: URL? = nil, tab: String? = nil, env: [String: String] = [:]) {
         let dir = folder ?? TomoSeed.folder(), want = tab ?? "play"
         for attempt in 1...2 {
             app = XCUIApplication()
             app.launchEnvironment = ["TOMO_DATA_DIR": dir.path, "TOMO_HEADLESS": "1", "TOMO_LEARNER": "en",
-                                     "TOMO_TARGET": "ja", "TOMO_ONBOARDING": "0"]
+                                     "TOMO_TARGET": "ja", "TOMO_ONBOARDING": "0"].merging(env) { $1 }
             if let tab { app.launchEnvironment["TOMO_OPEN_WINDOW"] = tab }
             app.launch()
             let shown = app.tabBars.buttons[ui("screen.\(want)")]
@@ -156,6 +156,21 @@ final class TomodachiUITests: XCTestCase {
             record("\(took), over \(Int(slow)) s, and its love wasn't read: pressing again", screenshot: app.screenshot())
         }
         XCTFail("a long press on Tomo shows its love: three presses were too slow to read it")
+    }
+
+    /// A Debug build is its own app (#54): the app's own checks (TOMO_SELFTEST, TomoIdentity) pass on the iPhone. Its
+    /// ID, name, data folder and keychain service are the Debug app's, and so are its App Group and its widgets'. The
+    /// app writes them to the data folder before Tomo shows.
+    func testThisBuildIsItsOwnApp() throws {
+        let dir = TomoSeed.folder()
+        launch(dir, env: ["TOMO_SELFTEST": "1"])
+        XCTAssertTrue(tomo.waitForExistence(timeout: 20))
+        let report = try String(contentsOf: dir.appendingPathComponent("selftest.txt"), encoding: .utf8)
+        let lines = report.split(separator: "\n")
+        XCTAssertEqual(lines.count, 5, report)
+        XCTAssertTrue(lines.allSatisfy { $0.hasPrefix("ok ") }, report)
+        XCTAssertTrue(report.contains("group.com.zenbujapanese.tomo.debug")
+                      && report.contains("com.zenbujapanese.tomo.debug.widgets"), report)
     }
 }
 

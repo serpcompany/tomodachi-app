@@ -27,7 +27,7 @@ Tomo drops in on its own (every 20 minutes by default) when it has words due or 
 between it sits small beside the notch: click it to play any time, and press Esc (or ×) to close. It
 follows the notch when displays change. Progress is saved on this Mac and synced through iCloud; test runs
 use their own folder. Open at login is a switch in Settings; a new learner picks it in the first run, where it
-starts on.
+starts on. A Debug build never opens at login, and shows no switch.
 
 Tomodachi is a regular app with a Dock icon. Its window (the Dock icon, Tomo's age in the card, or opening
 the app again) has a sidebar: Tomo, Words, Settings and About, the same screens as the iPhone's tabs. While
@@ -45,7 +45,10 @@ cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug 
 
 Signing is automatic with TSMC LLC's team `847HR8U8D9`, the iPhone app's (iCloud sync needs one team), so Xcode
 must be signed in to it. `-allowProvisioningUpdates` lets Xcode make the profiles; the first build on a
-new Mac also needs `-allowProvisioningDeviceRegistration` to register it.
+new Mac also needs `-allowProvisioningDeviceRegistration` to register it. A Debug build is its own app,
+`com.zenbujapanese.tomo.debug` ("Tomodachi Debug"), with its own preferences, data folder
+(`~/Library/Application Support/com.zenbujapanese.tomo.debug`) and keychain items, so it never touches the owner's
+copy ([#54](https://github.com/serpcompany/tomodachi-app/issues/54)). Only Release builds, the owner's copy and the betas, are `com.zenbujapanese.tomo`.
 
 `xcodegen` regenerates the project from `NotchBuddy/project.yml`; it's needed only when files are added
 or removed. The self-test and the snapshot matrix are in [docs/verification.md](../docs/verification.md), the debug
