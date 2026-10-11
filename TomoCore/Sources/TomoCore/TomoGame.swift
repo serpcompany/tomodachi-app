@@ -1417,11 +1417,12 @@ extension TomoGame {
                   + "(\"\(one.back)\", \"\(one.left)\"), says what a later one is (\"\(two.left)\"), and names the day "
                   + "alone for tomorrow's (\"\(next.left)\")")
         }
-        // The iPhone header (TomoPhoneView): 13 pt, grown by Dynamic Type to its 1.3 cap, between 20 pt margins on
-        // the narrowest iPhone (an SE, 375 pt), less the flag and the label's gap (about 1.6 em).
-        let phone: CGFloat = 13 * 1.3
+        // The iPhone header (TomoPhoneView), from the numbers its view draws with (TomoPhoneHeader): what's left at
+        // its size, grown by Dynamic Type to the cap, between the margins on the narrowest iPhone (an SE, 375 pt),
+        // less the flag and the label's gap (about 1.6 em).
+        let phone = TomoPhoneHeader.leftSize * TomoPhoneHeader.textScale.upperBound
         whatsLeftFitSelfTest(check, place: "the iPhone header at its largest text", size: phone,
-                             width: 375 - 2 * 20 - 1.6 * phone)
+                             width: 375 - 2 * TomoPhoneHeader.margin - 1.6 * phone)
     }
 
     /// What's left fits its one line (#211): in every ui pack, on a 12- and a 24-hour clock, its longest forms (the
@@ -1471,6 +1472,18 @@ extension TomoGame {
         let wall = cal.date(bySettingHour: hour, minute: minute, second: 0, of: day) ?? day
         return wall.addingTimeInterval(TomoClock.now.timeIntervalSince(Date()))
     }
+}
+
+/// The iPhone screen's header rows (TomoPhoneView) in numbers its view draws with and the check that what's left
+/// fits its one line (`TomoGame.restLinesSelfTest`) measures with, so changing one changes both. The Mac's goal row
+/// keeps its own (`GoalLine`).
+public enum TomoPhoneHeader {
+    /// Dynamic Type on the iPhone screen, capped so text grows inside its row instead of pushing the others out.
+    public static let textScale: ClosedRange<CGFloat> = 0.85...1.3
+    /// What's left's size at the default text size, before Dynamic Type.
+    public static let leftSize: CGFloat = 13
+    /// The header rows' side margins.
+    public static let margin: CGFloat = 20
 }
 
 /// When Tomo's back, as its resting card says it: "Back at 10:12" (`until` on Tomo's clock). The iPhone's Lock Screen
