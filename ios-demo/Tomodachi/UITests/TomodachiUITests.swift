@@ -28,10 +28,13 @@ final class TomodachiUITests: XCTestCase {
     /// came up without them (the first run, on Play) (#203); then it's launched again, once, and the relaunch is
     /// recorded with what it came up on, so a start that's sometimes wrong shows in every run's log. A second wrong
     /// start fails. XCUITest still sees the tabs under the first run, so the check looks for the first run itself.
-    private func launch(_ folder: URL? = nil, tab: String? = nil, env: [String: String] = [:]) {
+    /// `arguments`: the app's launch arguments, such as a text size.
+    private func launch(_ folder: URL? = nil, tab: String? = nil, env: [String: String] = [:],
+                        arguments: [String] = []) {
         let dir = folder ?? TomoSeed.folder(), want = tab ?? "play"
         for attempt in 1...2 {
             app = XCUIApplication()
+            app.launchArguments = arguments
             app.launchEnvironment = ["TOMO_DATA_DIR": dir.path, "TOMO_HEADLESS": "1", "TOMO_LEARNER": "en",
                                      "TOMO_TARGET": "ja", "TOMO_ONBOARDING": "0"].merging(env) { $1 }
             if let tab { app.launchEnvironment["TOMO_OPEN_WINDOW"] = tab }
@@ -109,6 +112,34 @@ final class TomodachiUITests: XCTestCase {
         XCTAssertTrue(today.firstMatch.exists, "today's line counts the 10 answers")
         XCTAssertTrue(app.staticTexts[ui("postcard.title")].exists, "Tomo's week")
         XCTAssertTrue(app.staticTexts[ui("diary.title")].exists, "Tomo's diary")
+    }
+
+    /// Together at the largest text (AX5, #216): no text, button or slider on the screen is wider than the phone, the
+    /// range picker is a menu and Export is under Copy recap. Before, the row of Copy recap and Export, which didn't
+    /// wrap, made the whole screen wider, cutting every line at both edges.
+    func testTogetherFitsTheLargestText() throws {
+        launch(TomoSeed.levelOneJustLearned(), tab: "together",
+               arguments: ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])
+        XCTAssertTrue(app.staticTexts[ui("garden.title")].waitForExistence(timeout: 20), "the word garden")
+        let window = app.windows.firstMatch.frame
+        var wider: [String] = []
+        // Everything on the screen, scrolled out of sight too, but not a row that scrolls sideways (earlier postcards).
+        func look(_ e: XCUIElementSnapshot, scrolls: Int) {
+            let f = e.frame
+            if [.staticText, .button, .slider, .segmentedControl].contains(e.elementType),
+               f.minX < window.minX - 0.5 || f.maxX > window.maxX + 0.5 {
+                wider.append("'\(e.label)' at x \(Int(f.minX))…\(Int(f.maxX))")
+            }
+            let inner = scrolls + (e.elementType == .scrollView ? 1 : 0)
+            if inner < 2 { e.children.forEach { look($0, scrolls: inner) } }
+        }
+        look(try app.snapshot(), scrolls: 0)
+        XCTAssertTrue(wider.isEmpty, "nothing is wider than the phone (0…\(Int(window.maxX))): \(wider.count) are, "
+                      + wider.prefix(6).joined(separator: ", "))
+        XCTAssertFalse(app.segmentedControls.firstMatch.exists, "the range picker is a menu, not a segmented control")
+        let copy = app.buttons[ui("garden.copy")], export = app.buttons[ui("export.button")]
+        XCTAssertTrue(copy.exists && export.exists, "Copy recap and Export")
+        XCTAssertGreaterThanOrEqual(export.frame.minY, copy.frame.maxY, "Export is under Copy recap")
     }
 
     /// Words opens at Tomo's level (#193): the level's header and its first word show under the stage chips. The rows

@@ -44,9 +44,10 @@ pack's age boundary. Each run prints a `pace` line: the days to Lv 2, 5 and 10 a
   runs in both. The tests set `TOMO_DATA_DIR` to a fresh temporary folder before anything opens a store. A check
   never rests on chance: random draws it looks at come from a seed (Tomo's particles: `TomoBlob.dice`, #203).
 - **The iPhone's UI journeys** (`ios-demo/Tomodachi/UITests`, XCUITest): launch, a picture round answered wrong
-  then right, the practice offer, Together, Words opening at Tomo's level, a long press on Tomo showing its
-  love, and the build's own identity checks (`TOMO_SELFTEST=1` in the app). Each launches on a fresh folder in the
-  test runner's temporary folder, silent, in English, without the first run, and starts once the app shows its tab with those settings (`launch` launches it again, once, and
+  then right, the practice offer, Together (and, at the largest text, nothing on it wider than the phone), Words
+  opening at Tomo's level, a long press on Tomo showing its love, and the build's own identity checks
+  (`TOMO_SELFTEST=1` in the app). Each launches on a fresh folder in the test runner's temporary folder, silent, in
+  English, without the first run, and starts once the app shows its tab with those settings (`launch` launches it again, once, and
   records why); progress a journey needs is written there through TomoCore's own store (`TomoSeed`), and the text
   they look for comes from `ui.en.json`. A journey waits on what the screen shows, and a state that shows for a
   moment must outlast XCUITest's own waits, which take seconds on a busy simulator (Tomo's love stays its VoiceOver
