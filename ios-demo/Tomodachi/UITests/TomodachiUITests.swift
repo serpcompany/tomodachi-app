@@ -195,10 +195,11 @@ final class TomodachiUITests: XCTestCase {
     }
 
     /// Words keeps your place when you come back to its tab (#218). Back from Play before you've scrolled, it's still
-    /// at Tomo's level, and nothing there waits for a move; then your swipes stay where you leave them, and so does the
-    /// list when you're back from Play again. XCUITest can't scroll an iPhone with no scroll phase (keys don't move
-    /// the list, and pointer scrolling isn't supported), so VoiceOver's and the keyboard's pages are TomoLanding's
-    /// checks.
+    /// at Tomo's level; then your swipes stay where you leave them, and so does the list when you're back from Play
+    /// again. Whether a landing is still waiting at that level is TomoLanding's checks: a swipe ends any landing, so
+    /// this journey passes either way. XCUITest can't scroll an iPhone with no scroll phase (keys don't move the
+    /// list, and pointer scrolling isn't supported), so VoiceOver's and the keyboard's pages are TomoLanding's checks
+    /// too.
     func testWordsKeepsYourPlaceWhenYouComeBack() {
         launch(TomoSeed.atLevel(14), tab: "words")
         expectWordsAtLevel(14)
