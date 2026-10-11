@@ -50,7 +50,9 @@ treats the app being on screen as open, so Tomo never times out while you look a
 round open on the Lock Screen card (`TomoLiveVisit.isPlaying`). The card's Play and choice buttons
 are `LiveActivityIntent`s (`TomoPlayIntent`, `TomoAnswerIntent`) that iOS runs in the app's process,
 launching it in the background if needed; they reach the game through `TomoVisitHook`, set in the
-app's `init` ([#52](https://github.com/serpcompany/tomodachi-app/issues/52)). Invariants on the Mac:
+app's `init` ([#52](https://github.com/serpcompany/tomodachi-app/issues/52)). There's one card: a
+launch updates the one on the Lock Screen, stale or not, and ends any others (`TomoLockCard`).
+Invariants on the Mac:
 the island sits on the screen Settings picks (`TomoScreenChoice.pick`: the notch screen, else the main
 display, by default; the main display; a display by name; or the pointer's, moving only while closed)
 and moves when displays change; without a
