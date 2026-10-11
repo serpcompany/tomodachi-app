@@ -21,7 +21,7 @@ struct TomoGardenColors {
         bed = c("#D9C7AA", "#3B3226"); furrow = c("#C7B293", "#4A3F31"); soil = c("#A8865F", "#6B5640")
         leaf = c("#3F9A3A", "#5FC155"); leaf2 = c("#76C863", "#93DD7F"); pale = c("#C4D8B4", "#3F4D3A")
         bud = c("#E98DB6", "#E98DB6"); petal = c("#FFB8D4", "#F7A9C9"); gold = c("#FFC83D", "#FFC83D")
-        win = c("#4CC27F", "#4CC27F"); practice = c("#66A2F3", "#66A2F3")
+        win = c("#4CC27F", "#5CD08E"); practice = c("#66A2F3", "#66A2F3")
         ink = c("#1B1D25", "#ECEDF2"); muted = c("#6A6F80", "#9A9FAF")
     }
 }
@@ -306,7 +306,7 @@ struct TomoPlantCard: View {
     var body: some View {
         let w = progress.word(plant.id, learner: lang.learner.id)
         HStack(alignment: .top, spacing: 10) {
-            if let emoji = w.emoji { Text(emoji).font(.system(size: 30)) }
+            if let emoji = w.emoji { TomoPictureView(emoji, size: 30) }
             VStack(alignment: .leading, spacing: 2) {
                 Text(w.say).font(.system(size: 20, weight: .bold, design: .rounded))
                 Text([w.reading, w.meaning].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "))

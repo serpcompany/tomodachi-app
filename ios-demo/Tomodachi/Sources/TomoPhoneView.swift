@@ -352,7 +352,7 @@ private struct PhoneTile: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
-                Text(choice.emoji ?? "").font(.system(size: 52))
+                TomoPictureView(choice.emoji ?? "", size: 52, darkCard: true)   // a dark one on a light disc (#195)
                     .accessibilityHidden(choice.label != nil)   // "feed", not the emoji's name
                 if let label = choice.label {
                     Text(label).font(.system(size: 13 * scale, weight: .medium)).foregroundStyle(Color(hex: "#9398A1"))
