@@ -325,39 +325,46 @@ extension TomoStagePill {
     /// white. Light fills are opaque, so a stage reads the same on either. The iPhone is always dark.
     static let lightCard = "#F2F2F2"
 
-    /// How far apart two neighbouring stages must look, in OKLab: about 0.02 is just noticeable side by side. #207's
-    /// light stages (dark greens as text, each on a 15% tint of itself) were 0.004 to 0.006 apart in their fills and
-    /// read as one green (#236).
-    static let minimumStep = 0.05
+    /// The floors a stage's step from the one before it must clear, in OKLab, where about 0.02 is just noticeable side
+    /// by side (#236). #207's light stages (dark greens as text, each on a 15% tint of itself) were 0.004 to 0.006 apart
+    /// in their fills, 0.004 darker in greyscale, and read as one green.
+    /// - Light fills, 0.075 apart: the tint ladders #236 ruled out as look-alikes had steps of 0.056 to 0.066 (B1, B2,
+    ///   B6), and the light stages' closest is 0.083.
+    /// - Light greyscale, 0.05 darker: 2.5 times just noticeable, and stages that step only in hue or in their text are
+    ///   0.011 or less. The palest step has the least room (Just heard to Knows it, 0.059), so it can't rise without
+    ///   new colours.
+    /// - Dark texts, 0.05 apart: dark mode's closest pair is 0.053, and #236 kept dark mode as it was.
+    static let lightFillStep = 0.075, greyStep = 0.05, darkTextStep = 0.05
 
-    /// How a stage differs from the one before it, as the rule measures it (#236). Light mode measures the fills as the
-    /// card shows them: how far apart they are, and how much darker this one is in greyscale, so the order shows without
-    /// hue. Light texts don't count: an 11 pt label carries little hue, so stages whose texts alone differ look alike.
-    /// Dark mode measures the texts, which carry its steps (each fill is its text at 15%).
-    struct Step {
-        let from: String, to: String
-        /// The OKLab distance between the two fills (light) or the two texts (dark).
-        let apart: Double
-        /// Light mode: how much darker this fill is than the one before, in greyscale (the OKLab lightness of its
-        /// luminance); nil in dark mode.
-        let darker: Double?
+    /// One floor that a stage's step from the one before it must clear. Light mode measures the fills as the card shows
+    /// them: how far `apart` they are, and how much `darker` this one is in greyscale (the OKLab lightness of its
+    /// luminance), so the order shows without hue. Light texts don't count: an 11 pt label carries little hue, so stages
+    /// whose texts alone differ look alike. Dark mode measures how far `apart` the texts are, which carry its steps
+    /// (each fill is its text at 15%).
+    struct StepCheck {
+        enum Measure { case apart, darker }
+        let from: String, to: String, measure: Measure, value: Double, floor: Double
+        var holds: Bool { value >= floor }
     }
 
-    /// Each stage's step from the one before it, for a mode's looks of `stages`, in order, on that mode's card.
-    static func steps(_ looks: [Look], dark: Bool) -> [Step] {
-        let card = dark ? darkCard : lightCard
+    /// The step rule for a mode's looks of `stages`, in order, on that mode's card: every floor each step must clear.
+    /// `selfTest` runs it on the stages; the tests run it on palettes it must catch.
+    static func stepChecks(_ looks: [Look], dark: Bool) -> [StepCheck] {
         let named = Array(zip(stages, looks))
-        return zip(named, named.dropFirst()).map { a, b in
-            if dark { return Step(from: a.0, to: b.0, apart: distance(rgb(a.1.text), rgb(b.1.text)), darker: nil) }
-            let x = fill(a.1, over: card), y = fill(b.1, over: card)
-            return Step(from: a.0, to: b.0, apart: distance(x, y), darker: grey(x) - grey(y))
+        return zip(named, named.dropFirst()).flatMap { a, b -> [StepCheck] in
+            if dark {
+                return [StepCheck(from: a.0, to: b.0, measure: .apart, value: distance(rgb(a.1.text), rgb(b.1.text)), floor: darkTextStep)]
+            }
+            let x = fill(a.1, over: lightCard), y = fill(b.1, over: lightCard)
+            return [StepCheck(from: a.0, to: b.0, measure: .apart, value: distance(x, y), floor: lightFillStep),
+                    StepCheck(from: a.0, to: b.0, measure: .darker, value: grey(x) - grey(y), floor: greyStep)]
         }
     }
 
     /// The rule (TOMO_SELFTEST, swift test), in each mode on that mode's card: each stage's text reads at 5:1 or more
     /// (WCAG contrast) on its own fill, so a palette change can't bring back the 2.1:1 "Loves it" in dark mode (#195) or
-    /// the 2.3:1 "Just heard" in light mode (#207); and each stage's `Step` from the one before it is `minimumStep` or
-    /// more, apart and (light) darker, so the stages can't fade back into one colour (#236).
+    /// the 2.3:1 "Just heard" in light mode (#207); and each stage's step from the one before it clears `stepChecks`, so
+    /// the stages can't fade back into one colour (#236).
     public static func selfTest(_ check: (Bool, String) -> Void) {
         for (dark, card) in [(true, darkCard), (false, lightCard)] {
             let mode = dark ? "dark" : "light"
@@ -369,11 +376,13 @@ extension TomoStagePill {
                 return look
             }
             guard looks.count == stages.count else { continue }
-            for step in steps(looks, dark: dark) {
-                check(step.apart >= minimumStep, "stages: \(step.from) and \(step.to) are \(String(format: "%.3f", step.apart)) apart on a \(mode) card (OKLab, their \(dark ? "texts" : "fills")), \(minimumStep) or more")
-                if let darker = step.darker {
-                    check(darker >= minimumStep, "stages: \(step.to)'s fill is \(String(format: "%.3f", darker)) darker than \(step.from)'s in greyscale, \(minimumStep) or more")
+            for c in stepChecks(looks, dark: dark) {
+                let value = String(format: "%.3f", c.value)
+                let what = switch c.measure {
+                case .apart:  "stages: \(c.from) and \(c.to) are \(value) apart on a \(mode) card (OKLab, their \(dark ? "texts" : "fills")), \(c.floor) or more"
+                case .darker: "stages: \(c.to)'s fill is \(value) darker than \(c.from)'s in greyscale, \(c.floor) or more"
                 }
+                check(c.holds, what)
             }
         }
     }
