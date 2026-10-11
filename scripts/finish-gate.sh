@@ -16,7 +16,8 @@ data="$(mktemp -d "${TMPDIR:-/tmp}/tomo-finish-gate-data.XXXXXX")"
 trap 'rm -rf "$data"' EXIT
 start=$SECONDS
 
-# Runs a step quietly into its own log; on failure, prints the log's end and stops with the step's exit code.
+# Runs a step quietly into its own log; on failure, prints the failing lines (a self-test FAIL, a compiler error, a
+# failed test) and the log's end, and stops with the step's exit code.
 step() {
   local name="$1"; shift
   local log="$logs/$name.log" began=$SECONDS
@@ -26,17 +27,28 @@ step() {
   else
     local code=$?
     printf 'FAIL  %4ss  (%s)\n' "$((SECONDS - began))" "$log"
-    tail -n 40 "$log"
+    grep -nE -A6 '^FAIL |error:|failed|Failed' "$log" | head -n 80 || true
+    echo "…"
+    tail -n 15 "$log"
     echo "finish gate: failed at '$name' after $((SECONDS - start)) s"
     exit "$code"
   fi
 }
 
 # Each step chains with && : `set -e` doesn't apply inside a function called from `if`.
+# xcodegen must leave the committed project as it is, or the gate would pass on a tree that matches no commit.
 mac_build() {
   # shellcheck disable=SC2086  # XCODEBUILD_FLAGS is a list of build settings
-  cd "$root/mac-demo/NotchBuddy" && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug \
-    -derivedDataPath ../build -allowProvisioningUpdates ${XCODEBUILD_FLAGS:-} build
+  cd "$root/mac-demo/NotchBuddy" && xcodegen && project_unchanged && xcodebuild -scheme NotchBuddy \
+    -configuration Debug -derivedDataPath ../build -allowProvisioningUpdates ${XCODEBUILD_FLAGS:-} build
+}
+
+project_unchanged() {
+  git -C "$root" diff --quiet -- mac-demo/NotchBuddy/NotchBuddy.xcodeproj || {
+    echo "error: xcodegen changed mac-demo/NotchBuddy/NotchBuddy.xcodeproj; commit the regenerated project first"
+    git -C "$root" diff --stat -- mac-demo/NotchBuddy/NotchBuddy.xcodeproj
+    false
+  }
 }
 
 swift_test() {
@@ -47,6 +59,12 @@ self_test() {
   TOMO_HEADLESS=1 TOMO_SELFTEST=1 TOMO_DATA_DIR="$data" \
     "$root/mac-demo/build/Build/Products/Debug/Tomodachi.app/Contents/MacOS/Tomodachi"
 }
+
+# CI builds with the Xcode pinned in .xcode-version; a different one here is reported, not fatal
+# (docs/verification.md: say so in the PR, and CI's compile is the one that counts).
+pinned="$(tr -d '[:space:]' < "$root/.xcode-version")"
+xcode="$(xcodebuild -version | awk 'NR==1 {print $2}')"
+[ "$xcode" = "$pinned" ] || echo "note: building with Xcode $xcode, not the pinned $pinned; CI's compile is the one that counts"
 
 step "Mac build" mac_build
 step "TomoCore tests" swift_test
