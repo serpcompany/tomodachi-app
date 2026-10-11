@@ -79,6 +79,24 @@ final class TomodachiUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts[ui("diary.title")].exists, "Tomo's diary")
     }
 
+    /// Words opens at Tomo's level (#193): the level's header and its first word show under the stage chips. The rows
+    /// are lazy, so the jump to Lv 14 lands on estimated heights for the 13 levels above it; it once left the header
+    /// scrolled away under the chips.
+    func testWordsOpensAtTomosLevel() {
+        let level = 14
+        launch(TomoSeed.atLevel(level), tab: "words")
+        let chips = app.scrollViews["words.stages"]
+        let header = app.staticTexts["words.level.\(level)"]
+        let first = app.descendants(matching: .any)["words.word.\(TomoSeed.pack.levels[level - 1].itemIDs[0])"]
+        XCTAssertTrue(chips.waitForExistence(timeout: 30), "the stage chips")
+        let hittable = NSPredicate(format: "hittable == true")
+        expectation(for: hittable, evaluatedWith: header)
+        expectation(for: hittable, evaluatedWith: first)
+        waitForExpectations(timeout: 30)
+        XCTAssertGreaterThanOrEqual(header.frame.minY, chips.frame.maxY, "Lv \(level)'s header is below the chips")
+        XCTAssertGreaterThanOrEqual(first.frame.minY, header.frame.maxY, "its first word is below the header")
+    }
+
     /// A long press on Tomo shows its love (#133), which VoiceOver hears as Tomo's value.
     func testALongPressOnTomoShowsItsLove() {
         launch()
@@ -100,18 +118,37 @@ enum TomoSeed {
         return dir
     }
 
+    /// The pack the journeys learn (TOMO_TARGET=ja).
+    static var pack: TargetPack { TomoLanguages.shared.targets.first { $0.id == "ja" }! }
+
     /// Level 1 just learned (each word heard once, answered right a moment ago): nothing counts for an hour, today's
     /// new words are used up, so Tomo rests. Today's answers are in the log.
     static func levelOneJustLearned() -> URL {
         let dir = folder(), now = Date()
-        guard let pack = TomoLanguages.shared.targets.first(where: { $0.id == "ja" }),
-              let store = TomoStore(learner: "en", target: "ja", directory: dir) else { return dir }
+        guard let store = TomoStore(learner: "en", target: "ja", directory: dir) else { return dir }
         store.saveTomo(.init(metAt: now.addingTimeInterval(-5 * 86400), level: 1, age: 1))
         for id in pack.levels[0].itemIDs {
             store.saveItem(.init(id: id, stage: 1, due: now.addingTimeInterval(2 * 3600), introduced: now, answered: now,
                                  right: 1, wrong: 0, peak: 1))
             store.logAnswer(at: now, item: id, level: 1, mode: "picture", result: "right", wrongTries: 0, hint: false,
                             counted: true, before: nil, after: 1)
+        }
+        return dir
+    }
+
+    /// Tomo at `level`, at that level's age: every word of the levels before it known at stages 2 to 6 (due in a day
+    /// or more), and its own level's words just met.
+    static func atLevel(_ level: Int) -> URL {
+        let dir = folder(), now = Date()
+        guard let store = TomoStore(learner: "en", target: "ja", directory: dir) else { return dir }
+        store.saveTomo(.init(metAt: now.addingTimeInterval(-30 * 86400), level: level, age: pack.levels[level - 1].age))
+        for (n, words) in pack.levels.prefix(level).map(\.itemIDs).enumerated() {
+            for (i, id) in words.enumerated() {
+                let stage = n + 1 == level ? 1 : 2 + i % 5
+                store.saveItem(.init(id: id, stage: stage, due: now.addingTimeInterval(Double(stage) * 86400),
+                                     introduced: now.addingTimeInterval(-20 * 86400), answered: now.addingTimeInterval(-3600),
+                                     right: stage, wrong: 0, peak: stage))
+            }
         }
         return dir
     }

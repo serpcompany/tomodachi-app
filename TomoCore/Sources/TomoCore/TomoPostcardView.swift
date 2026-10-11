@@ -407,7 +407,9 @@ struct TomoWordFlow: View {
     }
 }
 
-private struct TomoFlowLayout: Layout {
+/// Lays its subviews out left to right, starting a new line between two when the next doesn't fit; one wider than a line
+/// gets the line's width.
+struct TomoFlowLayout: Layout {
     let spacing: CGFloat
     let lineSpacing: CGFloat
 

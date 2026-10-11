@@ -35,18 +35,13 @@ public struct TomoWordsScreen: View {
                     }
                     .scrollPosition(id: $shown, anchor: .top)
                     // The rows are lazy: the jump to a level estimates the heights above it, which change as they're
-                    // measured. Until the learner scrolls, each change lands on the level again, so its header and
-                    // first word show under the chips.
+                    // laid out. Each change lands on the level again, so its header and first word show under the
+                    // chips, until the learner scrolls: from then on the list is theirs.
                     .onScrollGeometryChange(for: CGFloat.self) { $0.contentSize.height } action: { _, _ in
                         if let landing { proxy.scrollTo(landing, anchor: .top) }
                     }
                     .onScrollPhaseChange { _, phase in
-                        if phase == .tracking || phase == .interacting { landing = nil }
-                    }
-                    .task(id: landing) {
-                        guard landing != nil else { return }
-                        try? await Task.sleep(for: .seconds(1))
-                        landing = nil
+                        if phase != .idle { landing = nil }
                     }
                     .onAppear { if shown == nil { land(game.level) } }
                     .onChange(of: game.level) { _, level in land(level) }
@@ -57,10 +52,14 @@ public struct TomoWordsScreen: View {
 
     /// The level at the top of the list: it opens at Tomo's level.
     @State private var shown: Int?
-    /// The level the list is landing on, until the learner scrolls or a second has passed.
+    /// The level the list is landing on, until the learner scrolls.
     @State private var landing: Int?
     /// More stage chips past the row's trailing edge.
     @State private var chipsMore = false
+    @Environment(\.dynamicTypeSize) private var typeSize
+    /// The space between a reading's words, which grows with its text.
+    @ScaledMetric(relativeTo: .caption) private var readingSpace: CGFloat = 3
+    @ScaledMetric(relativeTo: .callout) private var meaningSpace: CGFloat = 4
 
     private func land(_ level: Int) {
         shown = level
@@ -87,6 +86,7 @@ public struct TomoWordsScreen: View {
                 }
                 .padding(.horizontal, horizontalPadding)
             }
+            .accessibilityIdentifier("words.stages")
             // When the chips don't all fit (an iPhone), the trailing edge fades while more are past it, so the row
             // shows it scrolls. A row that fits (the Mac) never fades.
             .onScrollGeometryChange(for: Bool.self) { g in
@@ -115,20 +115,27 @@ public struct TomoWordsScreen: View {
     private func levelSection(number: Int, level: TargetPack.Level) -> some View {
         let state = number < game.level ? "done" : number == game.level ? "now" : "locked"
         let previousAge = number > 1 ? levels[number - 2].age : 0
+        let mark = HStack(spacing: 8) {
+            Image(systemName: state == "done" ? "checkmark.circle.fill" : state == "now" ? "location.circle.fill" : "lock.fill")
+                .foregroundStyle(state == "done" ? Color.teal : state == "now" ? Color.orange : Color.secondary)
+            Text(lang.learner("level", ["n": "\(number)"])).font(.headline)
+                .accessibilityIdentifier("words.level.\(number)")
+        }
+        let age = Text(lang.target.ageLabel(level.age)).font(.subheadline).foregroundStyle(.secondary)
+        let birthday = level.age > previousAge && number > 1
+            ? Label(lang.learner("words.birthday", ["age": lang.target.ageLabel(level.age)]), systemImage: "birthday.cake")
+                .font(.caption).foregroundStyle(.orange)
+            : nil
+        let status = Text(lang.learner("words.state.\(state)")).font(.caption).foregroundStyle(.secondary)
         return VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                Image(systemName: state == "done" ? "checkmark.circle.fill" : state == "now" ? "location.circle.fill" : "lock.fill")
-                    .foregroundStyle(state == "done" ? Color.teal : state == "now" ? Color.orange : Color.secondary)
-                Text(lang.learner("level", ["n": "\(number)"])).font(.headline)
-                Text(lang.target.ageLabel(level.age)).font(.subheadline).foregroundStyle(.secondary)
-                if level.age > previousAge && number > 1 {
-                    Label(lang.learner("words.birthday", ["age": lang.target.ageLabel(level.age)]),
-                          systemImage: "birthday.cake")
-                        .font(.caption).foregroundStyle(.orange)
-                        .lineLimit(1)
+            // On one line, or wrapped between its parts when they don't all fit (large text): none is cut short.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 8) {
+                    mark.fixedSize(); age.fixedSize(); birthday?.fixedSize()
+                    Spacer(minLength: 4)
+                    status.fixedSize()
                 }
-                Spacer(minLength: 4)
-                Text(lang.learner("words.state.\(state)")).font(.caption).foregroundStyle(.secondary)
+                TomoFlowLayout(spacing: 8, lineSpacing: 2) { mark; age; birthday; status }
             }
             VStack(spacing: 0) {
                 ForEach(level.itemIDs, id: \.self) { id in
@@ -148,36 +155,64 @@ public struct TomoWordsScreen: View {
     private func wordRow(_ id: String, locked: Bool) -> some View {
         let w = progress.word(id, learner: lang.learner.id)
         let item = progress.items[id]
-        return HStack(alignment: .center, spacing: 10) {
+        // At the accessibility text sizes the stage and when it's due go under the meaning, so the word and its
+        // meaning keep the row's width.
+        let stacked = typeSize.isAccessibilitySize
+        return HStack(alignment: stacked ? .top : .center, spacing: 10) {
             Group {
                 if let emoji = w.emoji { TomoPictureView(emoji, size: 22) }   // a dark one on a light disc in dark mode
                 else { Image(systemName: "text.bubble").foregroundStyle(.secondary) }   // asked by meaning
             }
             .frame(width: 30)
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)   // the bubble stays inside its column at the largest text
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 1) {
-                // The word never breaks mid-word: its reading goes under it when both don't fit on a line, and a
-                // word too long for the line on its own shrinks to fit.
-                let say = Text(w.say).font(.system(size: 15, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.6)
-                let reading = w.reading.map { Text($0).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
+                // The word and its reading on one line, or the reading under the word when both don't fit. Either
+                // wraps only at its spaces, and a word too long for the line on its own shrinks to fit: nothing
+                // breaks mid-word ("イナイイ / ナイバー！") or ends in "…".
+                let say = Font.system(size: 15, weight: .semibold)
                 ViewThatFits(in: .horizontal) {
-                    HStack(alignment: .firstTextBaseline, spacing: 6) { say.fixedSize(); reading?.fixedSize() }
-                    VStack(alignment: .leading, spacing: 1) { say; reading }
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text(w.say).font(say).fixedSize()
+                        if let r = w.reading { Text(r).font(.caption).foregroundStyle(.secondary).fixedSize() }
+                    }
+                    VStack(alignment: .leading, spacing: 1) {
+                        TomoWordFlow(text: w.say, spacing: 4, lineSpacing: 0).font(say)
+                            .accessibilityElement(children: .ignore).accessibilityLabel(w.say)
+                        if let r = w.reading {
+                            TomoWordFlow(text: r, spacing: readingSpace, lineSpacing: 0).font(.caption).foregroundStyle(.secondary)
+                                .accessibilityElement(children: .ignore).accessibilityLabel(r)
+                        }
+                    }
                 }
-                Text(w.meaning).font(.callout).foregroundStyle(.secondary).lineLimit(2)
+                // The meaning wraps at its spaces too; only a word longer than the line breaks inside.
+                TomoFlowLayout(spacing: meaningSpace, lineSpacing: 0) {
+                    ForEach(Array(w.meaning.split(separator: " ").enumerated()), id: \.offset) { _, word in Text(word) }
+                }
+                .font(.callout).foregroundStyle(.secondary)
+                .accessibilityElement(children: .ignore).accessibilityLabel(w.meaning)
+                if stacked { stage(item, locked: locked, alignment: .leading).padding(.top, 4) }
             }
-            Spacer(minLength: 8)
-            VStack(alignment: .trailing, spacing: 2) {
-                let group = locked && item == nil ? "locked" : TomoSRS.group(item?.stage ?? 0)
-                TomoStagePill(group: group, text: lang.learner("stage.\(group)"))
-                    .help(item.map { lang.learner("words.stageOf", ["n": "\($0.stage)"]) } ?? "")
-                if let due = dueText(item) {
-                    Text(due).font(.caption2).foregroundStyle(.secondary)
-                }
+            if !stacked {
+                Spacer(minLength: 8)
+                stage(item, locked: locked, alignment: .trailing)
             }
         }
         .padding(.horizontal, 10).padding(.vertical, 7)
         .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("words.word.\(id)")
+    }
+
+    /// A word's stage, and when it's due.
+    private func stage(_ item: TomoStore.ItemRow?, locked: Bool, alignment: HorizontalAlignment) -> some View {
+        VStack(alignment: alignment, spacing: 2) {
+            let group = locked && item == nil ? "locked" : TomoSRS.group(item?.stage ?? 0)
+            TomoStagePill(group: group, text: lang.learner("stage.\(group)"))
+                .help(item.map { lang.learner("words.stageOf", ["n": "\($0.stage)"]) } ?? "")
+            if let due = dueText(item) {
+                Text(due).font(.caption2).foregroundStyle(.secondary)
+            }
+        }
     }
 
     private func dueText(_ item: TomoStore.ItemRow?) -> String? {
