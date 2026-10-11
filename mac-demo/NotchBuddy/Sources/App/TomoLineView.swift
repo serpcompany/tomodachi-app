@@ -5,13 +5,25 @@ import TomoCore
 // MARK: - Mac-only word helpers (Dictionary.app, fitting a line in the card); the rest is TomoWords in TomoCore
 
 extension TomoWords {
-    /// The Mac's built-in dictionaries (Dictionary.app), offline. The system picks the first active
-    /// dictionary with an entry; usually a monolingual one (Oxford English, 大辞林).
-    static func macDictionary(_ word: String) -> String? {
+    /// The word's entry in the Mac's own dictionaries (Dictionary.app, offline), in the learner's language, or nil:
+    /// then the word card leaves the section out, never showing an entry the learner can't read (#198). It comes from
+    /// the first dictionary switched on in Dictionary's settings whose languages are the pair's, so an English speaker
+    /// learning Japanese reads ウィズダム英和・和英 (ja-en) even with スーパー大辞林 ahead of it, and a Japanese speaker
+    /// reads 大辞林 (ja). When none fits, or without the list (`TomoMacDictionaries`), only a learner of their own language
+    /// gets the system's pick (`TomoMacDictionaries.choice`). The Zenbu dictionary replaces this (#9).
+    @MainActor static func macDictionary(_ word: String, target: String, learner: String) -> String? {
         guard !word.isEmpty else { return nil }
-        let cf = word as CFString
-        let def = DCSCopyTextDefinition(nil, cf, CFRangeMake(0, CFStringGetLength(cf)))?.takeRetainedValue() as String?
-        return def.map { String($0.prefix(260)) }
+        func entry(in dictionary: DCSDictionary?) -> String? {
+            let cf = word as CFString
+            let def = DCSCopyTextDefinition(dictionary, cf, CFRangeMake(0, CFStringGetLength(cf)))?.takeRetainedValue()
+            return (def as String?).map { String($0.prefix(260)) }
+        }
+        let active = TomoMacDictionaries.active()
+        switch TomoMacDictionaries.choice(active?.map(\.identifier), target: target, learner: learner) {
+        case .dictionary(let i): return active.flatMap { entry(in: $0[i].dictionary) }
+        case .system: return entry(in: nil)
+        case .hidden: return nil
+        }
     }
 
     /// Opens Dictionary.app on the word (all installed dictionaries, including bilingual ones).
@@ -47,6 +59,78 @@ extension TomoWords {
             if CGFloat(lines) * lineHeight + CGFloat(lines - 1) * lineSpacing <= box.height { return size }
         }
         return 15
+    }
+}
+
+/// The dictionaries switched on in Dictionary's settings, in its order, with their languages. DictionaryServices
+/// publishes only the lookup, which takes the first of them with an entry, so a monolingual dictionary ahead of a
+/// bilingual one always wins. Choosing one takes two calls it doesn't publish (`DCSGetActiveDictionaries`,
+/// `DCSDictionaryGetIdentifier`), found at run time: no list if they're gone or return something else. Fine for the
+/// Developer ID build; a Mac App Store build drops them (mac-demo/app-store.md).
+@MainActor
+enum TomoMacDictionaries {
+    struct Active { let dictionary: DCSDictionary; let identifier: String }
+    /// What the word card shows: that dictionary's entry, the system's pick (the first active one with an entry), or
+    /// no section.
+    enum Choice: Equatable { case dictionary(Int), system, hidden }
+
+    // Both return CF objects of a type checked before use (`active(_:identifier:)`), not the types they return today.
+    private typealias ActiveList = @convention(c) () -> Unmanaged<CFTypeRef>?
+    private typealias Identifier = @convention(c) (DCSDictionary) -> Unmanaged<CFTypeRef>?
+    private static let services = dlopen(
+        "/System/Library/Frameworks/CoreServices.framework/Frameworks/DictionaryServices.framework/DictionaryServices",
+        RTLD_LAZY)
+    private static let activeList = dlsym(services, "DCSGetActiveDictionaries")
+        .map { unsafeBitCast($0, to: ActiveList.self) }
+    private static let identifier = dlsym(services, "DCSDictionaryGetIdentifier")
+        .map { unsafeBitCast($0, to: Identifier.self) }
+
+    /// The dictionaries switched on, in Dictionary's order, with their identifiers; nil without the list.
+    static func active() -> [Active]? {
+        guard let activeList, let identifier else { return nil }
+        return active(activeList()?.takeUnretainedValue()) { identifier($0)?.takeUnretainedValue() }
+    }
+
+    /// The list from what `DCSGetActiveDictionaries` returned, checked before anything goes back to DictionaryServices,
+    /// so a macOS that changes these calls gets no list (no section, or the system's pick) instead of a crash: nil unless
+    /// it's an array whose every element is an object other than a string; a dictionary whose identifier isn't a
+    /// string is left out.
+    static func active(_ list: CFTypeRef?, identifier: (DCSDictionary) -> CFTypeRef?) -> [Active]? {
+        guard let list, CFGetTypeID(list) == CFArrayGetTypeID() else { return nil }
+        let array = unsafeBitCast(list, to: CFArray.self)
+        var dictionaries: [Active] = []
+        for i in 0..<CFArrayGetCount(array) {
+            guard let value = CFArrayGetValueAtIndex(array, i) else { return nil }
+            let object = Unmanaged<CFTypeRef>.fromOpaque(value).takeUnretainedValue()
+            guard CFGetTypeID(object) != CFStringGetTypeID() else { return nil }
+            let dictionary = unsafeBitCast(object, to: DCSDictionary.self)
+            guard let id = identifier(dictionary), CFGetTypeID(id) == CFStringGetTypeID() else { continue }
+            dictionaries.append(Active(dictionary: dictionary, identifier: unsafeBitCast(id, to: CFString.self) as String))
+        }
+        return dictionaries
+    }
+
+    /// The languages an Apple dictionary's identifier names: com.apple.dictionary.ja-en.WISDOM → ja, en;
+    /// com.apple.dictionary.ja.Daijirin → ja; com.apple.dictionary.zh_CN-en.OCD → zh, en. Nil when it names none
+    /// (com.apple.dictionary.NOAD) or isn't Apple's.
+    static func languages(_ identifier: String) -> Set<String>? {
+        let prefix = "com.apple.dictionary."
+        guard identifier.hasPrefix(prefix),
+              let part = identifier.dropFirst(prefix.count).split(separator: ".").first else { return nil }
+        let codes = part.split(separator: "-").map { String($0.prefix { $0 != "_" }) }
+        guard codes.allSatisfy({ (2...3).contains($0.count) && $0.allSatisfy { $0.isASCII && $0.isLowercase } })
+        else { return nil }
+        return Set(codes)
+    }
+
+    /// What a learner of `target` who reads `learner` gets, from the active dictionaries' identifiers in Dictionary's
+    /// order (nil without the list): the first whose languages are just the pair's (ja-en for English, ja for
+    /// Japanese), never a monolingual one in a language they don't read. With none, a learner of their own language
+    /// gets the system's pick, anyone else no section.
+    static func choice(_ identifiers: [String]?, target: String, learner: String) -> Choice {
+        let pair: Set = [target, learner]
+        if let i = identifiers?.firstIndex(where: { languages($0) == pair }) { return .dictionary(i) }
+        return target == learner ? .system : .hidden
     }
 }
 

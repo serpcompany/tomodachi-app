@@ -113,7 +113,10 @@ struct TomoView: View {
         .coordinateSpace(.named(Self.space))
         .onPreferenceChange(TomoWinBadgeFrame.self) { winBadge = $0 }
         .onChange(of: bar) { old, new in barMoved(from: old, to: new) }
-        .frame(maxHeight: .infinity, alignment: .top)
+        // While help is open, the card keeps its place. The panel shows a frame before the island starts growing to fit
+        // it (`onHelpChange`, then a spring), so until the island is tall enough the panel runs past its bottom edge,
+        // which cuts it, rather than the island centring the overflow and pushing the header and card up (#198).
+        .frame(minHeight: game.help == nil ? nil : 0, maxHeight: .infinity, alignment: .top)
     }
 
     private var bar: TomoBarValue { TomoBarValue(progress: game.levelProgress, standing: game.levelStanding) }
@@ -836,11 +839,15 @@ private struct TomoHelpPanel: View {
                 Text(n).font(.system(size: 14.5)).foregroundColor(Color(hex: "#C9CDD4")).fixedSize(horizontal: false, vertical: true)
             }
         }
-        VStack(alignment: .leading, spacing: 3) {
-            Text(lang.learner("word.mac")).font(.system(size: 11.5, weight: .semibold)).foregroundColor(Color(hex: "#7E838C"))
-            Text(TomoWords.macDictionary(head) ?? TomoWords.macDictionary(word) ?? lang.learner("word.none"))
-                .font(.system(size: 13.5)).foregroundColor(Color(hex: "#9EA3AC"))
-                .fixedSize(horizontal: false, vertical: true)
+        // The Mac's dictionary only in the learner's language; with none, no section (TomoWords.macDictionary).
+        if let entry = TomoWords.macDictionary(head, target: lang.target.id, learner: lang.learner.id)
+            ?? TomoWords.macDictionary(word, target: lang.target.id, learner: lang.learner.id) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(lang.learner("word.mac")).font(.system(size: 11.5, weight: .semibold)).foregroundColor(Color(hex: "#7E838C"))
+                Text(entry)
+                    .font(.system(size: 13.5)).foregroundColor(Color(hex: "#9EA3AC"))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
