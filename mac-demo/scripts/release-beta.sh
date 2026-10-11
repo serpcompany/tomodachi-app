@@ -11,6 +11,9 @@
 # same Xcode account (like Organizer's "Distribute App"), so there's no notary password to set up.
 #
 # The version comes from CFBundleShortVersionString in NotchBuddy/project.yml.
+#
+# Every run keeps its archive, with the app's dSYMs, in mac-demo/build/archives/Tomodachi-<version>-<YYMMDD-HHMM>.xcarchive,
+# and never deletes one: a crash report from any beta can be symbolicated (SERP's telemetry standard).
 set -euo pipefail
 
 MODE="${1:-}"
@@ -18,7 +21,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"          # mac-demo/
 PROJ="$ROOT/NotchBuddy"
 OUT="$ROOT/build/release"
 [ "$MODE" = "--owner" ] && OUT="$ROOT/build/owner"
-ARCHIVE="$ROOT/build/release-derived/Tomodachi.xcarchive"
+BUNDLE_ID="com.zenbujapanese.tomo"                # the product's: testers and the owner get only this identity
 die() { echo "error: $*" >&2; exit 1; }
 
 TEAM=$(sed -nE 's/^ *DEVELOPMENT_TEAM: *([A-Z0-9]{10}).*/\1/p' "$PROJ/project.yml" | head -1)
@@ -26,6 +29,7 @@ TEAM=$(sed -nE 's/^ *DEVELOPMENT_TEAM: *([A-Z0-9]{10}).*/\1/p' "$PROJ/project.ym
 
 VERSION=$(sed -nE 's/^ *CFBundleShortVersionString: *"([^"]+)".*/\1/p' "$PROJ/project.yml" | head -1)
 [ -n "$VERSION" ] || die "no CFBundleShortVersionString in project.yml"
+ARCHIVE="$ROOT/build/archives/Tomodachi-$VERSION-$(date +%y%m%d-%H%M).xcarchive"   # kept: never deleted
 
 security find-identity -v -p codesigning | grep "Developer ID Application" | grep -q "($TEAM)" \
   || die "no 'Developer ID Application' certificate for team $TEAM (Xcode → Settings → Accounts)"
@@ -37,10 +41,20 @@ fi
 echo "Building Tomodachi $VERSION (Release)…"
 cd "$PROJ"
 xcodegen generate >/dev/null
-rm -rf "$OUT" "$ARCHIVE" && mkdir -p "$OUT"
+[ ! -e "$ARCHIVE" ] || die "$ARCHIVE exists already; wait a minute and run again"
+rm -rf "$OUT" && mkdir -p "$OUT" "$(dirname "$ARCHIVE")"
 xcodebuild -quiet archive -project NotchBuddy.xcodeproj -scheme NotchBuddy -configuration Release \
   -destination "generic/platform=macOS" -derivedDataPath "$ROOT/build/release-derived" -archivePath "$ARCHIVE" \
   -allowProvisioningUpdates
+
+# The archive keeps the dSYMs that match the app's executable, so its crashes can be symbolicated.
+uuids() { dwarfdump --uuid "$1" | awk '{print $2}' | sort; }
+DSYM="$ARCHIVE/dSYMs/Tomodachi.app.dSYM"
+[ -d "$DSYM" ] || die "the archive has no dSYM for Tomodachi.app"
+[ "$(uuids "$ARCHIVE/Products/Applications/Tomodachi.app/Contents/MacOS/Tomodachi")" = "$(uuids "$DSYM")" ] \
+  || die "the archive's dSYM doesn't match its app"
+echo "Archive kept: $ARCHIVE"
+
 xcodebuild -quiet -exportArchive -archivePath "$ARCHIVE" -exportOptionsPlist "$ROOT/scripts/ExportOptions.plist" \
   -exportPath "$OUT" -allowProvisioningUpdates
 
@@ -48,6 +62,10 @@ APP="$OUT/Tomodachi.app"
 ZIP="$OUT/Tomodachi-$VERSION-beta.zip"
 
 check_app() {
+  # The product's identity only (SERP's native-app-build-identity standard): never a Debug or test build's.
+  local id
+  id=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$1/Contents/Info.plist" 2>/dev/null || true)
+  [ "$id" = "$BUNDLE_ID" ] || die "the bundle ID is '$id', not $BUNDLE_ID"
   codesign --verify --deep --strict "$1" || die "signature check failed"
   # Capture first: `cmd | grep -q` fails under pipefail when grep exits early.
   local signature entitlements
