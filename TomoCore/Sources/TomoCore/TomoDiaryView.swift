@@ -22,6 +22,7 @@ struct TomoDiarySection: View {
     @State private var showAll = false
     @State private var copied = false
     @State private var opened = false
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     private var phone: Bool {
         #if os(iOS)
@@ -33,16 +34,22 @@ struct TomoDiarySection: View {
 
     private var shown: TomoDiaryPage? { pages.first { $0.day == selected } ?? pages.last }
 
+    /// The accessibility text sizes (the iPhone's AX1 to AX5): the copy button goes under the title and the date above
+    /// the arrows, so each has the screen's width, as on the rest of Together (#216).
+    private var largeText: Bool { typeSize.isAccessibilitySize }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center, spacing: 12) {
+        let header = largeText ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10))
+                               : AnyLayout(HStackLayout(alignment: .center, spacing: 12))
+        return VStack(alignment: .leading, spacing: 12) {
+            header {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(lang.learner("diary.title")).font(.title3.weight(.bold))
                     Text(lang.learner("diary.note")).font(.callout).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if let copy, let page = shown {
-                    Spacer(minLength: 0)
+                    if !largeText { Spacer(minLength: 0) }
                     Button {
                         copy(TomoStats(progress).diaryText(page, lang.learner))
                         copied = true
@@ -92,19 +99,25 @@ struct TomoDiarySection: View {
         }
     }
 
-    /// The iPhone's arrows: the day played before, the date, the day after.
+    /// The iPhone's arrows: the day played before, the date, the day after; at the accessibility sizes, the date above.
     private func nav(_ page: TomoDiaryPage) -> some View {
         let i = pages.firstIndex(of: page) ?? pages.count - 1
-        return HStack {
-            Button { select(pages[max(i - 1, 0)]) } label: { Image(systemName: "chevron.left") }
-                .disabled(i == 0)
-                .accessibilityLabel(lang.learner("diary.earlier"))
-            Spacer()
-            Text(TomoStats.longDay(page.day, lang.learner)).font(.callout).foregroundStyle(.secondary)
-            Spacer()
-            Button { select(pages[min(i + 1, pages.count - 1)]) } label: { Image(systemName: "chevron.right") }
-                .disabled(i == pages.count - 1)
-                .accessibilityLabel(lang.learner("diary.later"))
+        let date = Text(TomoStats.longDay(page.day, lang.learner)).font(.callout).foregroundStyle(.secondary)
+        let earlier = Button { select(pages[max(i - 1, 0)]) } label: { Image(systemName: "chevron.left") }
+            .disabled(i == 0)
+            .accessibilityLabel(lang.learner("diary.earlier"))
+        let later = Button { select(pages[min(i + 1, pages.count - 1)]) } label: { Image(systemName: "chevron.right") }
+            .disabled(i == pages.count - 1)
+            .accessibilityLabel(lang.learner("diary.later"))
+        return Group {
+            if largeText {
+                VStack(alignment: .leading, spacing: 8) {
+                    date.fixedSize(horizontal: false, vertical: true)
+                    HStack { earlier; Spacer(); later }
+                }
+            } else {
+                HStack { earlier; Spacer(); date; Spacer(); later }
+            }
         }
         .buttonStyle(.bordered)
         .buttonBorderShape(.circle)
@@ -131,6 +144,7 @@ struct TomoDiarySection: View {
                         if page.summary.grew {
                             Text(page.birthday ? lang.target.ageLabel(page.age) : lang.learner("level", ["n": "\(page.summary.levelTo)"]))
                                 .font(.caption2.weight(.semibold)).foregroundStyle(.orange)
+                                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)   // beside a headline that doesn't grow
                         }
                         Spacer(minLength: 0)
                     }
