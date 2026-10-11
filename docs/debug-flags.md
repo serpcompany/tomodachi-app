@@ -51,6 +51,12 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
 - `TOMO_AI_PROVIDER=<anthropic|openai|gemini|openrouter|groq|ollama|custom>`, `TOMO_AI_MODEL`,
   `TOMO_AI_BASE_URL`, `TOMO_AI_KEY`: the AI provider, over the AI page's and `OPENAI_API_KEY` or
   `ANTHROPIC_API_KEY` (`TomoAI.config`). Debug builds only: Release builds have no AI.
+- `TOMO_GROW=step|level|birthday`: 3 s after launch, grows Tomo that much on a copy in memory and celebrates,
+  as the menu's Grow items do ([verification.md](verification.md)).
+- `TOMO_DUMP_MENU=<file>`: writes the main menu and the menu bar icon's menu, with their shortcuts, since a
+  headless run can't press them.
+- `TOMO_SYNC=1`: a test run (`TOMO_DATA_DIR`) syncs only with it; `TOMO_SYNC_CHECK=<step>` (`play:N`, `blind:N`,
+  `reset`, `show`) syncs that folder and quits, printing the Tomo ([verification.md](verification.md)).
 - `TOMO_STAGE=3 TOMO_AUTOCHAT="しごと してる|うん"`: a testing Tomo at that age, typing those answers. Testing
   ages run in memory; saved progress isn't touched.
 - `TOMO_TARGET=es`, `TOMO_LEARNER=ja`: the language pair.

@@ -4,7 +4,7 @@ Tomodachi on the iPhone ([#52](https://github.com/serpcompany/tomodachi-app/issu
 
 A new learner's first launch shows the first run full screen over all of it: the hatch, the first word, how Tomo comes to you, the rhythm and quiet hours for reminders, the notification prompt, the widget how-to and the Lock Screen card, yes or not now (`TomoOnboarding`, `Shell.phone`).
 
-How the app is built, its files, and how the widgets and the Lock Screen card draw what the app writes:
+Its files, and how the widgets and the Lock Screen card draw what the app writes:
 [docs/iphone.md](../docs/iphone.md).
 
 The play screen fits the Play tab from an iPhone SE (375 × 667) up: Tomo, its line and the answers share the height there is (`TomoPhoneView.fit`). Text follows Dynamic Type up to a cap, so it grows inside its row; VoiceOver reads the bar, Tomo, its line (in the Japanese voice, with each word's card as an action) and every choice. Tomo's voice and peeps use the `.ambient` audio session: the Ring/Silent switch mutes them, and they play over the learner's music. To check a short screen: an `iPhone SE (3rd generation)` simulator; for large text, `xcrun simctl ui <device> content_size accessibility-large`.

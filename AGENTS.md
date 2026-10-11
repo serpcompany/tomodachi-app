@@ -24,7 +24,9 @@ repo follows the
 - **How the code fits together:** [docs/architecture.md](docs/architecture.md) maps the systems and
   the seam each one keeps, and links each system's leaf with its invariants (the island, the iPhone
   app, growth, the store and sync, visits and reminders, the first run, screens). Read it, and the
-  leaf you touch, before changing code.
+  leaf you touch, before changing code. Also [docs/character.md](docs/character.md) (how Tomo the
+  blob is drawn, moved and hosted) and [docs/stats.md](docs/stats.md) (what the stats screens count
+  and the rules they keep).
 - **Language pairs:** [docs/languages.md](docs/languages.md) covers the pack format, the generated
   word levels, and adding a language.
 - **Why things are the way they are:** [docs/decisions.md](docs/decisions.md), newest first, and
@@ -87,7 +89,7 @@ Checks in `.github/scripts/` enforce what they can. These rules need judgment:
 - **Tomo is always alive.** It's drawn and animated live in code, with no static images or sprite
   sheets. Every new look, state or reaction needs motion, and Tomo never sits frozen.
 - **Tomo's card is a fixed grid** (`TomoGrid`, [docs/island.md](docs/island.md)). New UI goes into
-  a slot. Help content goes in the panel under the card, never in the card.
+  a slot, no row sizes itself, and text that can grow is capped. Help content goes in the panel under the card, never in the card.
 - **Coucou's assets are reserved:** its name, the Mochi character and its sounds. Never ship them.
 - **Secrets** live in `.env` (gitignored) or the Keychain. Never commit, print or log a key.
 - **Don't invest in the offline keyword matcher** (`TomoBrain.offlineReply` and the packs'

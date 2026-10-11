@@ -1,7 +1,7 @@
 # The iPhone app
 
 How the iPhone app hosts the game: its shell, its files, and the widgets and Lock Screen card that
-draw what the app writes. Building and running it is in [ios-demo/README.md](../ios-demo/README.md);
+draw what the app writes. Building it is only in [ios-demo/README.md](../ios-demo/README.md);
 what a learner sees is in [concepts.md](concepts.md) ("On the iPhone", "Reminders (iPhone)"); the
 other systems are mapped in [architecture.md](architecture.md).
 

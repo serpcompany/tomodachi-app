@@ -41,7 +41,8 @@ Invariants on the Mac:
   works then and a visit or a peek never takes a keystroke
   ([decisions-2026-10-07.md](decisions-2026-10-07.md)). The shortcut (`TomoShortcut`) is a Carbon
   hot key, so no permission; there's none until the learner records one, and a test run never
-  registers it.
+  registers it ([decisions.md](decisions.md), "The shortcut to play is a Carbon hot key, and there's
+  none until the learner records one", 2026-10-11).
 - It's a non-activating panel that can't be hidden: Tomodachi is a regular app with a Dock icon, and
   the island never brings it to the front.
 
