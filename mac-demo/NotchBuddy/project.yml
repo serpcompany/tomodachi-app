@@ -25,11 +25,14 @@ settings:
     # The app's iCloud container, the same as the iPhone app's (TomoSync reads it from Info.plist).
     TOMO_ICLOUD_CONTAINER: iCloud.com.zenbujapanese.tomo
     CODE_SIGN_ENTITLEMENTS: Resources/Tomodachi.entitlements
+    # The app's name to macOS (window titles, About). Tomo's own screens draw CFBundleName, the same in every build.
+    TOMO_DISPLAY_NAME: Tomodachi
   configs:
     # iCloud sync (TomoSync) and its push notifications: Debug builds use CloudKit's Development environment,
     # so tests never touch a learner's real Tomo; Developer ID builds use Production, like the iPhone app.
     Debug:
       TOMO_ICLOUD_ENV: Development
+      TOMO_DISPLAY_NAME: Tomodachi Debug
     Release:
       TOMO_ICLOUD_ENV: Production
       CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
@@ -60,7 +63,7 @@ targets:
       path: Resources/Info.plist
       properties:
         CFBundleName: Tomodachi
-        CFBundleDisplayName: Tomodachi
+        CFBundleDisplayName: $(TOMO_DISPLAY_NAME)
         NSHumanReadableCopyright: "Tomodachi by Zenbu Japanese. © 2026 Zenbu Japanese."
         CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)   # one place: the target's build setting
         CFBundleVersion: "1"
@@ -75,9 +78,15 @@ targets:
         TomoCloudContainer: $(TOMO_ICLOUD_CONTAINER)
     settings:
       base:
+        # The product's identity, for Release only: the owner's copy and the betas (release-beta.sh refuses any other).
         PRODUCT_BUNDLE_IDENTIFIER: com.zenbujapanese.tomo
         PRODUCT_NAME: Tomodachi
         INFOPLIST_FILE: Resources/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         MACOSX_DEPLOYMENT_TARGET: "15.0"
         ENABLE_SANDBOX: NO
+      configs:
+        # A Debug build is its own app (#54, SERP's native-app-build-identity standard): its own preferences, data
+        # folder (TomoStore) and keychain items, so a run without TOMO_DATA_DIR never touches the owner's copy.
+        Debug:
+          PRODUCT_BUNDLE_IDENTIFIER: com.zenbujapanese.tomo.debug

@@ -53,6 +53,11 @@ public final class TomoStore {
 
     public static var directory: URL {
         if let d = ProcessInfo.processInfo.environment["TOMO_DATA_DIR"] { return URL(fileURLWithPath: d) }
+        return defaultDirectory
+    }
+
+    /// The folder without TOMO_DATA_DIR, named by the bundle ID: a Debug build's (`….debug`) is never the owner's (#54).
+    public static var defaultDirectory: URL {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         return base.appendingPathComponent(Bundle.main.bundleIdentifier ?? "Tomodachi")
     }

@@ -44,9 +44,9 @@ pack's age boundary. Each run prints a `pace` line: the days to Lv 2, 5 and 10 a
   runs in both. The tests set `TOMO_DATA_DIR` to a fresh temporary folder before anything opens a store. A check
   never rests on chance: random draws it looks at come from a seed (Tomo's particles: `TomoBlob.dice`, #203).
 - **The iPhone's UI journeys** (`ios-demo/Tomodachi/UITests`, XCUITest): launch, a picture round answered wrong
-  then right, the practice offer, Together, Words opening at Tomo's level, and a long press on Tomo showing its
-  love. Each launches on a fresh folder in the test runner's temporary folder, silent, in English, without the
-  first run, and starts once the app shows its tab with those settings (`launch` launches it again, once, and
+  then right, the practice offer, Together, Words opening at Tomo's level, a long press on Tomo showing its
+  love, and the build's own identity checks (`TOMO_SELFTEST=1` in the app). Each launches on a fresh folder in the
+  test runner's temporary folder, silent, in English, without the first run, and starts once the app shows its tab with those settings (`launch` launches it again, once, and
   records why); progress a journey needs is written there through TomoCore's own store (`TomoSeed`), and the text
   they look for comes from `ui.en.json`. A journey waits on what the screen shows, and a state that shows for a
   moment must outlast XCUITest's own waits, which take seconds on a busy simulator (Tomo's love stays its VoiceOver
@@ -106,7 +106,8 @@ passes: [hand-checks.md](hand-checks.md).
 The Testing menu, the window's Testing and AI pages and the "I'm learning" picker are hidden from learners. The AI
 page exists in Debug builds only.
 **⌥-click the menu bar icon** to show them for the rest of that run, or show them always with
-`defaults write com.zenbujapanese.tomo tomoTestingTools -bool true` (`defaults delete` to hide them again).
+`defaults write com.zenbujapanese.tomo tomoTestingTools -bool true` (`com.zenbujapanese.tomo.debug` for a Debug build;
+`defaults delete` to hide them again).
 They work in every build, Developer ID included (`TomoTestingTools`). The Testing menu is in the main menu while
 Tomodachi is the active app, and in the menu bar icon's menu: **Skip to talking (3さい)** (⌘3), **Grow one
 step** (⌘G), **Finish this level** (⌘L) and **Grow to the next birthday** (⌘B), which grow Tomo without waiting
@@ -133,15 +134,20 @@ its data folder again every 5 minutes. When saves go through, the marking stops.
 
 ## Keep the owner's Tomo safe
 
-- Progress is saved, so **every test run gets `TOMO_DATA_DIR=<a temp dir>`**. Without it, the run changes
-  the owner's own Tomo.
+- Progress is saved, so **every test run gets `TOMO_DATA_DIR=<a temp dir>`**. Without it, a Debug run uses
+  the Debug app's own folder, which every agent's runs share, and syncs it; a Release build changes the owner's Tomo.
 - **Every test run gets `TOMO_HEADLESS=1`** too, so it never shows on the owner's screen: each window stays
   transparent and click-through, none takes the keyboard (the owner's typing would land in it), the app
   never activates and stays out of the Dock, the menu bar icon is hidden and Tomo is silent, without
   touching the saved sound setting. Snapshots still work: they draw the views, not the screen (`TomoHeadless.swift`).
-- Debug builds share the owner's bundle ID and preferences ([#54](https://github.com/serpcompany/tomodachi-app/issues/54)).
-  Launch test runs by their binary path and never `pkill` by name: that quits the owner's copy, and other
-  agents' runs. If one was quit, relaunch it with `mac-demo/run.sh`.
+- Debug builds are their own app, `com.zenbujapanese.tomo.debug` ("Tomodachi Debug"), with their own
+  preferences, data folder, keychain items and, on the iPhone, App Group, and they never open at login
+  ([#54](https://github.com/serpcompany/tomodachi-app/issues/54)). `TomoIdentity` checks it in the Mac's self-test and,
+  on the iPhone, in the app itself (`TOMO_SELFTEST=1`, run by the `testThisBuildIsItsOwnApp` journey, with the widgets'
+  ID and App Group); `TomoLoginItem.selfTest` checks the login item. Only Release builds, the owner's copy among
+  them, are `com.zenbujapanese.tomo`.
+  Both share the process name: launch test runs by their binary path and never `pkill` by name, which quits
+  the owner's copy and other agents' runs. If one was quit, relaunch it with `mac-demo/run.sh`.
 - iPhone: use your own simulator, from `ios-demo/scripts/simulator.sh udid`, and name it by that UDID
   in every command (never `booted` or another's name): `xcrun simctl boot <udid>`, `simctl io <udid>
   screenshot`, then `simulator.sh delete` when the work is done. Never open Simulator.app, which puts a

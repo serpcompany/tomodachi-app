@@ -81,6 +81,7 @@
     "settings.openAtLoginNote": "Tomo can only drop in while Tomodachi is open.",
     "settings.openAtLoginApprove": "Allow Tomodachi in System Settings → General → Login Items.",
     "settings.openLoginItems": "Open Login Items",
+    "login.debug": "This Debug build never opens at login, so it can't start next to your own Tomodachi.",
     "settings.restart": "Start Tomo over…",
     "settings.restartNote": "A new Tomo at level 1. You'll be asked first.",
     "about.version": "Version {v}",

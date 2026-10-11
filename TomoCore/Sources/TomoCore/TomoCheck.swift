@@ -10,9 +10,12 @@ public enum TomoCheck {
     public static func run(_ checks: ((Bool, String) -> Void) -> Void) -> Bool {
         var ok = true
         checks { passed, what in
-            print((passed ? "ok    " : "FAIL  ") + what)
+            print(line(passed, what))
             if !passed { ok = false }
         }
         return ok
     }
+
+    /// A result as the self-test prints it.
+    public static func line(_ passed: Bool, _ what: String) -> String { (passed ? "ok    " : "FAIL  ") + what }
 }

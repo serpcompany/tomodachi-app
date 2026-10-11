@@ -105,7 +105,8 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   name opens it there: `hatch`, `round`, `result`, `visits`, `rhythm`, `quiet`, `login`, `ready`, or
   `welcomeBack` (the iPhone has `notify`, `widget` and `lockScreen` in place of `login`). `preview` opens the
   Testing menu's preview of it on a copy of the data folder's Tomo, which is never changed (seed one first,
-  below). A test run never changes the login item: it logs what it would have done. With
+  below). A Debug build never opens at login: its `login` step says so instead of showing the switch (#54), and a
+  Release test run only logs what it would have done. With
   `TOMO_AUTOPLAY=1` it plays itself through; `TOMO_SNAPSHOT_DIR` captures its window (`onboarding-NNN.png`).
 - `TOMO_RENDER_VARIETY=<dir>`: the same eight Tomos at several `TomoLook.variety` settings, to judge how
   different Tomos should be.

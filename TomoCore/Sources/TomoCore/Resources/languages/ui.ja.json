@@ -81,6 +81,7 @@
     "settings.openAtLoginNote": "Tomoが遊びに来るのは、Tomodachiが開いているときだけです。",
     "settings.openAtLoginApprove": "システム設定 → 一般 → ログイン項目 で、Tomodachiを許可してください。",
     "settings.openLoginItems": "ログイン項目を開く",
+    "login.debug": "このDebugビルドはログイン時に開かないので、いつものTomodachiと並んで起動しません。",
     "settings.restart": "Tomoを最初から…",
     "settings.restartNote": "レベル1の新しいTomoになります。実行前に確認します。",
     "about.version": "バージョン {v}",
