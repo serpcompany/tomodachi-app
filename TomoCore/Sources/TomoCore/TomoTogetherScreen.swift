@@ -453,7 +453,8 @@ public struct TomoTogetherScreen: View {
 
 /// The garden's summary line: one part wraps like a sentence; several are phrases ("17 misses", "10月5日〜10月11日")
 /// joined by the list separator, which wrap between phrases and never inside one, so a number stays with its unit and
-/// a date stays whole. A phrase too wide for a line of its own shrinks a little (#197).
+/// a date stays whole. A phrase too wide for a whole line shrinks a little (to 0.75); only one wider still (the
+/// iPhone's largest text) wraps inside itself, keeping the separator on its last word, rather than being cut (#197).
 private struct TomoPhrases: View {
     let parts: [String]
     let separator: String
@@ -464,13 +465,38 @@ private struct TomoPhrases: View {
         } else {
             TomoChipFlow(spacing: 4, lineSpacing: 1) {
                 ForEach(Array(parts.enumerated()), id: \.offset) { i, part in
-                    // The separator ends its line, never starts the next
-                    Text(i < parts.count - 1 ? (part + separator).trimmingCharacters(in: .whitespaces) : part)
-                        .lineLimit(1).minimumScaleFactor(0.75)
+                    // The separator ends its line, never starts the next or stands alone
+                    let mark = separator.trimmingCharacters(in: .whitespaces)
+                    let phrase = i < parts.count - 1
+                        ? part + (separator.first?.isWhitespace == true ? "\u{00A0}" : "") + mark : part
+                    ViewThatFits(in: .horizontal) {
+                        Text(phrase).lineLimit(1)
+                        TomoShrinkable(scale: 0.75) { Text(phrase).lineLimit(1).minimumScaleFactor(0.75) }
+                        Text(phrase).fixedSize(horizontal: false, vertical: true)
+                    }
                 }
             }
             .accessibilityElement(children: .combine)
         }
+    }
+}
+
+/// Its one-line text, offered as `scale` of its width: `ViewThatFits` picks it while the text, shrunk that far
+/// (`minimumScaleFactor`), still fits the line, and it shrinks into the width it's given.
+private struct TomoShrinkable: Layout {
+    let scale: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let text = subviews.first else { return .zero }
+        guard let width = proposal.width, width.isFinite else {
+            let ideal = text.sizeThatFits(.unspecified)
+            return CGSize(width: ideal.width * scale, height: ideal.height)
+        }
+        return text.sizeThatFits(ProposedViewSize(width: width, height: proposal.height))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin, proposal: ProposedViewSize(bounds.size))
     }
 }
 
