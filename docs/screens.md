@@ -18,7 +18,10 @@ it on), reminders on the iPhone ([#88](https://github.com/serpcompany/tomodachi-
 Mac's main menu and its menu bar icon's menu share one list of commands (`TomoMenus`). Invariants:
 the screens read `TomoGame`, `TomoProgress` and `TomoStats` and decide nothing themselves; Start
 over always asks first; colours read in light and dark mode (a system colour, or a light and a dark
-value), a dark picture gets a light disc on a dark card (`TomoPictureView`), and sliders are
+value), each word stage's pill reads at 5:1 and looks different from the stage before it in both,
+in light mode by a fill that's darker in greyscale too (`TomoStagePill.selfTest`,
+[#236](https://github.com/serpcompany/tomodachi-app/issues/236)), a dark
+picture gets a light disc on a dark card (`TomoPictureView`), and sliders are
 `TomoSlider` ([#195](https://github.com/serpcompany/tomodachi-app/issues/195)); the testing tools
 (`TomoTestingTools`, after ⌥-clicking the menu bar icon) never touch the saved Tomo. New screens
 take the Tomo they show (its progress, look and material), so a friend can have its own: Together

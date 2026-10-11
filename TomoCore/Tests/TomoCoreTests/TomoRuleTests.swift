@@ -25,11 +25,38 @@ final class TomoCharacterTests: TomoCheckCase {
     func testTheLookRules() { expect(TomoLook.selfTest) }
 }
 
-/// What the Words show reads on its card (#195, #207): a dark picture gets a light disc on a dark card, and each stage's
-/// colour reads at 5:1 or more in light and dark mode.
+/// What the Words show reads on its card (#195, #207, #236): a dark picture gets a light disc on a dark card, and each
+/// stage's colour reads at 5:1 or more and stands apart from the stage before it, in light and dark mode.
 final class TomoContrastTests: TomoCheckCase {
     func testDarkPicturesGetADiscOnADarkCard() { expect(TomoPicture.selfTest) }
-    func testStageColoursReadOnLightAndDarkCards() { expect(TomoStagePill.selfTest) }
+    func testStagesReadAndStandApartOnLightAndDarkCards() { expect(TomoStagePill.selfTest) }
+
+    /// The stage rule can't drift loose (#236): run on palettes it must catch, it fails each at the steps that look
+    /// alike, and passes the light stages. Removing or loosening either light floor fails one of them.
+    func testTheStageRuleCatchesLightStagesThatLookAlike() {
+        let light = TomoStagePill.stages.compactMap { TomoStagePill.look($0, dark: false) }
+        let tint = { (hex: String) in TomoStagePill.Look(text: hex, fill: hex, opacity: 0.15) }
+        /// The checks a light palette fails, as "<stage> <measure>".
+        func fails(_ looks: [TomoStagePill.Look]) -> [String] {
+            XCTAssertEqual(looks.count, TomoStagePill.stages.count)
+            return TomoStagePill.stepChecks(looks, dark: false).filter { !$0.holds }.map { "\($0.to) \($0.measure)" }
+        }
+        let everyStep = ["knows apart", "knows darker", "good apart", "good darker",
+                         "loves apart", "loves darker", "forever apart", "forever darker"]
+        // #217's exact light stages: dark greens as text, each on a 15% tint of itself.
+        XCTAssertEqual(fails(["#0E625F", "#035C42", "#02513E", "#024635", "#6042B8"].map(tint)), everyStep, "#217")
+        // A1, #236's first idea: greens that deepen in the text, on #217's tint. Their texts alone are 0.09 to 0.10 apart.
+        XCTAssertEqual(fails(["#016165", "#01652C", "#014A23", "#012D16", "#6A37BF"].map(tint)), everyStep, "A1")
+        // B2, a dark text at a rising opacity, then a solid Forever: its Just heard and Knows it fills nearly match
+        // (0.056 apart), though each is darker than the last.
+        let b2 = zip(["#036A66", "#016048", "#004E38", "#012A1D"], [0.08, 0.18, 0.30, 0.45])
+            .map { TomoStagePill.Look(text: $0, fill: $0, opacity: $1) } + [TomoStagePill.Look(text: "#FFFFFF", fill: "#7B53DC", opacity: 1)]
+        XCTAssertEqual(fails(b2), ["knows apart"], "B2")
+        // The light stages with round 1's Forever (#7850DA): apart from Loves it, but as dark in greyscale.
+        let flatForever = light.dropLast() + [TomoStagePill.Look(text: "#FFFFFF", fill: "#7850DA", opacity: 1)]
+        XCTAssertEqual(fails(Array(flatForever)), ["forever darker"], "Forever as dark as Loves it")
+        XCTAssertEqual(fails(light), [], "the light stages")
+    }
 }
 
 /// Words lands on Tomo's level each time it shows (resting at once if the list is already there), and again whenever
