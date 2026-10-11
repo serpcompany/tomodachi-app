@@ -25,9 +25,11 @@ final class TomoCharacterTests: TomoCheckCase {
     func testTheLookRules() { expect(TomoLook.selfTest) }
 }
 
-/// A word's picture reads on its card: a dark one gets a light disc on a dark card (#195).
-final class TomoPictureTests: TomoCheckCase {
+/// What the Words show reads on its card (#195): a dark picture gets a light disc on a dark card, and each stage's
+/// colour reads at 5:1 or more in dark mode.
+final class TomoContrastTests: TomoCheckCase {
     func testDarkPicturesGetADiscOnADarkCard() { expect(TomoPicture.selfTest) }
+    func testStageColoursReadOnADarkCard() { expect(TomoStagePill.selfTest) }
 }
 
 /// One Tomo across devices: the merge rules and the store's sync columns (no iCloud).
