@@ -232,12 +232,17 @@ public struct TomoStats {
     /// the first answer, "Nothing yet today", with the streak still waiting on today ("· 4 days in a row"). A streak
     /// shows from two days. Never a count of what's left to do.
     public func todayLine(_ ui: LearnerPack) -> String {
+        todayParts(ui).joined(separator: ui("list.separator"))
+    }
+
+    /// The today line's phrases ("12 answers", "5 days in a row"), for a view that wraps between them (Together).
+    public func todayParts(_ ui: LearnerPack) -> [String] {
         let t = today, streak = currentStreak
         var parts = t.played ? [ui.counted("today.answers", t.answers)] : [ui("today.nothing")]
         if !t.newWords.isEmpty { parts.append(ui.counted("today.newWords", t.newWords.count)) }
         if streak >= 2 { parts.append(ui("today.streak", ["n": "\(streak)"])) }
         if t.played, t.grew { parts.append(ui("today.grew", ["from": "\(t.levelFrom)", "to": "\(t.levelTo)"])) }
-        return parts.joined(separator: ui("list.separator"))
+        return parts
     }
 
     // MARK: Streaks and missed days (Tomo's 4 am days)

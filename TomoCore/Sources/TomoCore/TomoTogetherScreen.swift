@@ -22,6 +22,7 @@ public struct TomoTogetherScreen: View {
     private let copy: ((String) -> Void)?
     @ObservedObject private var lang = TomoLanguages.shared
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     /// `progress`, `look` and `material`: the Tomo these are about (the learner's own: its progress, its look and
     /// `.own`). `version`: bump it when its progress changes (TomoGame's `progressVersion`), so the numbers are read again.
@@ -37,7 +38,7 @@ public struct TomoTogetherScreen: View {
 
     private struct Loaded {
         var key = ""
-        var today = ""
+        var today: [String] = []
         var cards: [TomoPostcard] = []
         var first: TomoPostcard?
         var postcardToday = false
@@ -75,6 +76,10 @@ public struct TomoTogetherScreen: View {
         false
         #endif
     }
+
+    /// The accessibility text sizes (the iPhone's AX1 to AX5; the Mac never has them). There, what sits side by side
+    /// goes one under another and the range picker is a menu, so nothing on the screen is wider than the phone (#216).
+    private var largeText: Bool { typeSize.isAccessibilitySize }
 
     public var body: some View {
         ScrollViewReader { proxy in
@@ -136,7 +141,7 @@ public struct TomoTogetherScreen: View {
         guard key != loaded.key else { return }
         let stats = TomoStats(progress), ui = lang.learner
         let cards = stats.postcards(ui), plants = stats.garden()
-        var l = Loaded(key: key, today: stats.todayLine(ui), cards: cards, first: cards.isEmpty ? stats.firstPostcard(ui) : nil,
+        var l = Loaded(key: key, today: stats.todayParts(ui), cards: cards, first: cards.isEmpty ? stats.firstPostcard(ui) : nil,
                        postcardToday: stats.postcardCameToday(ui) != nil, plants: plants)
         l.since = plants.first?.met ?? progress.metAt
         for r in TomoStats.Range.allCases {
@@ -178,12 +183,12 @@ public struct TomoTogetherScreen: View {
                     Text(lang.learner("garden.note")).font(.callout).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                if !phone, !loaded.plants.isEmpty {
+                if !phone, !largeText, !loaded.plants.isEmpty {
                     Spacer(minLength: 0)
                     rangePicker
                 }
             }
-            if phone, !loaded.plants.isEmpty { rangePicker }
+            if phone || largeText, !loaded.plants.isEmpty { rangePicker }
             TimelineView(.animation(minimumInterval: 1 / 20, paused: replayStart == nil)) { tl in
                 let at = gardenTime(tl.date)
                 VStack(alignment: .leading, spacing: 10) {
@@ -193,7 +198,7 @@ public struct TomoTogetherScreen: View {
                         field(at: at).aspectRatio(1, contentMode: .fit)
                             .overlay(alignment: .bottom) { if let card = plantCard { card.padding(8) } }
                         summary
-                        TomoGardenLegend(horizontal: true)
+                        TomoGardenLegend(horizontal: !largeText)
                     } else {
                         HStack(alignment: .top, spacing: 14) {
                             VStack(alignment: .leading, spacing: 10) {
@@ -216,13 +221,31 @@ public struct TomoTogetherScreen: View {
         }
     }
 
+    /// Today, this week or since we met: a segmented control, or at the accessibility sizes a menu showing the range
+    /// chosen, since a segmented control can't wrap (#216). The menu's label is a `TomoPhrase` (one line, a little
+    /// smaller if it must be): the stock menu picker wrapped "出会っ / てから" and cut both lines at its edges.
     private var rangePicker: some View {
-        Picker(lang.learner("garden.title"), selection: $range) {
+        let picker = Picker(lang.learner("garden.title"), selection: $range) {
             ForEach(TomoStats.Range.allCases, id: \.self) { r in Text(lang.learner("garden.range.\(r.rawValue)")).tag(r) }
         }
-        .pickerStyle(.segmented)
         .labelsHidden()
-        .fixedSize()
+        let chosen = lang.learner("garden.range.\(range.rawValue)")
+        return Group {
+            if largeText {
+                Menu {
+                    picker.pickerStyle(.inline)
+                } label: {
+                    HStack(spacing: 6) {
+                        TomoPhrase(text: chosen)
+                        Image(systemName: "chevron.up.chevron.down").imageScale(.small)
+                    }
+                }
+                .accessibilityLabel(lang.learner("garden.title"))
+                .accessibilityValue(chosen)
+            } else {
+                picker.pickerStyle(.segmented).fixedSize()
+            }
+        }
         .onChange(of: range) { _, _ in plantShown = nil }
     }
 
@@ -294,29 +317,40 @@ public struct TomoTogetherScreen: View {
         }
     }
 
-    private func replayRow(at now: Date) -> some View {
+    /// Replay, the slider and the day in one row; at the accessibility sizes, one under another, so the slider keeps
+    /// the screen's width.
+    @ViewBuilder private func replayRow(at now: Date) -> some View {
         let k = replayPosition(now) ?? 1
         let day = gardenTime(now) ?? TomoClock.now
-        return HStack(spacing: 10) {
-            Button(action: replay) {
-                Label(lang.learner(replayStart == nil ? "garden.replay" : "garden.replaying"), systemImage: "play.fill")
+        let button = Button(action: replay) {
+            Label(lang.learner(replayStart == nil ? "garden.replay" : "garden.replaying"), systemImage: "play.fill")
+        }
+        .buttonStyle(.bordered)
+        .disabled(replayStart != nil)
+        // Its knob shows at the track's end in light mode too (TomoSlider, #195).
+        let slider = TomoSlider(value: Binding(get: { k }, set: { scrub = $0 >= 0.999 ? nil : $0; replayStart = nil; plantShown = nil }),
+                                tint: TomoGardenColors(dark: scheme == .dark).win)
+            .accessibilityLabel(lang.learner("garden.day"))
+            .accessibilityValue(TomoStats.shortDay(day, lang.learner))
+        let date = Text(TomoStats.shortDay(day, lang.learner)).font(.callout.monospacedDigit()).foregroundStyle(.secondary)
+            .frame(minWidth: 52, alignment: .trailing)
+        if largeText {
+            VStack(alignment: .leading, spacing: 8) {
+                button
+                date.fixedSize(horizontal: false, vertical: true)
+                slider
             }
-            .buttonStyle(.bordered)
-            .disabled(replayStart != nil)
-            // Its knob shows at the track's end in light mode too (TomoSlider, #195).
-            TomoSlider(value: Binding(get: { k }, set: { scrub = $0 >= 0.999 ? nil : $0; replayStart = nil; plantShown = nil }),
-                       tint: TomoGardenColors(dark: scheme == .dark).win)
-                .accessibilityLabel(lang.learner("garden.day"))
-                .accessibilityValue(TomoStats.shortDay(day, lang.learner))
-            Text(TomoStats.shortDay(day, lang.learner)).font(.callout.monospacedDigit()).foregroundStyle(.secondary)
-                .frame(minWidth: 52, alignment: .trailing)
+        } else {
+            HStack(spacing: 10) { button; slider; date }
         }
     }
 
     // MARK: Copy recap, and the learner's own log
 
+    /// Copy recap and Export side by side; at the accessibility sizes, Export below, and both wrap their words.
     private var gardenActions: some View {
-        HStack(spacing: 10) {
+        let layout = largeText ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10)) : AnyLayout(HStackLayout(spacing: 10))
+        return layout {
             if let copy {
                 Button {
                     copy(loaded.recaps[range] ?? "")
@@ -335,8 +369,8 @@ public struct TomoTogetherScreen: View {
             }
             .menuStyle(.button)
             .buttonStyle(.bordered)
-            .fixedSize()
-            Spacer(minLength: 0)
+            .fixedSize(horizontal: !largeText, vertical: true)
+            if !largeText { Spacer(minLength: 0) }
         }
     }
 
@@ -365,12 +399,14 @@ public struct TomoTogetherScreen: View {
 
     // MARK: Today
 
-    /// "Today" and the line, in one row.
+    /// "Today" and the line, in one row; at the accessibility sizes, the line under "Today".
     private var today: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
+        let layout = largeText ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+                               : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 12))
+        return layout {
             Text(lang.learner("growth.today")).font(.headline)
-            TomoTodayLine(text: loaded.today).font(.body.weight(.medium))
-            Spacer(minLength: 0)
+            TomoTodayLine(parts: loaded.today, separator: lang.learner("list.separator")).font(.body.weight(.medium))
+            if !largeText { Spacer(minLength: 0) }
         }
         .padding(.horizontal, 14).padding(.vertical, 11)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -380,17 +416,20 @@ public struct TomoTogetherScreen: View {
     // MARK: Tomo's week
 
     /// The title with what to do with the postcard beside it (icons only on the iPhone), so the card fits the window or
-    /// the screen above the tabs; then the postcard and every postcard so far.
+    /// the screen above the tabs; then the postcard and every postcard so far. At the accessibility sizes, the buttons
+    /// go under the title, which would otherwise have room for a syllable a line.
     private var week: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center, spacing: 12) {
+        let header = largeText ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10))
+                               : AnyLayout(HStackLayout(alignment: .center, spacing: 12))
+        return VStack(alignment: .leading, spacing: 12) {
+            header {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(lang.learner("postcard.title")).font(.title3.weight(.bold))
                     Text(lang.learner("postcard.note")).font(.callout).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if let card = shown {
-                    Spacer(minLength: 0)
+                    if !largeText { Spacer(minLength: 0) }
                     actions(card)
                 }
             }
@@ -451,10 +490,10 @@ public struct TomoTogetherScreen: View {
     }
 }
 
-/// The garden's summary line: one part wraps like a sentence; several are phrases ("17 misses", "10月5日〜10月11日")
-/// joined by the list separator, which wrap between phrases and never inside one, so a number stays with its unit and
-/// a date stays whole. A phrase too wide for a whole line shrinks a little (to 0.75); only one wider still (the
-/// iPhone's largest text) wraps inside itself, keeping the separator on its last word, rather than being cut (#197).
+/// The garden's summary line, and the Today line: one part wraps like a sentence; several are phrases ("17 misses",
+/// "10月5日〜10月11日", "5 days in a row") joined by the list separator, which wrap between phrases and never inside
+/// one, so a number stays with its unit and a date stays whole. Each is a `TomoPhrase`, keeping the separator on its
+/// last word.
 private struct TomoPhrases: View {
     let parts: [String]
     let separator: String
@@ -469,14 +508,24 @@ private struct TomoPhrases: View {
                     let mark = separator.trimmingCharacters(in: .whitespaces)
                     let phrase = i < parts.count - 1
                         ? part + (separator.first?.isWhitespace == true ? "\u{00A0}" : "") + mark : part
-                    ViewThatFits(in: .horizontal) {
-                        Text(phrase).lineLimit(1)
-                        TomoShrinkable(scale: 0.75) { Text(phrase).lineLimit(1).minimumScaleFactor(0.75) }
-                        Text(phrase).fixedSize(horizontal: false, vertical: true)
-                    }
+                    TomoPhrase(text: phrase)
                 }
             }
             .accessibilityElement(children: .combine)
+        }
+    }
+}
+
+/// One phrase on one line. Too wide for a whole line, it shrinks a little (to 0.75); only one wider still (the
+/// iPhone's largest text) wraps inside itself rather than being cut (#197).
+private struct TomoPhrase: View {
+    let text: String
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            Text(text).lineLimit(1)
+            TomoShrinkable(scale: 0.75) { Text(text).lineLimit(1).minimumScaleFactor(0.75) }
+            Text(text).fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -540,16 +589,30 @@ private struct TomoPostcardMini: View {
 
 /// The Today line, with a little sun: on the Together screen and the Tomo screen.
 public struct TomoTodayLine: View {
-    let text: String
+    let parts: [String]
+    let separator: String
+    @Environment(\.dynamicTypeSize) private var typeSize
 
-    public init(text: String) { self.text = text }
+    /// Its phrases ("22 answers", "5 days in a row", `TomoStats.todayParts`), wrapping between them and never inside
+    /// one, as the garden's summary does (`TomoPhrases`).
+    public init(parts: [String], separator: String) {
+        self.parts = parts
+        self.separator = separator
+    }
 
     public var body: some View {
-        Label {
-            Text(text)
-        } icon: {
-            Image(systemName: "sun.max.fill").foregroundStyle(.orange)
+        let sun = Image(systemName: "sun.max.fill").foregroundStyle(.orange)
+        if typeSize.isAccessibilitySize {
+            // The sun beside a column of phrases. In a list row (the Tomo screen) at these sizes, a label puts its icon
+            // in the text's first line and indents only that line, which indented each phrase's first line (#216).
+            HStack(alignment: .firstTextBaseline, spacing: 10) { sun; line }
+        } else {
+            Label { line } icon: { sun }
         }
+    }
+
+    @ViewBuilder private var line: some View {
+        if parts.count < 2 { Text(parts.first ?? "") } else { TomoPhrases(parts: parts, separator: separator) }
     }
 }
 
