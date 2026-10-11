@@ -25,11 +25,17 @@ final class TomoCharacterTests: TomoCheckCase {
     func testTheLookRules() { expect(TomoLook.selfTest) }
 }
 
-/// What the Words show reads on its card (#195): a dark picture gets a light disc on a dark card, and each stage's
-/// colour reads at 5:1 or more in dark mode.
+/// What the Words show reads on its card (#195, #207): a dark picture gets a light disc on a dark card, and each stage's
+/// colour reads at 5:1 or more in light and dark mode.
 final class TomoContrastTests: TomoCheckCase {
     func testDarkPicturesGetADiscOnADarkCard() { expect(TomoPicture.selfTest) }
-    func testStageColoursReadOnADarkCard() { expect(TomoStagePill.selfTest) }
+    func testStageColoursReadOnLightAndDarkCards() { expect(TomoStagePill.selfTest) }
+}
+
+/// Words opens at Tomo's level and keeps landing there while its lazy rows are laid out, until the learner scrolls (with
+/// or without a scroll phase) or the list holds still (#193).
+final class TomoWordsLandingTests: TomoCheckCase {
+    func testWordsLandsOnTomosLevelUntilTheLearnerScrolls() { expect(TomoLanding.selfTest) }
 }
 
 /// One Tomo across devices: the merge rules and the store's sync columns (no iCloud).

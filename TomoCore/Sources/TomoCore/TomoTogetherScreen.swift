@@ -43,7 +43,7 @@ public struct TomoTogetherScreen: View {
         var postcardToday = false
         var plants: [TomoStats.Plant] = []
         var summaries: [TomoStats.Range: TomoStats.Summary] = [:]
-        var lines: [TomoStats.Range: (String, String)] = [:]
+        var lines: [TomoStats.Range: ([String], [String])] = [:]
         var recaps: [TomoStats.Range: String] = [:]
         var since = Date()
         var diary: [TomoDiaryPage] = []
@@ -149,13 +149,13 @@ public struct TomoTogetherScreen: View {
         loaded = l
     }
 
-    /// The garden's two lines for a range: what grew ("3 new sprouts · 5 grew"), then the watering, misses and when.
+    /// The garden's two lines for a range: what grew ("3 new sprouts", "5 grew"), then the watering, misses and when,
+    /// as phrases (`TomoPhrases`); or a title and a sentence.
     private static func lines(_ r: TomoStats.Range, _ s: TomoStats.Summary, plants: Int, stats: TomoStats,
-                              _ ui: LearnerPack) -> (String, String) {
-        guard plants > 0 else { return (ui("garden.empty.title"), ui("garden.empty.note")) }
-        if r == .all { return (ui.counted("garden.planted", plants), ui("garden.order")) }
-        guard s.played else { return (ui("garden.quiet.\(r.rawValue)"), ui("garden.quiet.note")) }
-        let sep = ui("list.separator")
+                              _ ui: LearnerPack) -> ([String], [String]) {
+        guard plants > 0 else { return ([ui("garden.empty.title")], [ui("garden.empty.note")]) }
+        if r == .all { return ([ui.counted("garden.planted", plants)], [ui("garden.order")]) }
+        guard s.played else { return ([ui("garden.quiet.\(r.rawValue)")], [ui("garden.quiet.note")]) }
         var top: [String] = [], bottom: [String] = []
         if !s.newWords.isEmpty { top.append(ui.counted("garden.sprouts", s.newWords.count)) }
         if !s.stronger.isEmpty { top.append(ui.counted("garden.grew", s.stronger.count)) }
@@ -165,7 +165,7 @@ public struct TomoTogetherScreen: View {
         if top.isEmpty, let first = rest.first { top.append(first); rest.removeFirst() }
         bottom += rest
         bottom.append(stats.rangeText(r, ui))
-        return (top.joined(separator: sep), bottom.joined(separator: sep))
+        return (top, bottom)
     }
 
     // MARK: The word garden
@@ -243,12 +243,13 @@ public struct TomoTogetherScreen: View {
     }
 
     private var summary: some View {
-        let lines = loaded.lines[range] ?? ("", "")
+        let lines = loaded.lines[range] ?? ([], [])
+        let sep = lang.learner("list.separator")
         return VStack(alignment: .leading, spacing: 6) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(lines.0).font(.headline).fixedSize(horizontal: false, vertical: true)
+                TomoPhrases(parts: lines.0, separator: sep).font(.headline)
                 if !lines.1.isEmpty {
-                    Text(lines.1).font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    TomoPhrases(parts: lines.1, separator: sep).font(.callout).foregroundStyle(.secondary)
                 }
             }
             if !loaded.plants.isEmpty {
@@ -447,6 +448,55 @@ public struct TomoTogetherScreen: View {
                 .onAppear { proxy.scrollTo(shown?.id, anchor: .trailing) }
             }
         }
+    }
+}
+
+/// The garden's summary line: one part wraps like a sentence; several are phrases ("17 misses", "10月5日〜10月11日")
+/// joined by the list separator, which wrap between phrases and never inside one, so a number stays with its unit and
+/// a date stays whole. A phrase too wide for a whole line shrinks a little (to 0.75); only one wider still (the
+/// iPhone's largest text) wraps inside itself, keeping the separator on its last word, rather than being cut (#197).
+private struct TomoPhrases: View {
+    let parts: [String]
+    let separator: String
+
+    var body: some View {
+        if parts.count < 2 {
+            Text(parts.first ?? "").fixedSize(horizontal: false, vertical: true)
+        } else {
+            TomoChipFlow(spacing: 4, lineSpacing: 1) {
+                ForEach(Array(parts.enumerated()), id: \.offset) { i, part in
+                    // The separator ends its line, never starts the next or stands alone
+                    let mark = separator.trimmingCharacters(in: .whitespaces)
+                    let phrase = i < parts.count - 1
+                        ? part + (separator.first?.isWhitespace == true ? "\u{00A0}" : "") + mark : part
+                    ViewThatFits(in: .horizontal) {
+                        Text(phrase).lineLimit(1)
+                        TomoShrinkable(scale: 0.75) { Text(phrase).lineLimit(1).minimumScaleFactor(0.75) }
+                        Text(phrase).fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+            .accessibilityElement(children: .combine)
+        }
+    }
+}
+
+/// Its one-line text, offered as `scale` of its width: `ViewThatFits` picks it while the text, shrunk that far
+/// (`minimumScaleFactor`), still fits the line, and it shrinks into the width it's given.
+private struct TomoShrinkable: Layout {
+    let scale: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let text = subviews.first else { return .zero }
+        guard let width = proposal.width, width.isFinite else {
+            let ideal = text.sizeThatFits(.unspecified)
+            return CGSize(width: ideal.width * scale, height: ideal.height)
+        }
+        return text.sizeThatFits(ProposedViewSize(width: width, height: proposal.height))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin, proposal: ProposedViewSize(bounds.size))
     }
 }
 

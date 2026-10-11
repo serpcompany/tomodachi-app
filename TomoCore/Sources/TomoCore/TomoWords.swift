@@ -5,7 +5,7 @@ import SwiftUI
 //
 // Click one word → its word card (dictionary). Drag across words → "I don't understand" → the
 // Explain panel explains just that part. Today the card's meaning comes from the AI provider as a
-// stand-in; the Zenbu dictionary (Language Reference IDs, Sudachi) replaces it (docs/architecture.md).
+// stand-in; the Zenbu dictionary (Language Reference IDs, Sudachi) replaces it (docs/island.md).
 
 public struct TomoWordCard: Sendable, Equatable {
     public let word: String          // as Tomo said it

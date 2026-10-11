@@ -46,6 +46,50 @@ enum TomoGrid {
     static let helpGap: CGFloat = 10
     static let helpPanel: CGFloat = 210
     static var helpHeight: CGFloat { helpGap + helpPanel }
+
+    /// The card's corners (CardBackground).
+    static let cardCorner: CGFloat = 20
+
+    /// Tomo's card in the open island, `islandWidth` wide now (it grows as it opens): IslandContentView's 8 pt and 34 pt
+    /// header above, its 10 pt at the sides, then the level bar and its gap; centred, so while the island is narrower
+    /// than the card its sides reach past the island's.
+    static func card(islandWidth: CGFloat) -> CGRect {
+        CGRect(x: (islandWidth - IslandConst.expandedWidth) / 2 + 10, y: 8 + 34 + levelBar + levelBarGap,
+               width: content.width, height: content.height)
+    }
+
+    /// Where Tomo may draw in the open island (BotPlacement's mask, `TomoRoomShape`), its halo and particles with it:
+    /// between the card's sides, from the island's top edge (an arrival hangs from the notch, a leap goes up) to the
+    /// card's bottom edge, its bottom corners rounded like the card's, and never past the island as it is now (still
+    /// small as it opens), so nothing of Tomo's pokes past the card or reaches over the help panel (#196). The dizzy card
+    /// is shorter: there it's the island's bottom.
+    static func tomoRoom(islandWidth: CGFloat, islandHeight: CGFloat) -> CGRect {
+        let card = card(islandWidth: islandWidth)
+        let left = max(0, card.minX), right = min(islandWidth, card.maxX)
+        return CGRect(x: left, y: 0, width: max(0, right - left), height: max(0, min(islandHeight, card.maxY)))
+    }
+}
+
+/// BotPlacement's mask: where Tomo may draw in the island as it is now. Resting or peeking (`card` 0), the island's
+/// own size; in the card (`card` 1), Tomo's room in it (`TomoGrid.tomoRoom`). One shape that animates between the two
+/// with the island's size, so as the card opens or folds Tomo is neither cut short nor drawn past the island.
+struct TomoRoomShape: Shape {
+    var width: CGFloat
+    var height: CGFloat
+    var card: CGFloat
+
+    var animatableData: AnimatablePair<AnimatablePair<CGFloat, CGFloat>, CGFloat> {
+        get { .init(.init(width, height), card) }
+        set { width = newValue.first.first; height = newValue.first.second; card = newValue.second }
+    }
+
+    func path(in rect: CGRect) -> Path {
+        let room = TomoGrid.tomoRoom(islandWidth: width, islandHeight: height), k = min(max(card, 0), 1)
+        let left = room.minX * k, right = width + (room.maxX - width) * k, bottom = height + (room.maxY - height) * k
+        let r = TomoGrid.cardCorner * k
+        return Path(roundedRect: CGRect(x: left, y: 0, width: max(0, right - left), height: max(0, bottom)),
+                    cornerRadii: RectangleCornerRadii(bottomLeading: r, bottomTrailing: r))
+    }
 }
 
 // MARK: - Main Tomo card (replaces the agent overview)
@@ -219,12 +263,9 @@ struct TomoView: View {
                     HStack(alignment: .center, spacing: 6) {
                         if let o = game.outcome { OutcomeBadge(outcome: o) }
                         if game.phase == .right {
-                            Text([game.round.romanization, game.round.meaning].compactMap { $0 }.joined(separator: " · "))
-                                .foregroundColor(Color(hex: "#D5D8DE"))
-                                .font(.system(size: 12))
-                                .lineLimit(game.round.adult != nil ? 1 : 2)
-                                .minimumScaleFactor(0.85)
-                                .fixedSize(horizontal: false, vertical: true)
+                            TomoGlossLine(parts: [game.round.romanization, game.round.meaning]
+                                            .compactMap { $0 }.filter { !$0.isEmpty },
+                                          oneLine: game.round.adult != nil)
                         }
                     }
                 }
@@ -401,14 +442,70 @@ private struct MeaningPill: View {
 }
 
 /// What's left before the next level, one line under the card's other rows: "1 more word to Lv 2 · ready now".
-private struct GoalLine: View {
+/// Its longest form fits the row (`TomoGame.whatsLeftFitSelfTest`, from `TomoIslandSelfTest`, with `textWidth`).
+struct GoalLine: View {
     let text: String
+    static let size: CGFloat = 11, gap: CGFloat = 5
+    static var flag: some View { Image(systemName: "flag.fill").font(.system(size: 8.5, weight: .bold)) }
 
     var body: some View {
-        HStack(spacing: 5) {
-            Image(systemName: "flag.fill").font(.system(size: 8.5, weight: .bold)).foregroundColor(Color(hex: "#7BD389"))
-            Text(text).font(.system(size: 11, weight: .medium)).foregroundColor(Color(hex: "#9EA3AC"))
-                .lineLimit(1).minimumScaleFactor(0.75)
+        HStack(spacing: Self.gap) {
+            Self.flag.foregroundColor(Color(hex: "#7BD389"))
+            Text(text).font(.system(size: Self.size, weight: .medium)).foregroundColor(Color(hex: "#9EA3AC"))
+                .lineLimit(1).minimumScaleFactor(TomoGame.whatsLeftMinScale)
+        }
+    }
+
+    /// The room its text has in the card's picture column: the column, less the flag and the gap.
+    @MainActor static var textWidth: CGFloat {
+        let r = ImageRenderer(content: flag.fixedSize())
+        r.scale = 2
+        return TomoGrid.pictureColumn - CGFloat(r.cgImage?.width ?? 20) / 2 - gap
+    }
+}
+
+/// A won round's gloss beside its result: the reading, then the meaning ("nani shiteru no? · What are you doing?").
+/// On one line when it fits; else the reading over the meaning, so it breaks between the two, never inside either
+/// (#196). Each line is tried at the sizes in `scales`, made smaller rather than wrapped. Only a meaning too long for a
+/// line of its own at the smallest (a dictionary's, in the later word levels) wraps onto a second line, then is cut.
+/// With the grown-ups' word under it (`oneLine`), the row has room for one line only, cut at the smallest.
+struct TomoGlossLine: View {
+    static let size: CGFloat = 12
+    static let scales: [CGFloat] = [1, 0.875, 0.75]
+    static let separator = " · "
+
+    let parts: [String]
+    let oneLine: Bool
+
+    var body: some View {
+        let whole = parts.joined(separator: Self.separator)
+        let s = Self.scales
+        Group {
+            if oneLine || parts.count < 2 {
+                ViewThatFits(in: .horizontal) {
+                    line(whole, s[0]); line(whole, s[1]); line(whole, s[2])
+                    line(whole, s[2], lines: oneLine ? 1 : 2)
+                }
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    line(whole, s[0])
+                    phrases(s[0]); phrases(s[1]); phrases(s[2])
+                    phrases(s[2], meaningLines: 2)
+                }
+            }
+        }
+        .foregroundColor(Color(hex: "#D5D8DE"))
+    }
+
+    private func line(_ text: String, _ scale: CGFloat, lines: Int = 1) -> some View {
+        Text(text).font(.system(size: Self.size * scale)).lineLimit(lines)
+    }
+
+    /// The reading over the meaning.
+    private func phrases(_ scale: CGFloat, meaningLines: Int = 1) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            line(parts[0], scale)
+            line(parts.dropFirst().joined(separator: Self.separator), scale, lines: meaningLines)
         }
     }
 }
