@@ -28,10 +28,13 @@ final class TomodachiUITests: XCTestCase {
     /// came up without them (the first run, on Play) (#203); then it's launched again, once, and the relaunch is
     /// recorded with what it came up on, so a start that's sometimes wrong shows in every run's log. A second wrong
     /// start fails. XCUITest still sees the tabs under the first run, so the check looks for the first run itself.
-    private func launch(_ folder: URL? = nil, tab: String? = nil, env: [String: String] = [:]) {
+    /// `arguments`: the app's launch arguments, such as a text size.
+    private func launch(_ folder: URL? = nil, tab: String? = nil, env: [String: String] = [:],
+                        arguments: [String] = []) {
         let dir = folder ?? TomoSeed.folder(), want = tab ?? "play"
         for attempt in 1...2 {
             app = XCUIApplication()
+            app.launchArguments = arguments
             app.launchEnvironment = ["TOMO_DATA_DIR": dir.path, "TOMO_HEADLESS": "1", "TOMO_LEARNER": "en",
                                      "TOMO_TARGET": "ja", "TOMO_ONBOARDING": "0"].merging(env) { $1 }
             if let tab { app.launchEnvironment["TOMO_OPEN_WINDOW"] = tab }
@@ -109,6 +112,70 @@ final class TomodachiUITests: XCTestCase {
         XCTAssertTrue(today.firstMatch.exists, "today's line counts the 10 answers")
         XCTAssertTrue(app.staticTexts[ui("postcard.title")].exists, "Tomo's week")
         XCTAssertTrue(app.staticTexts[ui("diary.title")].exists, "Tomo's diary")
+    }
+
+    /// Together at the largest text (AX5, #216): no text, button or slider on the screen is wider than the phone, the
+    /// range picker is a menu and Export is under Copy recap. Before, the row of Copy recap and Export, which didn't
+    /// wrap, made the whole screen wider, cutting every line at both edges. Then the menu, on Since we met (the longest
+    /// range): it changes the garden, and its label is whole (the stock menu picker wrapped it and cut both lines).
+    func testTogetherFitsTheLargestText() throws {
+        launch(TomoSeed.levelOneJustLearned(), tab: "together",
+               arguments: ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])
+        XCTAssertTrue(app.staticTexts[ui("garden.title")].waitForExistence(timeout: 20), "the word garden")
+        let window = app.windows.firstMatch.frame
+        // Everything on the screen, scrolled out of sight too, but not a row that scrolls sideways (earlier postcards).
+        func wider() throws -> String? {
+            var wider: [String] = []
+            func look(_ e: XCUIElementSnapshot, scrolls: Int) {
+                let f = e.frame
+                if [.staticText, .button, .slider, .segmentedControl].contains(e.elementType),
+                   f.minX < window.minX - 0.5 || f.maxX > window.maxX + 0.5 {
+                    wider.append("'\(e.label)' at x \(Int(f.minX))…\(Int(f.maxX))")
+                }
+                let inner = scrolls + (e.elementType == .scrollView ? 1 : 0)
+                if inner < 2 { e.children.forEach { look($0, scrolls: inner) } }
+            }
+            look(try app.snapshot(), scrolls: 0)
+            return wider.isEmpty ? nil : "\(wider.count) are, " + wider.prefix(6).joined(separator: ", ")
+        }
+        let first = try wider()
+        XCTAssertNil(first, "nothing is wider than the phone (0…\(Int(window.maxX))): \(first ?? "")")
+        XCTAssertFalse(app.segmentedControls.firstMatch.exists, "the range picker is a menu, not a segmented control")
+        let copy = app.buttons[ui("garden.copy")], export = app.buttons[ui("export.button")]
+        XCTAssertTrue(copy.exists && export.exists, "Copy recap and Export")
+        XCTAssertGreaterThanOrEqual(export.frame.minY, copy.frame.maxY, "Export is under Copy recap")
+
+        // The menu, showing This week, scrolled into reach (half a screen at a time, from the edge, past no plant).
+        let picker = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", ui("garden.title"))).firstMatch
+        let shows = { (range: String) in "\(picker.label) \(picker.value as? String ?? "")".contains(range) }
+        XCTAssertTrue(picker.exists, "the range picker's menu")
+        for _ in 0..<8 where !picker.isHittable {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.6))
+                .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.35)),
+                       withVelocity: .slow, thenHoldForDuration: 0.3)
+        }
+        XCTAssertTrue(picker.isHittable, "the range picker's menu can be tapped")
+        XCTAssertTrue(shows(ui("garden.range.week")), "the menu shows This week: '\(picker.label)' '\(picker.value ?? "")'")
+        let order = app.staticTexts[ui("garden.order")]
+        XCTAssertFalse(order.exists, "This week's garden says what grew, not the order it was planted in")
+        picker.tap()
+        let all = app.buttons[ui("garden.range.all")].firstMatch
+        XCTAssertTrue(all.waitForExistence(timeout: 5), "the menu offers Since we met")
+        all.tap()
+        XCTAssertTrue(order.waitForExistence(timeout: 5), "Since we met shows every word, in the order planted")
+        XCTAssertTrue(shows(ui("garden.range.all")), "the menu shows Since we met: '\(picker.label)' '\(picker.value ?? "")'")
+        // Its label is the whole text, inside the menu's button and the window, not cut above, below or at the side.
+        func texts(_ e: XCUIElementSnapshot) -> [XCUIElementSnapshot] {
+            (e.elementType == .staticText ? [e] : []) + e.children.flatMap(texts)
+        }
+        let button = picker.frame, label = texts(try picker.snapshot()).first
+        XCTAssertEqual(label?.label, ui("garden.range.all"), "the menu's label")
+        if let text = label?.frame {
+            XCTAssertTrue(button.insetBy(dx: -0.5, dy: -0.5).contains(text) && window.contains(button),
+                          "Since we met is whole: its label at \(text) in the menu at \(button)")
+        }
+        let after = try wider()
+        XCTAssertNil(after, "on Since we met too, nothing is wider than the phone: \(after ?? "")")
     }
 
     /// Words opens at Tomo's level (#193): the level's header and its first word show under the stage chips. The rows

@@ -20,11 +20,13 @@
 		5A2853E1494B345A841CF220 /* TomoVisitLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 643C75D304AC245CB7F57635 /* TomoVisitLiveActivity.swift */; };
 		65D3A2DECEF7CDCB4AC5EA6E /* TomoVisitActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 413F94AD4C585B825A5624A9 /* TomoVisitActivity.swift */; };
 		6E1F760DD9C89FEA03565D5E /* TomoPhoneFirstRun.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED0CFFD4BB66F948A4C01F77 /* TomoPhoneFirstRun.swift */; };
+		710595E5E9EF4A6BEE4BC73A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 52B3FD0987C29F6603A6DCAA /* PrivacyInfo.xcprivacy */; };
 		7782BC02AF02475CA7679202 /* TomoReady0.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8A139532B7D9250EC8422DC8 /* TomoReady0.ttf */; };
 		8B9F1DA1C06402828C976C1D /* TomoReady1.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B0765F5932D239F53E699926 /* TomoReady1.ttf */; };
 		9FEBC7FFBC6E85112AC44873 /* TomoSleep1.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F81A388C0AC485FCA108A8AF /* TomoSleep1.ttf */; };
 		B1C493B8922D71739E609A43 /* TomoVisitActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 413F94AD4C585B825A5624A9 /* TomoVisitActivity.swift */; };
 		C06B26724E1C4DE044C0C1B7 /* TomoCore in Frameworks */ = {isa = PBXBuildFile; productRef = A3E4BA25127B7B3BD018264C /* TomoCore */; };
+		C17158705D80EFD2932C9FC3 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 58E00F9DCAAFBB93C301BC26 /* PrivacyInfo.xcprivacy */; };
 		C4DF9C01C20DBF19B53CB78E /* TomoReady2.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 39485395578F29851071E083 /* TomoReady2.ttf */; };
 		C638FD502B83DB4A36871A5C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0FDC47A6BEC3C329C93CC701 /* Assets.xcassets */; };
 		C845DB710B31D14B75957C37 /* TomoSleep0.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 666A1D255B37C508A967E5C0 /* TomoSleep0.ttf */; };
@@ -71,6 +73,8 @@
 		37822A1675BCDE011D4AE744 /* TomoCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TomoCore; path = ../../TomoCore; sourceTree = SOURCE_ROOT; };
 		39485395578F29851071E083 /* TomoReady2.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = TomoReady2.ttf; sourceTree = "<group>"; };
 		413F94AD4C585B825A5624A9 /* TomoVisitActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoVisitActivity.swift; sourceTree = "<group>"; };
+		52B3FD0987C29F6603A6DCAA /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		58E00F9DCAAFBB93C301BC26 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		5DD481FC31C8E38E2AB4F657 /* TomoLiveVisit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoLiveVisit.swift; sourceTree = "<group>"; };
 		643C75D304AC245CB7F57635 /* TomoVisitLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoVisitLiveActivity.swift; sourceTree = "<group>"; };
 		666A1D255B37C508A967E5C0 /* TomoSleep0.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = TomoSleep0.ttf; sourceTree = "<group>"; };
@@ -149,6 +153,7 @@
 			isa = PBXGroup;
 			children = (
 				B44A800E230C1B199FCC12C2 /* Info.plist */,
+				58E00F9DCAAFBB93C301BC26 /* PrivacyInfo.xcprivacy */,
 				EA5849F648AA4E62CBEBF52E /* TomoMovingMascot.swift */,
 				643C75D304AC245CB7F57635 /* TomoVisitLiveActivity.swift */,
 				E56A0CD36F22076E120230DE /* TomoWidgets.swift */,
@@ -163,6 +168,7 @@
 			children = (
 				0FDC47A6BEC3C329C93CC701 /* Assets.xcassets */,
 				59FED26147B10FD57F703C45 /* Packages */,
+				520C499A32EDFE610DFC4483 /* Resources */,
 				56A65E95973B65C0892E8D08 /* Shared */,
 				0AF69C01C7BAC11AC25EB74A /* Sources */,
 				0C6E0DC3AC9D668CA13E20A8 /* UITests */,
@@ -189,6 +195,14 @@
 				AFE384C3477C520E3B46DF8E /* TomoWidgets.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		520C499A32EDFE610DFC4483 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				52B3FD0987C29F6603A6DCAA /* PrivacyInfo.xcprivacy */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		56A65E95973B65C0892E8D08 /* Shared */ = {
@@ -341,6 +355,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C638FD502B83DB4A36871A5C /* Assets.xcassets in Resources */,
+				710595E5E9EF4A6BEE4BC73A /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -348,6 +363,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C17158705D80EFD2932C9FC3 /* PrivacyInfo.xcprivacy in Resources */,
 				7782BC02AF02475CA7679202 /* TomoReady0.ttf in Resources */,
 				8B9F1DA1C06402828C976C1D /* TomoReady1.ttf in Resources */,
 				C4DF9C01C20DBF19B53CB78E /* TomoReady2.ttf in Resources */,

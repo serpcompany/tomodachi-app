@@ -382,5 +382,134 @@ extension TomoStats {
         check(over.since == nil && over.weeks().isEmpty && !over.today.played
               && !(TomoStore(learner: "en", target: pack.id, directory: dir)?.answerLog(from: start, to: at(21, 4)).isEmpty ?? true),
               "stats: after start over the new Tomo's stats begin again, and the old logs stay")
+        daysTogetherSelfTest(check)
+    }
+
+    /// "Day N together" (#224): the diary's page for today and the Tomo screen say the same day, counted on Tomo's 4 am
+    /// days from the day it hatched (Day 1), in English and Japanese. One Tomo hatches in New York on the Friday evening
+    /// before the clocks go back (Sunday 1 November 2026, 2 am), one on the Saturday morning before they go forward
+    /// (Sunday 14 March 2027), one in Tokyo before its learner flies to Los Angeles, and one at 1 am, so it belongs to the
+    /// day before and is on Day 2 at 4 am. At each moment the learner answers a word, so today has a page: late in the
+    /// day, later than Tomo hatched, and just after midnight (still the day before's page) among them. Then every page's
+    /// day follows from the first page's (Day 1) and the days apart, and the pillar's hatch mark is dated as the first
+    /// page. Last, a learner who plays only at 1:30 am: each level Tomo reaches is dated on the pillar as the diary page it
+    /// grew on, with the same day together.
+    static func daysTogetherSelfTest(_ check: (Bool, String) -> Void) {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("tomo-days-\(UUID().uuidString)")
+        let zone = NSTimeZone.default, savedNew = TomoProgress.newPerDayForChecks
+        defer {
+            try? FileManager.default.removeItem(at: dir)
+            NSTimeZone.default = zone
+            TomoClock.stopped = nil
+            TomoProgress.newPerDayForChecks = savedNew
+        }
+        TomoProgress.newPerDayForChecks = 10
+        let lang = TomoLanguages.shared
+        guard let pack = lang.targets.first(where: { $0.id == "ja" }),
+              let en = lang.learners.first(where: { $0.id == "en" }), let ja = lang.learners.first(where: { $0.id == "ja" })
+        else { check(false, "days together: the Japanese pack and both interfaces load"); return }
+
+        // A time on a zone's own clock: [year, month, day, hour, minute].
+        func date(_ zone: String, _ c: [Int]) -> Date? {
+            guard let tz = TimeZone(identifier: zone) else { return nil }
+            var cal = Calendar(identifier: .gregorian)
+            cal.timeZone = tz
+            return cal.date(from: DateComponents(year: c[0], month: c[1], day: c[2], hour: c[3], minute: c[4]))
+        }
+        let ny = "America/New_York", tokyo = "Asia/Tokyo", la = "America/Los_Angeles"
+        // Each Tomo: where and when it hatched, then each moment and the day it's on (the day it hatched is Day 1).
+        let tomos: [(name: String, zone: String, met: [Int], moments: [(zone: String, at: [Int], day: Int)])] = [
+            ("the night the clocks go back", ny, [2026, 10, 30, 18, 0], [
+                (ny, [2026, 10, 30, 23, 0], 1), (ny, [2026, 10, 31, 0, 30], 1),     // just after midnight: the hatch day
+                (ny, [2026, 10, 31, 20, 0], 2),                                     // later in the day than it hatched
+                (ny, [2026, 11, 1, 0, 30], 2), (ny, [2026, 11, 1, 1, 30], 2),       // the hour that comes twice
+                (ny, [2026, 11, 1, 10, 0], 3), (ny, [2026, 11, 2, 0, 30], 3),       // after the 25-hour day
+                (ny, [2026, 11, 2, 9, 0], 4)]),
+            ("the night the clocks go forward", ny, [2027, 3, 13, 9, 0], [
+                (ny, [2027, 3, 14, 0, 30], 1), (ny, [2027, 3, 14, 3, 30], 1),       // 3:30 comes after 1:59, before 4 am
+                (ny, [2027, 3, 14, 4, 30], 2), (ny, [2027, 3, 15, 0, 30], 2),       // after the 23-hour day
+                (ny, [2027, 3, 15, 10, 0], 3)]),
+            ("a flight from Tokyo to Los Angeles", tokyo, [2026, 10, 1, 21, 0], [
+                (tokyo, [2026, 10, 1, 23, 0], 1), (tokyo, [2026, 10, 2, 0, 30], 1), (tokyo, [2026, 10, 2, 21, 30], 2),
+                // In Los Angeles Tomo hatched at 5 am on Thursday 1 October, so Friday is still Day 2.
+                (la, [2026, 10, 2, 10, 0], 2), (la, [2026, 10, 3, 0, 30], 2), (la, [2026, 10, 3, 9, 0], 3)]),
+            // Met at 1 am: still the day before's (Sunday's), so Day 1 until 4 am and Day 2 from then, not for 24 hours.
+            ("a Tomo met at 1 am", ny, [2026, 10, 5, 1, 0], [
+                (ny, [2026, 10, 5, 1, 30], 1), (ny, [2026, 10, 5, 3, 50], 1), (ny, [2026, 10, 5, 4, 0], 2),
+                (ny, [2026, 10, 6, 0, 30], 2), (ny, [2026, 10, 6, 4, 0], 3)]),
+        ]
+        for (k, tomo) in tomos.enumerated() {
+            guard let met = date(tomo.zone, tomo.met), let hatchZone = TimeZone(identifier: tomo.zone) else {
+                check(false, "days together: \(tomo.zone) is a time zone"); continue
+            }
+            let folder = dir.appendingPathComponent("tomo-\(k)")
+            try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            NSTimeZone.default = hatchZone
+            TomoClock.stopped = met
+            let p = TomoProgress(pack: pack, learner: "en", directory: folder)
+            for m in tomo.moments {
+                guard let t = date(m.zone, m.at), let here = TimeZone(identifier: m.zone) else { continue }
+                NSTimeZone.default = here
+                TomoClock.stopped = t
+                if let id = p.nextFreePlayItem() ?? p.practiceItem(after: nil, talk: false) {
+                    p.answeredRight(id, mode: "sim", wrongTries: 0, hint: false)
+                }
+                // What each screen shows: the diary's newest page (today's) and the Tomo screen, in each language.
+                let shown = [en, ja].map { ui in
+                    let page = TomoStats(p).diary(ui).last
+                    return (today: page?.day == dayStart(of: t),
+                            diary: page.map { ui("words.days", ["n": "\($0.dayNumber)"]) } ?? "-",
+                            tomo: ui("words.days", ["n": "\(p.daysTogether)"]), expected: ui("words.days", ["n": "\(m.day)"]))
+                }
+                let stamp = String(format: "%04d-%02d-%02d %02d:%02d", m.at[0], m.at[1], m.at[2], m.at[3], m.at[4])
+                check(shown.allSatisfy { $0.today && $0.diary == $0.tomo && $0.tomo == $0.expected },
+                      "days together (\(tomo.name)): at \(stamp) in \(m.zone), today's diary page and the Tomo screen say "
+                      + shown.map { "\"\($0.diary)\" and \"\($0.tomo)\"" }.joined(separator: ", ")
+                      + " (expected \(shown.map(\.expected).joined(separator: ", ")))")
+            }
+            let pages = TomoStats(p).diary(en)
+            check(pages.first?.first == true && pages.first?.dayNumber == 1
+                  && zip(pages.dropFirst(), pages).allSatisfy { $0.dayNumber == $1.dayNumber + $0.apart + 1 }
+                  && pages.map(\.dayNumber) == Array(Set(tomo.moments.map(\.day))).sorted(),
+                  "days together (\(tomo.name)): the first page is Day 1, and each page's day follows from the days apart "
+                  + "(\(pages.map(\.dayNumber)))")
+            let hatch = TomoStats(p).marks().first?.day.map { longDay($0, en) } ?? "-"
+            let firstPage = pages.first.map { longDay($0.day, en) } ?? "-"
+            check(hatch == firstPage, "days together (\(tomo.name)): the pillar's hatch mark is dated \(hatch), "
+                  + "the diary's first page \(firstPage)")
+        }
+
+        // A learner who plays only at 1:30 am, from the night after Tomo hatched until it reaches Lv 3 (the first levels'
+        // words know it after five nights). Each level-up comes in the night, so its mark is dated the day before, on the
+        // diary page it grew on, with that page's day together.
+        guard let owlMet = date(ny, [2026, 9, 28, 21, 0]), let firstNight = date(ny, [2026, 9, 29, 1, 30]),
+              let nyZone = TimeZone(identifier: ny) else { check(false, "days together: the night owl's dates"); return }
+        let owlFolder = dir.appendingPathComponent("night-owl")
+        try? FileManager.default.createDirectory(at: owlFolder, withIntermediateDirectories: true)
+        NSTimeZone.default = nyZone
+        TomoClock.stopped = owlMet
+        let owl = TomoProgress(pack: pack, learner: "en", directory: owlFolder)
+        for night in 0..<14 where owl.level < 3 {
+            TomoClock.stopped = calendar.date(byAdding: .day, value: night, to: firstNight)
+            for _ in 0..<40 {
+                guard let id = owl.visitItems(limit: 1).first else { break }
+                owl.answeredRight(id, mode: "sim", wrongTries: 0, hint: false)
+                _ = owl.levelUpIfReady()
+                TomoClock.stopped = TomoClock.now.addingTimeInterval(15)
+            }
+        }
+        let owlStats = TomoStats(owl), owlPages = owlStats.diary(en)
+        let ups = owlStats.marks().dropFirst().filter { $0.at != nil }
+        check(owl.level >= 3 && ups.count == owl.level - 1,
+              "days together (a learner who plays at 1:30 am): Tomo reached Lv \(owl.level) in the night")
+        for m in ups {
+            let at = m.at ?? .distantPast, hour = calendar.component(.hour, from: at)
+            let page = owlPages.first { $0.summary.levelFrom < m.level && m.level <= $0.summary.levelTo }
+            let pillar = m.day.map { "\(longDay($0, en)), day \(owl.daysTogether(at: $0))" } ?? "-"
+            let diary = page.map { "\(longDay($0.day, en)), day \($0.dayNumber)" } ?? "-"
+            check(hour < 4 && pillar == diary,
+                  "days together (a learner who plays at 1:30 am): Lv \(m.level), reached at \(hour) am, is on the pillar on "
+                  + "\(pillar) and in the diary on \(diary)")
+        }
     }
 }

@@ -25,6 +25,7 @@
 		67AB0FA0F55C786ECA3D864B /* TomoOnboardingWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21E005253055F79D071A7C1 /* TomoOnboardingWindow.swift */; };
 		75086D1A425B7CBFEFBE56EA /* TomoTestingTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8108F2470030F4450F816A8A /* TomoTestingTools.swift */; };
 		87E1E369A1923718D00ABD22 /* TomoLineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E792BF7FE7BE5C9B24045E83 /* TomoLineView.swift */; };
+		8B3D2B7EE91B2842CE1BFAD9 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 956552E458B05E15B3EF594B /* PrivacyInfo.xcprivacy */; };
 		8DB27298E60ADDEAD9F4A0F8 /* TomoIslandCharacter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FDC097EC5766E9398220B80 /* TomoIslandCharacter.swift */; };
 		A9EA458EBA699F51AB7A7DAD /* TomoCore in Frameworks */ = {isa = PBXBuildFile; productRef = A5F9E4404EB5F7EFB0108C7E /* TomoCore */; };
 		C5E75B16786D9D551C35701C /* TomoShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29AF644AD72F5349660C66F4 /* TomoShortcut.swift */; };
@@ -61,6 +62,7 @@
 		8A61E1A5F71B1068AA5957A2 /* TomoMomentLight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoMomentLight.swift; sourceTree = "<group>"; };
 		8D3CE3617E9D336DDBA10F7A /* IslandTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandTypes.swift; sourceTree = "<group>"; };
 		8FDC097EC5766E9398220B80 /* TomoIslandCharacter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoIslandCharacter.swift; sourceTree = "<group>"; };
+		956552E458B05E15B3EF594B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A14A61070D293AB4BBA303F7 /* NotchBuddy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NotchBuddy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A52FE122CD8AE58755236B2B /* TomoLoginItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomoLoginItem.swift; sourceTree = "<group>"; };
 		C2E4F18AA940EFF7E047B9F7 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
@@ -152,9 +154,18 @@
 			children = (
 				506824380E9C80B9BC6DCE72 /* Assets.xcassets */,
 				59BDB3174D6A12A7350350D2 /* Packages */,
+				D3593DF62D69E62DA5121807 /* Resources */,
 				B382DF6D17081F63DA1CC08B /* Sources */,
 				6CF11AAA7898712CF6DB364A /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		D3593DF62D69E62DA5121807 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				956552E458B05E15B3EF594B /* PrivacyInfo.xcprivacy */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -223,6 +234,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DCAC390FF9EC65B945A15B24 /* Assets.xcassets in Resources */,
+				8B3D2B7EE91B2842CE1BFAD9 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -29,7 +29,10 @@ What the listing may say is what the build does:
 - **Japanese only**, for English speakers. The name is "Tomodachi by Zenbu Japanese" (the old app's name is held by its record on the old team).
 - **No AI.** Meanings come from the pack, and the iPhone's dictionary is a tap away.
 - **Progress stays in the learner's own iCloud** (CloudKit's private database), never "on your iPhone" alone, and
-  there are no servers of ours. The privacy label stays **Data Not Collected**.
+  there are no servers of ours. The privacy label stays **Data Not Collected**. The privacy manifests say the same
+  (`PrivacyInfo.xcprivacy` in the app, the widgets and the Mac app,
+  [#231](https://github.com/serpcompany/tomodachi-app/issues/231)), with Apple's reason for each required-reason API
+  the code calls; one the code starts calling goes in its target's manifest (`project.yml` says which).
 - **Honest pacing:** words come back over hours and days, and Tomo rests in between. Growing up takes months.
 - **Tomo is a blob,** a different one for every learner ([docs/concepts.md](../docs/concepts.md)).
 

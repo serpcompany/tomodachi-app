@@ -78,6 +78,11 @@ English is for learners who speak Japanese, so every English word needs a Japane
 - **One Tomo per language pair.** Progress is saved keyed by `(learner, target)`, so switching "I speak" or "I'm learning" brings that pair's saved Tomo.
 - **Item ids are namespaced by target language.** For Japanese they become Zenbu Language Reference IDs (`ja:<LRID>`).
 - **"Tomo" stays the character's name in every language** for now.
+- **A Japanese heading marks where it may wrap with a space between two phrases** (「ことばのほうから 来てもらおう」):
+  a first-run heading wraps only there, the space isn't drawn, and a space beside Latin text ("Tomo が") never
+  breaks (`TomoLineBreaks`). A step's heading is its `onboarding.<step>.title`, drawn by `title`: the self-test finds
+  every one in the packs and checks that each phrase fits an iPhone SE's line at the heading's size, so none breaks
+  inside a word.
 - **Times of day are in the learner language, on the device's 12- or 24-hour clock** (`tomoClockLocale`):
   a language alone would bring its own clock (English 12-hour, Japanese 24-hour), whatever the learner set.
   Every one goes through it (`tomoTime` for a line).
