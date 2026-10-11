@@ -62,7 +62,7 @@ targets:
         CFBundleName: Tomodachi
         CFBundleDisplayName: Tomodachi
         NSHumanReadableCopyright: "Tomodachi by Zenbu Japanese. © 2026 Zenbu Japanese."
-        CFBundleIdentifier: com.zenbujapanese.tomo
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)   # one place: the target's build setting
         CFBundleVersion: "1"
         CFBundleShortVersionString: "0.2.0"
         CFBundlePackageType: APPL
