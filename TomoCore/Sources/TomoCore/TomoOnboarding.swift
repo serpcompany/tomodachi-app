@@ -158,6 +158,26 @@ public final class TomoOnboarding: ObservableObject {
               + "\(written(night, [false, true]))")
         check(written(night, [false]) == "0-0" && written(off, [true]) == "1260-480",
               "quiet hours the learner changed are written: switched off, none; switched on from none, 9 PM to 8 AM")
+
+        // Headings wrap only between their phrases (#225). Kana as escapes: Swift holds no Japanese text.
+        let a = "\u{3042}", i = "\u{3044}", u = "\u{3046}", e = "\u{3048}"
+        check(TomoLineBreaks.phrased("\(a)\(i) \(u)\(e)") == "\(a)\u{2060}\(i)\u{200B}\(u)\u{2060}\(e)"
+              && TomoLineBreaks.phrased("Tomo \(a)\(i)") == "Tomo\u{00A0}\(a)\u{2060}\(i)"
+              && TomoLineBreaks.phrased("Let words find you") == "Let words find you"
+              && TomoLineBreaks.spoken("Tomo \(a)\(i) \(u)") == "Tomo \(a)\(i)\(u)",
+              "a heading wraps only at its spaces: one between two Japanese phrases isn't drawn, one beside a single "
+              + "Japanese character never breaks, and English is unchanged")
+        // Each phrase fits an iPhone SE's line (327 pt at 28 pt, about 11 kana; a Latin letter is about 0.6), so a
+        // heading never needs to break inside one.
+        let headings = ["hatch", "hello", "visits", "rhythm", "ready", "back", "quiet", "notify", "widget", "lock",
+                        "login"].map { "onboarding.\($0).title" }
+        func ems(_ p: String) -> Double { p.reduce(0) { $0 + (TomoLineBreaks.isWide($1) ? 1 : 0.6) } }
+        let tooLong = TomoLanguages.shared.learners.flatMap { pack in
+            headings.compactMap { pack.strings[$0] }.flatMap(TomoLineBreaks.phrases).filter { ems($0) > 11 }
+        }
+        check(tooLong.isEmpty && TomoLanguages.shared.learners.allSatisfy { p in headings.allSatisfy { p.strings[$0] != nil } },
+              "every first-run heading in every ui pack wraps between phrases that fit an iPhone SE's line: "
+              + "\(tooLong.count) too long")
     }
 
     // MARK: The flow

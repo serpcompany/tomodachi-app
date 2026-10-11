@@ -444,10 +444,12 @@ public struct TomoOnboardingView: View {
         Text(s.uppercased()).font(.system(size: 11, weight: .heavy)).kerning(1.2).foregroundStyle(Color(hex: "#22D3EE"))
     }
 
+    /// A step's heading: two lines at most, wrapping only between its phrases (`TomoLineBreaks`), else shrinking.
     func title(_ s: String) -> some View {
-        Text(s).font(.system(size: 28, weight: .heavy, design: .rounded))
+        Text(TomoLineBreaks.phrased(s)).font(.system(size: 28, weight: .heavy, design: .rounded))
             .lineLimit(2).minimumScaleFactor(0.7)
             .fixedSize(horizontal: false, vertical: true)
+            .accessibilityLabel(TomoLineBreaks.spoken(s))
     }
 
     func bodyText(_ s: String) -> some View {

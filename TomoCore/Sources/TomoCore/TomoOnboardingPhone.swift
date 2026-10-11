@@ -203,7 +203,8 @@ extension TomoOnboardingView {
                     row(icon: "moon.zzz.fill", ui("onboarding.notify.quiet", ["from": TomoReminders.clock(s.quietFrom),
                                                                              "until": TomoReminders.clock(s.quietUntil)]))
                 }
-                row(icon: "hand.raised.fill", ui("onboarding.notify.guilt"))
+                // Only Tomo's reminders come; nothing about streaks or guilt (#153: the rule is no growing to-do count)
+                row(icon: "hand.raised.fill", ui("onboarding.notify.onlyTomo"))
             }
             .padding(.top, 2)
         }
