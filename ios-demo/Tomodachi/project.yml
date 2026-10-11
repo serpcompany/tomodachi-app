@@ -67,7 +67,7 @@ targets:
       properties:
         CFBundleName: Tomodachi
         CFBundleDisplayName: Tomodachi
-        CFBundleIdentifier: com.zenbujapanese.tomo
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)   # one place: the target's build setting
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleShortVersionString: "1.1"
         UILaunchScreen: {}
