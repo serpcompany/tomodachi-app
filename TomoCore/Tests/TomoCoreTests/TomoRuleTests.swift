@@ -25,11 +25,11 @@ final class TomoCharacterTests: TomoCheckCase {
     func testTheLookRules() { expect(TomoLook.selfTest) }
 }
 
-/// What the Words show reads on its card (#195, #207): a dark picture gets a light disc on a dark card, and each stage's
-/// colour reads at 5:1 or more in light and dark mode.
+/// What the Words show reads on its card (#195, #207, #236): a dark picture gets a light disc on a dark card, and each
+/// stage's colour reads at 5:1 or more and stands apart from the stage before it, in light and dark mode.
 final class TomoContrastTests: TomoCheckCase {
     func testDarkPicturesGetADiscOnADarkCard() { expect(TomoPicture.selfTest) }
-    func testStageColoursReadOnLightAndDarkCards() { expect(TomoStagePill.selfTest) }
+    func testStagesReadAndStandApartOnLightAndDarkCards() { expect(TomoStagePill.selfTest) }
 }
 
 /// Words lands on Tomo's level each time it shows (resting at once if the list is already there), and again whenever
