@@ -37,8 +37,10 @@ repo follows the
 - **Running the demo app:** [mac-demo/README.md](mac-demo/README.md) covers running, rebuilding,
   beta builds and icons. The iPhone app: [ios-demo/README.md](ios-demo/README.md).
 - **The Coucou fork:** [docs/coucou-fork.md](docs/coucou-fork.md) says what we may ship, which
-  Coucou files we changed, and what's switched off. Design pages, ours and Coucou's (look only), are
-  in [docs/reference/tomo/](docs/reference/tomo/) and [coucou/](docs/reference/coucou/).
+  Coucou files we changed, and what's switched off. Our design pages are in
+  [docs/reference/tomo/](docs/reference/tomo/). Coucou's screens and media (look only, reserved) are
+  in the private [tomodachi-reference](https://github.com/serpcompany/tomodachi-reference) repo,
+  cloned next to the main checkout.
 - **Research:** [docs/research/README.md](docs/research/README.md) holds the evidence behind the
   issues (levels, the data schema, word lists, voices, learning modes, answer checking, AI cost).
 - **Beta testers:** [docs/beta-testing.md](docs/beta-testing.md) is what testers are told. Update
@@ -48,7 +50,7 @@ repo follows the
   `idea`, `researched` or `question`. `idea` and `question` are what SERP's git workflow calls
   `brainstorm`: not ready to build.
 - **The dictionary, Language Reference IDs and the word splitter (Sudachi):**
-  `../zenbujapanese-monorepo`, read-only from here.
+  `zenbujapanese-monorepo`, cloned next to the main checkout, read-only from here.
 
 ## Build and check
 
