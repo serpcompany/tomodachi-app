@@ -293,13 +293,21 @@ extension TomoStagePill {
     /// iPhone's cards are darker, where a stage reads better still.
     static let darkCard = "#2B2B2B"
 
-    /// The rule (TOMO_SELFTEST, swift test): in dark mode each stage's text reads at 5:1 or more (WCAG contrast) against
-    /// its own 15% fill on the dark card, so a palette change can't bring back the 2.1:1 "Loves it" (#195).
+    /// The darkest light card a pill sits on: the Mac's word card measures #F4F4F4 in light mode; the Mac's page is
+    /// white, where a stage reads better still. The iPhone is always dark.
+    static let lightCard = "#F2F2F2"
+
+    /// The rule (TOMO_SELFTEST, swift test): in each mode each stage's text reads at 5:1 or more (WCAG contrast) against
+    /// its own 15% fill on that mode's card, so a palette change can't bring back the 2.1:1 "Loves it" in dark mode
+    /// (#195) or the 2.3:1 "Just heard" in light mode (#207).
     public static func selfTest(_ check: (Bool, String) -> Void) {
-        for stage in stages {
-            guard let hex = hex(stage, dark: true) else { check(false, "stages: \(stage) has a dark colour"); continue }
-            let ratio = contrast(hex, onItsFillOver: darkCard)
-            check(ratio >= 5, "stages: \(stage) (\(hex)) reads at \(String(format: "%.2f", ratio)):1 on a dark card, 5:1 or more")
+        for (dark, card) in [(true, darkCard), (false, lightCard)] {
+            let mode = dark ? "dark" : "light"
+            for stage in stages {
+                guard let hex = hex(stage, dark: dark) else { check(false, "stages: \(stage) has a \(mode) colour"); continue }
+                let ratio = contrast(hex, onItsFillOver: card)
+                check(ratio >= 5, "stages: \(stage) (\(hex)) reads at \(String(format: "%.2f", ratio)):1 on a \(mode) card, 5:1 or more")
+            }
         }
     }
 
