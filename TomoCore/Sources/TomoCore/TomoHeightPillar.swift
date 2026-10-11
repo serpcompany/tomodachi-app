@@ -462,10 +462,11 @@ private struct TomoPillarTomo: View {
 }
 
 /// Chips that wrap onto the next line, whole (`lineSpacing` between lines, `spacing` if nil). One wider than a whole
-/// line is offered the line's width.
+/// line is offered the line's width. `centered`: each line in the middle, as centred text wraps.
 struct TomoChipFlow: Layout {
     let spacing: CGFloat
     var lineSpacing: CGFloat?
+    var centered = false
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let rows = arrange(proposal.width ?? .infinity, subviews)
@@ -474,8 +475,10 @@ struct TomoChipFlow: Layout {
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         for row in arrange(bounds.width, subviews) {
+            let indent = centered ? max(0, bounds.width - row.width) / 2 : 0
             for (i, x, size) in row.items {
-                subviews[i].place(at: CGPoint(x: bounds.minX + x, y: bounds.minY + row.y), proposal: ProposedViewSize(size))
+                subviews[i].place(at: CGPoint(x: bounds.minX + indent + x, y: bounds.minY + row.y),
+                                  proposal: ProposedViewSize(size))
             }
         }
     }

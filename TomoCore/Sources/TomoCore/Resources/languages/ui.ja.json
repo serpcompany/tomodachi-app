@@ -129,6 +129,7 @@
     "settings.testingNote": "テストは、メモリ上のTomoのコピーで動きます。ほかの年齢をためしても、日をすすめても、保存中のTomoは変わりません。「自分のTomoにもどる」で終わります。",
     "menu.words": "Tomoのことば…",
     "words.days": "いっしょに{n}日目",
+    "growth.days": "いっしょに\u200b{n}日目",
     "words.toNext": "{needed}語中\u200b{known}語わかる · 次はLv\u00a0{next}",
     "words.lastLevel": "{needed}語中\u200b{known}語わかる · いまは これが 最後の レベル",
     "words.testing": "テスト用のTomoです。テスト → 自分のTomoにもどる",

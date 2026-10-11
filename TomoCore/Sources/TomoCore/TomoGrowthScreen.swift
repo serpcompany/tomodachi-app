@@ -96,10 +96,11 @@ public struct TomoGrowthScreen: View {
 
     /// "Play with Tomo": one line, or two wrapped between its phrases (「Tomoと / あそぶ」, never inside "Tomo",
     /// #233), a little smaller if a phrase is wider than the button. At the accessibility sizes the icon sits beside
-    /// the text, since a label's icon in the text's first line left "Tomo" too little room.
+    /// the text, since a label's icon in the text's first line left "Tomo" too little room. `TomoLargeTextCheck` lays
+    /// out `playTitle` with `playLines` and `playScale` at each of those sizes.
     @ViewBuilder private var playLabel: some View {
         let text = lang.learner("tomo.play")
-        let title = Text(TomoLineBreaks.wrapping(text)).lineLimit(2).minimumScaleFactor(0.6)
+        let title = Text(Self.playTitle(text)).lineLimit(Self.playLines).minimumScaleFactor(Self.playScale)
             .accessibilityLabel(TomoLineBreaks.spoken(text))
         if typeSize.isAccessibilitySize {
             HStack(alignment: .firstTextBaseline, spacing: 8) { Image(systemName: "play.fill").accessibilityHidden(true); title }
@@ -107,6 +108,11 @@ public struct TomoGrowthScreen: View {
             Label { title } icon: { Image(systemName: "play.fill") }
         }
     }
+
+    /// The play button's text as it's drawn: breaking only between the phrases its pack marks (`TomoLineBreaks`).
+    static func playTitle(_ text: String) -> String { TomoLineBreaks.wrapping(text) }
+    /// The play button's lines at most, and how far its text shrinks to fit them.
+    static let playLines = 2, playScale: CGFloat = 0.6
 
     // MARK: Tomo, its age and level, the bar and what's left
 
@@ -128,8 +134,9 @@ public struct TomoGrowthScreen: View {
                 HStack(alignment: .firstTextBaseline, spacing: 8) { age; level }
                 VStack(spacing: 2) { age; level }
             }
-            // One line, a little smaller when it must be (at the largest text on an SE, in Japanese).
-            TomoPhrase(text: lang.learner("words.days", ["n": "\(progress.daysTogether)"]), scale: Self.lineScale)
+            // One line, a little smaller when it must be, or two between its phrases (「いっしょに / 1234日目」), at
+            // the largest text on an SE in Japanese. Its own key marks them; the diary and postcards use `words.days`.
+            TomoPhrase(text: lang.learner("growth.days", ["n": "\(progress.daysTogether)"]), scale: Self.lineScale)
                 .multilineTextAlignment(.center)
                 .font(.callout).foregroundStyle(.secondary)
             stats.padding(.top, 4)

@@ -1444,6 +1444,29 @@ extension TomoGame {
                   + "(\"\(one.back)\", \"\(one.left)\"), says what a later one is (\"\(two.left)\"), and names the day "
                   + "alone for tomorrow's (\"\(next.left)\")")
         }
+        // What's left on one line (the Mac card's goal row, the iPhone header, Settings) is its phrases joined, without
+        // the pack's phrase marks, and awake it reads as resting does (#233). Some pack marks them, so this can fail.
+        var shown: [String] = [], marked = false
+        for ui in TomoLanguages.shared.learners {
+            for left in [TomoProgress.Left(words: 9, nextAt: nil), .init(words: 9, nextAt: later), .init(words: 1, nextAt: tomorrow),
+                         .init(words: 0, nextAt: nil)] {
+                for (level, last) in [(62, false), (63, true)] {
+                    let parts = whatsLeftParts(left, level: level, last: last, ui)
+                    let line = whatsLeft(left, level: level, last: last, ui)
+                    marked = marked || parts.contains(where: TomoLineBreaks.isMarked)
+                    let bare = !line.contains { [TomoLineBreaks.join, TomoLineBreaks.phraseBreak, TomoLineBreaks.keep].contains($0) }
+                    if line != TomoLineBreaks.spoken(parts.joined(separator: " · ")) || !bare || TomoLineBreaks.isMarked(line) {
+                        shown.append("\(ui.id) \"\(line)\"")
+                    }
+                }
+            }
+            let awake = whatsLeft(.init(words: 9, nextAt: later), level: 62, last: false, ui)
+            let resting = restLines(back: back, .init(words: 9, nextAt: later), level: 62, last: false, ui).left
+            if awake != resting { shown.append("\(ui.id) awake \"\(awake)\", resting \"\(resting)\"") }
+        }
+        check(marked && shown.isEmpty,
+              "what's left on one line shows none of the pack's phrase marks, in every ui pack, awake as resting: "
+              + (shown.isEmpty ? "none shows" : shown.prefix(4).joined(separator: ", ")))
         // The iPhone header (TomoPhoneView), from the numbers its view draws with (TomoPhoneHeader): what's left at
         // its size, grown by Dynamic Type to the cap, between the margins on the narrowest iPhone (an SE, 375 pt),
         // less the flag and the label's gap (about 1.6 em).

@@ -1,11 +1,13 @@
+import CoreText
 import SwiftUI
 
 // MARK: - The iPhone's Tomo and Words screens at the largest text (#213, #233)
 //
 // What a snapshot can't show for every pack: at the largest Dynamic Type size (accessibility XXXL) on the narrowest
 // iPhone (an SE, 375 pt), each word in every target pack fits its row, and each phrase the Tomo screen and the Today
-// line can say fits its line, so nothing breaks inside a word. Measured with SwiftUI's own text layout, at the sizes
-// iOS gives these text styles there (body 53 pt, callout 51 pt). Run by `swift test` and TOMO_SELFTEST.
+// line can say fits its line, so nothing breaks inside a word; and "Play with Tomo" wraps only between its phrases at
+// every accessibility size. Measured with SwiftUI's and CoreText's own text layout, at the sizes iOS gives these text
+// styles there (body 53 pt, callout 51 pt). Run by `swift test` and TOMO_SELFTEST.
 
 @MainActor
 public enum TomoLargeTextCheck {
@@ -20,10 +22,33 @@ public enum TomoLargeTextCheck {
     /// An icon beside a column of phrases (the flag, the clock, the Today line's sun) and its gap, in ems of the text:
     /// measured on an SE, the flag's column starts 70 pt in at 51 pt, the sun's 74 pt in at 53 pt (about 1.4 em).
     static let iconEms: CGFloat = 1.45
+    /// The play button: its text's inset from the button's edges (a large prominent button's, about 20 pt), and its
+    /// icon and the gap beside it, in ems of the text (measured on an SE at the largest text: 32 pt at 53 pt, and 8).
+    static let playInset: CGFloat = 20, playIconEms: CGFloat = 0.6, playGap: CGFloat = 8
 
     public static func selfTest(_ check: (Bool, String) -> Void) {
+        marks(check)
         words(check)
         phrases(check)
+        play(check)
+    }
+
+    /// The two phrase marks (#233): a space between two Japanese characters, and a zero-width space beside a number.
+    /// `wrapping` turns each into the only place the phrase may break, and leaves text with neither as it is.
+    static func marks(_ check: (Bool, String) -> Void) {
+        let j = TomoLineBreaks.join, z = TomoLineBreaks.phraseBreak, wraps = TomoLineBreaks.wrapping
+        let spaced = "今日は まだ", sentence = "今日はまだこれから"   // text-ok: a test input
+        let numbered = "9語中\u{200B}0語わかる", english = "9 more words to Lv\u{00A0}15"   // text-ok: a test input
+        let phrases = [TomoLineBreaks.phrases(spaced), TomoLineBreaks.phrases(numbered)]
+        check(TomoLineBreaks.isMarked(spaced) && TomoLineBreaks.isMarked(numbered)
+              && wraps(spaced) == "今\(j)日\(j)は\(z)ま\(j)だ"   // text-ok: a test input
+              && wraps(numbered) == "9\(j)語\(j)中\(z)0\(j)語\(j)わ\(j)か\(j)る"   // text-ok: a test input
+              && phrases == [["今日は", "まだ"], ["9語中", "0語わかる"]]   // text-ok: a test input
+              && TomoLineBreaks.spoken(spaced) + TomoLineBreaks.spoken(numbered) == "今日はまだ9語中0語わかる"   // text-ok: a test input
+              && !TomoLineBreaks.isMarked(sentence) && wraps(sentence) == sentence
+              && !TomoLineBreaks.isMarked(english) && wraps(english) == english,
+              "phrase marks: a space between two Japanese characters, and a zero-width space beside a number, each "
+              + "wrap only there and never show; a sentence and English with neither stay as they are")
     }
 
     /// Every word Tomo says, in every target pack, at the word's largest size, fits an SE's Words row, shrunk no more
@@ -51,7 +76,8 @@ public enum TomoLargeTextCheck {
     /// Each phrase the Tomo screen can say (its lines, the Today line, Growing up's day), in every ui pack, fits its
     /// line on an SE at the largest text: a whole part on one line, shrunk no further than its view lets it (the
     /// hero's lines 0.7, the others 0.75), or else each phrase it marks (`TomoLineBreaks`), or each word of one with no
-    /// Japanese in it, as a line breaker would wrap it (#233).
+    /// Japanese in it, as a line breaker would wrap it (#233). Parts joined by the list separator are measured as
+    /// `TomoPhrases` draws them, each but the last with the separator on its last word.
     static func phrases(_ check: (Bool, String) -> Void) {
         let callout: CGFloat = 51, body: CGFloat = 53, hero = TomoGrowthScreen.lineScale
         var tooWide: [String] = []
@@ -75,6 +101,7 @@ public enum TomoLargeTextCheck {
             }
         }
         let packs = TomoLanguages.shared.targets
+        let separator = { (ui: LearnerPack) in ui("list.separator") }
         let top = packs.map(\.levels.count).max() ?? 1
         let most = packs.flatMap { $0.levels.map { TomoProgress.needed(of: $0.itemIDs.count) } }.max() ?? 10
         let times: [Date?] = [nil, TomoGame.wallDate(hour: 22, minute: 58), TomoGame.wallDate(hour: 22, minute: 58, days: 1)]
@@ -84,7 +111,8 @@ public enum TomoLargeTextCheck {
                     for (level, last) in [(top - 1, false), (top, true)] {
                         for at in times {
                             let left = TomoProgress.Left(words: n, nextAt: at)
-                            fits(TomoGame.whatsLeftParts(left, level: level, last: last, ui, hourCycle: hourCycle),
+                            fits(TomoPhrases.drawn(TomoGame.whatsLeftParts(left, level: level, last: last, ui,
+                                                                           hourCycle: hourCycle), separator: separator(ui)),
                                  size: callout, weight: .medium, icon: true)
                         }
                     }
@@ -94,27 +122,89 @@ public enum TomoLargeTextCheck {
                          size: callout, weight: .regular, icon: true)
                 }
             }
-            let sep = ui("list.separator")
+            let sep = separator(ui)
             for known in [ui("words.toNext", ["known": "\(most)", "needed": "\(most)", "next": "\(top)"]),
                           ui("words.lastLevel", ["known": "\(most)", "needed": "\(most)"])] {
-                fits(known.components(separatedBy: sep), size: callout, weight: .regular, icon: false)
+                fits(TomoPhrases.drawn(known.components(separatedBy: sep), separator: sep),
+                     size: callout, weight: .regular, icon: false)
             }
-            fits([ui.counted("today.answers", 999), ui.counted("today.newWords", 99), ui("today.streak", ["n": "365"]),
-                  ui("today.grew", ["from": "\(top - 1)", "to": "\(top)"]), ui("today.nothing")],
+            // Days together, four digits (27 years) on one line or two between its phrases.
+            fits([ui("growth.days", ["n": "9999"])], size: callout, weight: .regular, icon: false)
+            // Today, in its order: each part but the last ("grew") may have the separator after it.
+            fits(TomoPhrases.drawn([ui("today.nothing"), ui.counted("today.answers", 999), ui.counted("today.newWords", 99),
+                                    ui("today.streak", ["n": "365"]), ui("today.grew", ["from": "\(top - 1)", "to": "\(top)"])],
+                                   separator: sep),
                  size: body, weight: .medium, icon: true, floor: 0.75)
             // Growing up: a mark's level and day (title 3, 55 pt), and sliding back in time (caption, 43 pt), on a
             // long day.
             let long = Calendar.current.date(from: DateComponents(year: 2026, month: 12, day: 30)) ?? Date()
             let level = ui("level", ["n": "\(top)"])
-            fits([level, TomoHeightPillar.longDay(long, learner: ui.id)], size: 55, weight: .bold, icon: false, floor: 0.75)
+            fits(TomoPhrases.drawn([level, TomoHeightPillar.longDay(long, learner: ui.id)], separator: sep),
+                 size: 55, weight: .bold, icon: false, floor: 0.75)
             let day = TomoHeightPillar.wholeDay(long, learner: ui.id)
-            fits(ui("pillar.slide", ["date": day, "level": level]).components(separatedBy: sep),
+            fits(TomoPhrases.drawn(ui("pillar.slide", ["date": day, "level": level]).components(separatedBy: sep),
+                                   separator: sep),
                  size: 43, weight: .regular, icon: false, floor: 0.75)
         }
         check(count > 0 && tooWide.isEmpty,
               "the Tomo screen's \(count) phrases in every ui pack fit their line on an SE at the largest text, so none "
               + "breaks inside a word: \(tooWide.count) too wide"
               + (tooWide.isEmpty ? "" : ": " + Set(tooWide).sorted().prefix(8).joined(separator: ", ")))
+    }
+
+    /// "Play with Tomo" (`tomo.play`) in every ui pack, as its button draws it (`TomoGrowthScreen.playTitle`) beside
+    /// its icon at each accessibility size (body 28 to 53 pt), on an SE and a 17 Pro: no mark shows, and it takes no
+    /// more than its lines, shrunk no further than its button lets it, breaking only where the pack marks a phrase or
+    /// has a space. So 「Tomoと / あそぶ」 never reads "Tom / oと" or 「Tomoとあ / そぶ」 (#233).
+    static func play(_ check: (Bool, String) -> Void) {
+        var wrong: [String] = [], count = 0
+        let scales = Array(stride(from: 1, through: TomoGrowthScreen.playScale, by: -0.02))
+        for ui in TomoLanguages.shared.learners {
+            let text = ui("tomo.play"), drawn = TomoGrowthScreen.playTitle(text)
+            let shown = String(drawn.filter { $0 != TomoLineBreaks.join && $0 != TomoLineBreaks.phraseBreak })
+            if shown != TomoLineBreaks.spoken(text) { wrong.append("\(ui.id) shows \"\(shown)\"") }
+            for phone: CGFloat in [375, 402] {
+                for size: CGFloat in [28, 33, 40, 47, 53] {
+                    count += 1
+                    let width = row(phone) - 2 * playInset - playIconEms * size - playGap
+                    let laid = scales.lazy.map { lines(drawn, size: size * $0, weight: 0.3, width: width) }
+                    let at = "at \(Int(size)) pt on a \(Int(phone)) pt phone"
+                    guard let fit = laid.first(where: { $0.count <= TomoGrowthScreen.playLines }) else {
+                        wrong.append("\(ui.id) cut \(at)")
+                        continue
+                    }
+                    let broken = fit.dropLast().filter { $0.last != TomoLineBreaks.phraseBreak && $0.last?.isWhitespace != true }
+                    if !broken.isEmpty {
+                        wrong.append("\(ui.id) " + fit.map { $0.filter { $0 != TomoLineBreaks.join } }.joined(separator: " / ") + " " + at)
+                    }
+                }
+            }
+        }
+        check(count > 0 && wrong.isEmpty,
+              "Play with Tomo fits its button in every ui pack at every accessibility size (\(count)), breaking only "
+              + "between its phrases: " + (wrong.isEmpty ? "none breaks inside one" : wrong.prefix(6).joined(separator: ", ")))
+    }
+
+    /// A Form row's text on a phone `phone` pt wide (`formRow` on an SE).
+    static func row(_ phone: CGFloat) -> CGFloat { formRow + phone - Self.phone }
+
+    /// The lines `s` takes at `size` pt (`weight`, CoreText's: 0.3 is semibold) in `width`, as CoreText's line breaker
+    /// (which SwiftUI's Text uses) wraps it, each with its trailing space or mark.
+    static func lines(_ s: String, size: CGFloat, weight: CGFloat, width: CGFloat) -> [String] {
+        let base = CTFontCreateUIFontForLanguage(.system, size, nil) ?? CTFontCreateWithName("Helvetica" as CFString, size, nil)
+        let traits = [kCTFontTraitsAttribute: [kCTFontWeightTrait: weight]] as CFDictionary
+        let font = CTFontCreateWithFontDescriptor(CTFontDescriptorCreateCopyWithAttributes(CTFontCopyFontDescriptor(base),
+                                                                                          traits), size, nil)
+        let text = NSAttributedString(string: s, attributes: [NSAttributedString.Key(kCTFontAttributeName as String): font])
+        let typesetter = CTTypesetterCreateWithAttributedString(text)
+        let all = s as NSString
+        var out: [String] = [], start = 0
+        while start < all.length {
+            let n = max(1, CTTypesetterSuggestLineBreak(typesetter, start, Double(width)))
+            out.append(all.substring(with: NSRange(location: start, length: min(n, all.length - start))))
+            start += n
+        }
+        return out
     }
 
     /// About how many ems wide `s` is: a Japanese character 1, anything else 0.6.

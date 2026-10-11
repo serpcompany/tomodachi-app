@@ -508,16 +508,20 @@ struct TomoPhrases: View {
             else { Text(part).fixedSize(horizontal: false, vertical: true) }
         } else {
             TomoChipFlow(spacing: 4, lineSpacing: 1) {
-                ForEach(Array(parts.enumerated()), id: \.offset) { i, part in
-                    // The separator ends its line, never starts the next or stands alone
-                    let mark = separator.trimmingCharacters(in: .whitespaces)
-                    let phrase = i < parts.count - 1
-                        ? part + (separator.first?.isWhitespace == true ? "\u{00A0}" : "") + mark : part
+                ForEach(Array(Self.drawn(parts, separator: separator).enumerated()), id: \.offset) { _, phrase in
                     TomoPhrase(text: phrase, scale: scale)
                 }
             }
             .accessibilityElement(children: .combine)
         }
+    }
+
+    /// The phrases as they're drawn: each but the last ends with the separator, kept on its last word ("12 answers ·"),
+    /// so the separator ends its line, never starts the next or stands alone. `TomoLargeTextCheck` measures these.
+    static func drawn(_ parts: [String], separator: String) -> [String] {
+        let mark = separator.trimmingCharacters(in: .whitespaces)
+        let joint = (separator.first?.isWhitespace == true ? "\u{00A0}" : "") + mark
+        return parts.enumerated().map { i, part in i < parts.count - 1 ? part + joint : part }
     }
 }
 
@@ -528,6 +532,7 @@ struct TomoPhrases: View {
 struct TomoPhrase: View {
     let text: String
     var scale: CGFloat = 0.75
+    @Environment(\.multilineTextAlignment) private var alignment
 
     var body: some View {
         let line = TomoLineBreaks.spoken(text)   // on one line, a mark takes no room
@@ -535,7 +540,7 @@ struct TomoPhrase: View {
             Text(line).lineLimit(1)
             TomoShrinkable(scale: scale) { Text(line).lineLimit(1).minimumScaleFactor(scale) }
             if TomoLineBreaks.isMarked(text) {
-                TomoChipFlow(spacing: 0, lineSpacing: 1) {
+                TomoChipFlow(spacing: 0, lineSpacing: 1, centered: alignment == .center) {
                     ForEach(Array(TomoLineBreaks.phrases(text).enumerated()), id: \.offset) { _, phrase in
                         TomoOneLine(text: phrase, scale: scale)
                     }
@@ -652,7 +657,8 @@ struct TomoPhraseLabel<Icon: View>: View {
     var body: some View {
         let phrases = TomoPhrases(parts: parts, separator: separator, scale: scale)
         if typeSize.isAccessibilitySize {
-            HStack(alignment: .firstTextBaseline, spacing: 10) { icon; phrases }
+            // VoiceOver reads the phrases alone, as it reads a label by its title (and the play button's icon).
+            HStack(alignment: .firstTextBaseline, spacing: 10) { icon.accessibilityHidden(true); phrases }
         } else {
             Label { phrases } icon: { icon }
         }

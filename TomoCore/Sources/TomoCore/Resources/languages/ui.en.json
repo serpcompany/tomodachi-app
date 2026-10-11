@@ -129,6 +129,7 @@
     "settings.testingNote": "Testing runs on a copy of Tomo in memory: trying another age or skipping ahead never changes your saved Tomo. Back to my Tomo ends it.",
     "menu.words": "Tomo's words…",
     "words.days": "Day {n} together",
+    "growth.days": "Day {n} together",
     "words.toNext": "{known} of {needed} words known · Lv\u00a0{next} next",
     "words.lastLevel": "{known} of {needed} words known · the last level for now",
     "words.testing": "This is a testing Tomo. Testing → Back to my Tomo.",
