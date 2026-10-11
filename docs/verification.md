@@ -53,6 +53,9 @@ pack's age boundary. Each run prints a `pace` line: the days to Lv 2, 5 and 10 a
   the Mac and iPhone apps built unsigned, and the Pull Request plan on a simulator of its own. Draft PRs skip it; a
   PR's passing UI run leaves a receipt, so main doesn't run the same tree again. No secrets.
 
+What only a person (or an agent driving the owner's screen) can check, with each check's setup, steps and what
+passes: [hand-checks.md](hand-checks.md).
+
 ## Evidence a change needs
 
 - **The card, the header or anything else on the island:** the snapshot matrix. Look at every image:
