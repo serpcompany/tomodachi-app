@@ -43,7 +43,7 @@ public struct TomoTogetherScreen: View {
         var postcardToday = false
         var plants: [TomoStats.Plant] = []
         var summaries: [TomoStats.Range: TomoStats.Summary] = [:]
-        var lines: [TomoStats.Range: (String, String)] = [:]
+        var lines: [TomoStats.Range: ([String], [String])] = [:]
         var recaps: [TomoStats.Range: String] = [:]
         var since = Date()
         var diary: [TomoDiaryPage] = []
@@ -149,13 +149,13 @@ public struct TomoTogetherScreen: View {
         loaded = l
     }
 
-    /// The garden's two lines for a range: what grew ("3 new sprouts · 5 grew"), then the watering, misses and when.
+    /// The garden's two lines for a range: what grew ("3 new sprouts", "5 grew"), then the watering, misses and when,
+    /// as phrases (`TomoPhrases`); or a title and a sentence.
     private static func lines(_ r: TomoStats.Range, _ s: TomoStats.Summary, plants: Int, stats: TomoStats,
-                              _ ui: LearnerPack) -> (String, String) {
-        guard plants > 0 else { return (ui("garden.empty.title"), ui("garden.empty.note")) }
-        if r == .all { return (ui.counted("garden.planted", plants), ui("garden.order")) }
-        guard s.played else { return (ui("garden.quiet.\(r.rawValue)"), ui("garden.quiet.note")) }
-        let sep = ui("list.separator")
+                              _ ui: LearnerPack) -> ([String], [String]) {
+        guard plants > 0 else { return ([ui("garden.empty.title")], [ui("garden.empty.note")]) }
+        if r == .all { return ([ui.counted("garden.planted", plants)], [ui("garden.order")]) }
+        guard s.played else { return ([ui("garden.quiet.\(r.rawValue)")], [ui("garden.quiet.note")]) }
         var top: [String] = [], bottom: [String] = []
         if !s.newWords.isEmpty { top.append(ui.counted("garden.sprouts", s.newWords.count)) }
         if !s.stronger.isEmpty { top.append(ui.counted("garden.grew", s.stronger.count)) }
@@ -165,7 +165,7 @@ public struct TomoTogetherScreen: View {
         if top.isEmpty, let first = rest.first { top.append(first); rest.removeFirst() }
         bottom += rest
         bottom.append(stats.rangeText(r, ui))
-        return (top.joined(separator: sep), bottom.joined(separator: sep))
+        return (top, bottom)
     }
 
     // MARK: The word garden
@@ -243,12 +243,13 @@ public struct TomoTogetherScreen: View {
     }
 
     private var summary: some View {
-        let lines = loaded.lines[range] ?? ("", "")
+        let lines = loaded.lines[range] ?? ([], [])
+        let sep = lang.learner("list.separator")
         return VStack(alignment: .leading, spacing: 6) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(lines.0).font(.headline).fixedSize(horizontal: false, vertical: true)
+                TomoPhrases(parts: lines.0, separator: sep).font(.headline)
                 if !lines.1.isEmpty {
-                    Text(lines.1).font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    TomoPhrases(parts: lines.1, separator: sep).font(.callout).foregroundStyle(.secondary)
                 }
             }
             if !loaded.plants.isEmpty {
@@ -446,6 +447,29 @@ public struct TomoTogetherScreen: View {
                 }
                 .onAppear { proxy.scrollTo(shown?.id, anchor: .trailing) }
             }
+        }
+    }
+}
+
+/// The garden's summary line: one part wraps like a sentence; several are phrases ("17 misses", "10月5日〜10月11日")
+/// joined by the list separator, which wrap between phrases and never inside one, so a number stays with its unit and
+/// a date stays whole. A phrase too wide for a line of its own shrinks a little (#197).
+private struct TomoPhrases: View {
+    let parts: [String]
+    let separator: String
+
+    var body: some View {
+        if parts.count < 2 {
+            Text(parts.first ?? "").fixedSize(horizontal: false, vertical: true)
+        } else {
+            TomoChipFlow(spacing: 4, lineSpacing: 1) {
+                ForEach(Array(parts.enumerated()), id: \.offset) { i, part in
+                    // The separator ends its line, never starts the next
+                    Text(i < parts.count - 1 ? (part + separator).trimmingCharacters(in: .whitespaces) : part)
+                        .lineLimit(1).minimumScaleFactor(0.75)
+                }
+            }
+            .accessibilityElement(children: .combine)
         }
     }
 }

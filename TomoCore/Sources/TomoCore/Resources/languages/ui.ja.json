@@ -180,7 +180,7 @@
     "left.last": "最後のレベルまであと{n}語",
     "left.lastDone": "いまあるレベルはぜんぶクリア",
     "left.ready": "いまできる",
-    "left.next": "次は{time}",
+    "left.next": "次の1語は{time}から",
     "dizzy": "つつきすぎ！トモは目が回っています。3秒で戻ります。",
     "glance.new": "新しいことばが待っています",
     "glance.wants": "トモがあそびたがっています",

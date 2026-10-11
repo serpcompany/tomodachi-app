@@ -1351,37 +1351,73 @@ public final class TomoGame: ObservableObject {
 // MARK: - Resting, practice and what's left, in words (the card, the header and Settings, on every device)
 
 extension TomoGame {
-    /// What's left before the next level: "1 more word to Lv 2 · ready now", or "· next at 8:37" (`when: false`
-    /// leaves the time out). On the last level, how many words finish it.
+    /// What's left before the next level: "1 more word to Lv 2 · ready now", or "· next one at 8:37", when the next
+    /// of those words counts (`when: false` leaves the time out). On the last level, how many words finish it.
     public func whatsLeft(when: Bool = true) -> String {
-        let ui = lang.learner, left = levelLeft, next = "\(level + 1)"
-        guard left.words > 0 else { return ui(levelIsLast ? "left.lastDone" : "left.done", ["next": next]) }
-        let n = "\(left.words)", one = left.words == 1
-        let words = levelIsLast ? ui(one ? "left.last.one" : "left.last", ["n": n])
-            : ui(one ? "left.one" : "left.many", ["n": n, "next": next])
-        guard when else { return words }
-        return words + " · " + (left.nextAt.map { timeText("left.next", until: $0, lang) } ?? ui("left.ready"))
+        Self.whatsLeft(levelLeft, level: level, last: levelIsLast, when: when, lang.learner)
     }
 
-    /// The resting card's lines: when Tomo's back ("Back at 10:12"), and what's left to grow, with its time only when
-    /// that isn't when Tomo's back anyway.
+    /// The resting card's lines: when Tomo's back ("Back at 10:12"), and what's left to grow (`restLines(back:…)`).
     public var restLines: (back: String, left: String) {
-        let same = levelLeft.nextAt.map { abs($0.timeIntervalSince(countsAgainAt ?? .distantPast)) < 60 } ?? true
-        return (backText(until: countsAgainAt, lang), whatsLeft(when: !same))
+        Self.restLines(back: countsAgainAt, levelLeft, level: level, last: levelIsLast, lang.learner)
+    }
+
+    public static func whatsLeft(_ left: TomoProgress.Left, level: Int, last: Bool, when: Bool = true,
+                                 _ ui: LearnerPack) -> String {
+        let next = "\(level + 1)"
+        guard left.words > 0 else { return ui(last ? "left.lastDone" : "left.done", ["next": next]) }
+        let n = "\(left.words)", one = left.words == 1
+        let words = last ? ui(one ? "left.last.one" : "left.last", ["n": n])
+            : ui(one ? "left.one" : "left.many", ["n": n, "next": next])
+        guard when else { return words }
+        return words + " · " + (left.nextAt.map { timeText("left.next", until: $0, ui) } ?? ui("left.ready"))
+    }
+
+    /// A resting Tomo's two lines give one time when they're one event: what's left to grow drops its time when its
+    /// next word counts when Tomo's back anyway. When that's later (Tomo comes back to a word that won't move the bar:
+    /// one of an earlier level, or one it knows), the line says its time is the next of those words' ("next one at
+    /// 2:45 PM"), so the header's two times never read as two answers to "when's Tomo back" (#197). Both are
+    /// `tomoTime`'s, so they're written alike. Checked by `restLinesSelfTest`.
+    public static func restLines(back: Date?, _ left: TomoProgress.Left, level: Int, last: Bool,
+                                 _ ui: LearnerPack) -> (back: String, left: String) {
+        let same = left.nextAt.map { abs($0.timeIntervalSince(back ?? .distantPast)) < 60 } ?? true
+        return (timeText("rest.back", until: back, ui), whatsLeft(left, level: level, last: last, when: !same, ui))
+    }
+
+    /// The resting header's times in every ui pack (TOMO_SELFTEST and `swift test`, via `TomoGlance.selfTest`).
+    public static func restLinesSelfTest(_ check: (Bool, String) -> Void) {
+        let back = TomoClock.now.addingTimeInterval(3600), later = back.addingTimeInterval(24 * 60)
+        for ui in TomoLanguages.shared.learners {
+            let one = restLines(back: back, .init(words: 9, nextAt: back.addingTimeInterval(20)), level: 62, last: false, ui)
+            let two = restLines(back: back, .init(words: 9, nextAt: later), level: 62, last: false, ui)
+            check(one.back == timeText("rest.back", until: back, ui) && one.back.contains(tomoTime(back, ui))
+                  && one.left == ui("left.many", ["n": "9", "next": "63"])
+                  && two.back == one.back && two.left.contains(tomoTime(later, ui))
+                  && two.left.hasSuffix(timeText("left.next", until: later, ui))
+                  && ui("left.next", ["time": ""]).trimmingCharacters(in: .whitespaces).count > 1,
+                  "\(ui.id): resting, the header gives one time when Tomo's back as the level's next word counts "
+                  + "(\"\(one.back)\", \"\(one.left)\"), and says what a later one is (\"\(two.left)\")")
+        }
     }
 }
 
 /// When Tomo's back, as its resting card says it: "Back at 10:12" (`until` on Tomo's clock). The iPhone's Lock Screen
 /// card, Dynamic Island and widgets get this same line in their TomoGlance, so none of them can say another time.
-@MainActor public func backText(until: Date?, _ lang: TomoLanguages) -> String { timeText("rest.back", until: until, lang) }
+@MainActor public func backText(until: Date?, _ lang: TomoLanguages) -> String {
+    timeText("rest.back", until: until, lang.learner)
+}
+
+@MainActor public func timeText(_ key: String, until: Date?, _ lang: TomoLanguages) -> String {
+    timeText(key, until: until, lang.learner)
+}
 
 /// "Back at 10:12" (`key`, with `{time}`), or the `key.now` variant when there's no time to give. A time on
 /// another day uses the `key.later` variant if the language has one ("Back tomorrow, 4:00 AM", not "at tomorrow").
-@MainActor public func timeText(_ key: String, until: Date?, _ lang: TomoLanguages) -> String {
-    guard let until else { return lang.learner("\(key).now") }
+@MainActor public func timeText(_ key: String, until: Date?, _ ui: LearnerPack) -> String {
+    guard let until else { return ui("\(key).now") }
     let later = "\(key).later"
-    let today = Calendar.current.isDateInToday(wallClock(until)) || lang.learner.strings[later] == nil
-    return lang.learner(today ? key : later, ["time": tomoTime(until, lang)])
+    let today = Calendar.current.isDateInToday(wallClock(until)) || ui.strings[later] == nil
+    return ui(today ? key : later, ["time": tomoTime(until, ui)])
 }
 
 /// The locale every time of day Tomo shows is written in: the learner's language, on the person's own 12- or 24-hour
@@ -1396,9 +1432,11 @@ public func tomoClockLocale(_ language: String, hourCycle: Locale.HourCycle = Lo
 }
 
 /// A time on Tomo's clock, short and for the middle of a sentence: "8:37 AM", or "tomorrow, 4:00 AM".
-@MainActor public func tomoTime(_ date: Date, _ lang: TomoLanguages) -> String {
+@MainActor public func tomoTime(_ date: Date, _ lang: TomoLanguages) -> String { tomoTime(date, lang.learner) }
+
+@MainActor public func tomoTime(_ date: Date, _ ui: LearnerPack) -> String {
     let f = DateFormatter()
-    f.locale = tomoClockLocale(lang.learner.id)
+    f.locale = tomoClockLocale(ui.id)
     f.timeStyle = .short
     f.formattingContext = .middleOfSentence
     if !Calendar.current.isDateInToday(wallClock(date)) { f.dateStyle = .short; f.doesRelativeDateFormatting = true }

@@ -94,7 +94,7 @@ extension TomoStats {
         let day = DateFormatter(), time = DateFormatter()
         day.locale = Locale(identifier: ui.id)
         day.dateStyle = .medium
-        time.locale = day.locale
+        time.locale = tomoClockLocale(ui.id)        // each answer's time, on the person's own 12- or 24-hour clock
         time.dateStyle = .short
         time.timeStyle = .short
         func row(_ cells: [String]) -> String {
