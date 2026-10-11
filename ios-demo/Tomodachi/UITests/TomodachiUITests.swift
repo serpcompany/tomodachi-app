@@ -22,12 +22,12 @@ final class TomodachiUITests: XCTestCase {
         app?.terminate()
     }
 
-    /// Launches the app on `folder` (a fresh one if nil), at a tab.
-    private func launch(_ folder: URL? = nil, tab: String? = nil) {
+    /// Launches the app on `folder` (a fresh one if nil), at a tab, with any more flags in `env`.
+    private func launch(_ folder: URL? = nil, tab: String? = nil, env: [String: String] = [:]) {
         let dir = folder ?? TomoSeed.folder()
         app = XCUIApplication()
         app.launchEnvironment = ["TOMO_DATA_DIR": dir.path, "TOMO_HEADLESS": "1", "TOMO_LEARNER": "en",
-                                 "TOMO_TARGET": "ja", "TOMO_ONBOARDING": "0"]
+                                 "TOMO_TARGET": "ja", "TOMO_ONBOARDING": "0"].merging(env) { $1 }
         if let tab { app.launchEnvironment["TOMO_OPEN_WINDOW"] = tab }
         app.launch()
     }
@@ -105,6 +105,21 @@ final class TomodachiUITests: XCTestCase {
         let loved = NSPredicate(format: "value == %@", ui("a11y.love"))
         expectation(for: loved, evaluatedWith: tomo)
         waitForExpectations(timeout: 5)
+    }
+
+    /// A Debug build is its own app (#54): the app's own checks (TOMO_SELFTEST, TomoIdentity) pass on the iPhone. Its
+    /// ID, name, data folder and keychain service are the Debug app's, and so are its App Group and its widgets'. The
+    /// app writes them to the data folder before Tomo shows.
+    func testThisBuildIsItsOwnApp() throws {
+        let dir = TomoSeed.folder()
+        launch(dir, env: ["TOMO_SELFTEST": "1"])
+        XCTAssertTrue(tomo.waitForExistence(timeout: 20))
+        let report = try String(contentsOf: dir.appendingPathComponent("selftest.txt"), encoding: .utf8)
+        let lines = report.split(separator: "\n")
+        XCTAssertEqual(lines.count, 5, report)
+        XCTAssertTrue(lines.allSatisfy { $0.hasPrefix("ok ") }, report)
+        XCTAssertTrue(report.contains("group.com.zenbujapanese.tomo.debug")
+                      && report.contains("com.zenbujapanese.tomo.debug.widgets"), report)
     }
 }
 

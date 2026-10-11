@@ -14,7 +14,8 @@ public enum TomoIdentity {
     /// Screen, the widget gallery, window titles, About) says "Tomodachi Debug" in a Debug build.
     public static var appName: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "" }
 
-    /// The checks, for the app's self-test (TOMO_SELFTEST). Not `swift test`: its bundle is the test runner's.
+    /// The checks, for the app's self-test (TOMO_SELFTEST): the Mac's, and the iPhone's, which a UI journey runs
+    /// (`testThisBuildIsItsOwnApp`). Not `swift test`: its bundle is the test runner's.
     @MainActor public static func selfTest(_ check: (Bool, String) -> Void) {
         let id = Bundle.main.bundleIdentifier ?? ""
         let name = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? ""
@@ -28,8 +29,27 @@ public enum TomoIdentity {
         check(folder.lastPathComponent == id,
               "without TOMO_DATA_DIR, Tomo is saved in this build's own folder: \(folder.path)")
         check(Keychain.service == id, "the AI key is saved under this build's own keychain service: \(Keychain.service)")
-        if let group = TomoGlance.appGroup {   // the iPhone's: the Mac has none
-            check(group.hasSuffix(".debug") == id.hasSuffix(".debug"), "the widgets' App Group is this build's: \(group)")
+        #if os(iOS)
+        widgets(check, id: id, name: name)
+        #endif
+    }
+
+    /// The iPhone's App Group is the app's own (`group.` and its bundle ID), and its widgets, inside the app, are this
+    /// build's too: their ID is the app's plus `.widgets`, under the same name and App Group. If the two groups drifted
+    /// apart, the widgets would go blank. (The entitlements name the group from the same build setting, TOMO_APP_GROUP.)
+    @MainActor private static func widgets(_ check: (Bool, String) -> Void, id: String, name: String) {
+        let group = TomoGlance.appGroup ?? ""
+        check(group == "group." + id, "the iPhone's App Group is this build's own: \(group)")
+        let plugins = Bundle.main.builtInPlugInsURL
+            .flatMap { try? FileManager.default.contentsOfDirectory(at: $0, includingPropertiesForKeys: nil) } ?? []
+        let widget = plugins.compactMap(Bundle.init(url:)).first {
+            ($0.object(forInfoDictionaryKey: "NSExtension") as? [String: Any])?["NSExtensionPointIdentifier"] as? String
+                == "com.apple.widgetkit-extension"
         }
+        let widgetID = widget?.bundleIdentifier ?? ""
+        let widgetGroup = widget?.object(forInfoDictionaryKey: "TomoAppGroup") as? String
+        let widgetName = widget?.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+        check(widgetID == id + ".widgets" && widgetGroup == group && widgetName == name,
+              "the widgets are this build's: \(widgetID), \"\(widgetName ?? "")\", sharing \(widgetGroup ?? "no App Group")")
     }
 }

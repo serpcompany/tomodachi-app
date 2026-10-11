@@ -27,7 +27,7 @@ Tomo drops in on its own (every 20 minutes by default) when it has words due or 
 between it sits small beside the notch: click it to play any time, and press Esc (or ×) to close. It
 follows the notch when displays change. Progress is saved on this Mac and synced through iCloud; test runs
 use their own folder. Open at login is a switch in Settings; a new learner picks it in the first run, where it
-starts on.
+starts on. A Debug build never opens at login, and shows no switch.
 
 Tomodachi is a regular app with a Dock icon. Its window (the Dock icon, Tomo's age in the card, or opening
 the app again) has a sidebar: Tomo, Words, Settings and About, the same screens as the iPhone's tabs. While

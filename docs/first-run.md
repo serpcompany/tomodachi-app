@@ -11,7 +11,7 @@ Who sees the first run, and how each shell hosts it. What a learner sees is in
 `TomoOnboardingPhone.swift`; the Mac shows it in a window (`TomoOnboardingWindow`), which
 `AppDelegate` opens instead of the launch visit (its own steps: quiet hours for the visits, and open
 at login as "Let Tomo find you", through the shell's `TomoLoginItem`; a test run never changes the
-login item), and whose `preview` plays it on a copy of the Tomo (`TomoGame.useCopy`) for the Testing
+login item, and a Debug build has none, so the step says it never opens at login), and whose `preview` plays it on a copy of the Tomo (`TomoGame.useCopy`) for the Testing
 menu, and the iPhone full screen over Tomo's screen (`TomoPhoneFirstRun`), holding the game, the
 Lock Screen card and the reminders until it's done. `checkAtLaunch()` runs before anything opens the
 store, because `TomoGame` hatches a Tomo when there's none (on the Mac, in `NotchBuddyApp.init`,

@@ -185,10 +185,14 @@ public final class TomoOnboarding: ObservableObject {
     @Published public private(set) var askingPermission = false
     /// The widget step shows the Home Screen's how-to (else the Lock Screen's).
     @Published public var widgetOnHomeScreen = false
-    /// Mac: open Tomodachi at login, as the "Let Tomo find you" step shows it (on unless the learner turns it off).
+    /// Mac: open Tomodachi at login, as the "Let Tomo find you" step shows it (on unless the learner turns it off; off
+    /// where the shell has no login item).
     @Published public var openAtLogin = true
-    /// Mac: the login item, from the shell (TomoLoginItem): whether it's on, and turning it on or off.
+    /// Mac: the login item, from the shell (TomoLoginItem): whether it's on, and turning it on or off. None in a Debug
+    /// build, which never opens at login (#54).
     private let loginItem: (isOn: @MainActor () -> Bool, set: @MainActor (Bool) -> Void)?
+    /// "Let Tomo find you" offers the switch: the shell has a login item. Without one (a Debug build) it says why.
+    public var offersLogin: Bool { loginItem != nil }
     /// The Testing menu's preview, on a copy of the learner's Tomo: nothing is marked done or saved, and a setting
     /// changes only if it was changed here.
     public let preview: Bool
@@ -222,7 +226,8 @@ public final class TomoOnboarding: ObservableObject {
         self.steps = list
         step = first
         metHere = TomoGame.shared.progress.metAt
-        if preview { openAtLogin = loginItem?.isOn() ?? false }    // the preview starts from how things are
+        // The preview starts from how things are; without a login item it's off.
+        if preview || loginItem == nil { openAtLogin = loginItem?.isOn() ?? false }
         if kind == .firstRun && !preview { Saved(started: started, finished: nil).save() }
         if let i = list.firstIndex(of: first), i > 0 {
             hatched = true

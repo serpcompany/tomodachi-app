@@ -250,24 +250,35 @@ extension TomoOnboardingView {
         .buttonStyle(.plain)
     }
 
-    /// Mac: "Let Tomo find you" is opening Tomodachi at login. The reason first, then the switch, on but shown.
+    /// Mac: "Let Tomo find you" is opening Tomodachi at login. The reason first, then the switch, on but shown. A Debug
+    /// build has no switch (`offersLogin`, #54): the card says it never opens at login.
     var loginPage: some View {
         VStack(alignment: .leading, spacing: 12) {
             title(ui("onboarding.login.title"))
             bodyText(ui("onboarding.login.body"))
-            HStack {
-                Text(ui("onboarding.login.toggle")).font(.system(size: 15, weight: .semibold))
-                Spacer(minLength: 8)
-                Toggle(ui("onboarding.login.toggle"), isOn: $model.openAtLogin)
-                    .labelsHidden()
-                    .toggleStyle(.switch)
-                    .tint(Paint.accent)
+            Group {
+                if model.offersLogin {
+                    HStack {
+                        Text(ui("onboarding.login.toggle")).font(.system(size: 15, weight: .semibold))
+                        Spacer(minLength: 8)
+                        Toggle(ui("onboarding.login.toggle"), isOn: $model.openAtLogin)
+                            .labelsHidden()
+                            .toggleStyle(.switch)
+                            .tint(Paint.accent)
+                    }
+                } else {
+                    Text(ui("login.debug")).font(.system(size: 14)).foregroundStyle(Paint.soft)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
             .padding(.horizontal, 14).padding(.vertical, 12)
             .background(Paint.card, in: RoundedRectangle(cornerRadius: 14))
             .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.08)))
-            Text(ui("onboarding.login.note")).font(.system(size: 13)).foregroundStyle(Paint.faint)
-                .fixedSize(horizontal: false, vertical: true)
+            if model.offersLogin {
+                Text(ui("onboarding.login.note")).font(.system(size: 13)).foregroundStyle(Paint.faint)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
