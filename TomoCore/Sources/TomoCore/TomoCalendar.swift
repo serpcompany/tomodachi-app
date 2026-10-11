@@ -3,14 +3,20 @@ import Foundation
 // MARK: - The target language's calendar
 //
 // Days of the year that bring something, as data in the target language's pack (`calendar`), so a Japanese speaker
-// learning English gets that language's year: today the season's weather in Tomo's card (桜 petals in spring, snow in
-// winter; #137). Each entry is a yearly range of days, which may run across New Year (`from` later than `until`), or,
+// learning English gets that language's year: the season's weather in Tomo's card (桜 petals in spring, snow in
+// winter; #137), and the day's dance when music plays (盆踊り during お盆; #130). Each entry is a yearly range of days, which may run across New Year (`from` later than `until`), or,
 // for a day that moves (節分 follows 立春), a table of that year's days (`years`). Holiday outfits (#130) can add their
 // entries here and read them the same way (`entries(on:)`).
 
 /// Light weather drawn around Tomo in its card: a few falling flakes or petals.
 public enum TomoWeather: String, Codable, Sendable, CaseIterable {
     case snow, petals
+}
+
+/// How Tomo dances while music plays (#130): its own bounce and sway, or, on the days the calendar says, the 盆踊り
+/// side-step.
+public enum TomoDance: String, Codable, Sendable, CaseIterable {
+    case bounce, bonOdori
 }
 
 public struct TomoCalendar: Codable, Sendable {
@@ -65,10 +71,13 @@ public struct TomoCalendar: Codable, Sendable {
         public let years: [String: Span]?
         /// The weather it brings to Tomo's card.
         public let weather: TomoWeather?
+        /// How Tomo dances to music on its days.
+        public let dance: TomoDance?
 
         public init(id: String, from: Day? = nil, until: Day? = nil, years: [String: Span]? = nil,
-                    weather: TomoWeather? = nil) {
+                    weather: TomoWeather? = nil, dance: TomoDance? = nil) {
             self.id = id; self.from = from; self.until = until; self.years = years; self.weather = weather
+            self.dance = dance
         }
 
         /// Whether `day` of `year` is one of its days.
@@ -103,6 +112,11 @@ public struct TomoCalendar: Codable, Sendable {
         entries(on: date, calendar: calendar).lazy.compactMap(\.weather).first
     }
 
+    /// The dance on `date`: the first entry that day that has one (none: Tomo's own bounce).
+    public func dance(on date: Date, calendar: Calendar = .current) -> TomoDance? {
+        entries(on: date, calendar: calendar).lazy.compactMap(\.dance).first
+    }
+
     /// The day the calendar reads: TOMO_DATE=YYYY-MM-DD (noon that day, for snapshots), else today on Tomo's clock.
     @MainActor public static var today: Date {
         if let text = ProcessInfo.processInfo.environment["TOMO_DATE"] {
@@ -118,6 +132,11 @@ public struct TomoCalendar: Codable, Sendable {
     /// Today's weather in the current target language's year (none if its pack has no calendar).
     @MainActor public static var weatherToday: TomoWeather? {
         TomoLanguages.shared.target.calendar?.weather(on: today)
+    }
+
+    /// How Tomo dances to music today in the current target language's year: the day's dance, else its own bounce.
+    @MainActor public static var danceToday: TomoDance {
+        TomoLanguages.shared.target.calendar?.dance(on: today) ?? .bounce
     }
 }
 
@@ -156,5 +175,10 @@ extension TomoCalendar {
               && ja?.weather(on: on(2027, 1, 1), calendar: cal) == .snow && ja?.weather(on: on(2026, 4, 2), calendar: cal) == .petals
               && ja?.weather(on: on(2026, 7, 7), calendar: cal) == nil,
               "the packs' calendars decode; Japanese: snow at New Year, petals in early April, nothing in July")
+        let en = packs.first { $0.id == "en" }?.calendar
+        check(ja?.dance(on: on(2026, 8, 13), calendar: cal) == .bonOdori && ja?.dance(on: on(2026, 8, 16), calendar: cal) == .bonOdori
+              && ja?.dance(on: on(2026, 8, 12), calendar: cal) == nil && ja?.dance(on: on(2026, 8, 17), calendar: cal) == nil
+              && en?.dance(on: on(2026, 8, 14), calendar: cal) == nil,
+              "Japanese: the bon odori during Obon (Aug 13 to 16, not the days either side); English has no Obon")
     }
 }

@@ -82,14 +82,14 @@ enum TomoIconRenderer {
         .frame(width: size, height: size)
     }
 
-    /// TOMO_RENDER_ANIM=<dir>: a scripted 36-second scene, rendered frame by frame on a scripted clock
+    /// TOMO_RENDER_ANIM=<dir>: a scripted 44-second scene, rendered frame by frame on a scripted clock
     /// (frame-0000.png … at 20 fps), for checking motion. Join them into a GIF with any tool. Its big moments: a drip in
     /// at 0 s (0.75 s long, from a notch at the frame's top), birthdays at 2.2 s (2.6 s long) and 13.4 s, a level-up at
     /// 17.6 s (2.1 s long), the call glow from 20 s to 23 s, a pull up at 23.5 s (0.45 s long), a drip in at 24.2 s,
     /// the hello at 25.2 s (1.8 s long), and small Tomo's badges from 27.6 s: "…" while it checks an answer, then a Zz as
     /// it dozes off (from about 30.6 s), with Tomo drawn as the resting island draws it, 3 times as big; then the
-    /// season's weather, as in the card: snow from 32 s, petals from 34 s. The level-up bursts sparkle dust, and the
-    /// birthdays toss confetti. TOMO_MATERIAL picks the material (the learner's own otherwise).
+    /// season's weather, as in the card: snow from 32 s, petals from 34 s; then dancing to music: Tomo's own bounce from
+    /// 36 s, the 盆踊り from 40 s. The level-up bursts sparkle dust, and the birthdays toss confetti. TOMO_MATERIAL picks the material (the learner's own otherwise).
     private static func renderAnimation(to out: URL) {
         try? FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
         var t = 0.0
@@ -121,10 +121,12 @@ enum TomoIconRenderer {
             (29.6, { $0.setState(.idle); $0.dozeAfter = 1 }),
             (32.0, { $0.showsBadges = false; $0.dozeAfter = 45; $0.weather = .snow; $0.emote(.happy) }),   // the card
             (34.0, { $0.weather = .petals }),
+            (36.0, { $0.weather = nil; $0.dance = .bounce }),                 // music playing
+            (40.0, { $0.dance = .bonOdori }),                                 // during お盆
         ]
         var next = 0
         let fps = 20.0
-        for i in 0..<Int(fps * 36) {
+        for i in 0..<Int(fps * 44) {
             t = Double(i) / fps
             while next < script.count && script[next].at <= t { script[next].run(blob); next += 1 }
             if t < 29.6 {                                      // a cursor drifting around, then still, so Tomo dozes
