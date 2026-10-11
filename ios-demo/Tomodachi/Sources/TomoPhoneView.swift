@@ -21,6 +21,8 @@ struct TomoPhoneView: View {
     @ScaledMetric(relativeTo: .body) private var dynamicScale: CGFloat = 1
     /// A long press on Tomo shows its love at most once every 6 s (TomoLoveCooldown, shared with the Mac).
     @State private var love = TomoLoveCooldown()
+    /// Tomo shows its love right now: VoiceOver (and the UI tests) hear it as Tomo's value for a moment.
+    @State private var loving = false
 
     private var growth: CGFloat { game.growthStep }
     private var said: String { game.isChat ? game.line.say : game.round.say }
@@ -71,10 +73,14 @@ struct TomoPhoneView: View {
                     .onLongPressGesture {   // resting a finger on Tomo: love, like resting the pointer on the Mac
                         if love.show(at: CACurrentMediaTime()) {
                             NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.love)
+                            loving = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { loving = false }
                         }
                     }
                     .accessibilityElement()
+                    .accessibilityIdentifier("tomo")
                     .accessibilityLabel(ui("a11y.tomo", ["age": game.age]))
+                    .accessibilityValue(loving ? ui("a11y.love") : "")
                     .accessibilityAddTraits(.isButton)
                     .accessibilityAction { NotificationCenter.default.post(name: .triggerSlap, object: nil) }
                 speech

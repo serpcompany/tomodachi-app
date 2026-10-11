@@ -14,7 +14,10 @@ import SQLite3
 
 @MainActor
 public final class TomoStore {
-    public struct TomoRow: Sendable { public let metAt: Date; public let level: Int; public let age: Int }
+    public struct TomoRow: Sendable {
+        public let metAt: Date; public let level: Int; public let age: Int
+        public init(metAt: Date, level: Int, age: Int) { self.metAt = metAt; self.level = level; self.age = age }
+    }
     public struct ItemRow: Sendable, Equatable {
         public let id: String
         public var stage: Int
@@ -24,6 +27,12 @@ public final class TomoStore {
         public var right: Int
         public var wrong: Int
         public var peak = 0                // the highest stage it ever reached: the experience bar never goes back
+
+        public init(id: String, stage: Int, due: Date?, introduced: Date, answered: Date, right: Int, wrong: Int,
+                    peak: Int = 0) {
+            self.id = id; self.stage = stage; self.due = due; self.introduced = introduced; self.answered = answered
+            self.right = right; self.wrong = wrong; self.peak = peak
+        }
     }
 
     /// What a save changed, for TomoSync. `cleared`: start over removed these words.

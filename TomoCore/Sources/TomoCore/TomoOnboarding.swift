@@ -119,12 +119,10 @@ public final class TomoOnboarding: ObservableObject {
     }
 
     /// Who sees the first run (TOMO_SELFTEST), in a temporary folder.
-    public static func selfTest() -> Bool {
-        var ok = true
-        func check(_ c: Bool, _ what: String) {
-            print((c ? "ok    " : "FAIL  ") + what)
-            if !c { ok = false }
-        }
+    public static func selfTest() -> Bool { TomoCheck.run(selfTest(_:)) }
+
+    /// The same checks, each reported to `check`: the self-test prints them, TomoCoreTests asserts them.
+    public static func selfTest(_ check: (Bool, String) -> Void) {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("tomo-onboarding-selftest-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: dir) }
         check(needsFirstRun(in: dir), "an empty data folder gets the first run")
@@ -134,7 +132,6 @@ public final class TomoOnboarding: ObservableObject {
         check(needsFirstRun(in: dir), "a first run quit halfway shows again")
         Saved(started: Date(), finished: Date()).save(to: dir)
         check(!needsFirstRun(in: dir), "a finished first run never shows again")
-        return ok
     }
 
     // MARK: The flow

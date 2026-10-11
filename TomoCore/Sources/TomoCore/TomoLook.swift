@@ -158,12 +158,10 @@ public struct TomoLook: Equatable, Sendable {
 
 extension TomoLook {
     /// The look rules, checked by TOMO_SELFTEST (docs/verification.md).
-    public static func selfTest() -> Bool {
-        var ok = true
-        func check(_ c: Bool, _ what: String) {
-            print((c ? "ok    " : "FAIL  ") + what)
-            if !c { ok = false }
-        }
+    public static func selfTest() -> Bool { TomoCheck.run(selfTest(_:)) }
+
+    /// The same checks, each reported to `check`: the self-test prints them, TomoCoreTests asserts them.
+    public static func selfTest(_ check: (Bool, String) -> Void) {
         let a = TomoLook(seed: "selftest-1"), b = TomoLook(seed: "selftest-1"), c = TomoLook(seed: "selftest-2")
         check(a.forms.map(\.silhouette) == b.forms.map(\.silhouette) && a.eyeW == b.eyeW && a.body == b.body,
               "the same seed gives the same Tomo")
@@ -195,7 +193,6 @@ extension TomoLook {
             }
         }
         check(readable, "every colour stands out on the notch, and its eyes on it")
-        return ok
     }
 }
 
