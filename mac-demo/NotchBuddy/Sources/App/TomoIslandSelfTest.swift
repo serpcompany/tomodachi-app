@@ -138,9 +138,26 @@ enum TomoIslandSelfTest {
         light(check)
         levelBar(check)
         music(check)
+        macDictionary(check)
         rules(check)
         TomoGame.offerSelfTest(check)
         return ok
+    }
+
+    /// The word card's Mac dictionary (#198): only a dictionary in the learner's language, chosen from Dictionary's
+    /// active ones by the languages their identifiers name, whichever this Mac has.
+    private static func macDictionary(_ check: (Bool, String) -> Void) {
+        typealias D = TomoMacDictionaries
+        let wisdom = D.languages("com.apple.dictionary.ja-en.WISDOM"), daijirin = D.languages("com.apple.dictionary.ja.Daijirin")
+        check(wisdom == ["ja", "en"] && daijirin == ["ja"] && D.languages("com.apple.dictionary.zh_CN-en.OCD") == ["zh", "en"]
+              && D.languages("com.apple.dictionary.NOAD") == nil && D.languages("com.example.dictionary.ja-en") == nil,
+              "a dictionary's languages come from Apple's identifier (ja-en, ja, zh_CN-en); none named or not Apple's: none")
+        // Dictionary's own order on a Mac with both: Super Daijirin (ja) ahead of Wisdom (ja-en).
+        let order: [Set<String>] = [["ja"], ["ja", "en"]]
+        check(D.fitting(order, target: "ja", learner: "en") == 1 && D.fitting(order, target: "ja", learner: "ja") == 0
+              && D.fitting([["ja"]], target: "ja", learner: "en") == nil,
+              "an English speaker gets the Japanese-English dictionary even after Daijirin, a Japanese speaker Daijirin; "
+              + "with only Daijirin, an English speaker gets none")
     }
 
     /// Dancing to music (#130): the players' state from their notifications, when Tomo dances, and that a distributed
