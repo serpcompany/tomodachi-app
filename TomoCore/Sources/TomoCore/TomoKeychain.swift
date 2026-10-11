@@ -4,7 +4,9 @@ import Security
 // MARK: - Keychain helpers: Tomo's AI key (TomoAI) is saved here, never in a file
 
 public enum Keychain {
-    public static let service = "co.zenbu.tomodachi"
+    /// This build's bundle ID, so a Debug build (`….debug`) never reads, or asks for, the owner's items (#54). Only
+    /// Debug builds save a key (`TomoAI.isAvailable`); the ones saved before under "co.zenbu.tomodachi" stay unread.
+    public static var service: String { Bundle.main.bundleIdentifier ?? "Tomodachi" }
 
     public static func save(key: String, value: String) {
         guard let data = value.data(using: .utf8) else { return }

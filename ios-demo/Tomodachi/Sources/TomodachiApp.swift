@@ -19,6 +19,7 @@ struct TomodachiApp: App {
     @StateObject private var shell = TomoPhoneShell.shared
 
     init() {
+        Self.selfTest()
         TomoOnboarding.checkAtLaunch()       // before anything opens the store: a new learner gets the first run (#88)
         TomoReminderCenter.shared.install()  // a tap on a reminder can be why we launched
         TomoLiveVisit.shared.install()      // before anything else: a tap on the card can be why we launched
@@ -29,6 +30,22 @@ struct TomodachiApp: App {
         // Tomo's voice and peeps are a game's sounds: the Ring/Silent switch mutes them, and they play over the
         // learner's music instead of stopping it (#92).
         try? AVAudioSession.sharedInstance().setCategory(.ambient)
+    }
+
+    /// TOMO_SELFTEST=1: the checks that need the iPhone app itself (TomoIdentity: this build's ID, data folder, App
+    /// Group and widgets, #54) print, and go to `selftest.txt` in TOMO_DATA_DIR, where the UI journey
+    /// `testThisBuildIsItsOwnApp` reads them. Then the app runs as usual.
+    private static func selfTest() {
+        let env = ProcessInfo.processInfo.environment
+        guard env["TOMO_SELFTEST"] != nil else { return }
+        var report = ""
+        TomoIdentity.selfTest { passed, what in
+            print(TomoCheck.line(passed, what))
+            report += TomoCheck.line(passed, what) + "\n"
+        }
+        guard let dir = env["TOMO_DATA_DIR"] else { return }
+        try? report.write(to: URL(fileURLWithPath: dir).appendingPathComponent("selftest.txt"), atomically: true,
+                          encoding: .utf8)
     }
 
     var body: some Scene {

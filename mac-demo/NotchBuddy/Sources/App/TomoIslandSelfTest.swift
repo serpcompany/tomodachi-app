@@ -148,6 +148,8 @@ enum TomoIslandSelfTest {
         TomoLanding.selfTest(check)   // Words lands on Tomo's level until the learner scrolls (#193, #218)
         TomoGame.whatsLeftFitSelfTest(check, place: "the card's goal row", size: GoalLine.size,
                                       width: GoalLine.textWidth)   // one line, never cut (#211)
+        TomoIdentity.selfTest(check)   // a Debug build is its own app, with its own data folder and keychain (#54)
+        TomoLoginItem.selfTest(check)   // and never opens at login (#54)
         return ok
     }
 

@@ -17,6 +17,6 @@ if [[ -f ../.env ]]; then
 fi
 
 # Quit only this copy, matched by its path from the start of the command line (SERP's native-app-build-identity
-# standard): Debug builds and agents' test runs share the process name and the bundle ID, and must keep running.
+# standard): Debug builds and agents' test runs share the process name, and must keep running.
 pkill -f "^$here/$app/Contents/MacOS/Tomodachi" 2>/dev/null && sleep 0.5
 open "${envargs[@]}" "$app"

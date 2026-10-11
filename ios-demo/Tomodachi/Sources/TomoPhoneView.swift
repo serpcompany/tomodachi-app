@@ -120,7 +120,7 @@ struct TomoPhoneView: View {
 
     private var header: some View {
         HStack(spacing: 8) {
-            Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "")
+            Text(TomoIdentity.appName)
                 .font(.system(size: 20, weight: .bold, design: .rounded))
                 .lineLimit(1).fixedSize()
             Text(game.age)
