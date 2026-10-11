@@ -4,7 +4,7 @@ Tomo works with a **language pair**:
 - The **learner language** is the one you speak.
 - The **target language** is the one you're learning.
 
-Japanese-for-English-speakers is just the first pair. No Swift code contains text in a specific language; everything comes from data files (`.github/scripts/check-swift-text.mjs` fails on Japanese in Swift strings).
+Japanese-for-English-speakers is just the first pair. No Swift code contains text in a specific language; everything comes from data files (`.github/scripts/check-swift-text.mjs` fails on Japanese in Swift strings, and on a time of day formatted without `tomoClockLocale`, which puts it on the learner's 12- or 24-hour clock).
 
 ## The two sides
 
