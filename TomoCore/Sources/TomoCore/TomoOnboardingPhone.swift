@@ -142,21 +142,43 @@ extension TomoOnboardingView {
         .animation(.easeInOut(duration: 0.25), value: model.reminders.every)
     }
 
+    /// Quiet hours: a switch, like Settings', then the times. Off (from = until, as the learner may have saved them)
+    /// reads as off, never as a span from midnight to midnight; turning it on brings back the learner's saved hours,
+    /// or the usual 9 PM to 8 AM. The flow saves them only if the learner changed them (TomoOnboarding.setQuietHours,
+    /// quietHoursToSave).
     var quietPage: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        let on = model.reminders.hasQuietHours
+        return VStack(alignment: .leading, spacing: 12) {
             title(ui("onboarding.quiet.title"))
             bodyText(ui(isPhone ? "onboarding.quiet.body" : "onboarding.quiet.body.mac"))
-            HStack(spacing: 12) {
-                timeBox(ui("onboarding.quiet.from"), minutes: $model.reminders.quietFrom)
-                timeBox(ui("onboarding.quiet.until"), minutes: $model.reminders.quietUntil)
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text(ui(isPhone ? "reminders.settings.quietOn" : "reminders.settings.quietOn.mac"))
+                        .font(.system(size: 15, weight: .semibold))
+                    Spacer(minLength: 8)
+                    Toggle(ui(isPhone ? "reminders.settings.quietOn" : "reminders.settings.quietOn.mac"),
+                           isOn: Binding(get: { model.reminders.hasQuietHours }, set: { model.setQuietHours($0) }))
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                        .tint(Paint.accent)
+                }
+                if on {
+                    HStack(spacing: 12) {
+                        timeBox(ui("onboarding.quiet.from"), minutes: $model.reminders.quietFrom)
+                        timeBox(ui("onboarding.quiet.until"), minutes: $model.reminders.quietUntil)
+                    }
+                    .transition(.opacity)
+                }
             }
             .padding(14)
             .background(Paint.card, in: RoundedRectangle(cornerRadius: 16))
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.08)))
-            Text(ui("onboarding.quiet.note")).font(.system(size: 13)).foregroundStyle(Paint.faint)
+            Text(ui(on ? "onboarding.quiet.note" : isPhone ? "onboarding.quiet.off" : "onboarding.quiet.off.mac"))
+                .font(.system(size: 13)).foregroundStyle(Paint.faint)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .animation(.easeInOut(duration: 0.25), value: on)
     }
 
     private func timeBox(_ label: String, minutes: Binding<Int>) -> some View {
@@ -165,7 +187,7 @@ extension TomoOnboardingView {
             DatePicker(label, selection: TomoReminders.timeOfDay(minutes), displayedComponents: .hourAndMinute)
                 .labelsHidden()
                 .datePickerStyle(.compact)
-                .environment(\.locale, Locale(identifier: lang.learner.id))
+                .environment(\.locale, tomoClockLocale(lang.learner.id))
                 .colorScheme(.dark)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

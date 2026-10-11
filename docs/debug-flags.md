@@ -16,8 +16,9 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   shares (`postcard-share-<day>.png`). `TOMO_SNAPSHOT_EVERY=<seconds>` takes them more often (0.1, to catch a motion
   midway). `TOMO_APPEARANCE=light|dark` draws the window in either. In a headless run the card's first frame takes about 0.4 s
   to draw, and each snapshot stalls the run, so a motion as it opens shows in one or two frames.
-- `TOMO_SLOW_MOTION=<n>`: Tomo's travel between the island's states, and the island's own opening and folding, take n
-  times longer, so snapshots catch each step (5 shows four or five frames of a move).
+- `TOMO_SLOW_MOTION=<n>`: Tomo's travel between the island's states, the island's own opening and folding, and the
+  first run's fade from one step's text to the next take n times longer, so snapshots catch each step (5 shows four or
+  five frames of a move).
 - `TOMO_RESTING_HOVER=1`: the resting island as it is under the pointer (a little bigger), which a headless run can't
   move there.
 - `TOMO_PEEK=1` (or `0`): visits peek first (or open the card), whatever Settings says. `TOMO_PEEK_OPEN=<seconds>`:

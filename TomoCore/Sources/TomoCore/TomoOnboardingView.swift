@@ -22,6 +22,12 @@ public struct TomoOnboardingView: View {
         self.gaze = gaze
     }
 
+    /// How long a step's page takes to fade out, and the next one to fade in, which starts only then.
+    /// TOMO_SLOW_MOTION=<n> (snapshots) makes both n times longer.
+    static let pageOut: Double = 0.15 * slowMotion
+    static let pageIn: Double = 0.25 * slowMotion
+    private static let slowMotion = max(1, ProcessInfo.processInfo.environment["TOMO_SLOW_MOTION"].flatMap(Double.init) ?? 1)
+
     var step: TomoOnboarding.Step { model.step }
     var isPhone: Bool { model.shell == .phone }
 
@@ -33,9 +39,13 @@ public struct TomoOnboardingView: View {
                 hero
                     .frame(height: heroHeight * fit)
                     .padding(.top, 10)
+                // One step's text at a time: the old page fades out before the new one fades in, so the two never
+                // show at once. Tomo, in the hero, moves on its own meanwhile.
                 ZStack(alignment: .top) {
-                    page.id(step).transition(.asymmetric(insertion: .opacity.combined(with: .offset(y: 12)),
-                                                         removal: .opacity))
+                    page.id(step).transition(.asymmetric(
+                        insertion: .opacity.combined(with: .offset(y: 12))
+                            .animation(.easeOut(duration: Self.pageIn).delay(Self.pageOut)),
+                        removal: .opacity.animation(.easeIn(duration: Self.pageOut))))
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .padding(.top, 14)
