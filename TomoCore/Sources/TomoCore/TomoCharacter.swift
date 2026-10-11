@@ -56,6 +56,12 @@ public final class TomoBlob: ObservableObject {
     /// card), never resting. It's drawn from the clock, with nothing stored, so it's no particles; under Reduce Motion
     /// there are a third as many, falling slower.
     public var weather: TomoWeather?
+    /// Dancing to music (#130): a loop on Tomo's clock, no script. `.bounce` is its own bounce and sway on every beat
+    /// at a fixed 112 BPM; `.bonOdori` the 盆踊り side-step at half that, on the days the target language's calendar
+    /// says (お盆). The host turns it on while music plays and Tomo rests (visits and quiet hours win). It fades in over
+    /// about 0.8 s and out again, and Tomo stays awake and doesn't fidget while it dances; a big moment, an arrival or
+    /// the hello takes over while it plays. Off under Reduce Motion.
+    public var dance: TomoDance?
 
     /// Whose Tomo this is. Nil: the learner's own (`TomoLook.current`), changing with a pop when it does.
     public let fixedLook: TomoLook?
@@ -98,6 +104,7 @@ public final class TomoBlob: ObservableObject {
     private var callGlowShown: CGFloat = 0 // `callGlow`, eased
     private var badgeShown: (badge: Badge, alpha: CGFloat) = (.dozing, 0)   // the badge on show, fading in or out
     private var weatherShown: (weather: TomoWeather, alpha: CGFloat) = (.snow, 0)   // fading in or out, like a badge
+    private var danceShown: (dance: TomoDance, amount: CGFloat) = (.bounce, 0)     // fading in or out
     private var sway: CGFloat = 0          // the sprout, lagging behind the body's moves
     private var swayVel: CGFloat = 0
     private var jiggle: CGFloat = 0        // the body's own wobble after a hop or a pop
@@ -374,6 +381,15 @@ public final class TomoBlob: ObservableObject {
         let weatherTarget: CGFloat = weather == weatherShown.weather ? 1 : 0
         weatherShown.alpha += (weatherTarget - weatherShown.alpha) * (1 - pow(0.02, dt))
         if weatherShown.alpha < 0.005 && weatherTarget == 0 { weatherShown.alpha = 0 }
+        let dancing = reduceMotion ? nil : dance
+        if let d = dancing {
+            if danceShown.amount < 0.01 { stir() }          // the music starts: awake (from a doze, with a start)
+            if d != danceShown.dance, danceShown.amount < 0.05 { danceShown.dance = d }
+            lastStir = now                                  // no dozing off while it dances
+        }
+        let danceTarget: CGFloat = dancing != nil && dancing == danceShown.dance ? 1 : 0
+        danceShown.amount += (danceTarget - danceShown.amount) * (1 - pow(0.03, dt))
+        if danceShown.amount < 0.002 && danceTarget == 0 { danceShown.amount = 0 }
 
         // Springs, in small substeps: the sprout, which lags behind the body's moves and wobbles back,
         // and the body's jelly wobble when it lands. How loose they are is the material's.
@@ -409,7 +425,7 @@ public final class TomoBlob: ObservableObject {
         if let b = secondBlinkAt, now > b { blinkAt = now; secondBlinkAt = nil }
 
         // Fidgets while waiting (not during a big moment); dozing when ignored for a while.
-        let calm = cue == nil && (state == .idle || state == .question || state == .thinking)
+        let calm = cue == nil && danceShown.amount == 0 && (state == .idle || state == .question || state == .thinking)
         if calm, !drowsy, flash == nil, moves.isEmpty, glance == nil, now > nextFidget {
             fidget()
             nextFidget = now + .random(in: 2.5...6)
@@ -1367,7 +1383,31 @@ public final class TomoBlob: ObservableObject {
             p.sx *= 1 + 0.045 * puffed; p.sy *= 1 + 0.045 * puffed
             p.glow = max(p.glow, 0.16 * puffed)
         }
+        if danceShown.amount > 0, cue == nil, !reduceMotion { danceStep(&p, now: now, amount: danceShown.amount) }
         return p
+    }
+
+    /// Beats a second at the dance's fixed 112 BPM.
+    static let danceBeat: Double = 112.0 / 60
+
+    /// The dance's part of Tomo's pose now: `amount` 0…1 as it fades in or out.
+    private func danceStep(_ p: inout Pose, now: Double, amount k: CGFloat) {
+        let beat = CGFloat(now * Self.danceBeat)          // beats so far
+        switch danceShown.dance {
+        case .bounce:                    // up on every beat, a squash as it lands, swaying side to side every two
+            let up = abs(sin(.pi * beat)), side = sin(.pi * beat)
+            p.dy -= 0.16 * up * k
+            p.sy *= 1 + (0.06 * up - 0.07 * pow(1 - up, 6)) * k
+            p.sx *= 1 - (0.04 * up - 0.06 * pow(1 - up, 6)) * k
+            p.rot += 0.12 * side * k
+            p.dx += 0.05 * side * k
+        case .bonOdori:                  // 盆踊り at half speed: a step to one side, a bob, a step back
+            let step = sin(.pi * beat / 2), bob = abs(sin(.pi * beat / 2))
+            p.dx += 0.14 * step * k
+            p.dy -= 0.06 * bob * k
+            p.rot += 0.08 * step * k
+            p.sy *= 1 - 0.03 * (1 - bob) * k
+        }
     }
 
     /// 0 → 1 → hold → 0 envelope with eased edges.
@@ -2241,6 +2281,84 @@ extension TomoBlob {
               && abs(calm.moved / lively.moved - Self.calmPace) < 0.1,
               String(format: "the weather is %d flakes inside the canvas (%d, at %.0f%% of the pace, under Reduce Motion)",
                      lively.count, calm.count, calm.moved / lively.moved * 100))
+    }
+}
+
+extension TomoBlob {
+    /// Dancing to music (#130), on a clock only the check moves: Tomo bounces on every beat at 112 BPM and sways, fading
+    /// in over about 0.8 s and out again; the 盆踊り side-steps at half speed; under Reduce Motion it doesn't move; a big
+    /// moment owns the body while it plays; while dancing Tomo doesn't doze off, fidget or emit anything.
+    static func danceSelfTest(_ check: (Bool, String) -> Void) {
+        var t = 100.0
+        func blob(reduce: Bool = false) -> TomoBlob {
+            t = 100
+            let b = TomoBlob(look: .mascot, material: .own)
+            b.reduceMotion = reduce
+            b.clock = { t }
+            b.step()
+            return b
+        }
+        func run(_ b: TomoBlob, _ seconds: Double, _ each: (Double, Pose) -> Void = { _, _ in }) {
+            let end = t + seconds
+            while t < end - 1e-9 { t += 1.0 / 120; b.step(); each(t, b.pose) }
+        }
+
+        // The bounce: up on every beat, 60/112 s apart, once it has faded in.
+        let b = blob()
+        b.dance = .bounce
+        var early: CGFloat = 0
+        run(b, 0.25) { _, p in early = max(early, -p.dy) }
+        run(b, 1.0)
+        var tops: [Double] = [], last: (dy: CGFloat, falling: Bool) = (0, false), most: CGFloat = 0, sway: CGFloat = 0
+        run(b, 6) { now, p in
+            most = max(most, -p.dy); sway = max(sway, abs(p.rot))
+            let rising = p.dy < last.dy
+            if !rising, !last.falling, last.dy < -0.1 { tops.append(now) }
+            last = (p.dy, !rising)
+        }
+        let gaps = zip(tops, tops.dropFirst()).map { $1 - $0 }, beat = 60.0 / 112
+        let onBeat = !gaps.isEmpty && gaps.allSatisfy { abs($0 - beat) < 0.03 }
+        check(onBeat && most > 0.14 && sway > 0.1 && early < most * 0.6 && b.danceShown.amount > 0.99,
+              String(format: "dancing, Tomo bounces on every beat at 112 BPM (%d tops, %.3f s apart) and sways, fading in over about 0.8 s",
+                     tops.count, gaps.reduce(0, +) / Double(max(gaps.count, 1))))
+        let busy = b.moves.isEmpty && !b.drowsy && b.bits.isEmpty
+        b.dance = nil
+        run(b, 2)
+        check(busy && b.danceShown.amount == 0,
+              "while it dances Tomo doesn't fidget, doze or emit anything; when the music stops the dance fades out")
+
+        // The 盆踊り: a side-step to and fro every four beats (half speed), more sideways than up.
+        let o = blob()
+        o.dance = .bonOdori
+        run(o, 1.2)
+        var side: (lo: CGFloat, hi: CGFloat) = (0, 0), up: CGFloat = 0, crossings: [Double] = [], lastDx: CGFloat = 0
+        run(o, 6.5) { now, p in
+            side = (min(side.lo, p.dx), max(side.hi, p.dx)); up = max(up, -p.dy)
+            if lastDx < 0, p.dx >= 0 { crossings.append(now) }
+            lastDx = p.dx
+        }
+        let period = zip(crossings, crossings.dropFirst()).map { $1 - $0 }
+        check(side.hi > 0.12 && side.lo < -0.12 && up < 0.08 && !period.isEmpty && period.allSatisfy { abs($0 - 4 * beat) < 0.05 },
+              String(format: "the bon odori side-steps (%.2f each way) at half speed: to and fro every %.2f s, four beats", side.hi, period.first ?? 0))
+
+        // Under Reduce Motion: no dance at all.
+        let calm = blob(reduce: true)
+        calm.dance = .bounce
+        var moved: CGFloat = 0
+        run(calm, 3) { _, p in moved = max(moved, abs(p.dy), abs(p.dx), abs(p.rot)) }
+        check(moved == 0 && calm.danceShown.amount == 0, "under Reduce Motion Tomo doesn't dance")
+
+        // A level-up while dancing: the moment owns the body, the same as without the music.
+        func levelUp(dancing: Bool) -> [CGFloat] {
+            let l = blob()
+            l.dance = dancing ? .bounce : nil
+            run(l, 1.5)
+            l.levelUp()
+            var poses: [CGFloat] = []
+            run(l, 2.0) { _, p in poses += [p.dx, p.dy, p.rot, p.sx, p.sy] }
+            return poses
+        }
+        check(levelUp(dancing: true) == levelUp(dancing: false), "a level-up while Tomo dances plays as it would without the music")
     }
 }
 

@@ -5,10 +5,10 @@ import Foundation
 // Beyond the rules' own checks in TomoProgress.selfTest: every level of every target pack can be finished, a birthday
 // evolves Tomo once (under Reduce Motion too: TomoBlob.motionSelfTest; its small touches: touchesSelfTest; its big
 // moments' scripts: cueSelfTest; its arrivals and call glow: arrivalSelfTest; its material: materialSelfTest; its
-// hello: helloSelfTest; its badges: badgeSelfTest; its particles and weather: particleSelfTest; the language's calendar:
-// TomoCalendar.selfTest), and simulated learners grow on Tomo's clock, moved forward, with the real rules (waits, early
-// reviews at half the wait, new words a day, levels needing 9 of 10) from the first word to the first talking question.
-// The runs print how many days each step took: the pacing table for #38.
+// hello: helloSelfTest; its badges: badgeSelfTest; its particles and weather: particleSelfTest; its dance:
+// danceSelfTest; the calendar: TomoCalendar.selfTest), and simulated learners grow on Tomo's clock, moved forward, with
+// the real rules (waits, early reviews at half the wait, new words a day, levels needing 9 of 10) from the first word to
+// the first talking question. The runs print how many days each step took: the pacing table for #38.
 
 extension TomoProgress {
     /// The pack walk, the evolution and the simulated learners. `check` prints each result.
@@ -29,6 +29,7 @@ extension TomoProgress {
         TomoBlob.helloSelfTest(check)
         TomoBlob.badgeSelfTest(check)
         TomoBlob.particleSelfTest(check)
+        TomoBlob.danceSelfTest(check)
         TomoCalendar.selfTest(check)
         let lang = TomoLanguages.shared
         for pack in lang.targets {

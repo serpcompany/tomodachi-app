@@ -51,9 +51,9 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   page → "Skip ahead a day" moves the clock live, on a copy of Tomo in memory.
 - `TOMO_DROPIN_EVERY=8`, `TOMO_NUDGE_EVERY=5`: seconds between visits and between nudge bounces.
 - `TOMO_RENDER_ICON`, `TOMO_RENDER_SHEET`, `TOMO_RENDER_SOUNDS`, `TOMO_RENDER_ANIM`, `TOMO_RENDER_CARD_FRAMES` (`=<dir>`): render
-  the icons, every age and face, every sound (WAV), or a 36-second scene (20 fps frames, with the hello at 25.2 s,
-  small Tomo's badges from 27.6 s, drawn as the resting island draws them, 3 times as big, and the card's weather:
-  snow from 32 s, petals from 34 s), then quit. The
+  the icons, every age and face, every sound (WAV), or a 44-second scene (20 fps frames, with the hello at 25.2 s,
+  small Tomo's badges from 27.6 s, drawn as the resting island draws them, 3 times as big, the card's weather:
+  snow from 32 s, petals from 34 s, and dancing to music: its bounce from 36 s, the 盆踊り from 40 s), then quit. The
   sheet shows one Tomo at every age and with every face, then a crowd of other seeds. The sounds are
   `<effect>-age<N>.wav` for 1さい to 6さい, and `all-sounds.wav` (every effect at 1さい, in order).
 - `TOMO_SEED=<text>`: the seed Tomo's look is made from, in place of the saved Tomo's.
@@ -67,8 +67,13 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   The icons and the card frames are always classic.
 - `TOMO_HELLO=<seconds>`: that long after Tomo first shows, it says hello as it does when the Mac wakes (a test run
   can't sleep the Mac). The hello at launch needs no flag: the launch visit's card shows it.
-- `TOMO_DATE=YYYY-MM-DD`: the day the language's calendar reads (its seasons' weather in the card), whatever today is;
-  Tomo's clock and progress don't move. For example `2026-04-02` for 桜 petals, `2027-01-01` for snow.
+- `TOMO_DATE=YYYY-MM-DD`: the day the language's calendar reads (its seasons' weather in the card, the day's dance),
+  whatever today is; Tomo's clock and progress don't move. For example `2026-04-02` for 桜 petals, `2027-01-01` for
+  snow, `2026-08-14` for the 盆踊り.
+- `TOMO_MUSIC=playing`: music plays, as if Music or Spotify said so, so small Tomo dances while it rests (a test run
+  can't play any). `TOMO_MUSIC_PROBE=1`: every player notification that arrives is logged (`Tomo music:` in the
+  system log: its "Player State" and which keys it carries, never a song's name), to check the players by hand:
+  `log stream --style compact --predicate 'eventMessage CONTAINS "Tomo music"'`.
 - `TOMO_BADGE=checking|dozing`: small Tomo wears that badge in the resting island. `checking` holds Tomo in its
   thinking state (nothing makes it check an answer while small today: answers are choices); `dozing` lets it doze 2 s
   after the pointer stops instead of 45 s (the real doze needs the owner's pointer to stay still).

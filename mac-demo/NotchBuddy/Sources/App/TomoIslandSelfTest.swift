@@ -137,9 +137,52 @@ enum TomoIslandSelfTest {
         motion(check, notch: notch, flat: flat)
         light(check)
         levelBar(check)
+        music(check)
         rules(check)
         TomoGame.offerSelfTest(check)
         return ok
+    }
+
+    /// Dancing to music (#130): the players' state from their notifications, when Tomo dances, and that a distributed
+    /// notification reaches Tomodachi at once with its userInfo while AppKit holds an inactive app's (`TomoDistributed`;
+    /// posted under a test name of ours, never a player's).
+    private static func music(_ check: (Bool, String) -> Void) {
+        typealias T = TomoCharacterView
+        var m = TomoMusicState()
+        let music = "com.apple.Music.playerInfo", spotify = "com.spotify.client.PlaybackStateChanged"
+        m.heard(name: music, playerState: "Playing")
+        let one = m.playing
+        m.heard(name: spotify, playerState: "Paused")
+        let otherPaused = m.playing
+        m.heard(name: spotify, playerState: "Playing"); m.heard(name: music, playerState: "Stopped")
+        let spotifyOn = m.playing
+        m.heard(name: spotify, playerState: nil)
+        let unknownState = m.playing
+        m.heard(name: music, playerState: "Playing"); m.quit(bundle: "com.apple.Music")
+        let quit = m.playing
+        m.heard(name: "com.example.other.playerInfo", playerState: "Playing")
+        check(one && otherPaused && spotifyOn && !unknownState && !quit && !m.playing,
+              "music plays while Music or Spotify says \"Playing\"; paused, stopped, no state, quitting or another app: not")
+        check(T.dance(playing: true, mode: .compact, quiet: false, today: .bounce) == .bounce
+              && T.dance(playing: true, mode: .compact, quiet: false, today: .bonOdori) == .bonOdori
+              && [IslandMode.expanded, .peek, .hidden].allSatisfy { T.dance(playing: true, mode: $0, quiet: false, today: .bounce) == nil }
+              && T.dance(playing: true, mode: .compact, quiet: true, today: .bounce) == nil
+              && T.dance(playing: false, mode: .compact, quiet: false, today: .bounce) == nil,
+              "Tomo dances while music plays and it rests by the notch; visits (the card, the peek) and quiet hours win")
+
+        let center = DistributedNotificationCenter.default(), wasSuspended = center.suspended
+        let name = "co.serp.tomo.selftest.music", listener = TomoDistributed([name])
+        var got: [AnyHashable: Any]?
+        let sub = listener.publisher.sink { got = $0.userInfo }
+        center.suspended = true                         // as AppKit holds them for an app that isn't active
+        center.postNotificationName(Notification.Name(name), object: nil, userInfo: ["Player State": "Playing"],
+                                    deliverImmediately: false)
+        let until = Date().addingTimeInterval(2)
+        while got == nil, Date() < until { RunLoop.main.run(mode: .default, before: Date().addingTimeInterval(0.05)) }
+        center.suspended = wasSuspended
+        sub.cancel()
+        check(got?["Player State"] as? String == "Playing",
+              "a player's notification reaches Tomodachi at once, with its state, even while AppKit holds an inactive app's")
     }
 
     /// The shortcut to play (#130, Settings: TomoShortcut): what can be recorded, what's macOS's or every app's, how
