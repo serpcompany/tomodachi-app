@@ -37,6 +37,7 @@ struct TomoPhoneHome: View {
                 NavigationStack {
                     TomoGrowthScreen(play: { tab = .play }, together: { tab = .together })
                         .navigationTitle(lang.learner("screen.tomo"))
+                        .tomoBar()
                 }
             }
             Tab(lang.learner("screen.words"), systemImage: TomoScreen.words.icon, value: .words) {
@@ -44,6 +45,7 @@ struct TomoPhoneHome: View {
                     TomoWordsScreen()
                         .navigationTitle(lang.learner("screen.words"))
                         .navigationBarTitleDisplayMode(.inline)
+                        .tomoBar()
                 }
             }
             Tab(lang.learner("screen.together"), systemImage: TomoScreen.together.icon, value: .together) {
@@ -51,14 +53,16 @@ struct TomoPhoneHome: View {
                     TomoTogetherTab()
                         .navigationTitle(lang.learner("screen.together"))
                         .navigationBarTitleDisplayMode(.inline)   // the postcard and its buttons fit above the tabs
+                        .tomoBar()
                 }
             }
             Tab(lang.learner("screen.settings"), systemImage: TomoScreen.settings.icon, value: .settings) {
                 NavigationStack(path: $settingsPath) {
                     settings
                         .navigationTitle(lang.learner("screen.settings"))
+                        .tomoBar()
                         .navigationDestination(for: TomoScreen.self) { _ in
-                            TomoAboutScreen().navigationTitle(lang.learner("screen.about"))
+                            TomoAboutScreen().navigationTitle(lang.learner("screen.about")).tomoBar()
                         }
                 }
             }
@@ -77,6 +81,15 @@ struct TomoPhoneHome: View {
                 }
             }
         }
+    }
+}
+
+private extension View {
+    /// The tabs' navigation bar takes the screen's background once something scrolls under it, so nothing shows
+    /// through behind the status bar or the title (#193). Without a style, iOS 26 leaves the bar clear over a soft
+    /// blur; its hard scroll edge still shows the content, dimmed; and a bar forced visible hides the large titles.
+    func tomoBar() -> some View {
+        toolbarBackground(.background, for: .navigationBar)
     }
 }
 

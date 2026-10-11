@@ -22,24 +22,50 @@ public struct TomoWordsScreen: View {
             VStack(spacing: 0) {
                 summary
                 Divider()
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 12) {
-                        ForEach(1..<levels.count + 1, id: \.self) { n in   // identified by level number
-                            levelSection(number: n, level: levels[n - 1])
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 12) {
+                            ForEach(1..<levels.count + 1, id: \.self) { n in   // identified by level number
+                                levelSection(number: n, level: levels[n - 1])
+                                    .padding(.horizontal, horizontalPadding)   // inside the target: landing never shifts the list sideways
+                            }
                         }
+                        .scrollTargetLayout()
+                        .padding(.vertical, 10)
                     }
-                    .scrollTargetLayout()
-                    .padding(.horizontal, horizontalPadding).padding(.vertical, 10)
+                    .scrollPosition(id: $shown, anchor: .top)
+                    // The rows are lazy: the jump to a level estimates the heights above it, which change as they're
+                    // measured. Until the learner scrolls, each change lands on the level again, so its header and
+                    // first word show under the chips.
+                    .onScrollGeometryChange(for: CGFloat.self) { $0.contentSize.height } action: { _, _ in
+                        if let landing { proxy.scrollTo(landing, anchor: .top) }
+                    }
+                    .onScrollPhaseChange { _, phase in
+                        if phase == .tracking || phase == .interacting { landing = nil }
+                    }
+                    .task(id: landing) {
+                        guard landing != nil else { return }
+                        try? await Task.sleep(for: .seconds(1))
+                        landing = nil
+                    }
+                    .onAppear { if shown == nil { land(game.level) } }
+                    .onChange(of: game.level) { _, level in land(level) }
                 }
-                .scrollPosition(id: $shown, anchor: .top)
-                .onAppear { if shown == nil { shown = game.level } }
-                .onChange(of: game.level) { _, level in shown = level }
             }
         }
     }
 
     /// The level at the top of the list: it opens at Tomo's level.
     @State private var shown: Int?
+    /// The level the list is landing on, until the learner scrolls or a second has passed.
+    @State private var landing: Int?
+    /// More stage chips past the row's trailing edge.
+    @State private var chipsMore = false
+
+    private func land(_ level: Int) {
+        shown = level
+        landing = level
+    }
 
     private var horizontalPadding: CGFloat {
         #if os(iOS)
@@ -60,6 +86,20 @@ public struct TomoWordsScreen: View {
                     }
                 }
                 .padding(.horizontal, horizontalPadding)
+            }
+            // When the chips don't all fit (an iPhone), the trailing edge fades while more are past it, so the row
+            // shows it scrolls. A row that fits (the Mac) never fades.
+            .onScrollGeometryChange(for: Bool.self) { g in
+                g.visibleRect.maxX < g.contentSize.width - 1
+            } action: { _, more in
+                chipsMore = more
+            }
+            .mask {
+                HStack(spacing: 0) {
+                    Color.black
+                    LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
+                        .frame(width: chipsMore ? 44 : 0)
+                }
             }
             if game.isScratch {
                 Label(lang.learner("words.testing"), systemImage: "flask")
@@ -116,9 +156,13 @@ public struct TomoWordsScreen: View {
             .frame(width: 30)
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 1) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(w.say).font(.system(size: 15, weight: .semibold))
-                    if let r = w.reading { Text(r).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
+                // The word never breaks mid-word: its reading goes under it when both don't fit on a line, and a
+                // word too long for the line on its own shrinks to fit.
+                let say = Text(w.say).font(.system(size: 15, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.6)
+                let reading = w.reading.map { Text($0).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) { say.fixedSize(); reading?.fixedSize() }
+                    VStack(alignment: .leading, spacing: 1) { say; reading }
                 }
                 Text(w.meaning).font(.callout).foregroundStyle(.secondary).lineLimit(2)
             }
