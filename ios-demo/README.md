@@ -21,14 +21,16 @@ The play screen fits the Play tab from an iPhone SE (375 × 667) up: Tomo, its l
 ## Build and run (simulator)
 
 ```bash
-cd ios-demo/Tomodachi && xcodegen && xcodebuild -scheme Tomodachi -destination 'platform=iOS Simulator,name=tomodachi' -derivedDataPath ../build build
-xcrun simctl install tomodachi ios-demo/build/Build/Products/Debug-iphonesimulator/Tomodachi.app
-xcrun simctl launch tomodachi com.zenbujapanese.tomo
+udid=$(ios-demo/scripts/simulator.sh udid)   # your own simulator, made the first time
+(cd ios-demo/Tomodachi && xcodegen && xcodebuild -scheme Tomodachi -destination "platform=iOS Simulator,id=$udid" -derivedDataPath ../build build)
+xcrun simctl boot "$udid"
+xcrun simctl install "$udid" ios-demo/build/Build/Products/Debug-iphonesimulator/Tomodachi.app
+xcrun simctl launch "$udid" com.zenbujapanese.tomo
 ```
 
 Signing is automatic with TSMC LLC's team `847HR8U8D9` (the Zenbu Japanese app's). The simulator needs nothing more. For a device, Xcode must be signed in to that team (Xcode → Settings → Accounts); the first device build with `-allowProvisioningUpdates` registers the App IDs, the App Group `group.com.zenbujapanese.tomo` and the iCloud container `iCloud.com.zenbujapanese.tomo` (sync with the Mac, `TomoSync`). Debug builds sync in CloudKit's Development environment, TestFlight and the App Store in Production; Xcode switches iCloud and push to Production when it exports. On the simulator, sync needs it signed in to an iCloud account (Settings). To try the widget: long-press the Home Screen → Edit → Add Widget → Tomodachi.
 
-`tomodachi` is a simulator made for this app (`xcrun simctl create tomodachi com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro com.apple.CoreSimulator.SimRuntime.iOS-27-0`), so test runs don't touch other projects' simulators. Its saved progress lives in the app's container on that simulator.
+Every agent gets its own simulator, `tomodachi--<scope>`, from `scripts/simulator.sh` ([SERP's simulators standard](https://github.com/serpcompany/serp/blob/main/docs/engineering/technology/simulators.md)). The scope is the worktree's folder name, or the branch in the main checkout. `udid [scope]` finds or makes it (the newest iPhone Pro on the newest iOS installed; `TOMO_SIM_DEVICE` picks another model) and prints its UDID. `delete [scope]` removes it when the work is done. `prune` removes those whose worktree and branch are gone, never a booted one. Name every simctl and xcodebuild command by that UDID, never `booted` or another simulator. The long-lived `tomodachi` simulator is the owner's, and the script never deletes it. Saved progress lives in the app's container on each simulator.
 
 ## TestFlight
 
