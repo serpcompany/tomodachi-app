@@ -288,7 +288,7 @@ private struct LockTime: View {
     var size: CGFloat = 54
     var body: some View {
         TimelineView(.everyMinute) { t in
-            Text(t.date, format: .dateTime.hour().minute())   // clock-ok: the phone's own Lock Screen clock, drawn
+            Text(t.date, format: .dateTime.hour().minute())
                 .font(.system(size: size, weight: .semibold, design: .rounded))
                 .foregroundStyle(Color.white.opacity(0.88))
         }

@@ -80,7 +80,7 @@ English is for learners who speak Japanese, so every English word needs a Japane
 - **"Tomo" stays the character's name in every language** for now.
 - **Times of day are in the learner language, on the device's 12- or 24-hour clock** (`tomoClockLocale`):
   a language alone would bring its own clock (English 12-hour, Japanese 24-hour), whatever the learner set.
-  Every one goes through it (`tomoTime` for a line); `check-swift-text.mjs` fails on a time formatted without it.
+  Every one goes through it (`tomoTime` for a line).
 
 ## Open questions
 
