@@ -160,10 +160,10 @@ public enum TomoReminders {
         return ui("reminders.summary", ["n": n, "from": clock(s.quietUntil), "until": clock(s.quietFrom)])
     }
 
-    /// A time of day in the learner's language: "9:00 PM", "21:00".
+    /// A time of day in the learner's language, on the person's own clock (`tomoClockLocale`): "9:00 PM", "21:00".
     @MainActor public static func clock(_ minutes: Int) -> String {
         let f = DateFormatter()
-        f.locale = Locale(identifier: TomoLanguages.shared.learner.id)
+        f.locale = tomoClockLocale(TomoLanguages.shared.learner.id)
         f.timeStyle = .short
         return f.string(from: date(minutes))
     }

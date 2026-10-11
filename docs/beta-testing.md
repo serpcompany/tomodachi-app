@@ -48,7 +48,7 @@ Install **TestFlight** from the App Store, then open the invite link we send you
 - **The tabs:** **Play**, **Tomo**, **Words** and **Together** (the same as the Mac's window) and **Settings**: reminders (on or off, how often, quiet hours), Tomo on the Lock Screen, new words a day, sounds and the app's language, with **About** (the version, privacy policy, support and credits) at the bottom.
 - **Small screens and accessibility:** it fits an iPhone SE, works with VoiceOver and larger text, and never asks for the microphone. The Ring/Silent switch mutes Tomo.
 - **Add the widget:** long-press the Home Screen → **+** → Tomodachi (small or medium). It shows Tomo and whether it wants to play, never how many words are waiting. On the Lock Screen: long-press it → Customize → the space under the time → Tomodachi.
-- **Lock your phone:** if you said yes to it, Tomo's card is on the Lock Screen (allow Live Activities when asked). Tap the yellow **▶** to play one round right there, or tap the card to open the app. On iPhones with a Dynamic Island, Tomo sits there too.
+- **Lock your phone:** if you said yes to it, Tomo's card is on the Lock Screen (allow Live Activities when asked). Tap the yellow **▶** to play one round right there, or tap the card to open the app. On iPhones with a Dynamic Island, Tomo sits there too. The card says what the app says: Tomo wants to play, or when it's back, on your phone's 12- or 24-hour clock.
 
 ## Feedback we want
 

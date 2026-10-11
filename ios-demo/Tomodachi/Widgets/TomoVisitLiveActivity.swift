@@ -11,9 +11,10 @@ import WidgetKit
 // Tomo's glow and the Dynamic Island's rim light amber, as small Tomo does on the Mac (TomoMoment.waiting). Play opens
 // one round right on the card: Tomo's word and its choices (TomoVisitActivity.swift); Tomo reacts, the card lights
 // the answer's moment (green for a win, blue for practice), and a few seconds after a right answer the card invites
-// again. Not yet: Tomo sleeps, unlit, and the first row says when it's back ("Back at 10:12"; a ticking countdown
-// loses its seconds on the Lock Screen, which shows "9:--"). Tomo moves everywhere here (TomoMovingMascot); each
-// update also swaps its pose with a short transition. The compact Dynamic Island keeps Tomo's call ("あそぼ！").
+// again. Not yet: Tomo sleeps, unlit, and the first row says when it's back in the app's own line ("Back at 10:12",
+// TomoGlance.back, on the person's clock; a ticking countdown there would lose its seconds on the Lock Screen, which
+// shows "9:--"). Tomo moves everywhere here (TomoMovingMascot); each update also swaps its pose with a short
+// transition. The compact Dynamic Island keeps Tomo's call ("あそぼ！").
 // Tapping anywhere else opens the app.
 
 struct TomoVisitLiveActivity: Widget {
@@ -219,14 +220,15 @@ struct TomoCardText: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Group {
-                if !ready, let next = glance.nextDue, next > .now {
-                    let parts = glance.nextLabel.components(separatedBy: "{time}")
-                    (Text(parts[0]) + Text(next, style: .time) + Text(parts.count > 1 ? parts[1] : ""))
-                        .foregroundStyle(Color.white.opacity(0.8))
-                } else {
+                if ready {
                     Text(glance.waiting ? glance.status : glance.statusLater)
                         .foregroundStyle(TomoMoment.waiting.color)
                         .contentTransition(.opacity)
+                } else {
+                    // The app's own line, written by the app on the person's clock (TomoGlance.back): never a time
+                    // formatted here, which iOS would put on another clock.
+                    Text(glance.back ?? glance.status)
+                        .foregroundStyle(Color.white.opacity(0.8))
                 }
             }
             .font(.system(size: 17, weight: .bold, design: .rounded))
@@ -254,14 +256,13 @@ struct TomoCardText: View {
 @MainActor
 private func previewGlance(waiting: Bool) -> TomoGlance {
     let ui = TomoLanguages.shared.learner, target = TomoLanguages.shared.target
-    let state = TomoGlance.state(somethingCounts: waiting)
-    return TomoGlance(growth: 1, age: target.ageLabel(3), level: ui("level", ["n": "12"]), progress: 0.4,
-                      waiting: waiting, status: ui(state.status),
-                      nextDue: waiting ? nil : .now.addingTimeInterval(95 * 60),
-                      statusLater: ui(TomoGlance.state(somethingCounts: true).status),
-                      about: ui("glance.about"), invite: target.lines.invite ?? target.lines.practice,
-                      nextLabel: ui("rest.back"), play: ui("glance.play"), updated: .now.addingTimeInterval(-30 * 60),
-                      moment: state.moment)
+    var g = TomoGlance(growth: 1, age: target.ageLabel(3), level: ui("level", ["n": "12"]), progress: 0.4,
+                       waiting: false, status: "", nextDue: nil,
+                       statusLater: ui(TomoGlance.state(somethingCounts: true).status),
+                       about: ui("glance.about"), invite: target.lines.invite ?? target.lines.practice,
+                       back: nil, play: ui("glance.play"), updated: .now.addingTimeInterval(-30 * 60))
+    g.set(counts: waiting, until: TomoClock.now.addingTimeInterval(95 * 60), .shared)
+    return g
 }
 
 /// The first picture round in the pack.

@@ -96,9 +96,13 @@ final class TomoPhoneShell: ObservableObject {
         TomoSounds.shared.listen()
         TomoSync.shared.registerForPushes = { UIApplication.shared.registerForRemoteNotifications() }
         game.start()                                // free play starts when the app becomes active
-        watch = game.$progressVersion.sink { [weak self] _ in
-            DispatchQueue.main.async { self?.updateWidgets() }   // after the change has landed
-        }
+        // After progress changes, and when what counts changes without it (an early review comes due, a new day, more
+        // new words a day): the widgets and the card follow the app's own state (TomoGlance.follow).
+        watch = Publishers.Merge3(game.$progressVersion.map { _ in () }, game.$somethingCounts.map { _ in () },
+                                  game.$nextCountsAt.map { _ in () })
+            .sink { [weak self] _ in
+                DispatchQueue.main.async { self?.updateWidgets() }   // after the change has landed
+            }
         // The Lock Screen card follows its setting (the first run, Settings): it starts or ends.
         cardWatch = TomoReminderCenter.shared.$settings.map(\.lockScreen).removeDuplicates().dropFirst()
             .sink { _ in DispatchQueue.main.async { TomoLiveVisit.shared.refresh() } }
@@ -129,12 +133,10 @@ final class TomoPhoneShell: ObservableObject {
     /// Tomo right now, for the widgets and the Lock Screen card.
     func currentGlance() -> TomoGlance {
         var glance = TomoGame.shared.glance
-        // Testing (TOMO_CARD_COUNTDOWN=<seconds>): nothing waiting, next words in that many seconds.
+        // Testing (TOMO_CARD_COUNTDOWN=<seconds>): nothing waiting, next words in that many seconds (on Tomo's clock).
         if let secs = ProcessInfo.processInfo.environment["TOMO_CARD_COUNTDOWN"].flatMap(Double.init) {
-            glance.waiting = false
-            glance.status = TomoLanguages.shared.learner(TomoGlance.state(somethingCounts: false).status)
-            glance.moment = nil
-            glance.nextDue = (lastGlance?.nextDue).map { $0 } ?? Date().addingTimeInterval(secs)
+            let until = lastGlance?.nextDue.map { $0.addingTimeInterval(TomoClock.now.timeIntervalSince(Date())) }
+            glance.set(counts: false, until: until ?? TomoClock.now.addingTimeInterval(secs), .shared)
         }
         glance.updated = lastGlance?.updated ?? glance.updated
         return glance

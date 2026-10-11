@@ -41,7 +41,7 @@ enum TomoIslandSelfTest {
               "something counts: the right side says the pack's invite, with no number")
         let soon = TomoClock.now.addingTimeInterval(20 * 3600), later = TomoClock.now.addingTimeInterval(3 * 86400)
         let timeOnly = DateFormatter()
-        timeOnly.locale = Locale(identifier: lang.learner.id)
+        timeOnly.locale = tomoClockLocale(lang.learner.id)
         timeOnly.timeStyle = .short
         let back = TomoRestingSide.label(counts: false, next: soon, lang)
         check(back?.text == timeOnly.string(from: wallClock(soon)) && back?.dimmed == true,
