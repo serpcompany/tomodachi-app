@@ -64,7 +64,7 @@ public struct TomoGrowthScreen: View {
 
             Section(lang.learner("growth.today")) {
                 let stats = TomoStats(progress)
-                TomoTodayLine(text: stats.todayLine(lang.learner))
+                TomoTodayLine(parts: stats.todayParts(lang.learner), separator: lang.learner("list.separator"))
                 // Monday morning: Tomo's week has come, as a postcard (the Together screen).
                 if let together, let week = stats.postcardCameToday(lang.learner) {
                     Button(action: together) {
