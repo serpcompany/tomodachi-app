@@ -55,6 +55,8 @@ Each lives 2 s at most and all are gone when the moment ends; under Reduce Motio
   (`badgeRoom`, `TomoBlob.badgeFrame`). The badge is what Tomo is doing (`badge`): a "…" thought bubble while it checks
   an answer (`.thinking`), a tiny Zz while it dozes or sleeps; none while a script plays or Tomo is away. Wearing them,
   its z's don't drift. Elsewhere (the card, the peek, the iPhone) its face and drifting z's say it.
+- A ceiling (`ceiling`): the island without a notch sets its top edge, a point inside. A form too tall to stand under
+  it, with its topper, its idle stretch and a hop, is drawn smaller, standing and moving as it does.
 - The season's weather (`weather`, from the target language's calendar, `TomoCalendar.weatherToday`): the island
   passes it only to Tomo's card (`TomoCharacterView.weather`), and the Mac's Tomo screen to its Tomo. A few flakes or
   petals fall behind Tomo, worked out from the clock, so nothing is emitted; under Reduce Motion, a third, slower.
@@ -83,5 +85,6 @@ Each lives 2 s at most and all are gone when the moment ends; under Reduce Motio
 - A material's pass is fixed fills: no blur or particles at rest, so a Tomo at rest costs what it did.
 - No material moves Tomo under Reduce Motion (`TomoBlob.motionSelfTest` runs every material).
 - A badge says what Tomo is doing, never how many of anything (`TomoBlob.Badge`).
+- Under a ceiling, nothing it draws at rest or in its idle moves reaches past it (`TomoBlob.ceilingSelfTest`, rendered).
 - Nothing emits at rest: particles come only with moments, and the weather never reaches the resting island
   (`TomoBlob.particleSelfTest`).

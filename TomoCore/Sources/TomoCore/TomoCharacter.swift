@@ -62,6 +62,12 @@ public final class TomoBlob: ObservableObject {
     /// about 0.8 s and out again, and Tomo stays awake and doesn't fidget while it dances; a big moment, an arrival or
     /// the hello takes over while it plays. Off under Reduce Motion.
     public var dance: TomoDance?
+    /// The top of the room Tomo stands in, in the canvas's own coordinates (points, y down), or nil: no ceiling. The
+    /// island without a notch sets it a little inside its top edge, which floats below the screen's. A form too tall to
+    /// stand under it, with its topper, its idle stretch and a hop, is drawn smaller (`fit`), standing where it stands
+    /// and moving as it does (#196).
+    public var ceiling: CGFloat?
+    private var standing: (seed: String, age: Int, top: CGFloat)?
 
     /// Whose Tomo this is. Nil: the learner's own (`TomoLook.current`), changing with a pop when it does.
     public let fixedLook: TomoLook?
@@ -467,8 +473,9 @@ public final class TomoBlob: ObservableObject {
         var dy = p.dy
         if drowsy { rot += sin(t * 0.8) * 0.05; dy += max(0, sin(t * 0.8)) * 0.03 }
         let cx = size.width / 2 + (p.dx + look2.x * 0.04) * R
-        let cy = size.height / 2 + particleOverhang / 2 + dy * R + R * 0.1
-        let g = form.scale
+        let middle = size.height / 2 + particleOverhang / 2 + R * 0.1     // where it stands, at rest
+        let cy = middle + dy * R
+        let g = form.scale * fit(form: form, R: R, ground: middle + ground)
         let rate = CGFloat(look.breathRate)
         let breath = 1 + sin(t * rate) * (state == .sleeping || drowsy ? 0.035 : 0.018)
 
@@ -586,8 +593,9 @@ public final class TomoBlob: ObservableObject {
     /// Where a badge sits for a canvas of `size` (Tomo drawn as `draw` draws it): beside its head on its right, the room
     /// a host leaves for it, in the canvas's coordinates. It reaches past the canvas's right edge.
     public func badgeFrame(size: CGSize) -> CGRect {
-        let form = look.form(age), R = size.width * 0.27, r = R * form.scale
+        let form = look.form(age), R = size.width * 0.27
         let center = CGPoint(x: size.width / 2, y: size.height / 2 + particleOverhang / 2 + R * 0.1)
+        let r = R * form.scale * fit(form: form, R: R, ground: center.y + form.bottom * R)
         let a = badgeAnchor(center: center, r: r), u = badgeUnit(r)
         return CGRect(x: a.x - u * 0.15, y: a.y - u * 0.8, width: u * 1.9, height: u * 1.45)
     }
@@ -790,11 +798,69 @@ public final class TomoBlob: ObservableObject {
         }
     }
 
+    /// The idle moves' room under a `ceiling`: its stretch (9% taller) as it breathes in (1.8%; asleep, 3.5% and no
+    /// stretch), and a hop as it wakes (0.18 R up). A big moment's leap, which is rare and quick, may still reach past it.
+    static let idleStretch: CGFloat = 1.09 * 1.018
+    static let idleLift: CGFloat = 0.18
+
+    /// How much smaller than its age's size Tomo is drawn to stand under `ceiling` (1: its own size), for where its
+    /// ground is at rest (canvas points): its body and topper, stretched and hopping as it does when idle, reach no higher
+    /// than the ceiling. Never under half its size.
+    func fit(form: TomoForm, R: CGFloat, ground: CGFloat) -> CGFloat {
+        guard let ceiling else { return 1 }
+        let tall = (standingTop(form) + form.bottom) * R * form.scale * Self.idleStretch
+        let room = ground - ceiling - Self.idleLift * R
+        return tall > room ? max(0.5, room / tall) : 1
+    }
+
+    /// How far above its middle Tomo reaches at rest, upright, in units of R: its body's outline or its topper, whichever
+    /// is higher. Kept for its look and age, so the outline isn't built every frame.
+    private func standingTop(_ form: TomoForm) -> CGFloat {
+        if let s = standing, s.seed == look.seed, s.age == age { return s.top }
+        let top = max(-form.path(R: 1).boundingRect.minY, topperTop(form))
+        standing = (look.seed, age, top)
+        return top
+    }
+
+    /// How far above its middle its topper reaches, upright, in units of R (0 without one): `drawTopper`'s shapes, with
+    /// their tips. Ears lean out as they're drawn, so they reach a little less.
+    func topperTop(_ form: TomoForm) -> CGFloat {
+        guard age >= 1 else { return 0 }
+        let grow = topperGrow, lift = -Self.topperLift(form)
+        let size = Self.topperSize(look.topper) * grow
+        switch look.topper {
+        case .none: return 0
+        case .cat, .bunny, .horns: return lift + size
+        case .bear: return lift + size * 1.5
+        case .antenna: return form.top - 0.08 + size + 0.09     // its ball
+        case .sprout: return form.top - 0.06 + size + 0.16      // its leaves
+        }
+    }
+
+    /// A topper grows with age, from 1さい's 0.8.
+    private var topperGrow: CGFloat { 0.8 + 0.06 * CGFloat(age) }
+    /// Where a pair (ears, horns) stands on the head, in R from its middle (negative: up).
+    private static func topperLift(_ form: TomoForm) -> CGFloat {
+        (form.silhouette == .droplet ? 0.18 : 0) - form.ry * 0.74
+    }
+    /// Each topper's size in R before it grows: an ear's or a horn's height, a bear ear's radius, a stem's length.
+    private static func topperSize(_ topper: TomoLook.Topper) -> CGFloat {
+        switch topper {
+        case .none: 0
+        case .cat: 0.48
+        case .bunny: 0.8
+        case .bear: 0.21
+        case .horns: 0.36
+        case .antenna: 0.42
+        case .sprout: 0.3
+        }
+    }
+
     /// What grows on its head from 2さい (ears, horns, an antenna or a sprout), swaying after every move.
     private func drawTopper(_ ctx: GraphicsContext, form: TomoForm, R: CGFloat) {
         guard age >= 1, look.topper != .none else { return }
-        let grow = 0.8 + 0.06 * CGFloat(age)
-        let lift = (form.silhouette == .droplet ? 0.18 : 0) - form.ry * 0.74
+        let lift = Self.topperLift(form)
+        let size = R * Self.topperSize(look.topper) * topperGrow
         let spread = form.rx * (form.silhouette == .triangle ? 0.3 : 0.58)
         let fill = GraphicsContext.Shading.color(look.bodyLight)
         let inside = GraphicsContext.Shading.color(look.cheek.opacity(0.55))
@@ -811,31 +877,31 @@ public final class TomoBlob: ObservableObject {
             break
         case .cat:
             pair { c, _ in
-                let h = R * 0.48 * grow, b = R * 0.24
+                let h = size, b = R * 0.24
                 c.fill(triangle(b, h), with: fill)
                 c.fill(triangle(b * 0.55, h * 0.62), with: inside)
             }
         case .bunny:
             pair { c, _ in
-                let h = R * 0.8 * grow
+                let h = size
                 c.fill(Path(ellipseIn: CGRect(x: -R * 0.13, y: -h, width: R * 0.26, height: h + R * 0.1)), with: fill)
                 c.fill(Path(ellipseIn: CGRect(x: -R * 0.065, y: -h * 0.85, width: R * 0.13, height: h * 0.75)), with: inside)
             }
         case .bear:
             pair { c, _ in
-                let r = R * 0.21 * grow
+                let r = size
                 c.fill(Path(ellipseIn: CGRect(x: -r, y: -r * 1.5, width: r * 2, height: r * 2)), with: fill)
                 c.fill(Path(ellipseIn: CGRect(x: -r * 0.5, y: -r, width: r, height: r)), with: inside)
             }
         case .horns:
             pair { c, _ in
-                c.fill(triangle(R * 0.11, R * 0.36 * grow), with: .color(Palette.horn))
+                c.fill(triangle(R * 0.11, size), with: .color(Palette.horn))
             }
         case .antenna:
             var c = ctx
             c.translateBy(x: 0, y: -form.top * R + R * 0.08)
             c.rotate(by: .radians(Double(form.sproutLean + sway * 0.9)))
-            let L = R * 0.42 * grow
+            let L = size
             var stem = Path()
             stem.move(to: .zero)
             stem.addQuadCurve(to: CGPoint(x: 0, y: -L), control: CGPoint(x: R * 0.1, y: -L * 0.5))
@@ -846,7 +912,7 @@ public final class TomoBlob: ObservableObject {
             var c = ctx
             c.translateBy(x: 0, y: -form.top * R + R * 0.06)
             c.rotate(by: .radians(Double(form.sproutLean + sway * 0.9)))
-            let L = R * 0.3 * grow
+            let L = size
             var stem = Path()
             stem.move(to: .zero)
             stem.addQuadCurve(to: CGPoint(x: 0, y: -L), control: CGPoint(x: -R * 0.08, y: -L * 0.5))
@@ -2359,6 +2425,97 @@ extension TomoBlob {
             return poses
         }
         check(levelUp(dancing: true) == levelUp(dancing: false), "a level-up while Tomo dances plays as it would without the music")
+    }
+}
+
+extension TomoBlob {
+    /// The highest point anything is drawn at in a canvas of `size` (points, y down), from a render at `scale`; nil when
+    /// nothing is drawn.
+    public static func drawnTop(size: CGSize, scale: CGFloat = 2, _ draw: @escaping (GraphicsContext, CGSize) -> Void) -> CGFloat? {
+        let renderer = ImageRenderer(content: Canvas { ctx, s in draw(ctx, s) }.frame(width: size.width, height: size.height))
+        renderer.scale = scale
+        guard let image = renderer.cgImage else { return nil }
+        let w = image.width, h = image.height
+        var px = [UInt8](repeating: 0, count: w * h * 4)
+        let drawn: Bool = px.withUnsafeMutableBytes { buf in
+            guard let ctx = CGContext(data: buf.baseAddress, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+                                      space: CGColorSpaceCreateDeviceRGB(),
+                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return false }
+            ctx.draw(image, in: CGRect(x: 0, y: 0, width: w, height: h))
+            return true
+        }
+        guard drawn else { return nil }
+        for row in 0..<h where (0..<w).contains(where: { px[(row * w + $0) * 4 + 3] > 24 }) {   // the first row: the top
+            return CGFloat(row) / scale
+        }
+        return nil
+    }
+
+    /// Small Tomo standing in a canvas of `size` (`overhang` of it above Tomo, as its hosts give it) under `ceiling`, for
+    /// each look at every age: what it draws above `top` (canvas points) at rest, at the top of its idle stretch, and at
+    /// the top of a hop as it wakes, from renders. Empty when nothing reaches past `top`.
+    public static func pokesAbove(_ top: CGFloat, ceiling: CGFloat?, size: CGSize, overhang: CGFloat,
+                                  looks: [TomoLook]) -> [String] {
+        var t = 100.0, out: [String] = []
+        for look in looks {
+            for age in 0..<TomoLook.ages {
+                for (pose, move, peak) in [("at rest", nil, 0.0), ("stretched", Move.Kind.stretch, 0.45),
+                                           ("hopping", .hop(TomoBlob.idleLift), 0.2)] as [(String, Move.Kind?, Double)] {
+                    t = 100
+                    let b = TomoBlob(look: look, material: .own)
+                    b.clock = { t }
+                    b.particleOverhang = overhang
+                    b.ceiling = ceiling
+                    b.setGrowth(CGFloat(age))
+                    b.step()
+                    if let move { b.add(move, peak * 2) }
+                    t += peak
+                    b.step()
+                    if let y = drawnTop(size: size, { ctx, s in b.draw(ctx, size: s) }), y < top - 0.5 {
+                        out.append(String(format: "%@ age %d %@: %.1f pt over", look.seed, age, pose, top - y))
+                    }
+                }
+            }
+        }
+        return out
+    }
+
+    /// Under a ceiling (#196): small Tomo, in a room 30 pt tall that it stands in the middle of (the island without a
+    /// notch), with the ceiling 1 pt inside the room's top, draws nothing above the room at any age, at rest, stretched or
+    /// hopping, while without the ceiling the tallest forms do; a Tomo that fits is drawn at its own size, and none is
+    /// drawn under half of it. The render finds a drawn line where it is.
+    static func ceilingSelfTest(_ check: (Bool, String) -> Void) {
+        let bar = drawnTop(size: CGSize(width: 20, height: 40)) { ctx, _ in
+            ctx.fill(Path(CGRect(x: 2, y: 13, width: 10, height: 4)), with: .color(.white))
+        }
+        check(bar == 13, "a render finds the highest thing drawn in it (a bar 13 pt down: \(bar.map { "\($0)" } ?? "none"))")
+
+        let d: CGFloat = 20, side = d / 0.6, overhang: CGFloat = 72, spot: CGFloat = 15
+        let size = CGSize(width: side, height: side + overhang)
+        let roomTop = size.height / 2 + overhang / 2 - spot     // the canvas is centred overhang / 2 above Tomo's spot
+        let looks = [TomoLook.mascot] + (0..<16).map { TomoLook(seed: "ceiling-\($0)") }
+        let under = pokesAbove(roomTop, ceiling: roomTop + 1, size: size, overhang: overhang, looks: looks)
+        let without = pokesAbove(roomTop, ceiling: nil, size: size, overhang: overhang, looks: looks)
+        check(under.isEmpty && !without.isEmpty,
+              "under a ceiling small Tomo draws nothing above the room at any age, at rest, stretched or hopping"
+              + (under.isEmpty ? " (\(without.count) of \(looks.count * TomoLook.ages * 3) would without it)"
+                 : ": \(under.prefix(3).joined(separator: "; "))"))
+        var fits: [CGFloat] = []
+        for look in looks {
+            for age in 0..<TomoLook.ages {
+                let b = TomoBlob(look: look, material: .own)
+                b.particleOverhang = overhang
+                b.ceiling = roomTop + 1
+                b.setGrowth(CGFloat(age))
+                let form = look.form(age), R = side * 0.27
+                fits.append(b.fit(form: form, R: R, ground: size.height / 2 + overhang / 2 + R * 0.1 + form.bottom * R))
+            }
+        }
+        let same = fits.filter { $0 == 1 }.count, least = fits.min() ?? 0
+        check(same > 0 && least >= 0.5 && TomoBlob(look: .mascot, material: .own).fit(form: TomoLook.mascot.form(0), R: 9,
+                                                                                       ground: 100) == 1,
+              String(format: "only a form too tall for the room is drawn smaller (%d of %d at their size, the smallest at %.0f%%); no ceiling, no change",
+                     same, fits.count, least * 100))
     }
 }
 

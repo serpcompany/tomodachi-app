@@ -136,6 +136,8 @@ enum TomoIslandSelfTest {
         peek(check, notch: notch, flat: flat, island: island, takes: takes)
         motion(check, notch: notch, flat: flat)
         light(check)
+        tomoRoom(check)
+        gloss(check)
         levelBar(check)
         music(check)
         macDictionary(check)
@@ -367,6 +369,103 @@ enum TomoIslandSelfTest {
               "small Tomo sits on its left and the right side on its right, clear of the rounded ends")
         let hidden = botPosition(mode: .hidden, view: .overview, islandW: rest.0, islandH: rest.1, hasNotch: false)
         check(hidden.0 == bx && hidden.1 == by && hidden.3 == 1, "even if asked to hide, Tomo stays where it rests")
+
+        // Tomo stands under the floating island's top edge at every age, its topper too, at rest, stretched or hopping:
+        // resting in the capsule (grown under the pointer too) and peeking (#196). Rendered, in BotPlacement's canvas
+        // (the diameter / 0.6, 72 pt of room above), with the ceiling its host sets.
+        let looks = [TomoLook.mascot] + (0..<12).map { TomoLook(seed: "capsule-\($0)") }
+        var poked: [String] = []
+        for (mode, grown) in [(IslandMode.compact, false), (.compact, true), (.peek, false)] {
+            let (w, h) = islandSize(mode: mode, view: .overview, nw: n.width, nh: n.height, hasNotch: false, grown: grown)
+            let (_, y, d, _) = botPosition(mode: mode, view: .overview, islandW: w, islandH: h, hasNotch: false)
+            let side = d / 0.6, overhang: CGFloat = 72
+            let top = (side + overhang) / 2 + overhang / 2 - y     // the island's top edge, in Tomo's canvas
+            poked += TomoBlob.pokesAbove(top, ceiling: TomoCharacterView.ceiling(islandTop: top, hasNotch: false),
+                                         size: CGSize(width: side, height: side + overhang), overhang: overhang,
+                                         looks: looks).map { "\(mode.rawValue)\(grown ? " grown" : ""): \($0)" }
+        }
+        check(poked.isEmpty && TomoCharacterView.ceiling(islandTop: 10, hasNotch: true) == nil,
+              "without a notch Tomo stands under the island's top edge at every age, topper and all, resting (grown too) "
+              + "or peeking; under a notch the island's top is the screen's"
+              + (poked.isEmpty ? "" : " (over: \(poked.prefix(3).joined(separator: "; ")))"))
+    }
+
+    /// Where Tomo draws in the open card (#196): within the card, from the island's top to the card's bottom, never past
+    /// the island as it opens or folds, and never over the help panel; Tomo itself sits well inside it.
+    private static func tomoRoom(_ check: (Bool, String) -> Void) {
+        let open = CGSize(width: IslandConst.expandedWidth, height: IslandConst.layout(.overview).height)
+        let card = TomoGrid.card(islandWidth: open.width)
+        check(card.minX == 10 && card.minY == 8 + 34 + TomoGrid.levelBar + TomoGrid.levelBarGap
+              && card.maxX == open.width - 10 && card.maxY == open.height - 10,
+              "the card sits in the open island inside its 10 pt sides and bottom, under the header and the level bar")
+        let full = CGRect(origin: .zero, size: open)
+        func mask(_ w: CGFloat, _ h: CGFloat, _ k: CGFloat) -> CGRect {
+            TomoRoomShape(width: w, height: h, card: k).path(in: full).boundingRect
+        }
+        let room = mask(open.width, open.height, 1), helped = mask(open.width, open.height + TomoGrid.helpHeight, 1)
+        let (bx, by, d, _) = botPosition(mode: .expanded, view: .overview, islandW: open.width, islandH: open.height)
+        check(room.minX == card.minX && room.maxX == card.maxX && room.minY == 0 && room.maxY == card.maxY
+              && helped == room && room.contains(CGRect(x: bx - d / 2, y: by - d / 2, width: d, height: d)),
+              "open, Tomo draws between the card's sides, from the island's top to the card's bottom, with help open too")
+        // Opening (and, the other way, folding): the island's size and the mask's turn to the card's room together.
+        let resting = islandSize(mode: .compact, view: .overview, nw: 184, nh: 32)
+        let steps = stride(from: 0.0, through: 1.0, by: 0.05).map { p in
+            (resting.0 + (open.width - resting.0) * p, resting.1 + (open.height - resting.1) * p, CGFloat(p))
+        }
+        let outside = steps.filter { w, h, k in
+            let r = mask(w, h, k)
+            return r.minX < 0 || r.maxX > w || r.minY < 0 || r.maxY > h
+        }
+        check(outside.isEmpty && mask(resting.0, resting.1, 0) == CGRect(x: 0, y: 0, width: resting.0, height: resting.1),
+              "resting it's the island itself, and as the card opens or folds Tomo's room stays inside the island at every step")
+    }
+
+    /// A won round's gloss (#196), as TomoGlossLine lays it out beside the widest result badge, measured as it's drawn:
+    /// the talking card's "nani shiteru no? · What are you doing?" breaks between its reading and its meaning, and so
+    /// does every talking question's with a reading, in every pack and learner language; only a meaning too long for a
+    /// line of its own at the smallest size wraps inside itself.
+    private static func gloss(_ check: (Bool, String) -> Void) {
+        let lang = TomoLanguages.shared
+        typealias G = TomoGlossLine
+        func width(_ s: String, _ size: CGFloat, _ weight: NSFont.Weight = .regular) -> CGFloat {
+            ceil((s as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: size, weight: weight)]).width)
+        }
+        enum Laid { case line, phrases, wrapped }
+        func laid(_ parts: [String], oneLine: Bool, room: CGFloat) -> Laid {
+            let whole = parts.joined(separator: G.separator)
+            if width(whole, G.size) <= room { return .line }
+            if oneLine || parts.count < 2 {
+                return G.scales.contains { width(whole, G.size * $0) <= room } ? .line : .wrapped
+            }
+            let meaning = parts.dropFirst().joined(separator: G.separator)
+            return G.scales.contains { s in [parts[0], meaning].allSatisfy { width($0, G.size * s) <= room } }
+                ? .phrases : .wrapped
+        }
+        var counts: [Laid: Int] = [:], broken: [String] = [], example: Laid?
+        for learner in lang.learners {
+            // OutcomeBadge: its 10 pt icon (about 12 wide), 4 pt, its words at 10.5 pt bold, 7 pt each side.
+            let badge = ["outcome.win", "outcome.practice"].map { 12 + 4 + width(learner($0), 10.5, .bold) + 14 }.max() ?? 0
+            let room = TomoGrid.pictureColumn - badge - 6
+            if learner.id == "en" { example = laid(["nani shiteru no?", "What are you doing?"], oneLine: false, room: room) }
+            for target in lang.targets {
+                let rounds = target.levels.flatMap { $0.rounds ?? [] }
+                    .map { ([$0.romanization, $0.meaning(learner.id)], $0.grownUp != nil, false) }
+                let starters = target.allStarters.map { ([$0.romanization, $0.translation(learner.id)], false, true) }
+                for (raw, oneLine, talking) in rounds + starters {
+                    let parts = raw.compactMap { $0 }.filter { !$0.isEmpty }
+                    let l = laid(parts, oneLine: oneLine, room: room)
+                    counts[l, default: 0] += 1
+                    if talking && parts.count > 1 && l == .wrapped {
+                        broken.append("\(target.id):\(learner.id) \"\(parts.joined(separator: G.separator))\"")
+                    }
+                }
+            }
+        }
+        check(example == .phrases && broken.isEmpty,
+              "a won round's gloss breaks between its reading and its meaning, never inside a talking question's ("
+              + "\(counts[.line] ?? 0) on one line, \(counts[.phrases] ?? 0) reading over meaning, \(counts[.wrapped] ?? 0) "
+              + "dictionary meanings too long for a line wrap)"
+              + (broken.isEmpty ? "" : "; inside: \(broken.prefix(3).joined(separator: "; "))"))
     }
 
     /// A visit offered as a peek (TomoPeek.swift): the bar's fixed slots, its clicks, and the word's way into the card.
