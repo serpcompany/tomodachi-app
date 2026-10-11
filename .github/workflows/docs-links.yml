@@ -11,6 +11,11 @@ on:
 permissions:
   contents: read
 
+# Cancel superseded PR runs, and check every base-branch push (SERP's CI standard, ci-workflows.md).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   validate-links:
     runs-on: ubuntu-latest
@@ -29,4 +34,4 @@ jobs:
         run: npm install --no-save --no-package-lock --no-audit --no-fund remark-cli@12 remark-validate-links@13
 
       - name: Validate internal markdown links
-        run: npx remark AGENTS.md README.md "docs/**/*.md" "mac-demo/*.md" --frail --quiet --use remark-validate-links
+        run: npx remark AGENTS.md README.md "docs/**/*.md" "mac-demo/*.md" "ios-demo/*.md" --frail --quiet --use remark-validate-links

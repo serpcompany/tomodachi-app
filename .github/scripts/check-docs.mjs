@@ -1,6 +1,7 @@
 // Fails when a Markdown doc is over its size budget, or a path under docs/ isn't kebab-case.
 // Copied from serpcompany/serp: budgets in docs/engineering/standards/agent-harness/docs-are-maps.md,
-// naming in docs/README.md there. This repo also checks the demo apps' docs (mac-demo/*.md, ios-demo/*.md).
+// naming in docs/README.md there. This repo also checks the demo apps' docs (mac-demo/*.md, ios-demo/*.md), and
+// counts CLAUDE.md as a map, as docs-are-maps.md's check does in every other repository.
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
@@ -9,7 +10,7 @@ import { fileURLToPath } from "node:url";
 const WRAP_WIDTH = 100;
 const MAP_BUDGET = 120;
 const LEAF_BUDGET = 300;
-const MAP_NAMES = ["README.md", "AGENTS.md"];
+const MAP_NAMES = ["README.md", "AGENTS.md", "CLAUDE.md"];
 const KEBAB_CASE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 // Docs already over budget when this check was added. Each may shrink, but never grow.
@@ -29,7 +30,7 @@ const listFiles = (...pathspecs) =>
     .split("\n")
     .filter((path, index, all) => path && existsSync(path) && all.indexOf(path) === index);
 
-const files = listFiles("AGENTS.md", "README.md", "docs/*.md", "mac-demo/*.md", "ios-demo/*.md");
+const files = listFiles("AGENTS.md", "CLAUDE.md", "README.md", "docs/*.md", "mac-demo/*.md", "ios-demo/*.md");
 
 const wrappedLines = (text) =>
   text
@@ -81,7 +82,7 @@ for (const path of listFiles("docs")) {
   });
 }
 for (const path of misnamed) {
-  failures.push(`${path}: not kebab-case. Use lowercase words joined by hyphens; only README.md and AGENTS.md are uppercase.`);
+  failures.push(`${path}: not kebab-case. Use lowercase words joined by hyphens; only README.md, AGENTS.md and CLAUDE.md are uppercase.`);
 }
 
 // Five leaves in one folder sharing a two-word prefix should move into their own folder.

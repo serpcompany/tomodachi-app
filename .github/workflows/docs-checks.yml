@@ -11,6 +11,11 @@ on:
 permissions:
   contents: read
 
+# Cancel superseded PR runs, and check every base-branch push (SERP's CI standard, ci-workflows.md).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   check-docs:
     runs-on: ubuntu-latest
