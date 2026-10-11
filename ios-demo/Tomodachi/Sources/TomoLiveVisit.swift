@@ -7,8 +7,8 @@ import TomoCore
 // The shell calls `show(_:)` with every new TomoGlance. The card exists only once the learner said yes to it (the
 // first run's Lock Screen step, or Settings: TomoReminderSettings.lockScreen, `TomoPhoneShell.cardAllowed`); saying
 // no ends it. iOS only lets an app start a Live Activity from the foreground, so the card starts while you play and
-// is updated after; its stale date (`nextDue`) flips it
-// to "ready" on its own when new words come due. Play and the choices on the card come back through
+// is updated after; its stale date (`nextDue`) flips it to "ready" on its own when new words come due. There's one
+// card: a launch updates the one on the Lock Screen, stale or not, and ends any others (`TomoLockCard`). Play and the choices on the card come back through
 // TomoPlayIntent / TomoAnswerIntent (`play()`, `answer(_:)`), which run TomoGame with the card as Tomo's
 // screen: `isPlaying` keeps the game "open" while a round is on the card.
 
@@ -18,7 +18,6 @@ final class TomoLiveVisit {
 
     /// A round is open on the card: the game treats Tomo as open (TomoPhoneShell.isIslandOpen).
     private(set) var isPlaying = false
-    private var activity: Activity<TomoVisitAttributes>? = Activity<TomoVisitAttributes>.activities.first
     private var glance: TomoGlance?
     private var round: TomoVisitAttributes.CardRound?
     private var closing: Task<Void, Never>?
@@ -120,15 +119,23 @@ final class TomoLiveVisit {
             else { glance.nextDue }                                                         // words come due
         let content = ActivityContent(state: TomoVisitAttributes.ContentState(glance: glance, round: round),
                                       staleDate: stale)
-        if let activity, activity.activityState == .active {
-            nonisolated(unsafe) let running = activity   // ActivityKit's Activity isn't marked Sendable
+        // The card on the Lock Screen, stale or not, from any launch; any others end, so there's never a second one.
+        let cards = Activity<TomoVisitAttributes>.activities
+        let plan = TomoLockCard.plan(cards.map(\.lockCardState))
+        if let keep = plan.keep {
+            nonisolated(unsafe) let running = cards[keep]   // ActivityKit's Activity isn't marked Sendable
             await running.update(content)
         } else if ActivityAuthorizationInfo().areActivitiesEnabled {
             do {
-                activity = try Activity.request(attributes: TomoVisitAttributes(), content: content)
+                _ = try Activity.request(attributes: TomoVisitAttributes(), content: content)
                 NSLog("Tomo: the Lock Screen card started")
             }
             catch { NSLog("Tomo: couldn't start the Lock Screen card: \(error)") }
+        }
+        for extra in plan.end {
+            nonisolated(unsafe) let card = cards[extra]
+            await card.end(nil, dismissalPolicy: .immediate)
+            NSLog("Tomo: a second Lock Screen card ended")
         }
     }
 
@@ -136,7 +143,6 @@ final class TomoLiveVisit {
     private func end() async {
         round = nil
         isPlaying = false
-        activity = nil
         for running in Activity<TomoVisitAttributes>.activities {
             nonisolated(unsafe) let card = running   // ActivityKit's Activity isn't marked Sendable
             await card.end(nil, dismissalPolicy: .immediate)
@@ -151,5 +157,16 @@ final class TomoLiveVisit {
             try? await Task.sleep(for: .milliseconds(100))
         }
         return true
+    }
+}
+
+extension Activity {
+    /// Its state, for TomoLockCard's rule.
+    var lockCardState: TomoLockCard.State {
+        switch activityState {
+        case .active: .active
+        case .stale: .stale
+        default: .gone   // ended, dismissed, or pending (Tomo never schedules a card)
+        }
     }
 }
