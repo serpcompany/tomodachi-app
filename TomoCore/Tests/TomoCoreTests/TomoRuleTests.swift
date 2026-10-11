@@ -36,6 +36,7 @@ final class TomoAppRuleTests: TomoCheckCase {
     func testWhenRemindersCome() { expect(TomoReminders.selfTest) }
     func testEveryMomentHasASoftSound() { expect(TomoSounds.selfTest) }
     func testTheMomentsLight() { expect(TomoMoment.selfTest) }
+    func testWhatTheWidgetsSay() { expect(TomoGlance.selfTest) }
 }
 
 /// A visit offered as a peek, on the game itself with a stand-in shell and a testing Tomo in memory (about 3 s).
