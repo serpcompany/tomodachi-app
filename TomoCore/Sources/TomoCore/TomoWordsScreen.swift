@@ -277,9 +277,10 @@ public struct TomoWordsScreen: View {
     }
 }
 
-/// A word's stage as a colored capsule: grey (not met, locked) to deep teal, and purple for forever. Light mode deepens
-/// the teal stage by stage; dark mode brightens it. Every stage reads at 5:1 or more on its mode's card (#195 dark,
-/// #207 light; checked by `selfTest`), and a light colour keeps its hue as it darkens (OKLCH).
+/// A word's stage as a colored capsule: grey (not met, locked), then teal to green, and purple for forever. Dark mode
+/// tints each capsule with its text's colour, brighter stage by stage; light mode fills it from a pale tone to a solid
+/// one, darker stage by stage (#236). Every stage reads at 5:1 or more on its mode's card (#195 dark, #207 light) and
+/// stands apart from the stage before it (#236), checked by `selfTest`.
 public struct TomoStagePill: View {
     let group: String
     let text: String
@@ -293,28 +294,42 @@ public struct TomoStagePill: View {
     /// The stage groups that have a colour, from just heard to forever.
     static let stages = ["heard", "knows", "good", "loves", "forever"]
 
-    /// A stage's colour in light or dark mode; nil for one without (not met, locked), drawn in the secondary colour.
-    static func hex(_ group: String, dark: Bool) -> String? {
-        switch group {
-        case "heard":   dark ? "#87BDBA" : "#0E625F"
-        case "knows":   dark ? "#28D79F" : "#035C42"
-        case "good":    dark ? "#47E5BE" : "#02513E"
-        case "loves":   dark ? "#7EEDD2" : "#024635"
-        case "forever": dark ? "#B9ABEB" : "#6042B8"
+    /// How a stage's capsule looks in one mode: its text's colour, and its fill (a colour at an opacity).
+    struct Look { let text: String; let fill: String; let opacity: Double }
+
+    /// A stage's look in light or dark mode; nil for one without (not met, locked), drawn in the secondary colour.
+    static func look(_ group: String, dark: Bool) -> Look? {
+        if dark {
+            let hex: String? = switch group {
+            case "heard":   "#87BDBA"
+            case "knows":   "#28D79F"
+            case "good":    "#47E5BE"
+            case "loves":   "#7EEDD2"
+            case "forever": "#B9ABEB"
+            default:        nil
+            }
+            return hex.map { Look(text: $0, fill: $0, opacity: 0.15) }
+        }
+        // Light: opaque fills, so a pill looks the same on the page and on a word card. Pale sky, mint, green, then
+        // solid green and a deeper solid purple with white text: each fill darker than the last, in greyscale too, so
+        // the order shows without telling the hues apart (#236).
+        return switch group {
+        case "heard":   Look(text: "#036D87", fill: "#E0F6FF", opacity: 1)
+        case "knows":   Look(text: "#036455", fill: "#AEEBDC", opacity: 1)
+        case "good":    Look(text: "#005226", fill: "#87D49C", opacity: 1)
+        case "loves":   Look(text: "#FFFFFF", fill: "#017C3E", opacity: 1)
+        case "forever": Look(text: "#FFFFFF", fill: "#6539C2", opacity: 1)
         default:        nil
         }
     }
 
-    private var color: Color {
-        Self.hex(group, dark: scheme == .dark).map { Color(hex: $0) } ?? .secondary
-    }
-
     public var body: some View {
+        let look = Self.look(group, dark: scheme == .dark)
         Text(text)
             .font(.system(size: 11, weight: .semibold))
-            .foregroundStyle(color)
+            .foregroundStyle(look.map { Color(hex: $0.text) } ?? .secondary)
             .padding(.horizontal, 8).padding(.vertical, 3)
-            .background(color.opacity(0.15))
+            .background(look.map { Color(hex: $0.fill).opacity($0.opacity) } ?? Color.secondary.opacity(0.15))
             .clipShape(Capsule())
             .fixedSize()
     }
@@ -325,38 +340,114 @@ extension TomoStagePill {
     /// iPhone's cards are darker, where a stage reads better still.
     static let darkCard = "#2B2B2B"
 
-    /// The darkest light card a pill sits on: the Mac's word card measures #F4F4F4 in light mode; the Mac's page is
-    /// white, where a stage reads better still. The iPhone is always dark.
+    /// The darkest light card a pill sits on: the Mac's word card measures #F4F4F4 in light mode, and the Mac's page is
+    /// white. Light fills are opaque, so a stage reads the same on either. The iPhone is always dark.
     static let lightCard = "#F2F2F2"
 
-    /// The rule (TOMO_SELFTEST, swift test): in each mode each stage's text reads at 5:1 or more (WCAG contrast) against
-    /// its own 15% fill on that mode's card, so a palette change can't bring back the 2.1:1 "Loves it" in dark mode
-    /// (#195) or the 2.3:1 "Just heard" in light mode (#207).
+    /// The floors a stage's step from the one before it must clear, in OKLab, where about 0.02 is just noticeable side
+    /// by side (#236). #207's light stages (dark greens as text, each on a 15% tint of itself) were 0.004 to 0.006 apart
+    /// in their fills, 0.004 darker in greyscale, and read as one green.
+    /// - Light fills, 0.075 apart: the tint ladders #236 ruled out as look-alikes had steps of 0.056 to 0.066 (B1, B2,
+    ///   B6), and the light stages' closest is 0.083.
+    /// - Light greyscale, 0.05 darker: 2.5 times just noticeable, and stages that step only in hue or in their text are
+    ///   0.011 or less. The palest step has the least room (Just heard to Knows it, 0.059), so it can't rise without
+    ///   new colours.
+    /// - Dark texts, 0.05 apart: dark mode's closest pair is 0.053, and #236 kept dark mode as it was.
+    static let lightFillStep = 0.075, greyStep = 0.05, darkTextStep = 0.05
+
+    /// One floor that a stage's step from the one before it must clear. Light mode measures the fills as the card shows
+    /// them: how far `apart` they are, and how much `darker` this one is in greyscale (the OKLab lightness of its
+    /// luminance), so the order shows without hue. Light texts don't count: an 11 pt label carries little hue, so stages
+    /// whose texts alone differ look alike. Dark mode measures how far `apart` the texts are, which carry its steps
+    /// (each fill is its text at 15%).
+    struct StepCheck {
+        enum Measure { case apart, darker }
+        let from: String, to: String, measure: Measure, value: Double, floor: Double
+        var holds: Bool { value >= floor }
+    }
+
+    /// The step rule for a mode's looks of `stages`, in order, on that mode's card: every floor each step must clear.
+    /// `selfTest` runs it on the stages; the tests run it on palettes it must catch.
+    static func stepChecks(_ looks: [Look], dark: Bool) -> [StepCheck] {
+        let named = Array(zip(stages, looks))
+        return zip(named, named.dropFirst()).flatMap { a, b -> [StepCheck] in
+            if dark {
+                return [StepCheck(from: a.0, to: b.0, measure: .apart, value: distance(rgb(a.1.text), rgb(b.1.text)), floor: darkTextStep)]
+            }
+            let x = fill(a.1, over: lightCard), y = fill(b.1, over: lightCard)
+            return [StepCheck(from: a.0, to: b.0, measure: .apart, value: distance(x, y), floor: lightFillStep),
+                    StepCheck(from: a.0, to: b.0, measure: .darker, value: grey(x) - grey(y), floor: greyStep)]
+        }
+    }
+
+    /// The rule (TOMO_SELFTEST, swift test), in each mode on that mode's card: each stage's text reads at 5:1 or more
+    /// (WCAG contrast) on its own fill, so a palette change can't bring back the 2.1:1 "Loves it" in dark mode (#195) or
+    /// the 2.3:1 "Just heard" in light mode (#207); and each stage's step from the one before it clears `stepChecks`, so
+    /// the stages can't fade back into one colour (#236).
     public static func selfTest(_ check: (Bool, String) -> Void) {
         for (dark, card) in [(true, darkCard), (false, lightCard)] {
             let mode = dark ? "dark" : "light"
-            for stage in stages {
-                guard let hex = hex(stage, dark: dark) else { check(false, "stages: \(stage) has a \(mode) colour"); continue }
-                let ratio = contrast(hex, onItsFillOver: card)
-                check(ratio >= 5, "stages: \(stage) (\(hex)) reads at \(String(format: "%.2f", ratio)):1 on a \(mode) card, 5:1 or more")
+            let looks = stages.compactMap { stage -> Look? in
+                guard let look = look(stage, dark: dark) else { check(false, "stages: \(stage) has a \(mode) look"); return nil }
+                let ratio = contrast(look, over: card)
+                let fill = look.opacity < 1 ? "\(look.fill) at \(Int(look.opacity * 100))%" : look.fill
+                check(ratio >= 5, "stages: \(stage) (\(look.text) on \(fill)) reads at \(String(format: "%.2f", ratio)):1 on a \(mode) card, 5:1 or more")
+                return look
+            }
+            guard looks.count == stages.count else { continue }
+            for c in stepChecks(looks, dark: dark) {
+                let value = String(format: "%.3f", c.value)
+                let what = switch c.measure {
+                case .apart:  "stages: \(c.from) and \(c.to) are \(value) apart on a \(mode) card (OKLab, their \(dark ? "texts" : "fills")), \(c.floor) or more"
+                case .darker: "stages: \(c.to)'s fill is \(value) darker than \(c.from)'s in greyscale, \(c.floor) or more"
+                }
+                check(c.holds, what)
             }
         }
     }
 
-    /// WCAG contrast of text in `hex` against its 15% fill composited over `card`.
-    static func contrast(_ hex: String, onItsFillOver card: String) -> Double {
-        func rgb(_ hex: String) -> [Double] {
-            let v = UInt64(hex.trimmingCharacters(in: CharacterSet(charactersIn: "#")), radix: 16) ?? 0
-            return [Double((v >> 16) & 0xFF) / 255, Double((v >> 8) & 0xFF) / 255, Double(v & 0xFF) / 255]
-        }
-        func luminance(_ c: [Double]) -> Double {
-            let l = c.map { $0 <= 0.04045 ? $0 / 12.92 : pow(($0 + 0.055) / 1.055, 2.4) }
-            return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2]
-        }
-        let text = rgb(hex), under = rgb(card)
-        let fill = zip(text, under).map { 0.15 * $0 + 0.85 * $1 }
-        let a = luminance(text), b = luminance(fill)
+    /// WCAG contrast of a stage's text against its fill composited over `card`.
+    static func contrast(_ look: Look, over card: String) -> Double {
+        let a = luminance(rgb(look.text)), b = luminance(fill(look, over: card))
         return (max(a, b) + 0.05) / (min(a, b) + 0.05)
+    }
+
+    /// How different two colours look: their OKLab distance.
+    private static func distance(_ x: [Double], _ y: [Double]) -> Double {
+        sqrt(zip(oklab(x), oklab(y)).map { ($0 - $1) * ($0 - $1) }.reduce(0, +))
+    }
+
+    /// How light a colour looks in greyscale: the OKLab lightness of a grey of its luminance.
+    private static func grey(_ c: [Double]) -> Double { cbrt(luminance(c)) }
+
+    private static func rgb(_ hex: String) -> [Double] {
+        let v = UInt64(hex.trimmingCharacters(in: CharacterSet(charactersIn: "#")), radix: 16) ?? 0
+        return [Double((v >> 16) & 0xFF) / 255, Double((v >> 8) & 0xFF) / 255, Double(v & 0xFF) / 255]
+    }
+
+    /// A stage's fill composited over the card, as the screen draws it.
+    private static func fill(_ look: Look, over card: String) -> [Double] {
+        zip(rgb(look.fill), rgb(card)).map { look.opacity * $0 + (1 - look.opacity) * $1 }
+    }
+
+    private static func linear(_ c: [Double]) -> [Double] {
+        c.map { $0 <= 0.04045 ? $0 / 12.92 : pow(($0 + 0.055) / 1.055, 2.4) }
+    }
+
+    private static func luminance(_ c: [Double]) -> Double {
+        let l = linear(c)
+        return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2]
+    }
+
+    /// An sRGB colour in OKLab (Björn Ottosson's matrices), where distance follows how different colours look.
+    private static func oklab(_ c: [Double]) -> [Double] {
+        let r = linear(c)
+        let l = cbrt(0.4122214708 * r[0] + 0.5363325363 * r[1] + 0.0514459929 * r[2])
+        let m = cbrt(0.2119034982 * r[0] + 0.6806995451 * r[1] + 0.1073969566 * r[2])
+        let s = cbrt(0.0883024619 * r[0] + 0.2817188376 * r[1] + 0.6299787005 * r[2])
+        return [0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+                1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+                0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s]
     }
 }
 
