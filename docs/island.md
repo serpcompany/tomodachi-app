@@ -27,7 +27,8 @@ Invariants on the Mac:
   main display, by default; the main display; a display by name; or the pointer's, moving only while
   closed) and moves when displays change.
 - Without a notch it's a capsule 4 pt below the top of the screen, rounded all round, that never
-  hides (`IslandScreenGeometry`, `shownMode`).
+  hides (`IslandScreenGeometry`, `shownMode`), and Tomo stands under its top edge, a tall form drawn smaller
+  (`TomoCharacterView.ceiling`).
 - It needs no permission. It follows the pointer through mouse event monitors (a sandboxed build
   gets them too), with no clock while the pointer is away from it.
 - After a close, hovering doesn't reopen the island until the pointer has left it once. A peek
@@ -48,12 +49,14 @@ Invariants on the Mac:
 
 ## The card and the help panel
 
-`TomoView.swift`. The card is a fixed grid (`TomoGrid`): Tomo's column plus fixed rows, and new UI
-goes into a slot: no row sizes itself, and text that can grow is capped. Its light tells the moment
-(TomoCore's `TomoMoment`, drawn from Tomo across the card and the island by
-`TomoMomentLight.swift`): never red, still between moments, and without its ripple under Reduce
-Motion. The island's views read the game once each change has landed (`onGameSettled`): one drawn as
-the island opens would miss a change made in the same moment.
+`TomoView.swift`. The card is a fixed grid (`TomoGrid`): Tomo's column plus fixed rows, and new UI goes into a
+slot: no row sizes itself, and text that can grow is capped (a won round's gloss breaks only between its
+reading and its meaning, `TomoGlossLine`). Nothing of the card draws past the island: Tomo, its halo and its
+particles stay within the card (`TomoGrid.tomoRoom`), and what comes and goes with the island's state is cut
+by its outline as it folds. Its light tells the moment (TomoCore's `TomoMoment`, drawn from Tomo across the
+card and the island by `TomoMomentLight.swift`): never red, still between moments, and without its ripple
+under Reduce Motion. The island's views read the game once each change has landed (`onGameSettled`): one drawn
+as the island opens would miss a change made in the same moment.
 
 Help (a hint, an explanation, a word card) never squeezes into the card: `TomoGame.help` grows the
 island by a panel underneath, and the card keeps its place while it grows (the island's edge cuts

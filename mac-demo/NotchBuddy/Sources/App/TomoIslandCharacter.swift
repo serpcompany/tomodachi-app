@@ -14,7 +14,7 @@ import TomoCore
 /// (`wearsBadges`: a "…" bubble while it checks an answer, a Zz while it dozes), drawn just right of its frame. The
 /// canvas reaches past its frame for them and for the call glow (`canvasRoom`). Its host says how strongly it glows to
 /// ask to play (`callGlow`), and the strand and the hello's drop hang from the island's top edge, straight above it.
-/// While music plays and it rests, it dances (`dance`, TomoMusic).
+/// Without a notch it stands under that edge (`ceiling`). While music plays and it rests, it dances (`dance`, TomoMusic).
 struct TomoCharacterView: View {
     @ObservedObject var state: AppState
     var particleOverhang: CGFloat = 0
@@ -56,6 +56,14 @@ struct TomoCharacterView: View {
     /// resting beside the notch, in the peek, the dizzy card or hidden.
     nonisolated static func weather(mode: IslandMode, view: IslandView, today: TomoWeather?) -> TomoWeather? {
         mode == .expanded && view == .overview ? today : nil
+    }
+
+    /// Without a notch the island floats below the screen's top, so Tomo stands under its top edge, this far inside it,
+    /// whatever the island shows (TomoBlob draws a form too tall for that smaller: the 3さい one resting in the capsule,
+    /// #196). Under a notch the island's top is the screen's: no ceiling.
+    nonisolated static let ceilingInset: CGFloat = 1
+    nonisolated static func ceiling(islandTop: CGFloat, hasNotch: Bool) -> CGFloat? {
+        hasNotch ? nil : islandTop + ceilingInset
     }
 
     /// The room the canvas has right of its frame for a badge (the frame stays the size BotPlacement gives, so Tomo
@@ -132,6 +140,7 @@ struct TomoCharacterView: View {
                     blob.lookY = g.y
                     blob.particleOverhang = particleOverhang
                     blob.strandAnchor = CGPoint(x: geo.size.width / 2, y: islandTop - 2)
+                    blob.ceiling = Self.ceiling(islandTop: islandTop, hasNotch: state.hasNotch)
                     blob.callGlow = callGlow()
                     blob.showsBadges = Self.wearsBadges(state.mode)
                     blob.weather = Self.weather(mode: state.mode, view: state.view, today: todaysWeather)
