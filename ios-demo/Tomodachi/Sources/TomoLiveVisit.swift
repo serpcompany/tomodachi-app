@@ -7,7 +7,7 @@ import TomoCore
 // The shell calls `show(_:)` with every new TomoGlance. The card exists only once the learner said yes to it (the
 // first run's Lock Screen step, or Settings: TomoReminderSettings.lockScreen, `TomoPhoneShell.cardAllowed`); saying
 // no ends it. iOS only lets an app start a Live Activity from the foreground, so the card starts while you play and
-// is updated after; its stale date (`nextDue`) flips it to "ready" on its own when new words come due. There's one
+// is updated after; its stale date (`nextDue`) flips it to "ready" on its own when something counts again. There's one
 // card: a launch updates the one on the Lock Screen, stale or not, and ends any others (`TomoLockCard`). Play and the choices on the card come back through
 // TomoPlayIntent / TomoAnswerIntent (`play()`, `answer(_:)`), which run TomoGame with the card as Tomo's
 // screen: `isPlaying` keeps the game "open" while a round is on the card.

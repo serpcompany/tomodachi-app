@@ -10,7 +10,7 @@ import WidgetKit
 // Screen (the first run's widget how-to points there): age and level with the bar and what Tomo's doing
 // (rectangular), the bar around Tomo's age (circular), or one line (inline); iOS draws these in one tint, so they're
 // text and a gauge. The app writes a TomoGlance to the App Group whenever progress changes and asks WidgetKit to
-// reload; when Tomo rests, a second entry has it want to play at the next due time (`cameDue`).
+// reload; when Tomo rests, a second entry has it want to play when something counts again (`cameDue`).
 // Tomo moves the way it does on the Lock Screen (TomoMovingMascot): asking when it wants to play, asleep otherwise.
 
 @main
@@ -158,7 +158,7 @@ struct TomoWidgetView: View {
 }
 
 /// What Tomo is doing, in one line: it wants to play (in the moment's colour), or it rests until a time ("Back at
-/// 10:12", the time filled in from `nextDue`), else "Tomo is resting". Never how many words.
+/// 10:12", the app's own line, `TomoGlance.back`), else "Tomo is resting". Never how many words.
 struct TomoGlanceLine: View {
     let glance: TomoGlance
     let size: CGFloat
@@ -173,11 +173,7 @@ struct TomoGlanceLine: View {
 
     /// The words alone (the Lock Screen draws them in its own tint).
     static func text(_ glance: TomoGlance) -> Text {
-        if !glance.waiting, let next = glance.nextDue, next > .now {
-            let parts = glance.nextLabel.components(separatedBy: "{time}")
-            return Text(parts[0]) + Text(next, style: .time) + Text(parts.count > 1 ? parts[1] : "")
-        }
-        return Text(glance.status)
+        Text(glance.waiting ? glance.status : glance.back ?? glance.status)
     }
 }
 
