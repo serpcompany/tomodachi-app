@@ -20,11 +20,11 @@ enum TomoIconRenderer {
     private static var checkResult: Bool?
 
     static func renderIfRequested() {
-        if ProcessInfo.processInfo.environment["TOMO_SELFTEST"] != nil {   // growth, store, sync, looks, island, first run, reminders, sounds
+        if ProcessInfo.processInfo.environment["TOMO_SELFTEST"] != nil {   // growth, store, sync, looks, island, first run, reminders, sounds, pairs
             let growth = TomoProgress.selfTest(), sync = TomoSync.selfTest(), look = TomoLook.selfTest()
             let island = TomoIslandSelfTest.run(), firstRun = TomoOnboarding.selfTest()
-            let reminders = TomoReminders.selfTest(), sounds = TomoSounds.selfTest()
-            exit(growth && sync && look && island && firstRun && reminders && sounds ? 0 : 1)
+            let reminders = TomoReminders.selfTest(), sounds = TomoSounds.selfTest(), pairs = TomoLanguages.selfTest()
+            exit(growth && sync && look && island && firstRun && reminders && sounds && pairs ? 0 : 1)
         }
         if let step = ProcessInfo.processInfo.environment["TOMO_SYNC_CHECK"] {   // TomoSync between data folders
             Task { checkResult = await TomoSync.check(step) }

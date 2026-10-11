@@ -3,7 +3,8 @@ import SwiftUI
 // MARK: - Settings, the same on the Mac and the iPhone
 //
 // How often Tomo visits and how a visit starts (the Mac's), new words a day, Tomo's voice and sounds; what only this device has (the `device`
-// slot: open at login on the Mac, reminders and the Lock Screen card on the iPhone); the language Tomodachi's text is in; and Start over, which always
+// slot: open at login on the Mac, reminders and the Lock Screen card on the iPhone); the language Tomodachi's text is in, when there's more
+// than one to pick (never the one Tomo speaks, `TomoLanguages.learnerChoices`: none while Japanese is the only target); and Start over, which always
 // asks first (`TomoScreenNav.confirmingStartOver`, so the Mac's menu bar item asks the same way). The "I'm learning"
 // picker shows only with the testing tools (TomoFeatures): the MVP is Japanese only. `more` goes at the end (the
 // iPhone's link to About).
@@ -54,26 +55,31 @@ public struct TomoSettingsScreen<Device: View, More: View>: View {
 
             device
 
-            Section {
-                Picker(lang.learner("settings.speak"), selection: Binding(
-                    get: { lang.learner.id },
-                    set: { lang.select(learner: $0); game.reload() })) {
-                    ForEach(lang.learners, id: \.id) { Text($0.name).tag($0.id) }
-                }
-                if features.targetPicker(current: lang.target.id) {
-                    Picker(lang.learner("settings.learning"), selection: Binding(
-                        get: { lang.target.id },
-                        set: { lang.select(target: $0); game.reload() })) {
-                        ForEach(lang.targets, id: \.id) { t in
-                            Text("\(t.name(lang.learner.id)) (\(t.nativeName))"
-                                 + (t.reviewedByNativeSpeaker ? "" : " · \(lang.learner("settings.draft"))")).tag(t.id)
+            let speaks = lang.learnerChoices.count > 1
+            if speaks || features.targetPicker(current: lang.target.id) {
+                Section {
+                    if speaks {
+                        Picker(lang.learner("settings.speak"), selection: Binding(
+                            get: { lang.learner.id },
+                            set: { lang.select(learner: $0); game.reload() })) {
+                            ForEach(lang.learnerChoices, id: \.id) { Text($0.name).tag($0.id) }
                         }
                     }
+                    if features.targetPicker(current: lang.target.id) {
+                        Picker(lang.learner("settings.learning"), selection: Binding(
+                            get: { lang.target.id },
+                            set: { lang.select(target: $0); game.reload() })) {
+                            ForEach(lang.targets, id: \.id) { t in
+                                Text("\(t.name(lang.learner.id)) (\(t.nativeName))"
+                                     + (t.reviewedByNativeSpeaker ? "" : " · \(lang.learner("settings.draft"))")).tag(t.id)
+                            }
+                        }
+                    }
+                } footer: {
+                    Text(features.targetPicker(current: lang.target.id) ? lang.learner("settings.learningNote")
+                         : lang.learner("settings.languageNote", ["language": lang.targetName]))
+                        .font(.caption).foregroundStyle(.secondary)
                 }
-            } footer: {
-                Text(features.targetPicker(current: lang.target.id) ? lang.learner("settings.learningNote")
-                     : lang.learner("settings.languageNote", ["language": lang.targetName]))
-                    .font(.caption).foregroundStyle(.secondary)
             }
 
             Section {
