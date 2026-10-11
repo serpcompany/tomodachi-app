@@ -59,8 +59,9 @@ pack's age boundary. Each run prints a `pace` line: the days to Lv 2, 5 and 10 a
   One journey: `-only-testing:TomodachiUITests/TomodachiUITests/testThePracticeOffer`. Unsigned, as CI builds:
   add `CODE_SIGNING_ALLOWED=NO TOMO_ICLOUD_ENV=` (no iCloud: CloudKit stops an app without the entitlement).
 - **CI** (`.github/workflows/apple.yml`, GitHub's `xcode-27` runners, Xcode pinned in `.xcode-version`): `swift test`,
-  the Mac and iPhone apps built unsigned, and the Pull Request plan on a simulator of its own. Draft PRs skip it; a
-  PR's passing UI run leaves a receipt, so main doesn't run the same tree again. No secrets.
+  the Mac and iPhone apps built unsigned, and the Pull Request plan on a simulator of its own. Draft PRs skip it, and a
+  change to docs alone (`**/*.md`, `docs/**`) skips its steps; a PR's passing UI run leaves a receipt, so main doesn't
+  run the same tree again. No secrets.
 
 What only a person (or an agent driving the owner's screen) can check, with each check's setup, steps and what
 passes: [hand-checks.md](hand-checks.md).
