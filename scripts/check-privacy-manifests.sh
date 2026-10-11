@@ -9,7 +9,8 @@
 #   scripts/check-privacy-manifests.sh <path/to/App.app>...
 #
 # Exit 0 with one summary line when every use is declared; 1 with one line per missing declaration (the bundle, the
-# category, the file and the symbol that uses it); 2 when an argument isn't a bundle with code, or a file can't be read.
+# category, the file and the symbol that uses it), or with one line when the scan finds no use in any bundle while a
+# manifest declares one (the scan stopped working); 2 when an argument isn't a bundle with code, or a file can't be read.
 set -euo pipefail
 
 # Apple's required-reason APIs, by category (NSPrivacyAccessedAPICategory<category>): an imported symbol (sym) or an
@@ -100,6 +101,8 @@ done
 
 missing=0
 summary=""
+found_any=0   # whether the scan found any category in any bundle
+declaring=""  # a manifest that declares at least one category
 bundles=$(printf '%s' "$owned" | cut -f1 | sort -u)
 while IFS= read -r bundle; do
   # The first file and symbol that use each category in this bundle.
@@ -110,7 +113,6 @@ while IFS= read -r bundle; do
     uses_here+=$(printf '%s\n' "$u" | categorize | awk -v file="${f##*/}" -F '\t' '{ print $1 "\t" $2 "\t" file }')$'\n'
   done <<<"$owned"
   uses_here=$(printf '%s' "$uses_here" | awk -F '\t' 'NF == 3 && !seen[$1]++')
-  [ -n "$uses_here" ] || { summary+="${summary:+; }$bundle: none"; continue; }
 
   manifest=$(manifest_of "$bundle")
   have=""
@@ -122,6 +124,9 @@ while IFS= read -r bundle; do
     why=" in its PrivacyInfo.xcprivacy"
     have=$(declared "$manifest")
   fi
+  [ -z "$have" ] || declaring="$manifest"
+  [ -n "$uses_here" ] || { summary+="${summary:+; }$bundle: none"; continue; }
+  found_any=1
   cats=""
   while IFS=$'\t' read -r cat sym bin; do
     cats+="${cats:+, }$cat"
@@ -135,6 +140,13 @@ done <<<"$bundles"
 
 if [ "$missing" -gt 0 ]; then
   echo "privacy manifests: $missing missing; add each, with Apple's reason, to that bundle's PrivacyInfo.xcprivacy"
+  exit 1
+fi
+# A tripwire against a silent pass: our manifests declare categories because the code uses them, so finding none at
+# all means the scan stopped seeing symbols (an nm or otool output change, say), not that the code stopped using them.
+if [ "$found_any" = 0 ] && [ -n "$declaring" ]; then
+  echo "privacy manifests: the scan found no required-reason API in any bundle, yet $declaring declares some;" \
+    "nm or otool output may have changed, so this check can't be trusted until the scan sees them again"
   exit 1
 fi
 echo "privacy manifests: ok, every required-reason API used is declared ($summary)"
