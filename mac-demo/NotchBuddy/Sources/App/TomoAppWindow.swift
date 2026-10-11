@@ -127,8 +127,9 @@ enum TomoAppWindow {
     /// The view as the snapshots and the self-test draw it. A selected sidebar row's highlight is a material (an
     /// NSVisualEffectView, `.selection`), which only the window server draws: drawn offscreen, as here, it comes out
     /// solid black, and a light-mode label on it vanishes (#239). So while the picture is taken, each one stands
-    /// aside for the colour a selection has in a window that isn't in front (a test run's never is). In a window in
-    /// front the highlight is emphasized, which draws offscreen in the accent colour as on screen, and is left alone.
+    /// aside for the system's colour for a selection: grey in a window that isn't in front (a test run's never is),
+    /// and the accent colour when it's emphasized, as in a window in front (the self-test draws both). Emphasized, the
+    /// material does draw offscreen, but in one bright blue in light and dark alike, not the system's colour.
     private static func snapshot(_ view: NSView) -> NSBitmapImageRep? {
         guard let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return nil }
         let standIns = selections(in: view).map(SelectionStandIn.init(for:))
@@ -139,7 +140,7 @@ enum TomoAppWindow {
 
     private static func selections(in view: NSView) -> [NSVisualEffectView] {
         let own: [NSVisualEffectView] = (view as? NSVisualEffectView).map { [$0] } ?? []
-        return own.filter { $0.material == .selection && !$0.isEmphasized && !$0.isHidden }
+        return own.filter { $0.material == .selection && !$0.isHidden }
             + view.subviews.flatMap(selections)
     }
 
@@ -163,16 +164,18 @@ enum TomoAppWindow {
 
     // MARK: The self-test (TOMO_SELFTEST): every sidebar label shows
 
-    /// Drawn as the snapshots draw it, in light and dark, with each screen selected in turn, every sidebar row's label
-    /// stands out from its row: at least 3:1, WCAG's floor for large text (#239: the selected row's label vanished in
-    /// light mode). The window is never shown, and the screen that was selected comes back.
+    /// In light and dark, with each screen selected in turn, every line of every sidebar row's label stands out from
+    /// its row: at least 3:1, WCAG's floor for large text (#239: the selected row's label vanished in light mode).
+    /// Each is drawn twice: as the snapshots draw it, the window behind others (the grey highlight), and as a learner
+    /// sees it most, the window in front (the accent-colour highlight, with the label turned light), so a label with a
+    /// fixed colour that's lost on the accent fails too. The window is never shown, and the selected screen comes back.
     static func selfTest(_ check: (Bool, String) -> Void) {
         let nav = TomoScreenNav.shared, was = nav.screen
         defer { nav.screen = was }
         let win = newWindow()
         for (look, name) in [(NSAppearance.Name.aqua, "light"), (.darkAqua, "dark")] {
             win.appearance = NSAppearance(named: look)
-            var weakest: (contrast: Double, row: String)?, followed = true
+            var weakest: [Bool: (contrast: Double, row: String)] = [:], followed = true
             for (n, screen) in [TomoScreen.tomo, .words, .together, .settings, .about].enumerated() {
                 nav.screen = screen
                 RunLoop.main.run(until: Date().addingTimeInterval(0.2))   // SwiftUI moves the selection
@@ -181,19 +184,31 @@ enum TomoAppWindow {
                 let rows = sidebarRows(in: view)
                 followed = followed && rows.firstIndex(where: \.isSelected) == (screen == .about ? rows.count - 1 : n)
                     && rows.filter(\.isSelected).count == 1
-                guard let picture = snapshot(view).flatMap({ Picture($0, of: view) }) else { followed = false; continue }
-                for (i, row) in rows.enumerated() {
-                    let contrast = picture.labelContrast(row, profile: i == 0, in: view)
-                    if contrast < weakest?.contrast ?? .infinity {
-                        weakest = (contrast, "row \(i + 1)\(row.isSelected ? ", selected," : "") on \(screen.rawValue)")
+                for inFront in [false, true] {
+                    // A table emphasizes its rows when its window is in front: the highlight turns the accent colour
+                    // (in snapshot, the system's) and the label in it turns light, as on screen.
+                    rows.forEach { $0.isEmphasized = inFront }
+                    defer { rows.forEach { $0.isEmphasized = false } }
+                    guard let picture = snapshot(view).flatMap({ Picture($0, of: view) }) else {
+                        followed = false; continue
+                    }
+                    for (i, row) in rows.enumerated() {
+                        let lines = picture.lineContrasts(row, profile: i == 0, in: view)
+                        for (l, contrast) in lines.enumerated()
+                        where contrast < weakest[inFront]?.contrast ?? .infinity {
+                            weakest[inFront] = (contrast, "row \(i + 1)" + (lines.count > 1 ? ", line \(l + 1)" : "")
+                                                + (row.isSelected ? ", selected," : "") + " on \(screen.rawValue)")
+                        }
                     }
                 }
             }
-            let contrast = weakest?.contrast ?? 0
-            check(followed && contrast >= 3,
-                  "the window's sidebar, \(name): every row's label shows, selected or not (weakest "
-                  + String(format: "%.1f:1", contrast) + ": \(weakest?.row ?? "no rows")"
-                  + (followed ? ")" : "; the selection didn't follow the screen)"))
+            for (inFront, window) in [(false, "behind"), (true, "in front")] {
+                let contrast = weakest[inFront]?.contrast ?? 0
+                check(followed && contrast >= 3,
+                      "the window's sidebar, \(name), \(window): every line of every row's label shows, selected or "
+                      + "not (weakest " + String(format: "%.1f:1", contrast) + ": \(weakest[inFront]?.row ?? "no rows")"
+                      + (followed ? ")" : "; the selection didn't follow the screen)"))
+            }
         }
     }
 
@@ -209,15 +224,17 @@ enum TomoAppWindow {
     }
 }
 
-/// In a snapshot, a selection's highlight as the screen shows it in a window that isn't in front: the same rounded
-/// shape, in the system's colour for it (`TomoAppWindow.snapshot`). It hides the material while it stands in.
+/// In a snapshot, a selection's highlight as the screen shows it: the same rounded shape, in the system's colour for
+/// it, the accent colour if it's emphasized (a window in front) and grey if not (`TomoAppWindow.snapshot`). It hides
+/// the material while it stands in.
 private final class SelectionStandIn: NSView {
     private let material: NSVisualEffectView
-    private let radius: CGFloat
+    private let radius: CGFloat, emphasized: Bool
 
     init(for material: NSVisualEffectView) {
         self.material = material
         radius = material.layer?.cornerRadius ?? 0
+        emphasized = material.isEmphasized
         super.init(frame: material.frame)
         material.superview?.addSubview(self, positioned: .above, relativeTo: material)
         material.isHidden = true
@@ -226,7 +243,7 @@ private final class SelectionStandIn: NSView {
     required init?(coder: NSCoder) { nil }
 
     override func draw(_ dirtyRect: NSRect) {
-        NSColor.unemphasizedSelectedContentBackgroundColor.setFill()
+        (emphasized ? NSColor.selectedContentBackgroundColor : .unemphasizedSelectedContentBackgroundColor).setFill()
         NSBezierPath(roundedRect: bounds, xRadius: radius, yRadius: radius).fill()
     }
 
@@ -244,6 +261,8 @@ private enum TomoSidebar {
     static let icon: CGFloat = 22, iconGap: CGFloat = 8
     /// The top row: live Tomo, then the gap before its name.
     static let avatar: CGFloat = 40, avatarGap: CGFloat = 10
+    /// The top row's label is two lines, one over the other: Tomo's name, then its age and level.
+    static let profileLines = 2
 }
 
 /// A snapshot's pixels in sRGB, on the window's background, for the self-test to measure.
@@ -283,9 +302,11 @@ private struct Picture {
         return 0.2126 * linear(bytes[i]) + 0.7152 * linear(bytes[i + 1]) + 0.0722 * linear(bytes[i + 2])
     }
 
-    /// How far the row's label stands out from the row: the contrast with the row's background (sampled near the
-    /// row's right end, past any label) that 10 square points of the label's ink reach, so a stray pixel can't pass.
-    func labelContrast(_ row: NSTableRowView, profile: Bool, in view: NSView) -> Double {
+    /// How far each line of the row's label stands out from the row, top to bottom: the contrast with the row's
+    /// background (sampled near the row's right end, past any label) that 10 square points of the line's ink reach,
+    /// so a stray pixel can't pass. The label's box is split into equal bands, one per line (the top row's name, then
+    /// its age and level), so one line can't pass for another that vanished.
+    func lineContrasts(_ row: NSTableRowView, profile: Bool, in view: NSView) -> [Double] {
         let frame = row.convert(row.bounds, to: view)
         let cell = (row.numberOfColumns > 0 ? row.view(atColumn: 0) as? NSView : nil) ?? row
         let cellFrame = cell.convert(cell.bounds, to: view)
@@ -298,15 +319,18 @@ private struct Picture {
         let (bx, by) = pixel(NSPoint(x: frame.maxX - 14, y: frame.midY))
         let background = luminance(bx, by)
         let (x0, ya) = pixel(NSPoint(x: label.minX, y: label.minY)), (x1, yb) = pixel(NSPoint(x: label.maxX, y: label.maxY))
-        var contrasts: [Double] = []
-        for y in min(ya, yb)..<max(ya, yb) {
-            for x in x0..<max(x0, x1) {
-                let l = luminance(x, y)
-                contrasts.append((max(l, background) + 0.05) / (min(l, background) + 0.05))
+        let top = min(ya, yb), lines = profile ? TomoSidebar.profileLines : 1
+        let band = (max(ya, yb) - top) / lines, ink = Int(10 * scale * scale)
+        return (0..<lines).map { line in
+            var contrasts: [Double] = []
+            for y in (top + line * band)..<(top + (line + 1) * band) {
+                for x in x0..<max(x0, x1) {
+                    let l = luminance(x, y)
+                    contrasts.append((max(l, background) + 0.05) / (min(l, background) + 0.05))
+                }
             }
+            return contrasts.count > ink ? contrasts.sorted(by: >)[ink] : 1
         }
-        let ink = Int(10 * scale * scale)
-        return contrasts.count > ink ? contrasts.sorted(by: >)[ink] : 1
     }
 }
 
