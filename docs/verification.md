@@ -14,6 +14,14 @@ review; the Mac's island checks and the snapshots run locally.
 | **Push** | `cd TomoCore && swift test` (about 30 s), `node .github/scripts/check-docs.mjs` and `node .github/scripts/check-swift-text.mjs` | Before each push |
 | **Finish gate** | Build, self-test (`TOMO_SELFTEST`, for the island), repo checks, the UI journeys a change touches, and the evidence below. CI on the final commit runs the Pull Request plan; without it, run that plan once locally | Once, when the branch is done |
 
+- **After a merge:** CI doesn't run `TOMO_SELFTEST` or the snapshots, so the agent that merges runs
+  the self-test on main right after merging, unless main's tree is the one it already ran on
+  (`git rev-parse HEAD^{tree}`). A failure there is the next task.
+- **Xcode:** build with the version pinned in `.xcode-version`, which CI reads. With several
+  installed, choose it through `DEVELOPER_DIR`, for example
+  `DEVELOPER_DIR=/Applications/Xcode-27.0.app/Contents/Developer`. When the pinned version isn't
+  installed, say so in the PR and treat CI's compile as the one that counts.
+
 The self-test: `TOMO_SELFTEST=1 TOMO_DATA_DIR=$(mktemp -d) <app binary>` checks the word-stage, level,
 store, sync-merge and look rules, the island's (which screen, where, Esc, opening and closing, the peek; a visit offered as a peek runs on the game itself, about 3 s, and logs as one), the stats (a learner simulated for three weeks, against its own tally: `TomoStatsCheck.swift`), who sees the first run, when reminders
 come, and that every moment has a short, soft sound, lower for an older Tomo; it prints each
