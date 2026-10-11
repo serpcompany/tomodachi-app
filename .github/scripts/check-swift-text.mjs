@@ -4,7 +4,7 @@
 // matched) can stay: end its line with `// text-ok: <why>`.
 //
 // Also fails when Swift writes a time of day (a `timeStyle`, `.hour()`, `style: .time`, `time: .shortened`, an
-// `.hourAndMinute` picker or a format with hours in it) with no `tomoClockLocale` within a few lines: every time a
+// `.hourAndMinute` picker or a format with hours in it, on its line or the next) with no `tomoClockLocale` within a few lines: every time a
 // learner sees is in the learner's language on the device's own 12- or 24-hour clock (#197). One that isn't a
 // learner's time (a debug log, a drawing of the system's own clock) can stay: end its line with `// clock-ok: <why>`.
 import { execFileSync } from "node:child_process";
@@ -17,6 +17,8 @@ const JAPANESE = /[぀-ヿ㐀-鿿＀-￯]/;
 const LITERAL = /"(?:[^"\\]|\\.)*"/g;
 const TIME_OF_DAY =
   /\btimeStyle\b|\.hour\(|style:\s*\.time\b|time:\s*\.(?:shortened|standard|complete)\b|\.hourAndMinute\b|(?:dateFormat\s*=|FromTemplate\()\s*"[^"]*[HhjkK]/;
+const FORMAT_SPLIT = /(?:dateFormat\s*=|FromTemplate\()\s*$/; // the format is on the next line
+const HOURS_FORMAT = /^\s*"[^"]*[HhjkK]/;
 const CLOCK_NEAR = 12; // lines either side: a formatter's locale, or a view's .environment(\.locale, …)
 const files = execFileSync("git", ["ls-files", "--", "*.swift"], { encoding: "utf8" })
   .split("\n")
@@ -33,7 +35,9 @@ for (const path of files) {
         if (JAPANESE.test(literal)) failures.push(`${path}:${index + 1}: ${literal}`);
       }
     }
-    if (TIME_OF_DAY.test(code) && !line.includes("// clock-ok:")) {
+    const next = (lines[index + 1] ?? "").replace(/\/\/.*$/, "");
+    const writesTime = TIME_OF_DAY.test(code) || (FORMAT_SPLIT.test(code) && HOURS_FORMAT.test(next));
+    if (writesTime && !line.includes("// clock-ok:")) {
       const near = lines.slice(Math.max(0, index - CLOCK_NEAR), index + CLOCK_NEAR + 1);
       if (!near.some((l) => l.replace(/\/\/.*$/, "").includes("tomoClockLocale("))) {
         clockFailures.push(`${path}:${index + 1}: ${line.trim()}`);
