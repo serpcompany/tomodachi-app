@@ -51,6 +51,8 @@ public final class TomoStore {
     public static var didChange: ((Change) -> Void)?
 
     nonisolated(unsafe) private var db: OpaquePointer?
+    /// Statements that failed on this connection (`report`): `take` checks none failed before it deletes anything.
+    private var failures = 0
     private let learner: String
     private let target: String
     private let directory: URL
@@ -133,7 +135,8 @@ public final class TomoStore {
 
     /// A row without a seed keeps the saved one while it's the same Tomo (met in the same second, as the look's seed
     /// counts it); a new one (a start over, or an earlier Tomo merged in from another device) takes its pair's own.
-    private func writeTomo(_ t: TomoRow, resetAt: Date? = nil) {
+    @discardableResult
+    private func writeTomo(_ t: TomoRow, resetAt: Date? = nil) -> Bool {
         run("""
             INSERT INTO tomo (learner, target, met_at, level, age, reset_at, seed) VALUES (?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT (learner, target) DO UPDATE SET met_at = excluded.met_at, level = excluded.level,
@@ -169,7 +172,8 @@ public final class TomoStore {
         announce(.item(i.id))
     }
 
-    private func writeItem(_ i: ItemRow) {
+    @discardableResult
+    private func writeItem(_ i: ItemRow) -> Bool {
         run("""
             INSERT OR REPLACE INTO item
               (learner, target, item_id, stage, due_at, introduced_at, answered_at, right_count, wrong_count, peak)
@@ -305,47 +309,66 @@ public final class TomoStore {
 
     // MARK: A pair the rule no longer allows (#199)
 
+    /// What `move` did. `failed`: something couldn't be read or written, so it was all undone.
+    public enum Moved: Sendable { case nothing, moved, failed }
+
     /// Moves the Tomo saved for (`from`, target) to (`to`, target), so a learner set up before the pair rule
     /// (`TomoLanguages.allows`: ja:ja) keeps its Tomo, words and logs under the pair it's allowed. With no Tomo there
     /// yet, everything moves as it is, and the Tomo keeps its look (`seed`). With one, the two merge as two devices'
     /// Tomos meeting do (`TomoSync.mergeTomo`, `mergeItem`): the earlier meeting and its look, the higher level and age,
     /// each word's copy answered last; the answer and visit logs come along, and the moved Tomo's growth log stays
     /// behind with the life it tells. Without a saved Tomo for `from` nothing happens, and no file is made. iCloud
-    /// gets every Tomo again when sync starts (`TomoSync.resendAtStart`). Returns whether a Tomo moved.
+    /// gets every Tomo again when sync starts (`TomoSync.resendAtStart`). All or nothing: if any read or write fails
+    /// (a full disk, a busy file), it's all undone and `from`'s Tomo stays where it was, so the next launch tries again.
     @discardableResult
     public static func move(learner from: String, to: String, target: String,
-                            directory: URL = TomoStore.directory) -> Bool {
-        guard from != to, FileManager.default.fileExists(atPath: directory.appendingPathComponent("learner.sqlite").path),
-              let store = TomoStore(learner: to, target: target, directory: directory) else { return false }
+                            directory: URL = TomoStore.directory) -> Moved {
+        guard from != to, FileManager.default.fileExists(atPath: directory.appendingPathComponent("learner.sqlite").path)
+        else { return .nothing }
+        guard let store = TomoStore(learner: to, target: target, directory: directory) else { return .failed }
         return store.take(from: from)
     }
 
-    private func take(from other: String) -> Bool {
-        guard let theirs = tomo(learner: other) else { return false }
-        exec("BEGIN IMMEDIATE")
-        let ours = tomo(learner: learner)
-        let theirSeed = theirs.row.seed ?? TomoLook.pairSeed(learner: other, target: target, metAt: theirs.row.metAt)
-        if let ours {
-            func state(_ t: (row: TomoRow, resetAt: Date)) -> TomoSync.TomoState {
-                .init(metAt: t.row.metAt, level: t.row.level, age: t.row.age, resetAt: t.resetAt)
+    private func take(from other: String) -> Moved {
+        guard let theirs = tomo(learner: other) else { return .nothing }
+        let failed = failures
+        func copy() -> Bool {
+            guard exec("BEGIN IMMEDIATE") else { return false }
+            let ours = tomo(learner: learner)
+            let theirSeed = theirs.row.seed ?? TomoLook.pairSeed(learner: other, target: target, metAt: theirs.row.metAt)
+            if let ours {
+                func state(_ t: (row: TomoRow, resetAt: Date)) -> TomoSync.TomoState {
+                    .init(metAt: t.row.metAt, level: t.row.level, age: t.row.age, resetAt: t.resetAt)
+                }
+                let m = TomoSync.mergeTomo(local: state(ours), remote: state(theirs), first: true).tomo
+                let seed = m.metAt == theirs.row.metAt ? theirSeed : ours.row.seed
+                guard writeTomo(TomoRow(metAt: m.metAt, level: m.level, age: m.age, seed: seed), resetAt: m.resetAt)
+                else { return false }
+            } else {
+                guard writeTomo(TomoRow(metAt: theirs.row.metAt, level: theirs.row.level, age: theirs.row.age,
+                                        seed: theirSeed), resetAt: theirs.resetAt),
+                      run("UPDATE growth SET learner = ? WHERE learner = ? AND target = ?", [learner, other, target])
+                else { return false }
             }
-            let m = TomoSync.mergeTomo(local: state(ours), remote: state(theirs), first: true).tomo
-            let seed = m.metAt == theirs.row.metAt ? theirSeed : ours.row.seed
-            writeTomo(TomoRow(metAt: m.metAt, level: m.level, age: m.age, seed: seed), resetAt: m.resetAt)
-        } else {
-            writeTomo(TomoRow(metAt: theirs.row.metAt, level: theirs.row.level, age: theirs.row.age, seed: theirSeed),
-                      resetAt: theirs.resetAt)
-            run("UPDATE growth SET learner = ? WHERE learner = ? AND target = ?", [learner, other, target])
+            let mine = loadItems()
+            for (id, row) in items(learner: other) {
+                guard writeItem(TomoSync.mergeItem(local: mine[id], remote: row)) else { return false }
+            }
+            // A failed read copies nothing without saying so, and SQLite may already have undone the transaction.
+            return run("UPDATE answer SET learner = ? WHERE learner = ? AND target = ?", [learner, other, target])
+                && run("UPDATE OR IGNORE visit SET learner = ? WHERE learner = ? AND target = ?", [learner, other, target])
+                && failures == failed && sqlite3_get_autocommit(db) == 0
+                && run("DELETE FROM item WHERE learner = ? AND target = ?", [other, target])
+                && run("DELETE FROM tomo WHERE learner = ? AND target = ?", [other, target])
+                && exec("COMMIT")
         }
-        let mine = loadItems()
-        for (id, row) in items(learner: other) { writeItem(TomoSync.mergeItem(local: mine[id], remote: row)) }
-        run("UPDATE answer SET learner = ? WHERE learner = ? AND target = ?", [learner, other, target])
-        run("UPDATE OR IGNORE visit SET learner = ? WHERE learner = ? AND target = ?", [learner, other, target])
-        run("DELETE FROM item WHERE learner = ? AND target = ?", [other, target])
-        run("DELETE FROM tomo WHERE learner = ? AND target = ?", [other, target])
-        exec("COMMIT")
+        guard copy() else {
+            if sqlite3_get_autocommit(db) == 0 { sqlite3_exec(db, "ROLLBACK", nil, nil, nil) }
+            NSLog("Tomo store: couldn't move \(other):\(target)'s Tomo to \(learner):\(target), so nothing moved; the next launch tries again")
+            return .failed
+        }
         TomoSync.resendAtStart(in: directory)
-        return true
+        return .moved
     }
 
     // MARK: Sync (TomoSync): writes what another device sent, without reporting it back
@@ -383,21 +406,30 @@ public final class TomoStore {
 
     private static let transient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
-    private func exec(_ sql: String) {
-        if sqlite3_exec(db, sql, nil, nil, nil) != SQLITE_OK { report(sql) }
+    /// Whether it worked: a failure is logged (`report`) and otherwise ignored, except by `take`.
+    @discardableResult
+    private func exec(_ sql: String) -> Bool {
+        if sqlite3_exec(db, sql, nil, nil, nil) == SQLITE_OK { return true }
+        report(sql)
+        return false
     }
 
-    private func run(_ sql: String, _ args: [Any?]) {
-        guard let s = prepare(sql, args) else { return }
+    @discardableResult
+    private func run(_ sql: String, _ args: [Any?]) -> Bool {
+        guard let s = prepare(sql, args) else { return false }
         defer { sqlite3_finalize(s) }
-        if sqlite3_step(s) != SQLITE_DONE { report(sql) }
+        if sqlite3_step(s) == SQLITE_DONE { return true }
+        report(sql)
+        return false
     }
 
     private func query<T>(_ sql: String, _ args: [Any?], _ row: (OpaquePointer) -> T) -> [T] {
         guard let s = prepare(sql, args) else { return [] }
         defer { sqlite3_finalize(s) }
         var out: [T] = []
-        while sqlite3_step(s) == SQLITE_ROW { out.append(row(s)) }
+        var rc = sqlite3_step(s)
+        while rc == SQLITE_ROW { out.append(row(s)); rc = sqlite3_step(s) }
+        if rc != SQLITE_DONE { report(sql) }
         return out
     }
 
@@ -418,6 +450,7 @@ public final class TomoStore {
     }
 
     private func report(_ sql: String) {
+        failures += 1
         NSLog("Tomo store: \(String(cString: sqlite3_errmsg(db))) in \(sql.prefix(60))")
     }
 }

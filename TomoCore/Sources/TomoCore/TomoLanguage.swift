@@ -1,5 +1,6 @@
 import Foundation
 import NaturalLanguage
+import SQLite3
 
 // MARK: - Languages: what the learner speaks × what Tomo speaks
 //
@@ -283,15 +284,15 @@ public final class TomoLanguages: ObservableObject {
         // The system's language is never read: an iPhone or a Mac set to Japanese gets the English interface.
         let env = ProcessInfo.processInfo.environment
         let ud = UserDefaults.standard
-        let tid = env["TOMO_TARGET"] ?? ud.string(forKey: "tomoTarget") ?? "ja"
+        let tid = Self.targetID(saved: env["TOMO_TARGET"] ?? ud.string(forKey: "tomoTarget"), among: targets.map(\.id))
         let wanted = env["TOMO_LEARNER"] ?? ud.string(forKey: "tomoLearner") ?? "en"
-        // A saved target this build has no pack for (Spanish, left out of the iPhone's) is Japanese, as by default.
-        let target = targets.first { $0.id == tid } ?? targets.first { $0.id == "ja" } ?? targets[0]
-        let lid = Self.settle(wanting: wanted, target: target.id, among: learners.map(\.id))
+        let target = targets.first { $0.id == tid } ?? targets[0]
+        let (lid, moved) = Self.settle(wanting: wanted, target: target.id, among: learners.map(\.id))
         self.target = target
         learner = learners.first { $0.id == lid } ?? learners[0]
-        // Saved before the rule: Settings keeps the interface it moved to. A test run's pair leaves Settings be.
-        if !Self.allows(learner: wanted, target: target.id), env["TOMO_TARGET"] == nil, env["TOMO_LEARNER"] == nil {
+        // Saved before the rule: Settings keeps the interface it moved to, once its Tomo has moved (a failed move
+        // keeps the saved pair, so the next launch tries again). A test run's pair leaves Settings be.
+        if !Self.allows(learner: wanted, target: target.id), moved, env["TOMO_TARGET"] == nil, env["TOMO_LEARNER"] == nil {
             ud.set(learner.id, forKey: "tomoLearner")
         }
     }
@@ -301,6 +302,14 @@ public final class TomoLanguages: ObservableObject {
     /// A learner's own language is never the one they learn, so the interface is never the language Tomo speaks. The
     /// one place the rule lives: whatever offers or sets a pair asks it (Settings, `select`, the saved pair at launch).
     public nonisolated static func allows(learner: String, target: String) -> Bool { learner != target }
+
+    /// The target at launch: the saved one (nil: none yet), or Japanese, as by default, when this build has no pack
+    /// for it (Spanish, left out of the iPhone's). Never just the first pack: that's English, which would make the
+    /// interface Japanese.
+    nonisolated static func targetID(saved: String?, among ids: [String]) -> String {
+        if let saved, ids.contains(saved) { return saved }
+        return ids.contains("ja") ? "ja" : ids.first ?? "ja"
+    }
 
     /// The interface for learning `target`: `wanted` if the rule allows it and there's a pack for it, otherwise English,
     /// otherwise the first allowed one.
@@ -312,14 +321,13 @@ public final class TomoLanguages: ObservableObject {
 
     /// The interface at launch for the saved pair. One the rule forbids (ja:ja, saved from Settings' "I speak" before
     /// it) gets the interface it allows, and its Tomo, words and logs move there (TomoStore.move), so the learner
-    /// carries on with the same Tomo.
+    /// carries on with the same Tomo. `moved` is false only when that move failed and was undone: the saved pair
+    /// stays, so the next launch tries again, and this one shows the allowed interface all the same.
     static func settle(wanting wanted: String, target: String, among ids: [String],
-                       directory: URL = TomoStore.directory) -> String {
+                       directory: URL = TomoStore.directory) -> (id: String, moved: Bool) {
         let id = learnerID(wanting: wanted, target: target, among: ids)
-        if !allows(learner: wanted, target: target) {
-            TomoStore.move(learner: wanted, to: id, target: target, directory: directory)
-        }
-        return id
+        guard !allows(learner: wanted, target: target) else { return (id, true) }
+        return (id, TomoStore.move(learner: wanted, to: id, target: target, directory: directory) != .failed)
     }
 
     /// The interface languages a learner of `target` may pick, in pack order.
@@ -377,6 +385,9 @@ extension TomoLanguages {
         check(learnerID(wanting: "ja", target: "ja", among: ids) == "en" && learnerID(wanting: "en", target: "en", among: ids) == "ja"
               && learnerID(wanting: "ja", target: "es", among: ids) == "ja" && learnerID(wanting: "fr", target: "ja", among: ids) == "en",
               "a pair the rule forbids gets English (Japanese while English is learned); an allowed one stays as it is")
+        check(targetID(saved: "es", among: ids) == "ja" && targetID(saved: nil, among: ids) == "ja"
+              && targetID(saved: "en", among: ids) == "en" && targetID(saved: "es", among: ["en", "es", "ja"]) == "es",
+              "a saved target this build has no pack for (Spanish, on the iPhone) is Japanese, as by default, not the first pack")
         let lang = shared
         check(lang.learners(for: "ja").map(\.id) == ["en"],
               "learning Japanese, the interface is English: Settings has no interface language to pick")
@@ -417,9 +428,9 @@ extension TomoLanguages {
         // The launch of a learner set up as ja:ja: English, with its Tomo.
         let only = folder()
         seedJaJa(in: only, met: day(1))
-        let lid = settle(wanting: "ja", target: "ja", among: ids, directory: only)
+        let (lid, done) = settle(wanting: "ja", target: "ja", among: ids, directory: only)
         let moved = TomoProgress(pack: pack, learner: lid, directory: only), en = store("en", only)
-        check(lid == "en" && moved.level == 7 && moved.age == 2 && moved.metAt == day(1)
+        check(lid == "en" && done && moved.level == 7 && moved.age == 2 && moved.metAt == day(1)
               && moved.items[words[0]]?.stage == 4 && moved.items[words[1]]?.stage == 3,
               "a ja:ja learner from before opens in English with its Tomo: the same meeting, level, age and words")
         check(moved.lookSeed == ownLook, "and the same look, though its pair changed")
@@ -445,7 +456,7 @@ extension TomoLanguages {
             s.logGrowth(at: day(1), kind: "level", value: 3)
         }
         seedJaJa(in: both, met: day(1))
-        let merged = TomoStore.move(learner: "ja", to: "en", target: "ja", directory: both) ? store("en", both) : nil
+        let merged = TomoStore.move(learner: "ja", to: "en", target: "ja", directory: both) == .moved ? store("en", both) : nil
         let tomo = merged?.loadTomo(), items = merged?.loadItems() ?? [:]
         check(tomo?.metAt == day(0) && tomo?.level == 7 && tomo?.age == 2 && tomo?.seed == nil,
               "with an en:ja Tomo too, they merge as two devices' Tomos do: the earlier meeting and its look, the higher level and age")
@@ -461,14 +472,39 @@ extension TomoLanguages {
         check(kept?.metAt == day(1) && kept?.level == 7 && kept?.seed == ownLook,
               "when the moved Tomo met the learner first, it's the one kept, with its look")
 
+        // A move that fails half-way is undone. A trigger fails the words' copy as a full disk would: SQLite undoes the
+        // transaction by itself, and whatever runs after it would no longer be part of one.
+        func sql(_ dir: URL, _ text: String) {
+            var db: OpaquePointer?
+            if sqlite3_open(dir.appendingPathComponent("learner.sqlite").path, &db) == SQLITE_OK { sqlite3_exec(db, text, nil, nil, nil) }
+            sqlite3_close(db)
+        }
+        let full = folder()
+        seedJaJa(in: full, met: day(1))
+        sql(full, "CREATE TRIGGER full BEFORE INSERT ON item WHEN NEW.learner = 'en' BEGIN SELECT RAISE(ROLLBACK, 'full'); END")
+        let stayed = store("ja", full)
+        check(settle(wanting: "ja", target: "ja", among: ids, directory: full) == ("en", false)
+              && stayed?.loadTomo()?.level == 7 && stayed?.loadItems().count == 2
+              && stayed?.answerLog(from: day(0), to: day(9)).count == 1 && stayed?.growthEvents().map(\.value) == [7]
+              && store("en", full)?.loadTomo() == nil
+              && !FileManager.default.fileExists(atPath: full.appendingPathComponent("cloud-resend").path),
+              "a move that fails half-way (a full disk) is undone: the ja:ja Tomo, words and logs stay, and so does the saved pair")
+        sql(full, "DROP TRIGGER full")
+        check(settle(wanting: "ja", target: "ja", among: ids, directory: full) == ("en", true)
+              && store("en", full)?.loadTomo()?.level == 7 && store("en", full)?.loadItems().count == 2
+              && stayed?.loadTomo() == nil && stayed?.loadItems().isEmpty == true,
+              "and the next launch moves it")
+
         // Nothing to move.
         let empty = folder()
-        check(!TomoStore.move(learner: "ja", to: "en", target: "ja", directory: empty)
+        check(TomoStore.move(learner: "ja", to: "en", target: "ja", directory: empty) == .nothing
               && !FileManager.default.fileExists(atPath: empty.path), "with nothing saved, nothing moves and no file is made")
         let fine = folder()
         store("en", fine)?.saveTomo(.init(metAt: day(0), level: 4, age: 1))
-        check(settle(wanting: "en", target: "ja", among: ids, directory: fine) == "en" && store("en", fine)?.loadTomo()?.level == 4
+        check(settle(wanting: "en", target: "ja", among: ids, directory: fine) == ("en", true)
+              && settle(wanting: "en", target: targetID(saved: "es", among: ids), among: ids, directory: fine) == ("en", true)
+              && store("en", fine)?.loadTomo()?.level == 4
               && !FileManager.default.fileExists(atPath: fine.appendingPathComponent("cloud-resend").path),
-              "an English speaker learning Japanese opens as before, untouched")
+              "an English speaker learning Japanese opens as before, untouched, and so does one left on Spanish (the iPhone has no pack)")
     }
 }
