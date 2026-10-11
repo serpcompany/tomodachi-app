@@ -1,7 +1,7 @@
 name: Apple
 
 # The Apple side of the full check (#55; docs/verification.md): TomoCore's tests, the Mac and iPhone apps built
-# unsigned, and the iPhone's UI journeys on a simulator. GitHub's macOS runners are free for this public repository;
+# unsigned with their privacy manifests checked, and the iPhone's UI journeys on a simulator. GitHub's macOS runners are free for this public repository;
 # still, draft PRs skip these jobs (SERP's CI standard), and they run once the PR is ready for review, on every push
 # after that, and on main. No secrets: nothing here signs, uploads, or talks to iCloud. The builds are unsigned
 # (CODE_SIGNING_ALLOWED=NO) and leave iCloud out (TOMO_ICLOUD_ENV= empties Info.plist's TomoICloudEnvironment, so
@@ -99,6 +99,13 @@ jobs:
           xcodebuild -project ios-demo/Tomodachi/Tomodachi.xcodeproj -scheme Tomodachi -configuration Debug
           -destination 'generic/platform=iOS Simulator' -derivedDataPath build/ios CODE_SIGNING_ALLOWED=NO
           TOMO_ICLOUD_ENV= build
+      # App Store upload rejects a binary that uses a required-reason API its PrivacyInfo.xcprivacy doesn't declare
+      # (ITMS-91053); this finds it here instead, in the apps and the widget extension (#234).
+      - name: Privacy manifests declare every required-reason API
+        if: needs.changes.outputs.code != 'false'
+        run: >
+          scripts/check-privacy-manifests.sh build/mac/Build/Products/Debug/Tomodachi.app
+          build/ios/Build/Products/Debug-iphonesimulator/Tomodachi.app
 
   iphone-ui:
     name: iPhone UI journeys (Pull Request plan)

@@ -32,7 +32,8 @@ What the listing may say is what the build does:
   there are no servers of ours. The privacy label stays **Data Not Collected**. The privacy manifests say the same
   (`PrivacyInfo.xcprivacy` in the app, the widgets and the Mac app,
   [#231](https://github.com/serpcompany/tomodachi-app/issues/231)), with Apple's reason for each required-reason API
-  the code calls; one the code starts calling goes in its target's manifest (`project.yml` says which).
+  the code calls; one the code starts calling goes in its target's manifest (`project.yml` says which), and CI
+  fails the build until it does (`scripts/check-privacy-manifests.sh`).
 - **Honest pacing:** words come back over hours and days, and Tomo rests in between. Growing up takes months.
 - **Tomo is a blob,** a different one for every learner ([docs/concepts.md](../docs/concepts.md)).
 

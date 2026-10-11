@@ -59,7 +59,7 @@ cd mac-demo/NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configurati
 mac-demo/scripts/release-beta.sh --owner && mac-demo/run.sh  # rebuild and relaunch the owner's copy
 cd TomoCore && swift test    # the shared package and its tests (30 s); iPhone: ios-demo/README.md
 node .github/scripts/check-docs.mjs && node .github/scripts/check-swift-text.mjs
-scripts/finish-gate.sh    # the finish gate: build, swift test, self-test, repo checks
+scripts/finish-gate.sh    # the finish gate: build, privacy manifest, swift test, self-test, repo checks
 ```
 
 - **Inner loop:** the incremental build (seconds); `xcodegen` only when files were added or

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# The finish gate's one command (SERP's verification-cadence.md): the Mac build, TomoCore's tests, the self-test and
-# both repo checks, in that order, stopping at the first failure with a non-zero exit. Run it once per state, when the
-# branch is done, from any directory. It never touches the owner's Tomo or screen: the self-test runs headless
+# The finish gate's one command (SERP's verification-cadence.md): the Mac build, its privacy manifest (every
+# required-reason API the app uses is declared, scripts/check-privacy-manifests.sh), TomoCore's tests, the self-test
+# and both repo checks, in that order, stopping at the first failure with a non-zero exit. Run it once per state, when
+# the branch is done, from any directory. It never touches the owner's Tomo or screen: the self-test runs headless
 # (TOMO_HEADLESS=1) on a temporary data folder, deleted afterwards. The evidence a change needs on top (snapshots,
 # the iPhone build and UI journeys, which macOS CI runs) is in docs/verification.md.
 #
@@ -67,6 +68,7 @@ xcode="$(xcodebuild -version | awk 'NR==1 {print $2}')"
 [ "$xcode" = "$pinned" ] || echo "note: building with Xcode $xcode, not the pinned $pinned; CI's compile is the one that counts"
 
 step "Mac build" mac_build
+step "Privacy manifest" "$root/scripts/check-privacy-manifests.sh" "$root/mac-demo/build/Build/Products/Debug/Tomodachi.app"
 step "TomoCore tests" swift_test
 step "Self-test" self_test
 step "Docs check" node "$root/.github/scripts/check-docs.mjs"
