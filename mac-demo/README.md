@@ -14,7 +14,7 @@ we changed, is in [docs/coucou-fork.md](../docs/coucou-fork.md).
 ./run.sh   # from mac-demo/
 ```
 
-`run.sh` quits the running copy, then opens the owner's copy with `OPENAI_API_KEY` or
+`run.sh` quits only the owner's running copy (by its path), then opens it with `OPENAI_API_KEY` or
 `ANTHROPIC_API_KEY` from the repo's `.env` (gitignored). The owner's copy is a Release build, and Release builds
 have no AI for now (`TomoAI.isAvailable`), so it ignores them; a Debug build uses them, or a provider saved on its AI
 page. Without AI, Tomo uses offline replies. The owner's copy is a
