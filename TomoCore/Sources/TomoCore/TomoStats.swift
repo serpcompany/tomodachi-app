@@ -198,6 +198,9 @@ public struct TomoStats {
         public let birthday: Bool
         /// When, from this device's growth log (the hatch: when Tomo hatched). Nil: grown on another device.
         public let at: Date?
+        /// The day it's dated by (its 4 am start): Tomo's day `at` belongs to, so a level reached at 1:30 am is on the
+        /// day before, the same as its diary page and its day together (#224).
+        public var day: Date? { at.map(TomoStats.dayStart(of:)) }
     }
 
     /// Every level Tomo has reached, oldest first: a mark each, dated from the growth log.
@@ -336,11 +339,25 @@ public struct TomoStats {
 
     // MARK: Days and weeks on Tomo's clock
 
-    /// Weeks and days are counted on the Gregorian calendar in this time zone, whatever calendar the device shows.
+    /// Weeks and days are counted on the Gregorian calendar in this time zone, whatever calendar the device shows: the
+    /// app's zone (`NSTimeZone.default`, the device's unless a check sets one), the one the screens' dates are written in.
     nonisolated static var calendar: Calendar {
         var c = Calendar(identifier: .gregorian)
-        c.timeZone = .current
+        c.timeZone = NSTimeZone.default
         return c
+    }
+
+    /// "Day N together" at `t` for a Tomo that hatched at `met`: Tomo's days (4 am to 4 am) from the day it hatched,
+    /// which is Day 1, to the day `t` belongs to. The one rule for every screen that says it (#224): the Tomo screen, the
+    /// diary's pages, the postcard, the pillar and the export, through `TomoProgress.daysTogether`. So the diary's page
+    /// for today and the Tomo screen say the same day, at 1 am too (still the day before's), and the count moves at 4 am,
+    /// never at the time of day Tomo hatched. Both days are read on this time zone's calendar, so a night the clocks
+    /// change is still one day, and after a move to another zone the days are counted there.
+    nonisolated public static func dayTogether(at t: Date, met: Date) -> Int {
+        let cal = calendar
+        let days = cal.dateComponents([.day], from: cal.startOfDay(for: dayStart(of: met)),
+                                      to: cal.startOfDay(for: dayStart(of: t))).day ?? 0
+        return max(1, days + 1)
     }
 
     /// The 4 am that starts the day `t` belongs to (TomoClock.dayStart's rule: before 4 am is still the day before).
