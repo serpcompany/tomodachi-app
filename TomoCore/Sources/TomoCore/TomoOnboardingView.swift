@@ -159,14 +159,14 @@ public struct TomoOnboardingView: View {
         if model.hatched {
             VStack(alignment: .leading, spacing: 12) {
                 if let line = lang.target.lines.hello { spoken(line) }
-                title(ui("onboarding.hello.title"))
+                title("onboarding.hello.title")
                 bodyText(ui("onboarding.hello.body", ["age": game.age]))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         } else {
             VStack(alignment: .leading, spacing: 12) {
                 eyebrow(ui("onboarding.hatch.eyebrow"))
-                title(ui("onboarding.hatch.title"))
+                title("onboarding.hatch.title")
                 bodyText(ui("onboarding.hatch.body", ["language": lang.targetName]))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -207,10 +207,8 @@ public struct TomoOnboardingView: View {
     private var resultPage: some View {
         VStack(spacing: 12) {
             if let r = model.round { answerLine(r) }
-            Text(ui("onboarding.result.title", ["language": lang.targetName]))
-                .font(.system(size: 25, weight: .heavy, design: .rounded))
+            title("onboarding.result.title", ["language": lang.targetName])
                 .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
             Text(ui("onboarding.result.sub"))
                 .font(.system(size: 14)).foregroundStyle(Paint.soft)
             panel(icon: "arrow.triangle.2.circlepath", title: ui("onboarding.result.stick.title"), text: stickText)
@@ -231,7 +229,7 @@ public struct TomoOnboardingView: View {
 
     private var visitsPage: some View {
         VStack(alignment: .leading, spacing: 12) {
-            title(ui("onboarding.visits.title"))
+            title("onboarding.visits.title")
             bodyText(ui("onboarding.visits.body"))
             VStack(alignment: .leading, spacing: 10) {
                 row(icon: "keyboard", ui("onboarding.visits.typing"))
@@ -246,7 +244,7 @@ public struct TomoOnboardingView: View {
 
     private var rhythmPage: some View {
         VStack(alignment: .leading, spacing: 10) {
-            title(ui("onboarding.rhythm.title"))
+            title("onboarding.rhythm.title")
             bodyText(ui("onboarding.rhythm.body"))
             VStack(spacing: 7) {
                 ForEach(DropIn.choices.indices, id: \.self) { i in
@@ -266,7 +264,7 @@ public struct TomoOnboardingView: View {
     private var readyPage: some View {
         VStack(alignment: .leading, spacing: 12) {
             eyebrow(ui("onboarding.ready.eyebrow", ["age": game.age]))
-            title(ui("onboarding.ready.title"))
+            title("onboarding.ready.title")
             VStack(alignment: .leading, spacing: 9) {
                 ForEach(1...3, id: \.self) { n in
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
@@ -306,7 +304,7 @@ public struct TomoOnboardingView: View {
     private var welcomeBackPage: some View {
         VStack(alignment: .leading, spacing: 12) {
             if let line = lang.target.lines.welcomeBack { spoken(line) }
-            title(ui("onboarding.back.title"))
+            title("onboarding.back.title")
             bodyText(ui(isPhone ? "onboarding.back.body.phone" : "onboarding.back.body",
                         ["age": game.age, "level": "\(game.level)"]))
         }
@@ -444,9 +442,15 @@ public struct TomoOnboardingView: View {
         Text(s.uppercased()).font(.system(size: 11, weight: .heavy)).kerning(1.2).foregroundStyle(Color(hex: "#22D3EE"))
     }
 
-    /// A step's heading: two lines at most, wrapping only between its phrases (`TomoLineBreaks`), else shrinking.
-    func title(_ s: String) -> some View {
-        Text(TomoLineBreaks.phrased(s)).font(.system(size: 28, weight: .heavy, design: .rounded))
+    /// The size a step's heading is drawn at: 28 pt, the result's (under the word just answered) 25. A step's heading
+    /// is its `onboarding.<step>.title`, so the self-test finds every one in the packs and checks it at this size.
+    static func headingSize(_ key: String) -> CGFloat { key == "onboarding.result.title" ? 25 : 28 }
+
+    /// A step's heading, `key` in the learner's pack: two lines at most, wrapping only between its phrases
+    /// (`TomoLineBreaks`), else shrinking. Every step's heading is drawn here, so the self-test's size is the real one.
+    func title(_ key: String, _ args: [String: String] = [:]) -> some View {
+        let s = ui(key, args)
+        return Text(TomoLineBreaks.phrased(s)).font(.system(size: Self.headingSize(key), weight: .heavy, design: .rounded))
             .lineLimit(2).minimumScaleFactor(0.7)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityLabel(TomoLineBreaks.spoken(s))

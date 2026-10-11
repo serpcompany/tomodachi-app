@@ -205,7 +205,7 @@
     "onboarding.round.coach.try": "やってみよう",
     "onboarding.round.again.title": "それじゃないみたい",
     "onboarding.round.again.body": "Tomo がもう一度ゆっくり言います。よく聞いて、ほかのを選んでみて。",
-    "onboarding.result.title": "はじめての{language}が分かりました！",
+    "onboarding.result.title": "はじめての{language}が 分かりました！",
     "onboarding.result.sub": "まだ1分もたっていません。",
     "onboarding.result.stick.title": "ことばが定着するしくみ",
     "onboarding.result.stick.body": "Tomo は {time} ごろにもう一度「{word}」と聞いてきます。そのあとは数日、数週間、数か月と、間をあけて。分かるたびにことばが強くなり、Tomo も成長します。",

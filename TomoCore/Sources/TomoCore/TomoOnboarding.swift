@@ -167,17 +167,27 @@ public final class TomoOnboarding: ObservableObject {
               && TomoLineBreaks.spoken("Tomo \(a)\(i) \(u)") == "Tomo \(a)\(i)\(u)",
               "a heading wraps only at its spaces: one between two Japanese phrases isn't drawn, one beside a single "
               + "Japanese character never breaks, and English is unchanged")
-        // Each phrase fits an iPhone SE's line (327 pt at 28 pt, about 11 kana; a Latin letter is about 0.6), so a
-        // heading never needs to break inside one.
-        let headings = ["hatch", "hello", "visits", "rhythm", "ready", "back", "quiet", "notify", "widget", "lock",
-                        "login"].map { "onboarding.\($0).title" }
-        func ems(_ p: String) -> Double { p.reduce(0) { $0 + (TomoLineBreaks.isWide($1) ? 1 : 0.6) } }
-        let tooLong = TomoLanguages.shared.learners.flatMap { pack in
-            headings.compactMap { pack.strings[$0] }.flatMap(TomoLineBreaks.phrases).filter { ems($0) > 11 }
+        // Each phrase fits an iPhone SE's line (375 pt less 24 each side: 327, so 11 kana at 28 pt, 13 at 25; a Latin
+        // letter is about 0.6 of one), so a heading never needs to break inside one. The headings are found in the
+        // packs, never listed here: every `onboarding.<step>.title`, the result's 「…が分かりました！」 included,
+        // at the size it's drawn (`TomoOnboardingView.headingSize`), with `{language}` as each target's name.
+        let langs = TomoLanguages.shared
+        func isHeading(_ key: String) -> Bool {
+            key.hasPrefix("onboarding.") && key.hasSuffix(".title") && key.split(separator: ".").count == 3
         }
-        check(tooLong.isEmpty && TomoLanguages.shared.learners.allSatisfy { p in headings.allSatisfy { p.strings[$0] != nil } },
-              "every first-run heading in every ui pack wraps between phrases that fit an iPhone SE's line: "
-              + "\(tooLong.count) too long")
+        func ems(_ p: String) -> Double { p.reduce(0) { $0 + (TomoLineBreaks.isWide($1) ? 1 : 0.6) } }
+        let found = langs.learners.map { Set($0.strings.keys.filter(isHeading)) }
+        let tooLong = langs.learners.flatMap { pack in
+            pack.strings.keys.filter(isHeading).sorted().flatMap { key in
+                let size = TomoOnboardingView.headingSize(key)
+                return langs.targets.flatMap { TomoLineBreaks.phrases(pack(key, ["language": $0.name(pack.id)])) }
+                    .filter { ems($0) > (327 / size).rounded(.down) }.map { "\($0) (\(Int(size)) pt)" }
+            }
+        }
+        check(tooLong.isEmpty && Set(found).count == 1 && !found[0].isEmpty,
+              "every first-run heading in every ui pack (\(found.first?.count ?? 0) each, the same keys) wraps between "
+              + "phrases that fit an iPhone SE's line at its size: \(tooLong.count) too long"
+              + (tooLong.isEmpty ? "" : ": " + Set(tooLong).sorted().joined(separator: ", ")))
     }
 
     // MARK: The flow
