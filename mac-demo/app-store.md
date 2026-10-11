@@ -10,9 +10,11 @@ testers"). This is the listing written as if it were, so it's ready when the app
   `ios-demo/scripts/testflight.sh` is the model for an App Store export.
 - **App Store Connect:** one record, **Tomodachi by Zenbu Japanese** (app ID `6821401516`), has iOS and macOS
   versions. Same bundle ID (`com.zenbujapanese.tomo`), so one purchase covers both.
-- **Two things App Review may question in today's build:** ⌥-clicking the menu bar icon shows the testing tools
-  in every build (`TomoTestingTools`), and the first run's "Open Tomodachi when I log in" switch starts on (it's
-  shown, and Settings turns it off).
+- **Three things App Review may question in today's build:** ⌥-clicking the menu bar icon shows the testing tools
+  in every build (`TomoTestingTools`), the first run's "Open Tomodachi when I log in" switch starts on (it's
+  shown, and Settings turns it off), and the word card picks a Mac dictionary with two calls Apple doesn't publish
+  (`TomoMacDictionaries`, guideline 2.5.1). Drop those (the card then shows the Mac's dictionary only to a Japanese
+  speaker) or ship the Zenbu dictionary first ([#9](https://github.com/serpcompany/tomodachi-app/issues/9)).
 
 ## The listing
 

@@ -138,9 +138,46 @@ enum TomoIslandSelfTest {
         light(check)
         levelBar(check)
         music(check)
+        macDictionary(check)
         rules(check)
         TomoGame.offerSelfTest(check)
         return ok
+    }
+
+    /// The word card's Mac dictionary (#198): only a dictionary in the learner's language, chosen from Dictionary's
+    /// active ones by the languages their identifiers name, whichever this Mac has; without the list, the system's pick
+    /// for a learner of their own language and no section for anyone else.
+    private static func macDictionary(_ check: (Bool, String) -> Void) {
+        typealias D = TomoMacDictionaries
+        let wisdom = D.languages("com.apple.dictionary.ja-en.WISDOM"), daijirin = D.languages("com.apple.dictionary.ja.Daijirin")
+        check(wisdom == ["ja", "en"] && daijirin == ["ja"] && D.languages("com.apple.dictionary.zh_CN-en.OCD") == ["zh", "en"]
+              && D.languages("com.apple.dictionary.NOAD") == nil && D.languages("com.example.dictionary.ja-en") == nil,
+              "a dictionary's languages come from Apple's identifier (ja-en, ja, zh_CN-en); none named or not Apple's: none")
+        // Dictionary's own order on the owner's Mac: Super Daijirin (ja) ahead of Wisdom (ja-en).
+        let mac = ["com.apple.dictionary.NOAD", "com.apple.dictionary.OAWT", "com.apple.dictionary.ja.Daijirin",
+                   "com.apple.dictionary.ja-en.WISDOM", "com.apple.dictionary.AppleDictionary"]
+        let japaneseOnly = Array(mac.prefix(3))
+        check(D.choice(mac, target: "ja", learner: "en") == .dictionary(3)
+              && D.choice(japaneseOnly, target: "ja", learner: "en") == .hidden
+              && D.choice(nil, target: "ja", learner: "en") == .hidden,
+              "an English speaker gets the Japanese-English dictionary even after Daijirin; with only Japanese ones, or "
+              + "without the list, no section")
+        check(D.choice(mac, target: "ja", learner: "ja") == .dictionary(2)
+              && D.choice(["com.apple.dictionary.NOAD"], target: "ja", learner: "ja") == .system
+              && D.choice(nil, target: "ja", learner: "ja") == .system,
+              "a Japanese speaker gets Daijirin; with no Japanese one, or without the list, the system's pick")
+        check(D.choice(mac, target: "es", learner: "en") == .hidden && D.choice(nil, target: "es", learner: "en") == .hidden,
+              "a pair no dictionary fits (Spanish for an English speaker): no section")
+        // A macOS that changes the unpublished calls: no list, and nothing that isn't a dictionary reaches them.
+        var asked = 0
+        let notAList = D.active("com.apple.dictionary.ja-en.WISDOM" as CFString) { _ in asked += 1; return nil }
+        let strings = D.active(NSArray(array: mac)) { _ in asked += 1; return nil }
+        let numbers = D.active(NSArray(array: [1, 2])) { _ in asked += 1; return NSNumber(value: 3) }
+        let named = D.active(NSArray(array: [1])) { _ in "com.apple.dictionary.ja-en.WISDOM" as CFString }
+        check(D.active(nil) { _ in nil } == nil && notAList == nil && strings == nil && numbers?.isEmpty == true
+              && asked == 2 && named?.map(\.identifier) == ["com.apple.dictionary.ja-en.WISDOM"],
+              "the unpublished calls returning something else: not an array of objects, no list; an identifier that "
+              + "isn't a string, that dictionary left out")
     }
 
     /// Dancing to music (#130): the players' state from their notifications, when Tomo dances, and that a distributed
