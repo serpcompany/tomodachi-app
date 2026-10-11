@@ -36,8 +36,10 @@ struct TomoPhoneView: View {
     private var tomoSize: CGFloat { typing ? 110 : 120 + 100 * fit }
     private var speechHeight: CGFloat { typing ? 180 : 150 + 40 * fit }   // two lines, the result, one line of why
     private var answersHeight: CGFloat { 186 + 44 * fit }
-    /// Dynamic Type, capped so text grows inside its row instead of pushing the others out.
-    private var textScale: CGFloat { min(max(dynamicScale, 0.85), 1.3) }
+    /// Dynamic Type, capped so text grows inside its row instead of pushing the others out (TomoPhoneHeader).
+    private var textScale: CGFloat {
+        min(max(dynamicScale, TomoPhoneHeader.textScale.lowerBound), TomoPhoneHeader.textScale.upperBound)
+    }
 
     var body: some View {
         // The rows are sized from the space the screen offers, never from what they hold (no layout loop).
@@ -48,20 +50,22 @@ struct TomoPhoneView: View {
                 TomoGrowthBar(progress: game.levelProgress, standing: game.levelStanding, dimmed: game.isPracticeRound,
                               colors: [Color(hex: "#FFE68C"), Color(hex: "#34D399")], empty: Color.white.opacity(0.08))
                     .frame(height: 6)
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, TomoPhoneHeader.margin)
                     .padding(.top, 10)
                     .accessibilityElement()
                     .accessibilityLabel(ui("a11y.bar", ["next": "\(game.level + 1)"]))
                     .accessibilityValue("\(Int((game.levelProgress * 100).rounded()))%")
-                // What's left before the next level, and when the next word is ready
+                // What's left before the next level, and when the next word is ready: one line, whose longest form
+                // fits at the largest text on an iPhone SE: its size, the text's cap and its margins are
+                // TomoPhoneHeader's, which TomoGame.restLinesSelfTest measures with
                 if !typing {
                     Label { Text(game.phase == .resting ? game.restLines.left : game.whatsLeft()) } icon: {
                         Image(systemName: "flag.fill").foregroundStyle(Color(hex: "#34D399"))
                     }
-                        .font(.system(size: 13 * textScale, weight: .medium))
+                        .font(.system(size: TomoPhoneHeader.leftSize * textScale, weight: .medium))
                         .foregroundStyle(Color(hex: "#9EA3AC"))
-                        .lineLimit(1).minimumScaleFactor(0.75)
-                        .padding(.horizontal, 20)
+                        .lineLimit(1).minimumScaleFactor(TomoGame.whatsLeftMinScale)
+                        .padding(.horizontal, TomoPhoneHeader.margin)
                         .padding(.top, 8)
                 }
 
@@ -143,7 +147,7 @@ struct TomoPhoneView: View {
             .accessibilityLabel(ui("a11y.sound"))
             .accessibilityValue(ui(game.soundEnabled ? "a11y.on" : "a11y.off"))
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, TomoPhoneHeader.margin)
         .padding(.top, 8)
     }
 

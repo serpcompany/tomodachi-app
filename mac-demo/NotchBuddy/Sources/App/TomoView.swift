@@ -401,15 +401,25 @@ private struct MeaningPill: View {
 }
 
 /// What's left before the next level, one line under the card's other rows: "1 more word to Lv 2 · ready now".
-private struct GoalLine: View {
+/// Its longest form fits the row (`TomoGame.whatsLeftFitSelfTest`, from `TomoIslandSelfTest`, with `textWidth`).
+struct GoalLine: View {
     let text: String
+    static let size: CGFloat = 11, gap: CGFloat = 5
+    static var flag: some View { Image(systemName: "flag.fill").font(.system(size: 8.5, weight: .bold)) }
 
     var body: some View {
-        HStack(spacing: 5) {
-            Image(systemName: "flag.fill").font(.system(size: 8.5, weight: .bold)).foregroundColor(Color(hex: "#7BD389"))
-            Text(text).font(.system(size: 11, weight: .medium)).foregroundColor(Color(hex: "#9EA3AC"))
-                .lineLimit(1).minimumScaleFactor(0.75)
+        HStack(spacing: Self.gap) {
+            Self.flag.foregroundColor(Color(hex: "#7BD389"))
+            Text(text).font(.system(size: Self.size, weight: .medium)).foregroundColor(Color(hex: "#9EA3AC"))
+                .lineLimit(1).minimumScaleFactor(TomoGame.whatsLeftMinScale)
         }
+    }
+
+    /// The room its text has in the card's picture column: the column, less the flag and the gap.
+    @MainActor static var textWidth: CGFloat {
+        let r = ImageRenderer(content: flag.fixedSize())
+        r.scale = 2
+        return TomoGrid.pictureColumn - CGFloat(r.cgImage?.width ?? 20) / 2 - gap
     }
 }
 

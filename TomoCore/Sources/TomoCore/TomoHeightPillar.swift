@@ -248,9 +248,8 @@ public struct TomoHeightPillar: View {
                     .stroke(Color.secondary, style: StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
                     .frame(width: postW - 10, height: 2)
                     .padding(.leading, 5)
-                Text(lang.target.ageLabel(age)).font(.system(size: 12.5, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.secondary)
-                Text(lang.learner("level", ["n": "\(level)"])).font(.system(size: 10, design: .monospaced))
+                // In the reached birthday marks' face ("2さい Lv 16"), only quieter: it isn't reached yet
+                Text(birthdayLabel(age, level)).font(.system(size: 14, weight: .semibold, design: .rounded))
                     .foregroundStyle(.secondary)
             }
             .frame(height: 20)
@@ -265,8 +264,13 @@ public struct TomoHeightPillar: View {
 
     private func markLabel(_ m: TomoStats.Mark) -> String {
         if m.level == 1 { return lang.learner("pillar.hatched") }
-        if m.birthday { return "\(lang.target.ageLabel(m.age)) \(lang.learner("level", ["n": "\(m.level)"]))" }
+        if m.birthday { return birthdayLabel(m.age, m.level) }
         return lang.learner("level", ["n": "\(m.level)"])
+    }
+
+    /// A birthday's mark, reached or ahead: "2さい Lv 16".
+    private func birthdayLabel(_ age: Int, _ level: Int) -> String {
+        "\(lang.target.ageLabel(age)) \(lang.learner("level", ["n": "\(level)"]))"
     }
 
     private func markAccessibility(_ m: TomoStats.Mark) -> String {
@@ -439,9 +443,11 @@ private struct TomoPillarTomo: View {
     }
 }
 
-/// Chips that wrap onto the next line, whole.
+/// Chips that wrap onto the next line, whole (`lineSpacing` between lines, `spacing` if nil). One wider than a whole
+/// line is offered the line's width.
 struct TomoChipFlow: Layout {
     let spacing: CGFloat
+    var lineSpacing: CGFloat?
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let rows = arrange(proposal.width ?? .infinity, subviews)
@@ -450,23 +456,28 @@ struct TomoChipFlow: Layout {
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         for row in arrange(bounds.width, subviews) {
-            for (i, x) in row.items { subviews[i].place(at: CGPoint(x: bounds.minX + x, y: bounds.minY + row.y), proposal: .unspecified) }
+            for (i, x, size) in row.items {
+                subviews[i].place(at: CGPoint(x: bounds.minX + x, y: bounds.minY + row.y), proposal: ProposedViewSize(size))
+            }
         }
     }
 
-    private struct Row { var y: CGFloat; var width: CGFloat = 0; var height: CGFloat = 0; var items: [(Int, CGFloat)] = [] }
+    private struct Row {
+        var y: CGFloat; var width: CGFloat = 0; var height: CGFloat = 0; var items: [(Int, CGFloat, CGSize)] = []
+    }
 
     private func arrange(_ width: CGFloat, _ subviews: Subviews) -> [Row] {
         var rows = [Row(y: 0)]
         for (i, v) in subviews.enumerated() {
-            let size = v.sizeThatFits(.unspecified)
+            var size = v.sizeThatFits(.unspecified)
+            if size.width > width { size = v.sizeThatFits(ProposedViewSize(width: width, height: nil)) }
             if !rows[rows.count - 1].items.isEmpty, rows[rows.count - 1].width + spacing + size.width > width {
                 let last = rows[rows.count - 1]
-                rows.append(Row(y: last.y + last.height + spacing))
+                rows.append(Row(y: last.y + last.height + (lineSpacing ?? spacing)))
             }
             var row = rows[rows.count - 1]
             let x = row.items.isEmpty ? 0 : row.width + spacing
-            row.items.append((i, x))
+            row.items.append((i, x, size))
             row.width = x + size.width
             row.height = max(row.height, size.height)
             rows[rows.count - 1] = row
