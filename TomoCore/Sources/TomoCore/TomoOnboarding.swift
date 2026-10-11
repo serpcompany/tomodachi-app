@@ -167,7 +167,7 @@ public final class TomoOnboarding: ObservableObject {
               && TomoLineBreaks.spoken("Tomo \(a)\(i) \(u)") == "Tomo \(a)\(i)\(u)",
               "a heading wraps only at its spaces: one between two Japanese phrases isn't drawn, one beside a single "
               + "Japanese character never breaks, and English is unchanged")
-        // Each phrase fits an iPhone SE's line (375 pt less 24 each side: 327, so 11 kana at 28 pt, 13 at 25; a Latin
+        // Each phrase fits an iPhone SE's line (375 pt less `TomoOnboardingView.phonePadding` each side: 327, so 11 kana at 28 pt, 13 at 25; a Latin
         // letter is about 0.6 of one), so a heading never needs to break inside one. The headings are found in the
         // packs, never listed here: every `onboarding.<step>.title`, the result's 「…が分かりました！」 included,
         // at the size it's drawn (`TomoOnboardingView.headingSize`), with `{language}` as each target's name.
@@ -181,7 +181,7 @@ public final class TomoOnboarding: ObservableObject {
             pack.strings.keys.filter(isHeading).sorted().flatMap { key in
                 let size = TomoOnboardingView.headingSize(key)
                 return langs.targets.flatMap { TomoLineBreaks.phrases(pack(key, ["language": $0.name(pack.id)])) }
-                    .filter { ems($0) > (327 / size).rounded(.down) }.map { "\($0) (\(Int(size)) pt)" }
+                    .filter { ems($0) > ((375 - 2 * TomoOnboardingView.phonePadding) / size).rounded(.down) }.map { "\($0) (\(Int(size)) pt)" }
             }
         }
         check(tooLong.isEmpty && Set(found).count == 1 && !found[0].isEmpty,

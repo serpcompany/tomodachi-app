@@ -51,7 +51,7 @@ public struct TomoOnboardingView: View {
                 .padding(.top, 14)
                 buttons
             }
-            .padding(.horizontal, isPhone ? 24 : 28)
+            .padding(.horizontal, isPhone ? Self.phonePadding : 28)
             .padding(.top, 10)
             .padding(.bottom, isPhone ? 12 : 22)
             .frame(width: geo.size.width, height: geo.size.height)
@@ -444,6 +444,9 @@ public struct TomoOnboardingView: View {
 
     /// The size a step's heading is drawn at: 28 pt, the result's (under the word just answered) 25. A step's heading
     /// is its `onboarding.<step>.title`, so the self-test finds every one in the packs and checks it at this size.
+    /// The first run's side padding on the iPhone; its heading check measures an iPhone SE's line with it.
+    static let phonePadding: CGFloat = 24
+
     static func headingSize(_ key: String) -> CGFloat { key == "onboarding.result.title" ? 25 : 28 }
 
     /// A step's heading, `key` in the learner's pack: two lines at most, wrapping only between its phrases
