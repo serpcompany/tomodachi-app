@@ -44,27 +44,30 @@ public struct TomoWordsScreen: View {
                     // The rows are lazy: the jump to a level estimates the heights above it, which move it as they're
                     // laid out, then and whenever the list is laid out again. The list lands on it again, with
                     // `scrollTo` alone, until the learner scrolls (TomoLanding). No `scrollPosition`: it puts the list
-                    // back where its own estimates say the level is, which took the level away (#218).
+                    // back where its own estimates say the level is, which took the level away (#218). Once the list
+                    // is the learner's, the rule isn't asked again, so scrolling never touches the screen's state.
                     .onScrollGeometryChange(for: TomoLanding.Geometry.self) { g in
                         TomoLanding.Geometry(height: g.contentSize.height, offset: g.contentOffset.y + g.contentInsets.top,
                                              maxOffset: g.contentSize.height + g.contentInsets.bottom + g.contentInsets.top
                                                  - g.containerSize.height)
                     } action: { old, new in
-                        if landing.changed(from: old, to: new), let level = landing.level {
+                        if landing.level != nil, landing.changed(from: old, to: new), let level = landing.level {
                             proxy.scrollTo(level, anchor: .top)
                         }
                     }
                     .onScrollPhaseChange { _, phase in
-                        if phase != .idle { landing.scrolled() }
+                        if phase != .idle, landing.level != nil { landing.scrolled() }
                     }
-                    .onAppear { if !opened { opened = true; land(game.level, proxy) } }
+                    // Each time Words shows (opened, or switched to from another screen or tab), it lands on Tomo's
+                    // level, unless the learner has scrolled it since: then it stays where they left it.
+                    .onAppear { if !opened || landing.level != nil { opened = true; land(game.level, proxy) } }
                     .onChange(of: game.level) { _, level in land(level, proxy) }
                 }
             }
         }
     }
 
-    /// Words has opened at Tomo's level; coming back to it keeps the list where it was.
+    /// Words has opened at Tomo's level; coming back to it after the learner scrolled keeps the list where it was.
     @State private var opened = false
     /// Landing on Tomo's level, until the learner scrolls.
     @State private var landing = TomoLanding()
@@ -353,16 +356,24 @@ extension TomoProgress {
 
 /// When Words lands on Tomo's level, and when the list becomes the learner's. The rows are lazy, so the jump to the
 /// level estimates the heights above it, and the level moves as they're laid out: as the list opens, and again whenever
-/// it's laid out anew (VoiceOver or a UI test reading the screen, the text size, a word's stage). Each time the level
-/// moves, the list lands on it again, so its header and first word show under the chips. Rows laid out below it don't
-/// move it, so they don't land. Nothing ends it on a timer: a landing that ended while the rows above were still
-/// estimates left the list on Lv 16 when they were laid out again (#218). The list is the learner's from whichever
-/// comes first:
-/// - a scroll phase other than idle (a drag, a trackpad, a mouse wheel);
-/// - the list moving away from the level after it rested there, with no change in the content's height: the keyboard
-///   or VoiceOver may scroll with no phase. SwiftUI's own moves come before the list rests at the level after a
-///   landing (it moves it there, away and back while it lays the rows out), or with the heights estimated again.
-/// Plain values in, so `selfTest` checks it without a screen.
+/// it's laid out anew (VoiceOver or a UI test reading the screen, the text size, a word's stage). Until the learner
+/// moves the list, it lands on the level again whenever:
+/// - the level moves in the list (the rows above it were laid out);
+/// - SwiftUI puts the list back where it was during the landing. It does after a jump, on the Mac and the iPhone, and
+///   on a switch to Words it sometimes leaves the list there, at Lv 1;
+/// - the list stops where the level isn't laid out, or reports a change before SwiftUI has started to land.
+/// For SwiftUI's own moves (put back, stopped short), it lands again at most 3 times before the list rests at the
+/// level, so the two can't trade moves forever.
+/// The list is the learner's, for good, at the first:
+/// - scroll phase other than idle (a drag, a trackpad, a mouse wheel);
+/// - move anywhere else, with or without a phase or new rows (the keyboard, VoiceOver), while no `scrollTo` is under
+///   way. SwiftUI moves the list on its own only while it carries out a `scrollTo`, or back to where it was. When the
+///   rows above are laid out anew, the level's new place is reported first, and lands.
+/// Nothing ends it on a timer (#218), and it never waits on something that may not come: each `scrollTo` is over at
+/// the list's first report that shows the level, or that it stopped. What's left: a move with no phase while a
+/// `scrollTo` is under way (a fraction of a second as Words opens) counts as SwiftUI's, and one back to exactly where
+/// the list was during it, before the list rests, lands once more. Plain values in, so `selfTest` checks it without a
+/// screen.
 public struct TomoLanding: Equatable, Sendable {
     /// What the rule reads of the list: its content's height, how far it's scrolled (the content's y at the list's top),
     /// and how far it can be.
@@ -378,156 +389,220 @@ public struct TomoLanding: Equatable, Sendable {
         }
     }
 
+    /// A `scrollTo` under way: asked (the list hasn't moved since), then moving, until the list shows the level or
+    /// stops.
+    enum Flight: Equatable, Sendable { case none, asked, moving }
+
     /// The level it's landing on; nil once the list is the learner's.
     public private(set) var level: Int?
-    /// The level's top in the list's content, as last laid out; nil until it is.
+    /// The level's top in the list's content, while it's laid out.
     private var top: CGFloat?
-    /// The level is laid out now.
-    private var laid = false
-    /// Since the last landing, the list has held still at the level while rows were laid out: a move now is no
-    /// landing's.
-    private var rested = false
-    /// The list as last seen, so a level laid out where the list already is doesn't land again.
-    private var seen: Geometry?
+    /// The list as last seen. SwiftUI skips some changes, so this, not its `old`, is what moved.
+    private var list: Geometry?
+    private var flight = Flight.none
+    /// Where the list was when the landing asked, since it last rested at the level, and where SwiftUI moved it without
+    /// reporting it: SwiftUI may put it back at one.
+    private var trail: [CGFloat] = []
+    /// How often it landed again for SwiftUI's own moves since then.
+    private var again = 0
 
     public init() {}
 
-    /// Lands on `level` (Words opens, or Tomo's level changes).
+    /// Lands on `level`: Words shows, or Tomo's level changes. The caller scrolls there.
     public mutating func start(_ level: Int) {
         self.level = level
         top = nil
-        laid = false
-        rested = false
+        list = nil   // the rule isn't asked while the list is the learner's, so the last one seen is old
+        trail = []
+        again = 0
+        flight = .asked
     }
 
     /// The level's top in the list's content, as it's laid out (nil: no longer laid out). True: land on it.
     public mutating func laidOut(top new: CGFloat?) -> Bool {
         guard level != nil else { return false }
-        guard let new else { laid = false; return false }
-        let moved = top.map { abs(new - $0) > 0.5 } ?? true   // first laid out, or moved by the rows above
-        laid = true
+        let old = top
         top = new
-        guard moved, seen?.shows(new) != true else { return false }   // the list is already there
-        rested = false
-        return true
+        guard let new else { return false }   // the list's next report says whether it moved
+        if list?.shows(new) == true { flight = .none; return false }   // the list is there
+        guard old.map({ abs(new - $0) > 0.5 }) ?? true else { return false }
+        return ask()   // laid out, or moved by the rows above
     }
 
-    /// The list's geometry changed. True: land again, when the level isn't laid out and the content's height changed.
+    /// The list's geometry changed (`old` as SwiftUI last had it). True: land on the level again.
     public mutating func changed(from old: Geometry, to new: Geometry) -> Bool {
-        seen = new
         guard level != nil else { return false }
-        let moved = abs(new.offset - old.offset) > 0.5, grew = abs(new.height - old.height) > 0.5
-        if laid, let top, new.shows(top) {   // at the level
-            if !moved { rested = true }
+        let last = list ?? old
+        // Where it was as the landing began, or a place SwiftUI moved it without reporting it.
+        if list == nil || abs(old.offset - last.offset) > 0.5 { note(old.offset) }
+        let moved = abs(new.offset - last.offset) > 0.5
+        list = new
+        if let top, new.shows(top) {   // at the level
+            flight = .none
+            if !moved { trail = []; again = 0 }   // rested there
             return false
         }
-        if moved && !grew && rested { level = nil; return false }   // the learner scrolled, with no phase
-        guard grew, !laid else { return false }
-        rested = false
-        return true
+        if moved {
+            if trail.contains(where: { abs($0 - new.offset) <= 0.5 }) {   // put back where it was
+                flight = .moving
+                return landAgain()
+            }
+            if flight != .none { flight = .moving; return false }   // on its way
+            level = nil   // the learner moved it
+            return false
+        }
+        if flight == .asked { return true }   // SwiftUI hasn't started: ask again
+        flight = .none   // it stopped short of the level
+        return top == nil ? landAgain() : false   // where the level isn't laid out; if it is, its next move lands
     }
 
     /// A scroll phase other than idle: the learner is scrolling.
     public mutating func scrolled() { level = nil }
+
+    private mutating func ask() -> Bool {
+        if let list { note(list.offset) }
+        flight = .asked
+        return true
+    }
+
+    /// For SwiftUI's own moves, at most 3 times before the list rests at the level.
+    private mutating func landAgain() -> Bool {
+        guard again < 3 else { return false }
+        again += 1
+        return ask()
+    }
+
+    private mutating func note(_ offset: CGFloat) {
+        if !trail.contains(where: { abs($0 - offset) <= 0.5 }) { trail.append(offset) }
+    }
 }
 
 extension TomoLanding {
-    /// The rule (TOMO_SELFTEST, swift test), on made-up geometry of a list 600 pt tall, in the order the iPhone 17 Pro
-    /// reports it (#218): the list lands again each time the level moves, as it opens and seconds later, until the
-    /// learner scrolls; a scroll with or without a phase makes it the learner's, and nothing lands after that.
+    /// The rule (TOMO_SELFTEST, swift test), on geometry of a list 600 pt tall, in the order SwiftUI reports it on the
+    /// iPhone 17 Pro and the Mac (#218): one check for each way Words shows, each way the learner moves the list, and
+    /// each way SwiftUI moves it on its own.
     public static func selfTest(_ check: (Bool, String) -> Void) {
         func list(_ h: CGFloat, _ y: CGFloat) -> Geometry { Geometry(height: h, offset: y, maxOffset: h - 600) }
-        /// Opens Words at Lv 14: the first layout, the jump there on estimated heights, the levels above laid out
-        /// shorter (the level moves up, and the list lands on it again), and SwiftUI's own moves as it estimates.
+        /// Feeds the list's reports in order, the first from `from`; returns which of them landed.
+        func reports(_ l: inout TomoLanding, _ from: Geometry, _ to: [Geometry]) -> [Bool] {
+            var last = from
+            return to.map { g in defer { last = g }; return l.changed(from: last, to: g) }
+        }
+        /// Opens Words at Lv 14 (the iPhone 17 Pro): the first layout before SwiftUI starts, the jump there on
+        /// estimated heights, the level laid out where the list is, and rows below laid out as it rests; then the rows
+        /// above laid out shorter, so the level moves up and the list lands on it again.
         func opened() -> (TomoLanding, [Bool]) {
-            var l = TomoLanding(), landed: [Bool] = []
+            var l = TomoLanding()
             l.start(14)
-            landed.append(l.changed(from: list(20, 0), to: list(156_000, 0)))   // laid out, the level not yet: land
-            landed.append(l.laidOut(top: 7428))                                 // the level, before the list moved
-            landed.append(l.changed(from: list(156_000, 0), to: list(120_000, 7428)))   // the jump: there
-            landed.append(l.changed(from: list(120_000, 7428), to: list(137_000, 7428)))
-            landed.append(l.changed(from: list(137_000, 7428), to: list(120_000, 6826)))   // SwiftUI's own move
-            landed.append(l.laidOut(top: 6749))                                 // the levels above, laid out shorter
-            landed.append(l.changed(from: list(120_000, 6826), to: list(120_000, 6749)))   // landed
-            landed.append(l.changed(from: list(120_000, 6749), to: list(136_000, 5717)))   // SwiftUI's own bounce
-            landed.append(l.changed(from: list(136_000, 5717), to: list(134_000, 6749)))   // and back
-            landed.append(l.changed(from: list(134_000, 6749), to: list(132_000, 6749)))   // rows below laid out
+            var landed = reports(&l, list(20, 0), [list(156_371, 0), list(156_371, 7441)])
+            landed.append(l.laidOut(top: 7441))
+            landed += reports(&l, list(156_371, 7441), [list(151_248, 7441), list(147_594, 7441)])
+            landed.append(l.laidOut(top: 6749))
+            landed += reports(&l, list(147_594, 7441), [list(140_000, 6749), list(139_000, 6749)])
             return (l, landed)
         }
 
+        // 1. Words lands on Tomo's level each time it shows.
         var (l, landed) = opened()
-        check(l.level == 14 && landed == [true, true, false, false, false, true, false, false, false, false],
-              "words landing: as the list opens, it lands each time the level moves (\(landed.filter { $0 }.count) "
-                + "times), not for rows below it or SwiftUI's own moves, and it's still landing after")
+        check(l.level == 14 && landed == [true, false, false, false, false, true, false, false],
+              "words landing: opened, it lands, and again when the level moves, not for rows below it, and holds it")
 
-        // Seconds later the list is laid out anew (VoiceOver or a UI test reading the screen): the rows above are
-        // estimated again, the level moves up 550 pt and SwiftUI moves the list down 288 pt, to Lv 16 (#218).
-        _ = l.changed(from: list(132_000, 6749), to: list(133_000, 6749))
-        let again = l.laidOut(top: 6199)
-        _ = l.changed(from: list(133_000, 6749), to: list(133_000, 7037))
-        let held = l.level == 14
-        _ = l.changed(from: list(133_000, 7037), to: list(133_000, 6199))
-        check(again && held && l.level == 14,
-              "words landing: seconds later, the list laid out anew moves the level, and it lands on it again")
+        // Switched to on the Mac (Lv 31): SwiftUI jumps there, puts the list back at Lv 1, and sometimes stops there.
+        l = TomoLanding()
+        l.start(31)
+        landed = reports(&l, list(147_694, 0), [list(147_694, 16_192), list(147_694, 0)])
+        landed += reports(&l, list(147_694, 0), [list(147_694, 16_192)])
+        landed.append(l.laidOut(top: 16_192))
+        landed += reports(&l, list(147_694, 16_192), [list(147_706, 16_192)])
+        check(l.level == 31 && landed == [false, true, false, false, false],
+              "words landing: switched to, it lands again when SwiftUI puts the list back at Lv 1, and holds the level")
 
-        (l, _) = opened()
-        _ = l.changed(from: list(132_000, 6749), to: list(132_000, 7049))   // VoiceOver, the keyboard
-        let after = l.laidOut(top: 6199)
-        let gone = l.laidOut(top: nil)
-        let rows = l.changed(from: list(132_000, 7049), to: list(131_000, 7049))
-        check(l.level == nil && !after && !gone && !rows,
-              "words landing: a scroll with no phase ends it, and nothing lands after, when the level moves or rows "
-                + "are laid out")
-
-        (l, _) = opened()
-        _ = l.changed(from: list(132_000, 6749), to: list(131_800, 6800))   // into rows not laid out yet
-        let into = l.changed(from: list(131_800, 6800), to: list(131_800, 6900))
-        check(l.level == nil && !into,
-              "words landing: a scroll with no phase that lays out new rows ends it at its first move that lays out none")
-
+        // 2. Any move by the learner ends it for good.
         (l, _) = opened()
         l.scrolled()
         check(l.level == nil, "words landing: a scroll phase (a drag, a trackpad, a mouse wheel) ends it")
 
+        (l, _) = opened()
+        landed = reports(&l, list(139_000, 6749), [list(139_000, 7049)])   // the keyboard, VoiceOver, a wheel
+        landed += [l.laidOut(top: 6199), l.laidOut(top: nil)]
+        landed += reports(&l, list(139_000, 7049), [list(138_000, 7049), list(140_000, 7049)])
+        check(l.level == nil && !landed.contains(true),
+              "words landing: a scroll with no phase ends it, and nothing lands after, when the level moves or leaves, "
+                + "or the height changes")
+
+        // Paging down with no phase (the keyboard, VoiceOver) lays out rows on each page, until the level leaves.
+        (l, _) = opened()
+        landed = reports(&l, list(139_000, 6749), [list(138_700, 7349)])
+        let first = l.level == nil
+        landed += reports(&l, list(138_700, 7349), [list(138_500, 7949)])
+        landed.append(l.laidOut(top: nil))
+        landed += reports(&l, list(138_500, 7949), [list(138_300, 8549)])
+        check(first && l.level == nil && !landed.contains(true),
+              "words landing: paging with no phase that lays out new rows ends it at the first page, and never pulls "
+                + "the list back once the level leaves")
+
+        // A landing whose last report both moves and lays out rows: no report shows it resting.
         l = TomoLanding()
         l.start(14)
-        _ = l.changed(from: list(20, 0), to: list(20_000, 0))
-        let bounced = [l.changed(from: list(20_000, 0), to: list(20_000, 7029)),   // the jump there, back and there
-                       l.changed(from: list(20_000, 7029), to: list(20_000, 0)),   // again, before the level is
-                       l.changed(from: list(20_000, 0), to: list(20_000, 7029))]   // laid out (the Mac)
-        let first = l.laidOut(top: 7029)
-        check(l.level == 14 && bounced == [false, false, false] && !first,
-              "words landing: the jump's own moves are the landing's, and a level first laid out where the list is "
-                + "doesn't land again")
+        landed = reports(&l, list(20, 0), [list(20_000, 0)])
+        landed.append(l.laidOut(top: 7029))
+        landed += reports(&l, list(20_000, 0), [list(19_900, 7029), list(19_900, 7329)])
+        check(l.level == nil && landed == [true, true, false, false],
+              "words landing: a scroll with no phase ends it right after it lands, with no report of the list resting")
 
-        // A screen reader lays the list out anew: the level is reported at places it isn't, the list lands, and SwiftUI
-        // moves it away from the level and back with no change in height (the iPhone 17 Pro, #218).
-        (l, _) = opened()
-        let burst = [l.laidOut(top: 11_650), l.laidOut(top: 6336), l.laidOut(top: 6572)]
-        _ = l.changed(from: list(139_700, 7575), to: list(141_900, 6572))   // landed
-        let away = l.changed(from: list(141_900, 6572), to: list(141_900, 7575))
-        let stayed = l.level == 14
-        _ = l.changed(from: list(141_900, 7575), to: list(140_000, 6572))   // and back
-        _ = l.changed(from: list(140_000, 6572), to: list(140_050, 6572))   // rows laid out, the list still: it rests
-        let rested = l.level == 14
-        _ = l.changed(from: list(140_050, 6572), to: list(140_050, 6872))   // the keyboard
-        check(burst == [true, true, true] && !away && stayed && rested && l.level == nil,
-              "words landing: SwiftUI's own moves away from the level are the landing's until the list rests there; "
-                + "a scroll with no phase after that ends it")
-
-        (l, _) = opened()
-        _ = l.laidOut(top: nil)   // moved out of the laid-out rows
-        let out = l.changed(from: list(132_000, 6749), to: list(131_000, 6749))
-        check(l.level == 14 && out, "words landing: while the level isn't laid out, a change in height lands again")
+        // 3. It never waits on something that may not come.
+        l = TomoLanding()
+        l.start(14)
+        landed = reports(&l, list(20, 0), [list(156_371, 0), list(140_000, 0)])
+        landed += reports(&l, list(140_000, 0), [list(140_000, 7441), list(139_000, 7441)])   // stopped, not laid out
+        check(l.level == 14 && landed == [true, true, false, true],
+              "words landing: until SwiftUI starts to land, each report asks again, and it asks again if the list "
+                + "stops where the level isn't laid out")
 
         l = TomoLanding()
+        l.start(14)
+        landed = []
+        for _ in 1...5 { landed += reports(&l, list(140_000, 0), [list(140_000, 7441), list(140_000, 0)]) }
+        landed += reports(&l, list(140_000, 0), [list(140_000, 7441), list(139_000, 7441)])   // and stopping short
+        check(l.level == 14 && landed.filter { $0 }.count == 3,
+              "words landing: when SwiftUI keeps putting the list back or stopping short, it lands again 3 times, not "
+                + "forever, and still holds the level")
+
+        // 4. Rows laid out above the level while it lands never leave it off screen.
+        // Seconds later, the list laid out anew (VoiceOver, a UI test reading the screen): the level moves up 550 pt,
+        // and SwiftUI moves the list down 288 pt, to Lv 16 (#218).
+        (l, _) = opened()
+        landed = reports(&l, list(139_000, 6749), [list(140_000, 6749)])
+        landed.append(l.laidOut(top: 6199))
+        landed += reports(&l, list(140_000, 6749), [list(140_000, 7037), list(140_000, 6199), list(140_100, 6199)])
+        check(l.level == 14 && landed == [false, true, false, false, false],
+              "words landing: seconds later, the list laid out anew moves the level, and it lands on it again")
+
+        // A screen reader lays the list out anew (the iPhone 17 Pro): the level is reported at places it isn't, it
+        // leaves and comes back, SwiftUI moves the list without reporting it, lands, puts it back there, and lands.
+        (l, _) = opened()
+        landed = [6749, 11_650, 10_509, 6336, 6438, 6573].map { l.laidOut(top: $0) }
+        landed.append(l.laidOut(top: nil))
+        landed += [10_644, 6572].map { l.laidOut(top: $0) }
+        landed += [l.changed(from: list(139_740, 7575), to: list(141_940, 6572)),   // from where it wasn't reported
+                   l.changed(from: list(141_940, 6572), to: list(141_940, 7575))]   // put back there
+        landed += reports(&l, list(141_940, 7575), [list(139_978, 7575), list(140_045, 6572), list(140_048, 6572)])
+        let held = l.level == 14
+        landed += reports(&l, list(140_048, 6572), [list(140_048, 6872)])   // then the keyboard
+        check(held && l.level == nil
+                && landed == [false, true, true, true, true, true, false, true, true, false, true, true, false, false,
+                              false],
+              "words landing: a screen reader's layout lands each time the level moves, and when SwiftUI puts the list "
+                + "back; a scroll with no phase after it ends it")
+
+        // At the list's end: the level can't reach the top, and a level above laid out shorter pulls the list with it.
+        l = TomoLanding()
         l.start(5)
-        _ = l.changed(from: list(20, 0), to: list(5000, 0))
-        _ = l.laidOut(top: 4500)                                      // the last level: the list goes only to 4400
-        _ = l.changed(from: list(5000, 0), to: list(5000, 4400))
-        let end = l.changed(from: list(5000, 4400), to: list(4900, 4300))   // a level above laid out shorter
-        let pulled = l.laidOut(top: 4400)
-        check(l.level == 5 && !end && !pulled,
+        landed = reports(&l, list(20, 0), [list(5000, 0)])
+        landed.append(l.laidOut(top: 4500))
+        landed += reports(&l, list(5000, 0), [list(5000, 4400), list(4900, 4300)])
+        landed.append(l.laidOut(top: 4400))
+        check(l.level == 5 && landed == [true, true, false, false, false],
               "words landing: at the list's end, a level laid out shorter pulls the list back with it, and it's still "
                 + "landing")
     }

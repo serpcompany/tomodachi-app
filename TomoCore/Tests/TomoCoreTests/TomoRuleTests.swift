@@ -32,8 +32,8 @@ final class TomoContrastTests: TomoCheckCase {
     func testStageColoursReadOnLightAndDarkCards() { expect(TomoStagePill.selfTest) }
 }
 
-/// Words opens at Tomo's level and keeps landing there whenever its lazy rows are laid out, until the learner scrolls
-/// (with or without a scroll phase) (#193, #218).
+/// Words lands on Tomo's level each time it shows, and again whenever its lazy rows move the level or SwiftUI puts the
+/// list back, until the learner moves it in any way (with or without a scroll phase or new rows) (#193, #218).
 final class TomoWordsLandingTests: TomoCheckCase {
     func testWordsLandsOnTomosLevelUntilTheLearnerScrolls() { expect(TomoLanding.selfTest) }
 }
