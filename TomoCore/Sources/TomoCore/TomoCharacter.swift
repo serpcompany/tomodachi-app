@@ -844,13 +844,14 @@ public final class TomoBlob: ObservableObject {
         if glow > 0.01 { inner.fill(body, with: .color(.white.opacity(Double(glow)))) }
     }
 
-    /// Droopy's outline (`TomoFeeling.sagged`), kept while the sag holds, so a slumped Tomo at rest doesn't build it
-    /// every frame.
+    /// Droopy's outline: the warp of whatever outline `form` draws (`TomoFeeling.sagged`), kept while the sag holds, so
+    /// a slumped Tomo at rest doesn't build it every frame. While a big moment plays, the form's outline can change
+    /// under the same Tomo and age (a birthday's morph, #282), so it's built fresh each frame then and never kept.
     private func slumped(_ form: TomoForm, R: CGFloat, top: CGFloat, bottom: CGFloat) -> Path {
-        let sag = feelingShown.sag
-        if let s = slump, s.seed == look.seed, s.age == age, s.R == R, s.sag == sag { return s.body }
+        let sag = feelingShown.sag, keeps = cue == nil
+        if keeps, let s = slump, s.seed == look.seed, s.age == age, s.R == R, s.sag == sag { return s.body }
         let body = TomoFeeling.sagged(form.path(R: R), top: top, bottom: bottom, by: sag)
-        slump = (look.seed, age, R, sag, body)
+        slump = keeps ? (look.seed, age, R, sag, body) : nil
         return body
     }
 
@@ -2733,6 +2734,26 @@ extension TomoBlob {
             return abs(a.minY - b.minY) < 0.5 && abs(a.maxY - b.maxY) < 0.5 && b.width > a.width * 1.02
         }
         check(shapes.count == 10 && slumps, "droopy slumps every silhouette wider at the bottom, no taller and no lower at the top")
+
+        // While a big moment plays, the outline can change under the same Tomo and age (a birthday's morph), so the
+        // slumped one follows the outline it's given; once the moment is over it's kept again.
+        let mid = blob(.droopy, age: 2), R: CGFloat = 100, ownForm = look.form(2)
+        func slumpBox(_ f: TomoForm) -> CGRect { mid.slumped(f, R: R, top: -f.top * R, bottom: f.bottom * R).boundingRect }
+        func near(_ a: CGRect, _ b: CGRect) -> Bool {
+            abs(a.minX - b.minX) < 0.5 && abs(a.maxX - b.maxX) < 0.5 && abs(a.minY - b.minY) < 0.5 && abs(a.maxY - b.maxY) < 0.5
+        }
+        let resting = slumpBox(ownForm)
+        let other = shapes.values.first { $0.silhouette != ownForm.silhouette } ?? ownForm
+        mid.play(Self.birthdayCue)
+        let during = slumpBox(other)
+        let wanted = TomoFeeling.sagged(other.path(R: R), top: -other.top * R, bottom: other.bottom * R,
+                                        by: mid.feelingShown.sag).boundingRect
+        for _ in 0..<(60 * 4) { t += 1.0 / 60; mid.step() }                // the moment over
+        let after = mid.cue == nil ? slumpBox(ownForm) : .null
+        check(other.silhouette != ownForm.silhouette && near(during, wanted) && !near(during, resting) && near(after, resting)
+              && mid.slump != nil,
+              "droopy's slumped outline follows the outline it's given while a big moment plays (a birthday's morph), "
+              + "and is kept again once it's over")
 
         // Each one's own life: droopy looks down, breathes slower and sighs about every 20 s; sickly breathes quicker and
         // shallower and shivers every few seconds. All at every age, with nothing emitted.
