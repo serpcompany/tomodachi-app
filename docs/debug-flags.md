@@ -118,6 +118,11 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   crossfade, `tomo-morphs-calm.png`) and, for each seed, every shape's outline flowing into every other, with the
   points' paths (`tomo-morph-pairs-<seed>.png`). It prints the morph survey for all eight seeds and exits 1 if any
   morph tangles, flips or spins.
+- `TOMO_FEELING=droopy|sickly`: Tomo shows that look from launch, as the Testing menu's "Look droopy" and "Look sickly"
+  do (on the iPhone, which has no Testing menu, `SIMCTL_CHILD_TOMO_FEELING`). `TOMO_RENDER_FEELINGS=<dir>`: a sheet
+  (`tomo-feelings.png`: well, droopy and sickly rows, each with every silhouette, one Tomo at every age, and every
+  topper) and a 40-second scene (`frames/`, 10 fps: droopy from 1 s, sickly from 22 s, well again from 34 s), then
+  quit. It draws `TOMO_SEED`'s Tomo, or one with ears.
 
 ## Starting from a known state
 

@@ -67,6 +67,10 @@ enum TomoIconRenderer {
             write(sheet, to: URL(fileURLWithPath: dir).appendingPathComponent("tomo-sheet.png"))
             NSApp.terminate(nil)
         }
+        if let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_FEELINGS"] {
+            renderFeelings(to: URL(fileURLWithPath: dir))
+            NSApp.terminate(nil)
+        }
         guard let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_ICON"] else { return }
         let out = URL(fileURLWithPath: dir)
         try? FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
@@ -394,6 +398,89 @@ enum TomoIconRenderer {
                     }
                 }
             }
+        }
+        .padding(20)
+        .background(Color.black)
+    }
+
+    /// TOMO_RENDER_FEELINGS=<dir> (#257): Tomo well, droopy and sickly (`TomoBlob.feeling`).
+    ///   <dir>/tomo-feelings.png  one row each for well, droopy and sickly: a Tomo of each of the 10 silhouettes, then one
+    ///                            with ears at every age, then one with each topper
+    ///   <dir>/frames/frame-0000.png …  a 40-second scene at 10 fps on a scripted clock: well, droopy from 1 s, sickly
+    ///                            from 22 s, well again from 34 s (its happy hop), a Tomo with ears (TOMO_SEED picks
+    ///                            another) at 3さい
+    /// TOMO_REDUCE_MOTION=1 draws both under Reduce Motion.
+    private static func renderFeelings(to out: URL) {
+        try? FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
+        write(feelingSheet, to: out.appendingPathComponent("tomo-feelings.png"))
+        let frames = out.appendingPathComponent("frames")
+        try? FileManager.default.createDirectory(at: frames, withIntermediateDirectories: true)
+        var t = 0.0
+        let blob = TomoBlob(look: ProcessInfo.processInfo.environment["TOMO_SEED"].map { TomoLook(seed: $0) }
+                                ?? feelingLook({ $0.topper == .bunny }), material: .forRenders)
+        blob.reduceMotion = TomoMotion.forced
+        blob.clock = { t }
+        blob.particleOverhang = 40
+        blob.setGrowth(2)
+        let script: [(at: Double, feeling: TomoFeeling?)] = [(1, .droopy), (22, .sickly), (34, nil)]
+        var next = 0
+        let fps = 10.0
+        for i in 0..<Int(fps * 40) {
+            let shot = Double(i) / fps
+            repeat {                                            // stepped at 60 Hz between frames, as the notch is
+                t = min(shot, t + 1.0 / 60)
+                while next < script.count && script[next].at <= t { blob.feeling = script[next].feeling; next += 1 }
+                blob.step()
+            } while t < shot
+            let frame = Canvas { ctx, sz in blob.draw(ctx, size: sz) }
+                .frame(width: 240, height: 280)
+                .background(Color.black)
+            write(frame, to: frames.appendingPathComponent(String(format: "frame-%04d.png", i)))
+        }
+    }
+
+    /// The first of the feeling renders' seeds whose Tomo matches.
+    private static func feelingLook(_ matches: (TomoLook) -> Bool) -> TomoLook {
+        (0..<4000).lazy.map { TomoLook(seed: "feelings-\($0)") }.first(where: matches) ?? .mascot
+    }
+
+    private static var feelingSheet: some View {
+        func cell(_ l: TomoLook, age: Int, _ feeling: TomoFeeling?, _ label: String) -> some View {
+            var t = 100.0
+            let blob = TomoBlob(look: l, material: .forRenders)
+            blob.reduceMotion = TomoMotion.forced
+            blob.clock = { t }
+            blob.feeling = feeling                              // shown from its first frame
+            blob.setGrowth(CGFloat(age))
+            blob.step()
+            while t < 101.2 { t += 1.0 / 60; blob.step() }      // its gaze settled, before its first blink or fidget
+            return VStack(spacing: 2) {
+                Canvas { ctx, sz in blob.draw(ctx, size: sz) }.frame(width: 140, height: 140)
+                Text(label).font(.system(size: 13, weight: .medium)).foregroundColor(.white.opacity(0.6))
+            }
+        }
+        let shapes: [TomoForm.Silhouette] = [.round, .organic, .boxy, .capsule, .nub, .cloud, .droplet, .hexagon, .sun, .triangle]
+        let toppers: [(TomoLook.Topper, String)] = [(.cat, "cat"), (.bunny, "bunny"), (.bear, "bear"), (.horns, "horns"),
+                                                    (.antenna, "antenna"), (.sprout, "sprout")]
+        let bySilhouette = shapes.map { s in feelingLook { $0.form(3).silhouette == s } }
+        let eared = feelingLook { $0.topper == .bunny }
+        let byTopper = toppers.map { tp in feelingLook { $0.topper == tp.0 } }
+        let ages = ["1さい", "2さい", "3さい", "4さい", "5さい", "6さい"]  // text-ok: debug sheet labels
+        func block(_ feeling: TomoFeeling?) -> some View {
+            HStack(alignment: .top, spacing: 6) {
+                Text(feeling?.rawValue ?? "well").font(.system(size: 20, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white).frame(width: 90, height: 140)
+                ForEach(0..<shapes.count, id: \.self) { cell(bySilhouette[$0], age: 3, feeling, shapes[$0].rawValue) }
+                Color.clear.frame(width: 20, height: 1)
+                ForEach(0..<TomoLook.ages, id: \.self) { cell(eared, age: $0, feeling, ages[$0]) }
+                Color.clear.frame(width: 20, height: 1)
+                ForEach(0..<toppers.count, id: \.self) { cell(byTopper[$0], age: 3, feeling, toppers[$0].1) }
+            }
+        }
+        return VStack(alignment: .leading, spacing: 12) {
+            block(nil)
+            block(.droopy)
+            block(.sickly)
         }
         .padding(20)
         .background(Color.black)

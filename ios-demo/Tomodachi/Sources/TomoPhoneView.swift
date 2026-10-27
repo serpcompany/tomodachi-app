@@ -71,7 +71,7 @@ struct TomoPhoneView: View {
                 }
 
                 Spacer(minLength: 4)
-                TomoBlobView(state: shell.botState, growth: growth, material: .own, hello: true)
+                TomoBlobView(state: shell.botState, growth: growth, material: .own, hello: true, feeling: game.feeling)
                     .frame(width: tomoSize, height: tomoSize)
                     .contentShape(Rectangle())
                     .onTapGesture { NotificationCenter.default.post(name: .triggerSlap, object: nil) }

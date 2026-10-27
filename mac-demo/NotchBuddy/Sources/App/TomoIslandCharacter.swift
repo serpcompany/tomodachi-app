@@ -145,6 +145,7 @@ struct TomoCharacterView: View {
                     blob.showsBadges = Self.wearsBadges(state.mode)
                     blob.weather = Self.weather(mode: state.mode, view: state.view, today: todaysWeather)
                     blob.dance = Self.dance(playing: music.playing, mode: state.mode, quiet: quiet, today: todaysDance)
+                    blob.feeling = TomoGame.shared.feeling   // the Testing menu's look (#257)
                     blob.step()
                     blob.draw(context, size: geo.size)
                 }

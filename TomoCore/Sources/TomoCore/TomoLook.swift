@@ -20,13 +20,19 @@ public struct TomoLook: Equatable, Sendable {
     public enum Pattern: Sendable { case none, belly, cap, spots, stripes, twoTone }
     public enum Topper: Sendable { case none, cat, bunny, bear, horns, antenna, sprout }
 
-    /// The colours, fixed for life. `accent` is the second colour its markings use.
+    /// The colours, fixed for life. `accent` is the second colour its markings use. Only a feeling's colour pass draws
+    /// them otherwise, on a copy (`repainted`, #257).
     public let hue: Double
-    public let body: Color
-    public let bodyLight: Color
-    public let accent: Color
-    public let ink: Color
-    public let cheek: Color
+    public private(set) var body: Color
+    public private(set) var bodyLight: Color
+    public private(set) var accent: Color
+    public private(set) var ink: Color
+    public private(set) var cheek: Color
+    /// Its own head and markings colours in OKLCh, which a repainted copy starts from.
+    let tone: TomoOklch
+    let accentTone: TomoOklch
+    /// The head and eye colours it's drawn in (`body` and `ink`), in OKLCh: its own, or a repainted copy's.
+    private(set) var drawnTones: (head: TomoOklch, ink: TomoOklch)
     /// Eyes, fixed for life: a style, width and height (in body radii), squareness, spacing, height on the face.
     /// A rare Tomo has one big eye.
     public let eyeStyle: EyeStyle
@@ -72,20 +78,24 @@ public struct TomoLook: Equatable, Sendable {
         let tone = t.band("tone", Self.tones)
         var head = TomoOklch(l: tone.l, c: tone.c, h: hue)
         head = head.ensuringContrast(against: .notch, min: 3)          // always visible on the black notch
+        self.tone = head
         let eye = head.l >= 0.5 ? TomoOklch(l: 0.2, c: 0.03, h: hue) : TomoOklch(l: 0.97, c: 0.012, h: hue)
+        let inkTone = eye.ensuringContrast(against: head, min: 4.5)
+        drawnTones = (head, inkTone)
         body = head.color
         bodyLight = TomoOklch(l: min(1, head.l + 0.07), c: head.c * 0.85, h: hue).color
-        ink = eye.ensuringContrast(against: head, min: 4.5).color
+        ink = inkTone.color
         cheek = TomoOklch(l: 0.72, c: 0.15, h: 12).color
 
         pattern = t.band("pattern", [(Pattern.none, 0.3), (.belly, 0.46), (.cap, 0.6), (.spots, 0.74), (.stripes, 0.86), (.twoTone, 1)])
         let shift = t.numD("accent.hue", 40, 160) * (t("accent.dir") < 0.5 ? -1 : 1)
         let darker = head.l > 0.6 ? -0.13 : 0.13
         switch pattern {
-        case .belly: accent = TomoOklch(l: min(0.97, head.l + 0.1), c: head.c * 0.35, h: hue).color
-        case .twoTone: accent = TomoOklch(l: head.l, c: max(head.c, 0.1), h: hue + shift * 0.45).color   // neighbours, never muddy
-        default: accent = TomoOklch(l: head.l + darker, c: max(head.c, 0.11), h: hue + shift * 0.5).color
+        case .belly: accentTone = TomoOklch(l: min(0.97, head.l + 0.1), c: head.c * 0.35, h: hue)
+        case .twoTone: accentTone = TomoOklch(l: head.l, c: max(head.c, 0.1), h: hue + shift * 0.45)   // neighbours, never muddy
+        default: accentTone = TomoOklch(l: head.l + darker, c: max(head.c, 0.11), h: hue + shift * 0.5)
         }
+        accent = accentTone.color
 
         eyeStyle = t.band("eye.style", [(EyeStyle.bar, 0.3), (.dot, 0.55), (.big, 0.72), (.lidded, 0.87), (.bead, 1)])
         cyclops = t.chance("eye.cyclops", 0.05)
@@ -125,6 +135,23 @@ public struct TomoLook: Equatable, Sendable {
     }
 
     public func form(_ age: Int) -> TomoForm { forms[min(max(age, 0), forms.count - 1)] }
+
+    /// The same Tomo in other colours, for a look drawn over its own (`TomoFeeling`): its head and markings painted
+    /// `head` and `accent`, its eyes and cheeks following as they do for its own colours (its head clear of the notch at
+    /// 3:1, its eyes at 4.5:1 on it). Its seed, shape and everything else stay its own.
+    func repainted(head: TomoOklch, accent: TomoOklch, cheekChroma: Double) -> TomoLook {
+        var out = self
+        let h = head.ensuringContrast(against: .notch, min: 3)
+        let eye = tone.l >= 0.5 ? TomoOklch(l: 0.2, c: 0.03, h: h.h) : TomoOklch(l: 0.97, c: 0.012, h: h.h)
+        let ink = eye.ensuringContrast(against: h, min: 4.5)
+        out.drawnTones = (h, ink)
+        out.body = h.color
+        out.bodyLight = TomoOklch(l: min(1, h.l + 0.07), c: h.c * 0.85, h: h.h).color
+        out.ink = ink.color
+        out.accent = accent.color
+        out.cheek = TomoOklch(l: 0.72, c: cheekChroma, h: 12).color
+        return out
+    }
 
     private struct Tone { let l: Double; let c: Double }
     /// pastel, mid, bright, deep, then pale (a rare near-white Tomo).
