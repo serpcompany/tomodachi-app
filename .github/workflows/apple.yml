@@ -145,8 +145,11 @@ jobs:
         if: needs.changes.outputs.code != 'false' && steps.receipt.outputs.found == '0'
         id: sim
         run: |
-          runtime=$(xcrun simctl list runtimes -j | jq -r '[.runtimes[] | select(.platform == "iOS" and .isAvailable)] | last | .identifier')
-          udid=$(xcrun simctl create tomo-ci com.apple.CoreSimulator.SimDeviceType.iPhone-17 "$runtime")
+          device=com.apple.CoreSimulator.SimDeviceType.iPhone-17
+          runtime=$(xcrun simctl list runtimes -j | jq -r --arg d "$device" '[.runtimes[] | select(.platform == "iOS" and .isAvailable and any(.supportedDeviceTypes[]?; .identifier == $d))] | last | .identifier')
+          test -n "$runtime" && [ "$runtime" != null ] || { echo "::error::no available iOS runtime supports $device"; exit 1; }
+          echo "Simulator: $device on $runtime"
+          udid=$(xcrun simctl create tomo-ci "$device" "$runtime")
           echo "udid=$udid" >> "$GITHUB_OUTPUT"
       - name: Unit and UI tests, the Pull Request plan
         if: needs.changes.outputs.code != 'false' && steps.receipt.outputs.found == '0'
