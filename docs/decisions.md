@@ -2,6 +2,18 @@
 
 Newest first. Add an entry when a direction is chosen. Keep the reason, so later sessions don't reopen it by accident. The first days' decisions are in [decisions-2026-10-03.md](decisions-2026-10-03.md), [decisions-2026-10-05.md](decisions-2026-10-05.md), [decisions-2026-10-06.md](decisions-2026-10-06.md) and [decisions-2026-10-07.md](decisions-2026-10-07.md), and the ones about what Tomo teaches (the content source, word lists, levels and rounds) in [decisions-content.md](decisions-content.md).
 
+### 2026-10-27: At a birthday, Tomo's old shape flows into its new one
+A birthday morphs Tomo's outline from its old form to its new one over 1.2 s, springing past it and settling (the
+states lab's Flubber option), in place of the 0.6 s squeeze-and-pop; under Reduce Motion the new form crossfades in
+over 0.9 s. The morph is a Swift port of [flubber](https://github.com/veltman/flubber) (MIT, `TomoCore/LICENSE-flubber`,
+credited in About): equal-arc samples, the start point that moves least, and a straight mix (`TomoFormMorph`), one
+function of two forms and a progress that the egg's hatch reuses
+([#258](https://github.com/serpcompany/tomodachi-app/issues/258); [#259](https://github.com/serpcompany/tomodachi-app/issues/259)).
+**Why:** the owner picked it in the states lab ([#251](https://github.com/serpcompany/tomodachi-app/issues/251)): you
+watch one shape become the next, where the pop is easy to miss and its swap is a cut, and Grand (2.6 s) owns Tomo too
+long. The lab's own polar morph (96 rays from the centre) was ruled out for flubber, which the owner named. Pop and
+Grand stay in the lab.
+
 ### 2026-10-12: A learner's own language is never the one they learn
 The interface language is never the target language: one rule in TomoCore (`TomoLanguages.allows`), asked by
 everything that offers or sets a pair. While Japanese is the only target, nothing offers or sets a Japanese

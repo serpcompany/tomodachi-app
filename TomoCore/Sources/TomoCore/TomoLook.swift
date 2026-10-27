@@ -208,11 +208,12 @@ public struct TomoForm: Sendable {
     public enum Detail: CaseIterable, Sendable { case cheeks, freckles, sheen, mark }
 
     public let silhouette: Silhouette
-    /// Size, growing with age (1 at 1さい).
-    public let scale: CGFloat
+    /// Size, growing with age (1 at 1さい). It and the other measurements a morph blends can be set in TomoCore
+    /// (`TomoFormMorph`).
+    public internal(set) var scale: CGFloat
     /// Body radii, in units of R: rx, ry, and squareness.
-    public let rx: CGFloat
-    public let ry: CGFloat
+    public internal(set) var rx: CGFloat
+    public internal(set) var ry: CGFloat
     public let n: CGFloat
     public let rot: CGFloat
     /// Per-vertex radius multipliers, for the organic and cloud outlines.
@@ -223,14 +224,17 @@ public struct TomoForm: Sendable {
     public let corner: CGFloat
     public let tip: CGFloat
     /// Where the eyes sit (centre y) and how much room they have, in units of R.
-    public let faceY: CGFloat
-    public let faceW: CGFloat
+    public internal(set) var faceY: CGFloat
+    public internal(set) var faceW: CGFloat
     public let details: Set<Detail>
     /// How its topper leans, seeded too.
-    public let sproutLean: CGFloat
+    public internal(set) var sproutLean: CGFloat
+    /// A morph's outline in place of its own, part way from one age's form to the next (TomoMorph.swift); nil for
+    /// every age's own form.
+    var morphed: Outline?
 
     /// The everyday shapes come up often; the loud ones are finds. Babies (1さい) are always soft shapes.
-    private static let bands: [(Silhouette, Double)] = [
+    static let bands: [(Silhouette, Double)] = [
         (.round, 0.22), (.organic, 0.46), (.boxy, 0.58), (.capsule, 0.68), (.nub, 0.78),
         (.cloud, 0.86), (.droplet, 0.915), (.hexagon, 0.95), (.sun, 0.98), (.triangle, 1),
     ]
@@ -311,6 +315,7 @@ public struct TomoForm: Sendable {
 
     /// The body's outline, centred on the origin, in points (R = one body radius).
     public func path(R: CGFloat) -> Path {
+        if let m = morphed { return TomoMorph.path(m.points.map { CGPoint(x: $0.x * R, y: $0.y * R) }) }
         var p = Path()
         let rx = self.rx * R, ry = self.ry * R
         if sides > 0 {
@@ -332,12 +337,14 @@ public struct TomoForm: Sendable {
 
     /// How far the shape reaches above and below its centre, in units of R (for the ground line and sprout).
     public var top: CGFloat {
+        if let m = morphed { return m.top }
         var t = ry
         if tip > 0 { t = ry * tip * 0.95 - 0.18 }
         for c in petals { t = max(t, -c.y + c.r) }
         return t
     }
     public var bottom: CGFloat {
+        if let m = morphed { return m.bottom }
         var b = ry + (silhouette == .droplet ? 0.18 : 0)
         for c in petals { b = max(b, c.y + c.r) }
         return b

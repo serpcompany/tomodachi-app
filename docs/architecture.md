@@ -54,8 +54,9 @@ widgets and the card: [iphone.md](iphone.md).
 clock, so it can be rendered offline. Its look (`TomoLook`, from a seed) and what it's made of
 (`TomoMaterial`: jelly for the learner's own Tomo, classic for the mascot and what ships as files)
 come from its host, and the game drives it through notifications and Tomo's state, never directly,
-so any screen can host it. Big moments, arrivals and its hello are cue scripts on that clock, and
-Reduce Motion is an input. How it works, what hosts pass in, and its invariants:
+so any screen can host it. Big moments, arrivals and its hello are cue scripts on that clock, a
+birthday's change of shape is a morph between two forms (`TomoFormMorph`, for any change of shape),
+and Reduce Motion is an input. How it works, what hosts pass in, and its invariants:
 [character.md](character.md).
 
 **Languages.** `TomoLanguage.swift`: the target pack (Tomo's words, voice, recognition, AI rules)

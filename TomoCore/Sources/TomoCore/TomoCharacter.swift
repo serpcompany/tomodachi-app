@@ -4,8 +4,8 @@ import SwiftUI
 //
 // Every Tomo is a blob of its own, drawn and animated by our own code (decisions.md, 2026-10-07). What it
 // looks like comes from its seed (TomoLook.swift): a colour and eyes for life, and a new form at every
-// birthday. Growth is an age step, 0 = 1さい … 5 = 6さい; each birthday it squeezes down glowing and pops out
-// in its next form.
+// birthday. Growth is an age step, 0 = 1さい … 5 = 6さい; each birthday its old shape flows into its next form
+// (`TomoFormMorph`, TomoMorph.swift).
 // The app drives it through notifications (docs/architecture.md, "Character"): the task state
 // (`AppState.effectiveState`), `.botTalk`, `.botNudge`, `.botGrow`, `.botLevelUp`, `.botGreet`, `.botGulp`,
 // `.triggerEmote`, `.triggerSlap`, `.botBlink`, `.botSetTgEs`.
@@ -86,10 +86,13 @@ public final class TomoBlob: ObservableObject {
         reduceMotion = motion?.reduce ?? false
     }
 
-    /// The age step on show (0 = 1さい). The one it's growing into is the playing script's `swap`.
+    /// The age step on show (0 = 1さい). The one it's growing into is the playing script's `swap`; a birthday swaps at
+    /// once, and its `morph` shows the old shape flowing into the new one.
     public private(set) var age = 0
     /// The big moment playing, if any (`play`).
     private var cue: Playing?
+    /// A birthday's old shape becoming the new one (`Cue.Step.morph`), until it's done or Tomo is something else.
+    private var morph: Morphing?
 
     public private(set) var state: BotState = .idle
     private var baseFace: Face = .normal
@@ -265,7 +268,7 @@ public final class TomoBlob: ObservableObject {
     }
 
     /// Grow up (or reset) to an age step. Growing up plays the birthday script (`birthdayCue`): the new form comes at
-    /// its swap.
+    /// once, its outline flowing out of the old one (`morph`).
     public func grow(to target: CGFloat) {
         let next = Self.ageStep(target)
         let showing = cue?.swap?.age ?? age            // the age on show, or the one a birthday is growing into
@@ -280,10 +283,11 @@ public final class TomoBlob: ObservableObject {
         }
     }
 
-    /// Jump straight to an age step (no animation). A birthday playing keeps going, without its swap.
+    /// Jump straight to an age step (no animation). A birthday playing keeps going, without its swap or its morph.
     public func setGrowth(_ value: CGFloat) {
         age = Self.ageStep(value)
         cue?.swap = nil
+        morph = nil
     }
 
     private static func ageStep(_ v: CGFloat) -> Int { min(max(Int(v.rounded()), 0), TomoLook.ages - 1) }
@@ -467,7 +471,8 @@ public final class TomoBlob: ObservableObject {
         guard !isAway else { return }                       // up in the notch
         let now = clock()
         let p = started ? pose : pose(at: now)
-        let form = look.form(age)
+        let own = look.form(age), shown = morphFrame(now)       // a birthday's morph draws its own frame of the form
+        let form = shown?.form ?? own
         let R = size.width * 0.27
         let ground = form.bottom * R
         let t = CGFloat(now - born)
@@ -478,12 +483,13 @@ public final class TomoBlob: ObservableObject {
         let cx = size.width / 2 + (p.dx + look2.x * 0.04) * R
         let middle = size.height / 2 + particleOverhang / 2 + R * 0.1     // where it stands, at rest
         let cy = middle + dy * R
-        let g = form.scale * fit(form: form, R: R, ground: middle + ground)
+        let g = form.scale * fit(form: own, R: R, ground: middle + own.bottom * R)
         let rate = CGFloat(look.breathRate)
         let breath = 1 + sin(t * rate) * (state == .sleeping || drowsy ? 0.035 : 0.018)
 
         // Anchor scaling and rocking at Tomo's base, so squashes stay on the ground.
-        let sx = p.sx * puff * g * (1 - jiggle * 0.5), sy = p.sy * puff * g * breath * (1 + jiggle)
+        let sx = p.sx * puff * g * (1 - jiggle * 0.5)
+        let sy = p.sy * puff * g * breath * (1 + jiggle) * (shown?.beat.stretch ?? 1)
 
         if weatherShown.alpha > 0 { drawWeather(context, size: size, center: CGPoint(x: cx, y: cy), R: R, now: now) }
         if callGlowShown > 0 { drawCallGlow(context, center: CGPoint(x: cx, y: cy), R: R * g, now: now, fade: p.opacity) }
@@ -499,22 +505,39 @@ public final class TomoBlob: ObservableObject {
                           to: CGPoint(x: cx, y: cy + ground), R: R * g)
         }
         let light = TomoMaterial.Glow(call: callGlowAlpha(now), shine: p.shine)   // from inside (the material's)
-        let tomo = { (layer: GraphicsContext) in
+        let glow = max(p.glow, shown?.beat.glow ?? 0)
+        // One form at its own size on its own ground (Reduce Motion's crossfade draws the old one too), its topper faded.
+        let tomo = { (layer: GraphicsContext, side: TomoForm, sideAge: Int, topper: CGFloat) in
+            let base = side.bottom * R, k = side.scale / form.scale
             var ctx = layer
-            ctx.translateBy(x: cx, y: cy + ground)
+            ctx.translateBy(x: cx, y: cy + base)
             ctx.rotate(by: .radians(Double(rot)))
-            ctx.scaleBy(x: sx, y: sy)
-            ctx.translateBy(x: 0, y: -ground)
-            self.drawTopper(ctx, form: form, R: R)
-            self.drawBody(ctx, form: form, R: R, glow: p.glow, light: light)
-            self.drawFace(ctx, form: form, R: R, now: now, mouth: p.mouth)
+            ctx.scaleBy(x: sx * k, y: sy * k)
+            ctx.translateBy(x: 0, y: -base)
+            if topper >= 1 {
+                self.drawTopper(ctx, form: side, R: R, age: sideAge)
+            } else if topper > 0.01 {
+                var c = ctx
+                c.opacity *= Double(topper)
+                c.drawLayer { self.drawTopper($0, form: side, R: R, age: sideAge) }
+            }
+            self.drawBody(ctx, form: side, R: R, glow: glow, light: light)
+            self.drawFace(ctx, form: side, R: R, now: now, mouth: p.mouth)
+        }
+        let whole = { (layer: GraphicsContext) in
+            guard let old = shown?.old else { tomo(layer, form, self.age, shown?.topper ?? 1); return }
+            for (side, sideAge, alpha) in [(old.form, old.age, old.alpha), (form, self.age, 1 - old.alpha)] where alpha > 0.004 {
+                var c = layer                               // each as one piece, the new one over the old
+                c.opacity *= Double(alpha)
+                c.drawLayer { tomo($0, side, sideAge, 1) }
+            }
         }
         if p.opacity < 1 {                                  // fading in or out: as one piece, so parts don't show through
             var faded = context
             faded.opacity = Double(max(p.opacity, 0))
-            faded.drawLayer { tomo($0) }
+            faded.drawLayer { whole($0) }
         } else {
-            tomo(context)
+            whole(context)
         }
 
         if !isMini {
@@ -802,7 +825,8 @@ public final class TomoBlob: ObservableObject {
     }
 
     /// The idle moves' room under a `ceiling`: its stretch (9% taller) as it breathes in (1.8%; asleep, 3.5% and no
-    /// stretch), and a hop as it wakes (0.18 R up). A big moment's leap, which is rare and quick, may still reach past it.
+    /// stretch), and a hop as it wakes (0.18 R up). A birthday's morph, overshoot and stretch included, stays within it
+    /// (`ceilingSelfTest`); a big moment's leap, which is rare and quick, may still reach past it.
     static let idleStretch: CGFloat = 1.09 * 1.018
     static let idleLift: CGFloat = 0.18
 
@@ -829,7 +853,7 @@ public final class TomoBlob: ObservableObject {
     /// their tips. Ears lean out as they're drawn, so they reach a little less.
     func topperTop(_ form: TomoForm) -> CGFloat {
         guard age >= 1 else { return 0 }
-        let grow = topperGrow, lift = -Self.topperLift(form)
+        let grow = Self.topperGrow(age), lift = -Self.topperLift(form)
         let size = Self.topperSize(look.topper) * grow
         switch look.topper {
         case .none: return 0
@@ -841,10 +865,10 @@ public final class TomoBlob: ObservableObject {
     }
 
     /// A topper grows with age, from 1さい's 0.8.
-    private var topperGrow: CGFloat { 0.8 + 0.06 * CGFloat(age) }
+    private static func topperGrow(_ age: Int) -> CGFloat { 0.8 + 0.06 * CGFloat(age) }
     /// Where a pair (ears, horns) stands on the head, in R from its middle (negative: up).
     private static func topperLift(_ form: TomoForm) -> CGFloat {
-        (form.silhouette == .droplet ? 0.18 : 0) - form.ry * 0.74
+        form.drop - form.ry * 0.74
     }
     /// Each topper's size in R before it grows: an ear's or a horn's height, a bear ear's radius, a stem's length.
     private static func topperSize(_ topper: TomoLook.Topper) -> CGFloat {
@@ -859,12 +883,13 @@ public final class TomoBlob: ObservableObject {
         }
     }
 
-    /// What grows on its head from 2さい (ears, horns, an antenna or a sprout), swaying after every move.
-    private func drawTopper(_ ctx: GraphicsContext, form: TomoForm, R: CGFloat) {
+    /// What grows on its head from 2さい (ears, horns, an antenna or a sprout), swaying after every move. `age`: the
+    /// form's (a birthday's crossfade draws the old one too).
+    private func drawTopper(_ ctx: GraphicsContext, form: TomoForm, R: CGFloat, age: Int) {
         guard age >= 1, look.topper != .none else { return }
         let lift = Self.topperLift(form)
-        let size = R * Self.topperSize(look.topper) * topperGrow
-        let spread = form.rx * (form.silhouette == .triangle ? 0.3 : 0.58)
+        let size = R * Self.topperSize(look.topper) * Self.topperGrow(age)
+        let spread = form.rx * form.earSpread
         let fill = GraphicsContext.Shading.color(look.bodyLight)
         let inside = GraphicsContext.Shading.color(look.cheek.opacity(0.55))
         func pair(_ draw: (GraphicsContext, CGFloat) -> Void) {
@@ -1538,6 +1563,7 @@ public final class TomoBlob: ObservableObject {
             case drops(Int)                    // drops of Tomo's own colour
             case kick(CGFloat)                 // a jiggle, as on landing
             case swap                          // the new shape: the age or look the script was started with
+            case morph(Double)                 // the swap, with the old outline flowing into the new for that long
             case away                          // gone up into the notch, until `dripIn` or `appear`
         }
         let length: Double
@@ -1559,18 +1585,19 @@ public final class TomoBlob: ObservableObject {
         (1.7, .face(.happy)),
     ])
 
-    /// A birthday (about 2.6 s): a glowing squeeze-down, the new shape at 0.62 s with drops of Tomo's colour and
-    /// confetti in its own colours, a pop out with star eyes, and it settles, happy.
+    /// A birthday (about 2.6 s): the old outline flows into the new one (1.2 s, the states lab's Flubber option,
+    /// `TomoFormMorph.flubber`), reaching it at 0.2 s with drops of Tomo's colour, confetti in its own colours and star
+    /// eyes, springing past it and back, wobbling; then it lands with a jiggle and settles, happy. Under Reduce Motion
+    /// the new form fades in over the old (0.9 s), glowing softly, with star eyes from 0.135 s.
     private static let birthdayCue = Cue(length: 2.6, lively: [
-        (0, .face(.squeeze)), (0, .move(.evolve(squeeze: 0.62), 1.2)), (0, .move(.glow(0.95, peak: 0.62), 1.2)),
-        (0.62, .swap), (0.62, .drops(12)), (0.62, .confetti(26)), (0.62, .kick(7)), (0.62, .face(.star)),
-        (0.66, .sparkles(6)),
+        (0, .morph(1.2)),
+        (0.2, .face(.star)), (0.2, .drops(12)), (0.2, .confetti(26)), (0.22, .sparkles(6)),
         (1.2, .kick(6)), (1.2, .sparkles(3)), (1.2, .move(.settle, 0.8)),
         (1.8, .face(.happy)),
     ], calm: [
-        (0, .face(.star)), (0, .move(.glow(0.95, peak: 0.62), 1.2)),
-        (0.62, .swap), (0.62, .drops(12)), (0.62, .confetti(26)), (0.62, .move(.puff, 0.5)),
-        (0.66, .sparkles(6)),
+        (0, .morph(0.9)),
+        (0.135, .face(.star)),
+        (0.45, .drops(12)), (0.45, .confetti(26)), (0.45, .move(.puff, 0.5)), (0.5, .sparkles(6)),
         (1.8, .face(.happy)),
     ])
 
@@ -1640,14 +1667,51 @@ public final class TomoBlob: ObservableObject {
         var swap: (age: Int, look: TomoLook)?  // what `.swap` changes to; nil once it has
         /// It ends with Tomo up in the notch (`pullUp`).
         let goesAway: Bool
+        /// The calm steps, under Reduce Motion.
+        let calm: Bool
 
         init(_ cue: Cue, start: Double, calm: Bool, swap: (age: Int, look: TomoLook)?) {
             length = cue.length
             self.start = start
             steps = calm ? cue.calm : cue.lively
             self.swap = swap
+            self.calm = calm
             goesAway = steps.contains { if case .away = $0.step { return true } else { return false } }
         }
+    }
+
+    /// A birthday's morph playing (`Cue.Step.morph`): the two forms, the ages and Tomo they belong to, and when it
+    /// started on Tomo's clock. It isn't the script's, so a newer script doesn't stop it: it still lands on the new form.
+    private struct Morphing {
+        let shapes: TomoFormMorph
+        let fromAge: Int, toAge: Int
+        let seed: String
+        let start: Double, length: Double
+        let calm: Bool                         // Reduce Motion's crossfade
+    }
+
+    /// A morph drawn: the frame of the form on show, how far a first topper (2さい's) has grown in, and under Reduce
+    /// Motion the old form still showing over the new one.
+    struct MorphFrame {
+        let form: TomoForm
+        let beat: TomoFormMorph.Beat
+        let topper: CGFloat
+        let old: (form: TomoForm, age: Int, alpha: CGFloat)?
+    }
+
+    /// The morph's frame `now`, while one is playing into the form on show (nil once it's done, or Tomo has become
+    /// another Tomo or age since).
+    func morphFrame(_ now: Double) -> MorphFrame? {
+        guard let m = morph else { return nil }
+        let e = now - m.start
+        guard e < m.length, m.toAge == age, m.seed == look.seed else { morph = nil; return nil }
+        if m.calm {
+            let b = TomoFormMorph.crossfade(e, length: m.length)
+            return MorphFrame(form: m.shapes.to, beat: b, topper: 1, old: (m.shapes.from, m.fromAge, b.fade))
+        }
+        let b = TomoFormMorph.flubber(e, length: m.length)
+        let topper = m.fromAge < 1 ? min(1, max(0, (b.u - 0.35) / 0.3)) : 1     // the lab's seg(u, 0.35, 0.65)
+        return MorphFrame(form: m.shapes.form(at: b.u, wobble: b.wobble, phase: b.phase), beat: b, topper: topper, old: nil)
     }
 
     /// Plays a big moment. A newer one replaces the one playing, which first finishes what it opened (its shape swap).
@@ -1681,6 +1745,15 @@ public final class TomoBlob: ObservableObject {
             switch step {
             case .swap:
                 if let s = c.swap { age = s.age; look = s.look; c.swap = nil }
+            case .morph(let length):
+                if let s = c.swap {
+                    let old = (form: look.form(age), age: age)
+                    age = s.age; look = s.look; c.swap = nil
+                    if !over {
+                        morph = Morphing(shapes: TomoFormMorph(old.form, look.form(age)), fromAge: old.age, toAge: age,
+                                         seed: look.seed, start: c.start + at, length: length, calm: c.calm)
+                    }
+                }
             case .away:
                 isAway = true
             case _ where over:
@@ -1865,8 +1938,9 @@ extension TomoBlob {
                 if swappedAt == nil, b1.age == 1 { swappedAt = s }
             }
         }
-        check(onTime && exact && swappedAt == 0.62,
-              "a script's steps each fire once, at their times (a birthday's new shape at 0.62 s), however the frames fall")
+        check(onTime && exact && swappedAt == 0,
+              "a script's steps each fire once, at their times (a birthday's new shape from 0 s, flowing out of the old), "
+              + "however the frames fall")
 
         // The level-up (#130): squeeze (0–0.35 s), leap with star eyes, land (0.95–1.3 s), settle happy, over at 2.1 s.
         let b2 = blob()
@@ -1907,28 +1981,34 @@ extension TomoBlob {
         check(sent.pose == alone.pose && later.pose == alone.pose && sent.early == 0 && later.early == 0,
               "the game's win and .proud, sent with a level-up in either order, add no hop and no sparkles to it")
 
-        // A newer script closes what an older one opened: a level-up mid-birthday shows the birthday's new shape now.
-        let b3 = blob()
-        b3.grow(to: 1)
+        // A newer script closes what an older one opened: a level-up while another Tomo pops in (its swap at 0.62 s)
+        // shows that Tomo now. A birthday's shape is new from its start, so nothing over it can lose it (the morph's
+        // own check: TomoBlob.morphSelfTest).
+        let b3 = blob(), other = TomoLook(seed: "selftest-other")
+        b3.play(Self.newTomoCue, swap: (0, other))
         t = 100.3
         b3.step()
-        let before = b3.age
+        let before = b3.look == TomoLook.mascot
         b3.levelUp()
-        let closed = b3.age == 1 && b3.cue?.swap == nil
+        let closed = b3.look == other && b3.cue?.swap == nil
             && !b3.moves.contains { if case .evolve = $0.kind { return true } else { return false } }
+        t = 100.5
+        b3.step()
+        b3.grow(to: 1)                                  // a birthday over the level-up: the new shape at once
+        let grown = b3.age == 1
+        t = 100.6
+        b3.step()
         b3.grow(to: 1)                                  // the same birthday heard again: nothing more
-        t = 100.7
+        t = 100.75
         b3.step()
-        let leveling = b3.shownFace == .star
+        let partying = b3.shownFace == .star            // 0.25 s into the first, past its star eyes at 0.2 s
         b3.grow(to: 2)                                  // then a birthday over a birthday
-        t = 101
-        b3.step()
-        b3.grow(to: 3)
-        let skipped = b3.age == 2
+        let again = b3.age == 2
         t = 105
         b3.step()
-        check(before == 0 && closed && leveling && skipped && b3.age == 3 && b3.cue == nil,
-              "a newer script closes an older one's pending shape swap (a level-up or a birthday over a birthday)")
+        check(before && closed && grown && partying && again && b3.age == 2 && b3.cue == nil,
+              "a newer script closes an older one's pending shape swap; a birthday's new shape comes at once, heard twice "
+              + "or over another birthday")
 
         // Unseen (a hidden island, an app in the background): when Tomo is drawn again, only the shape has changed.
         let b4 = blob()
@@ -2487,11 +2567,36 @@ extension TomoBlob {
 
     /// Small Tomo standing in a canvas of `size` (`overhang` of it above Tomo, as its hosts give it) under `ceiling`, for
     /// each look at every age: what it draws above `top` (canvas points) at rest, at the top of its idle stretch, and at
-    /// the top of a hop as it wakes, from renders. Empty when nothing reaches past `top`.
+    /// the top of a hop as it wakes, and through a birthday's morph into that age (its overshoot, wobble and stretch;
+    /// the body and topper only, as its drops and confetti may fly into the room above), from renders. Empty when
+    /// nothing reaches past `top`.
     public static func pokesAbove(_ top: CGFloat, ceiling: CGFloat?, size: CGSize, overhang: CGFloat,
                                   looks: [TomoLook]) -> [String] {
         var t = 100.0, out: [String] = []
         for look in looks {
+            for age in 1..<TomoLook.ages {
+                t = 100
+                let b = TomoBlob(look: look, material: .own)
+                b.clock = { t }
+                b.particleOverhang = overhang
+                b.ceiling = ceiling
+                b.setGrowth(CGFloat(age - 1))
+                b.step()
+                b.grow(to: CGFloat(age))
+                var most: (over: CGFloat, at: Double) = (0, 0)
+                for i in 1...23 {                           // every 0.05 s of the 1.2 s morph
+                    t = 100 + Double(i) * 0.05
+                    b.step()
+                    b.bits.removeAll()
+                    if let y = drawnTop(size: size, { ctx, s in b.draw(ctx, size: s) }), top - y > max(0.5, most.over) {
+                        most = (top - y, t - 100)
+                    }
+                }
+                if most.over > 0 {
+                    out.append(String(format: "%@ age %d a birthday's morph at %.2f s: %.1f pt over", look.seed, age,
+                                      most.at, most.over))
+                }
+            }
             for age in 0..<TomoLook.ages {
                 for (pose, move, peak) in [("at rest", nil, 0.0), ("stretched", Move.Kind.stretch, 0.45),
                                            ("hopping", .hop(TomoBlob.idleLift), 0.2)] as [(String, Move.Kind?, Double)] {
@@ -2533,8 +2638,9 @@ extension TomoBlob {
         let under = pokesAbove(roomTop, ceiling: roomTop + 1, size: size, overhang: overhang, looks: looks)
         let without = pokesAbove(roomTop, ceiling: nil, size: size, overhang: overhang, looks: looks)
         check(under.isEmpty && !without.isEmpty,
-              "under a ceiling small Tomo draws nothing above the room at any age, at rest, stretched or hopping"
-              + (under.isEmpty ? " (\(without.count) of \(looks.count * TomoLook.ages * 3) would without it)"
+              "under a ceiling small Tomo draws nothing above the room at any age, at rest, stretched, hopping or "
+              + "through a birthday's morph"
+              + (under.isEmpty ? " (\(without.count) of \(looks.count * (TomoLook.ages * 4 - 1)) would without it)"
                  : ": \(under.prefix(3).joined(separator: "; "))"))
         #endif
         var fits: [CGFloat] = []

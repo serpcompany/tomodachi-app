@@ -42,7 +42,12 @@ Tomo's clock. While one plays it owns Tomo's body, face and particles, so what t
 newer one replaces it, and first closes what the old one opened (its pending shape swap). A hello never plays over
 another script, or while Tomo is away. A moment's particles are its own steps: a level-up's sparkles and sparkle dust,
 a birthday's drops and confetti in Tomo's own colours (`confettiColor`: its body, lighter top, markings and cheeks).
-Each lives 2 s at most and all are gone when the moment ends; under Reduce Motion there are a third, slower. Planned: evolution that reads as growing up, as cue scripts
+Each lives 2 s at most and all are gone when the moment ends; under Reduce Motion there are a third, slower.
+At a birthday the new form comes at once and its outline flows out of the old one (`TomoFormMorph`, TomoMorph.swift):
+a port of [flubber](https://github.com/veltman/flubber) on the states lab's Flubber timing (1.2 s, springing past the
+new outline and settling), and under Reduce Motion a 0.9 s crossfade. Its function of two forms and a progress is for
+any change of shape (the egg's hatch, [#258](https://github.com/serpcompany/tomodachi-app/issues/258)). The morph is
+Tomo's, not the script's: a newer script doesn't stop it. Planned: evolution that reads as growing up, as cue scripts
 ([#87](https://github.com/serpcompany/tomodachi-app/issues/87)).
 
 ## What its hosts pass in
@@ -79,6 +84,9 @@ Each lives 2 s at most and all are gone when the moment ends; under Reduce Motio
 
 - Idle life never stops: under Reduce Motion it still breathes and blinks, and a birthday still changes its shape.
 - A cue script's shape swap always happens, even when a newer script replaces it or nobody saw it play.
+- A birthday's morph always lands on the new form, whatever plays over it; jumping straight to an age ends it at once
+  (`TomoBlob.morphSelfTest`). No morph between any two shapes tangles, flips or spins (`TomoFormMorph.selfTest`, and
+  for all eight render seeds `TOMO_RENDER_EVOLUTION`).
 - TomoBlob never reads a system setting or the game, or picks its own material.
 - A seed always gives the same Tomo.
 - `classic` never changes, because the frame font is rendered from it: a new look is a new material.

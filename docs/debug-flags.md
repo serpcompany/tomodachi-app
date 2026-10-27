@@ -113,7 +113,11 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   `TOMO_AUTOPLAY=1` it plays itself through; `TOMO_SNAPSHOT_DIR` captures its window (`onboarding-NNN.png`).
 - `TOMO_RENDER_VARIETY=<dir>`: the same eight Tomos at several `TomoLook.variety` settings, to judge how
   different Tomos should be.
-- `TOMO_RENDER_EVOLUTION=<dir>`: eight Tomos at every age, one per row, to judge how they evolve.
+- `TOMO_RENDER_EVOLUTION=<dir>`: eight Tomos at every age, one per row, to judge how they evolve
+  (`tomo-evolution.png`), and their birthdays' morphs: moments through a birthday (`tomo-morphs.png`; Reduce Motion's
+  crossfade, `tomo-morphs-calm.png`) and, for each seed, every shape's outline flowing into every other, with the
+  points' paths (`tomo-morph-pairs-<seed>.png`). It prints the morph survey for all eight seeds and exits 1 if any
+  morph tangles, flips or spins.
 
 ## Starting from a known state
 

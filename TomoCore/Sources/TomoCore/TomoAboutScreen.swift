@@ -3,8 +3,8 @@ import SwiftUI
 // MARK: - About: the version, the privacy policy, support, and the credits (the same on the Mac and the iPhone)
 //
 // The credits must be visible wherever the app ships: the word data is CC BY (Wordbank, NINJAL), JMdict is CC BY-SA,
-// and blobatar and Coucou are MIT. Each credit's text is in ui.<id>.json (`about.credit.<id>` and `.body`); its link
-// is below. Tomo here is the app's mascot, drawn live.
+// and blobatar, flubber and Coucou are MIT. Each credit's text is in ui.<id>.json (`about.credit.<id>` and `.body`); its
+// link is below. Tomo here is the app's mascot, drawn live.
 
 public struct TomoAboutScreen: View {
     @ObservedObject var lang = TomoLanguages.shared
@@ -23,6 +23,7 @@ public struct TomoAboutScreen: View {
         ("ninjal", URL(string: "https://mmsrv.ninjal.ac.jp/bev/")!),
         ("jmdict", URL(string: "https://www.edrdg.org/edrdg/licence.html")!),
         ("blobatar", URL(string: "https://github.com/Alain00/blobatar")!),
+        ("flubber", URL(string: "https://github.com/veltman/flubber")!),
         ("coucou", URL(string: "https://github.com/Louis-CFM/coucou")!),
     ]
 
