@@ -63,7 +63,7 @@ public final class TomoBlob: ObservableObject {
     /// the hello takes over while it plays. Off under Reduce Motion.
     public var dance: TomoDance?
     /// How Tomo feels (#257): a look over its own (`TomoFeeling`), or nil: well. Droopy slumps lower and wider, flops its
-    /// ears or topper, looks at the floor, breathes slower and sighs about every 20 s; sickly turns green-grey and a size
+    /// ears or topper, looks at the floor, breathes slower and sighs every 5 to 7 s; sickly turns green-grey and a size
     /// smaller, with a sweat drop, quick shallow breaths, heavy worried lids and a shiver every few seconds. It eases in
     /// and out over about a second, and back to well Tomo gives a happy wiggle. Its colours are a pass over the look, so
     /// the look never changes. Under Reduce Motion only its face, colour and pose change: the sigh and the shiver are a
@@ -488,7 +488,7 @@ public final class TomoBlob: ObservableObject {
         let calm = cue == nil && danceShown.amount == 0 && (state == .idle || state == .question || state == .thinking)
         if calm, !drowsy, flash == nil, moves.isEmpty, glance == nil, now > nextFidget {
             switch feeling {                                // a feeling has its own, slower fidget
-            case .droopy?: add(.sigh, 1.8); nextFidget = now + .random(in: 16...24)
+            case .droopy?: add(.sigh, 1.8); nextFidget = now + .random(in: 5...7)
             case .sickly?: add(.shiver(0.022), 0.8); nextFidget = now + .random(in: 3.5...5.5)
             case nil: fidget(); nextFidget = now + .random(in: 2.5...6)
             }
@@ -844,11 +844,12 @@ public final class TomoBlob: ObservableObject {
         if glow > 0.01 { inner.fill(body, with: .color(.white.opacity(Double(glow)))) }
     }
 
-    /// Droopy's outline: the warp of whatever outline `form` draws (`TomoFeeling.sagged`), kept while the sag holds, so
-    /// a slumped Tomo at rest doesn't build it every frame. While a big moment plays, the form's outline can change
-    /// under the same Tomo and age (a birthday's morph, #282), so it's built fresh each frame then and never kept.
+    /// Droopy's outline: the warp of whatever outline `form` draws (`TomoFeeling.sagged`), so it slumps through a
+    /// birthday's morph too, kept while the sag holds so a slumped Tomo at rest doesn't build it every frame. Only an
+    /// age's own form is kept: while a birthday's morph is on show (#282) the outline changes every frame, and Reduce
+    /// Motion's crossfade draws two forms, so it's built fresh then and never kept, whatever script plays over it.
     private func slumped(_ form: TomoForm, R: CGFloat, top: CGFloat, bottom: CGFloat) -> Path {
-        let sag = feelingShown.sag, keeps = cue == nil
+        let sag = feelingShown.sag, keeps = form.morphed == nil && morph == nil
         if keeps, let s = slump, s.seed == look.seed, s.age == age, s.R == R, s.sag == sag { return s.body }
         let body = TomoFeeling.sagged(form.path(R: R), top: top, bottom: bottom, by: sag)
         slump = keeps ? (look.seed, age, R, sag, body) : nil
@@ -2649,10 +2650,10 @@ extension TomoBlob {
 extension TomoBlob {
     /// How Tomo feels (#257), on a clock only the check moves, at every age: a feeling eases in over about a second (and
     /// shows at once on a Tomo that starts with it) and changes only how Tomo is drawn, never its age or look; droopy
-    /// slumps wider without getting taller, looks at the floor, breathes slower and sighs about every 20 s; sickly
-    /// breathes quicker and shallower, shivers every few seconds and is repainted; under Reduce Motion the sigh and the
-    /// shiver are a puff and it still breathes and blinks; nothing emits at rest; and back to well it gives a happy
-    /// wiggle with a few sparkles.
+    /// slumps wider without getting taller, and through a birthday's morph, looks at the floor, breathes slower and
+    /// sighs every 5 to 7 s; sickly breathes quicker and shallower, shivers every few seconds and is repainted; under
+    /// Reduce Motion the sigh and the shiver are a puff and it still breathes and blinks; nothing emits at rest; and
+    /// back to well it gives a happy wiggle with a few sparkles.
     static func feelingSelfTest(_ check: (Bool, String) -> Void) {
         var t = 100.0
         let look = TomoLook(seed: "feelings")
@@ -2735,27 +2736,54 @@ extension TomoBlob {
         }
         check(shapes.count == 10 && slumps, "droopy slumps every silhouette wider at the bottom, no taller and no lower at the top")
 
-        // While a big moment plays, the outline can change under the same Tomo and age (a birthday's morph), so the
-        // slumped one follows the outline it's given; once the moment is over it's kept again.
-        let mid = blob(.droopy, age: 2), R: CGFloat = 100, ownForm = look.form(2)
-        func slumpBox(_ f: TomoForm) -> CGRect { mid.slumped(f, R: R, top: -f.top * R, bottom: f.bottom * R).boundingRect }
+        // Through a birthday's morph droopy slumps whatever outline is on show, and once the morph is over it slumps
+        // the new form's own, kept again: even when shorter scripts play over the birthday and end before the morph
+        // does (pulled up into the notch at 0.1 s, back with a quick fade at 0.55 s, all over by 0.8 s, the morph on until
+        // 1.2 s, or 0.9 s for Reduce Motion's crossfade), lively and under Reduce Motion. Each frame calls `slumped` as `drawBody` would, while Tomo is drawn.
+        let R: CGFloat = 100
+        func box(_ path: Path) -> CGRect { path.boundingRect }
         func near(_ a: CGRect, _ b: CGRect) -> Bool {
             abs(a.minX - b.minX) < 0.5 && abs(a.maxX - b.maxX) < 0.5 && abs(a.minY - b.minY) < 0.5 && abs(a.maxY - b.maxY) < 0.5
         }
-        let resting = slumpBox(ownForm)
-        let other = shapes.values.first { $0.silhouette != ownForm.silhouette } ?? ownForm
-        mid.play(Self.birthdayCue)
-        let during = slumpBox(other)
-        let wanted = TomoFeeling.sagged(other.path(R: R), top: -other.top * R, bottom: other.bottom * R,
-                                        by: mid.feelingShown.sag).boundingRect
-        for _ in 0..<(60 * 4) { t += 1.0 / 60; mid.step() }                // the moment over
-        let after = mid.cue == nil ? slumpBox(ownForm) : .null
-        check(other.silhouette != ownForm.silhouette && near(during, wanted) && !near(during, resting) && near(after, resting)
-              && mid.slump != nil,
-              "droopy's slumped outline follows the outline it's given while a big moment plays (a birthday's morph), "
-              + "and is kept again once it's over")
+        func fresh(_ b: TomoBlob, _ f: TomoForm) -> CGRect {
+            box(TomoFeeling.sagged(f.path(R: R), top: -f.top * R, bottom: f.bottom * R, by: b.feelingShown.sag))
+        }
+        var morphProblems: [String] = []
+        for calm in [false, true] {
+            let mid = blob(.droopy, age: 1, reduce: calm), what = calm ? "Reduce Motion" : "lively"
+            mid.grow(to: 2)
+            var pulled = false, back = false, coverFrames = 0, followed = true
+            for i in 1...(60 * 2) {
+                t = 100 + Double(i) / 60
+                if !pulled, t >= 100.1 { pulled = true; mid.pullUp() }
+                if !back, t >= 100.55 { back = true; mid.appear() }
+                mid.step()
+                guard !mid.isAway else { continue }
+                if let frame = mid.morphFrame(t) {
+                    if mid.cue == nil { coverFrames += 1 }
+                    for f in [frame.old?.form, frame.form].compactMap({ $0 }) {
+                        let drawn = box(mid.slumped(f, R: R, top: -f.top * R, bottom: f.bottom * R))
+                        if !near(drawn, fresh(mid, f)) { followed = false }
+                    }
+                } else {
+                    let f = mid.look.form(mid.age)
+                    _ = mid.slumped(f, R: R, top: -f.top * R, bottom: f.bottom * R)
+                }
+            }
+            let own = mid.look.form(2)
+            let after = box(mid.slumped(own, R: R, top: -own.top * R, bottom: own.bottom * R))
+            if coverFrames == 0 { morphProblems.append("\(what): no frame of the morph after the scripts over it ended") }
+            if !followed { morphProblems.append("\(what): a frame of the morph wasn't its own outline slumped") }
+            if mid.age != 2 || mid.morphFrame(t) != nil || !near(after, fresh(mid, own)) || mid.slump == nil {
+                morphProblems.append("\(what): after the morph it isn't the new age's own outline slumped, kept")
+            }
+        }
+        check(morphProblems.isEmpty,
+              "droopy slumps a birthday's morph frame by frame and then the new form's own outline, kept, even when "
+              + "being pulled up and coming back end before the morph does, lively and under Reduce Motion"
+              + (morphProblems.isEmpty ? "" : ": " + morphProblems.joined(separator: "; ")))
 
-        // Each one's own life: droopy looks down, breathes slower and sighs about every 20 s; sickly breathes quicker and
+        // Each one's own life: droopy looks down, breathes slower and sighs every 5 to 7 s; sickly breathes quicker and
         // shallower and shivers every few seconds. All at every age, with nothing emitted.
         let (calmWell, _) = run(nil)
         let (droopy, _) = run(.droopy), (sickly, _) = run(.sickly)
@@ -2765,8 +2793,8 @@ extension TomoBlob {
         check(abs(slow - 0.75) < 0.06 && abs(quick - 1.9) < 0.1 && abs(sickly.deepest / calmWell.deepest - 0.55) < 0.03,
               String(format: "droopy breathes at %.2f× the pace, sickly at %.2f× and %.0f%% as deep", slow, quick,
                      sickly.deepest / calmWell.deepest * 100))
-        check((5...8).contains(droopy.sighs) && droopy.squash > 0.04 && (20...34).contains(sickly.shivers) && sickly.dx > 0.015,
-              "droopy sighs about every 20 s (\(droopy.sighs) in 2 min) and sickly shivers every few seconds (\(sickly.shivers))")
+        check((17...24).contains(droopy.sighs) && droopy.squash > 0.04 && (20...34).contains(sickly.shivers) && sickly.dx > 0.015,
+              "droopy sighs every 5 to 7 s (\(droopy.sighs) in 2 min) and sickly shivers every few seconds (\(sickly.shivers))")
         var calm = true, still = true, quiet = true
         for f in TomoFeeling.allCases {
             for age in 0..<TomoLook.ages {
@@ -2987,7 +3015,8 @@ extension TomoBlob {
 public struct TomoBlobView: View {
     /// The room its canvas has beyond its frame on each side, as a share of the frame's width, so a droopy Tomo's flopped
     /// ears aren't cut off by the canvas's edge (as the Mac island's `canvasRoom`). Tomo is still drawn at the frame's
-    /// size and place; `TomoBlob.feelingSelfTest` checks nothing reaches further at rest.
+    /// size and place; `TomoBlob.feelingSelfTest` checks nothing reaches further at rest. Taps land on the frame alone,
+    /// whatever the host does.
     public static let sideRoom: CGFloat = 0.2
 
     @StateObject private var blob: TomoBlob
@@ -3025,8 +3054,10 @@ public struct TomoBlobView: View {
                 }
                 .frame(width: geo.size.width * (1 + 2 * Self.sideRoom), height: geo.size.height)
                 .offset(x: -geo.size.width * Self.sideRoom)
+                .allowsHitTesting(false)                    // its side room takes no taps: only the frame does
             }
         }
+        .contentShape(Rectangle())
         .onChange(of: state) { _, s in blob.setState(s) }
         .onChange(of: growth) { _, g in blob.grow(to: g) }
         .onAppear {

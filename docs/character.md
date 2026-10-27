@@ -73,11 +73,12 @@ Tomo's, not the script's: a newer script doesn't stop it. Planned: evolution tha
   loop on the clock, not a script: it fades in and out, a script takes over while one plays, and it's off under Reduce
   Motion.
 - A feeling over its own look (`feeling`, `TomoFeeling.swift`): droopy (it sags wider and lower, its ears and topper
-  flop, it looks at the floor, breathes slower and sighs now and then) or sickly (a green-grey tint, a little smaller,
+  flop, it looks at the floor, breathes slower and sighs every 5 to 7 s) or sickly (a green-grey tint, a little smaller,
   heavy worried lids, a sweat drop, quick shallow breaths and a shiver). Only the Testing menu sets it for now
   (`TomoGame.feeling`, or `TOMO_FEELING` at launch), and every live host passes it on; nothing ties it to progress yet
   ([#262](https://github.com/serpcompany/tomodachi-app/issues/262)). It eases in and out over about a second, and back
-  to well Tomo gives a small happy hop. Under Reduce Motion the sigh and shiver become a puff. Its colour is a pass over
+  to well Tomo gives a small happy hop. Droopy slumps a birthday's morph too, frame by frame, so nothing pops as it
+  starts or ends. Under Reduce Motion the sigh and shiver become a puff. Its colour is a pass over
   the look, never a new look: its seed, age and form stay. The look the feeling copies is
   [the states lab](reference/tomo/states-lab.html) (Posture and Ill).
 - When it says hello: the island the first time Tomo shows after launch, greeting the launch visit's card instead of

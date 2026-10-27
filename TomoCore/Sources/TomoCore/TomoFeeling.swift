@@ -164,8 +164,8 @@ extension TomoFeeling {
 
 extension TomoFeeling {
     /// The colour pass (#257): it keeps the seed, the shape and the look itself, and a sickly tint repaints every Tomo;
-    /// across every tone and hue a sickly Tomo turns greener and greyer, its head stays at 3:1 on the notch and its eyes
-    /// at 4.5:1 on it.
+    /// across every tone and hue a sickly Tomo is painted greener and greyer, its head at 3:1 on the notch and its eyes
+    /// at 4.5:1 on it (the colours `repainted` gives the copy).
     static func colourSelfTest(_ check: (Bool, String) -> Void) {
         let sick = Amounts(.sickly), sat = Double(sick.sat), green = Double(sick.green)
         let crowd = [TomoLook.mascot] + (0..<200).map { TomoLook(seed: "feeling-\($0)") }
@@ -177,22 +177,32 @@ extension TomoFeeling {
         let own = crowd.dropFirst().allSatisfy { $0.body == TomoLook(seed: $0.seed).body && $0.ink == TomoLook(seed: $0.seed).ink }
         check(kept && own && TomoLook.mascot.tinted(sat: 1, green: 0).body == TomoLook.mascot.body,
               "a feeling's colour is a pass over the look: sickly repaints every Tomo, and its seed, shape and own colours never change")
+        // What the pass paints (`drawnTones`), for Tomos of every tone at every 5° of hue.
         func far(_ h: Double) -> Double { let d = abs(h - 125); return min(d, 360 - d) }
-        var readable = true, sicker = true
-        for l in stride(from: 0.66, through: 0.93, by: 0.03) {
-            for c in [0.03, 0.09, 0.13, 0.16] {
-                for h in stride(from: 0.0, to: 360, by: 5) {
-                    let own = TomoOklch(l: l, c: c, h: h).ensuringContrast(against: .notch, min: 3)
-                    let x = tint(own, sat: sat, green: green), head = x.ensuringContrast(against: .notch, min: 3)
-                    let eye = own.l >= 0.5 ? TomoOklch(l: 0.2, c: 0.03, h: head.h) : TomoOklch(l: 0.97, c: 0.012, h: head.h)
-                    if head.contrast(.notch) < 3 || eye.ensuringContrast(against: head, min: 4.5).contrast(head) < 4.5 {
-                        readable = false
-                    }
-                    if x.c > max(own.c, 0.05) + 1e-9 || far(x.h) > far(own.h) * 0.4 + 1e-6 { sicker = false }
+        var readable = true, sicker = true, tried = 0
+        for tone in [0.15, 0.45, 0.7, 0.9, 0.99] {                          // pastel, mid, bright, deep, pale
+            for hue in stride(from: 0.0, to: 1, by: 1.0 / 72) {
+                let tomo = TomoLook(seed: "feeling-tone", overrides: ["tone": tone, "hue": hue])
+                let drawn = tomo.tinted(sat: sat, green: green).drawnTones
+                tried += 1
+                if drawn.head.contrast(.notch) < 3 || drawn.ink.contrast(drawn.head) < 4.5 { readable = false }
+                if drawn.head.c > max(tomo.tone.c, 0.05) + 1e-9 || far(drawn.head.h) > far(tomo.tone.h) * 0.4 + 1e-6 { sicker = false }
+            }
+        }
+        // Whatever it's repainted in, even a head too dark for the notch (no Tomo's own tone tints that far today), the
+        // copy's head is lifted to 3:1 on the notch and its eyes to 4.5:1 on it.
+        var guarded = true
+        for l in stride(from: 0.2, through: 0.95, by: 0.05) {
+            for c in [0.03, 0.09, 0.16] {
+                for h in stride(from: 0.0, to: 360, by: 10) {
+                    let paint = TomoOklch(l: l, c: c, h: h)
+                    let drawn = TomoLook.mascot.repainted(head: paint, accent: paint, cheekChroma: 0.15).drawnTones
+                    if drawn.head.contrast(.notch) < 3 || drawn.ink.contrast(drawn.head) < 4.5 { guarded = false }
                 }
             }
         }
-        check(readable && sicker,
-              "a sickly Tomo turns greener and greyer on every tone and hue, its head 3:1 on the notch and its eyes 4.5:1 on it")
+        check(tried == 360 && readable && sicker && guarded,
+              "a sickly Tomo turns greener and greyer on every tone and hue, its head 3:1 on the notch and its eyes 4.5:1 on it, "
+              + "as is any repainted Tomo's")
     }
 }

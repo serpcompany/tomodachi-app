@@ -31,6 +31,8 @@ public struct TomoLook: Equatable, Sendable {
     /// Its own head and markings colours in OKLCh, which a repainted copy starts from.
     let tone: TomoOklch
     let accentTone: TomoOklch
+    /// The head and eye colours it's drawn in (`body` and `ink`), in OKLCh: its own, or a repainted copy's.
+    private(set) var drawnTones: (head: TomoOklch, ink: TomoOklch)
     /// Eyes, fixed for life: a style, width and height (in body radii), squareness, spacing, height on the face.
     /// A rare Tomo has one big eye.
     public let eyeStyle: EyeStyle
@@ -78,9 +80,11 @@ public struct TomoLook: Equatable, Sendable {
         head = head.ensuringContrast(against: .notch, min: 3)          // always visible on the black notch
         self.tone = head
         let eye = head.l >= 0.5 ? TomoOklch(l: 0.2, c: 0.03, h: hue) : TomoOklch(l: 0.97, c: 0.012, h: hue)
+        let inkTone = eye.ensuringContrast(against: head, min: 4.5)
+        drawnTones = (head, inkTone)
         body = head.color
         bodyLight = TomoOklch(l: min(1, head.l + 0.07), c: head.c * 0.85, h: hue).color
-        ink = eye.ensuringContrast(against: head, min: 4.5).color
+        ink = inkTone.color
         cheek = TomoOklch(l: 0.72, c: 0.15, h: 12).color
 
         pattern = t.band("pattern", [(Pattern.none, 0.3), (.belly, 0.46), (.cap, 0.6), (.spots, 0.74), (.stripes, 0.86), (.twoTone, 1)])
@@ -139,9 +143,11 @@ public struct TomoLook: Equatable, Sendable {
         var out = self
         let h = head.ensuringContrast(against: .notch, min: 3)
         let eye = tone.l >= 0.5 ? TomoOklch(l: 0.2, c: 0.03, h: h.h) : TomoOklch(l: 0.97, c: 0.012, h: h.h)
+        let ink = eye.ensuringContrast(against: h, min: 4.5)
+        out.drawnTones = (h, ink)
         out.body = h.color
         out.bodyLight = TomoOklch(l: min(1, h.l + 0.07), c: h.c * 0.85, h: h.h).color
-        out.ink = eye.ensuringContrast(against: h, min: 4.5).color
+        out.ink = ink.color
         out.accent = accent.color
         out.cheek = TomoOklch(l: 0.72, c: cheekChroma, h: 12).color
         return out
