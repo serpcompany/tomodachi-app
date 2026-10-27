@@ -254,6 +254,8 @@
     "about.credit.jmdict.body": "多くの日本語のことばの読みと英語の意味。CC BY-SA 4.0。This product uses the JMdict dictionary file, the property of the Electronic Dictionary Research and Development Group, used in conformance with the Group's licence.",
     "about.credit.blobatar": "blobatar",
     "about.credit.blobatar.body": "Tomoの形と、学習者ごとの見た目をシードから作るしくみは、Alainさんのblobatarをもとにしています。MITライセンス。",
+    "about.credit.flubber": "flubber",
+    "about.credit.flubber.body": "誕生日ごとにTomoの前の姿が新しい姿へ流れるように変わるしくみは、Noah Veltmanさんのflubberをもとにしています。MITライセンス。",
     "about.credit.coucou": "Coucou",
     "about.credit.coucou.body": "Mac版のノッチのウィンドウは、Louis RailléさんのCoucouがベースです。MITライセンス。",
     "menu.tomo": "Tomo",

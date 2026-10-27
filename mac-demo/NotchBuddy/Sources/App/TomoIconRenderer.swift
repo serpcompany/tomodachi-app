@@ -44,10 +44,18 @@ enum TomoIconRenderer {
             renderCardFrames(to: URL(fileURLWithPath: dir))
             NSApp.terminate(nil)
         }
-        if let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_EVOLUTION"] {
-            try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
-            write(evolutionSheet, to: URL(fileURLWithPath: dir).appendingPathComponent("tomo-evolution.png"))
-            NSApp.terminate(nil)
+        if let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_EVOLUTION"] {   // and the birthday's morph (#259)
+            let folder = URL(fileURLWithPath: dir)
+            try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            write(evolutionSheet, to: folder.appendingPathComponent("tomo-evolution.png"))
+            write(morphSheet(calm: false), to: folder.appendingPathComponent("tomo-morphs.png"))
+            write(morphSheet(calm: true), to: folder.appendingPathComponent("tomo-morphs-calm.png"))
+            for seed in TomoFormMorph.seeds {
+                write(pairSheet(seed), to: folder.appendingPathComponent("tomo-morph-pairs-\(seed).png"))
+            }
+            let survey = TomoFormMorph.surveyReport()
+            print(TomoCheck.line(survey.passed, survey.words))
+            exit(survey.passed ? 0 : 1)
         }
         if let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_VARIETY"] {
             try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
@@ -259,7 +267,9 @@ enum TomoIconRenderer {
         .background(Color.black)
     }
 
-    /// TOMO_RENDER_EVOLUTION=<dir>: eight Tomos, one per row, at every age from left to right.
+    /// TOMO_RENDER_EVOLUTION=<dir>: eight Tomos, one per row, at every age from left to right (tomo-evolution.png). The
+    /// same run renders their birthdays' morphs (`morphSheet`, `pairSheet`) and prints the morph survey for all eight
+    /// (`TomoFormMorph.surveyReport`), exiting 1 if a morph tangles, flips or spins.
     private static var evolutionSheet: some View {
         VStack(alignment: .leading, spacing: 6) {
             ForEach(0..<8, id: \.self) { i in
@@ -274,6 +284,99 @@ enum TomoIconRenderer {
         }
         .padding(20)
         .background(Color.black)
+    }
+
+    /// TOMO_RENDER_EVOLUTION's birthdays (tomo-morphs.png; `calm`, Reduce Motion's crossfade: tomo-morphs-calm.png): the
+    /// same eight Tomos, one per row, each a year older (1さい into 2さい on the first row, on to 6さい, and round again),
+    /// at moments through the birthday from left to right, on a scripted clock.
+    private static func morphSheet(calm: Bool) -> some View {
+        let moments = calm ? [0, 0.1, 0.2, 0.3, 0.45, 0.6, 0.75, 0.9, 1.4] : [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.6, 0.9, 1.4]
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Color.clear.frame(width: 50, height: 20)
+                ForEach(moments, id: \.self) { e in label(String(format: "%.2f s", e)).frame(width: 150) }
+            }
+            ForEach(0..<TomoFormMorph.seeds.count, id: \.self) { i in
+                let age = 1 + i % (TomoLook.ages - 1)
+                HStack(spacing: 6) {
+                    label("\(age)→\(age + 1)").frame(width: 50)
+                    ForEach(moments, id: \.self) { e in
+                        let blob = birthday(TomoFormMorph.seeds[i], into: age, at: e, calm: calm)
+                        Canvas { ctx, sz in blob.draw(ctx, size: sz) }.frame(width: 150, height: 150)
+                    }
+                }
+            }
+        }
+        .padding(20)
+        .background(Color.black)
+    }
+
+    /// `seed`'s Tomo `e` seconds into its birthday into `age` (0 is 1さい), 60 frames a second on a scripted clock.
+    private static func birthday(_ seed: String, into age: Int, at e: Double, calm: Bool) -> TomoBlob {
+        let blob = TomoBlob(look: TomoLook(seed: seed), material: .forRenders)
+        blob.reduceMotion = calm
+        var t = 100.0
+        blob.clock = { t }
+        blob.step()
+        blob.setGrowth(CGFloat(age - 1))
+        blob.grow(to: CGFloat(age))
+        while t < 100 + e { t = min(100 + e, t + 1.0 / 60); blob.step() }
+        return blob
+    }
+
+    /// TOMO_RENDER_EVOLUTION's outlines (tomo-morph-pairs-<seed>.png): `seed`'s every silhouette (rows) morphing into
+    /// every silhouette (columns). Each cell has the old outline (grey), the new one (white), the outline half way
+    /// (filled), and at the spring's most overshoot (gold), with every eighth point's path from old to new (spokes that
+    /// cross, or swing far round, would show a twist) and the first point on each (red, green). A cell framed red isn't
+    /// sound (`TomoMorph.Health`).
+    private static func pairSheet(_ seed: String) -> some View {
+        let shapes = TomoFormMorph.silhouettes.map { $0.0 }, side: CGFloat = 112
+        return VStack(alignment: .leading, spacing: 4) {
+            label(seed)
+            HStack(spacing: 4) {
+                Color.clear.frame(width: 70, height: 20)
+                ForEach(shapes, id: \.self) { b in label(b.rawValue).frame(width: side) }
+            }
+            ForEach(shapes, id: \.self) { a in
+                HStack(spacing: 4) {
+                    label(a.rawValue).frame(width: 70)
+                    ForEach(shapes, id: \.self) { b in
+                        let morph = TomoFormMorph.pair(seed, a, b), sound = morph.health().sound
+                        Canvas { ctx, sz in drawPair(ctx, morph, size: sz) }
+                            .frame(width: side, height: side)
+                            .border(sound ? Color.white.opacity(0.12) : Color.red, width: sound ? 1 : 3)
+                    }
+                }
+            }
+        }
+        .padding(16)
+        .background(Color.black)
+    }
+
+    private static func drawPair(_ ctx: GraphicsContext, _ m: TomoFormMorph, size: CGSize) {
+        let R = size.width * 0.28, o = m.outline
+        let peak = (0...120).map { TomoFormMorph.flubber(1.2 * Double($0) / 120, length: 1.2).u }.max() ?? 1
+        var c = ctx
+        c.translateBy(x: size.width / 2, y: size.height / 2 + R * 0.12)
+        func path(_ points: [CGPoint]) -> Path { TomoMorph.path(points.map { CGPoint(x: $0.x * R, y: $0.y * R) }) }
+        c.fill(path(o.points(at: 0.5)), with: .color(.white.opacity(0.14)))
+        c.stroke(path(o.from), with: .color(.white.opacity(0.45)), lineWidth: 1)
+        c.stroke(path(o.points(at: peak)), with: .color(Color(hex: "#FFC53A").opacity(0.8)),
+                 style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
+        c.stroke(path(o.to), with: .color(.white), lineWidth: 1.5)
+        var spokes = Path()
+        for i in stride(from: 0, to: o.from.count, by: 8) {
+            spokes.move(to: CGPoint(x: o.from[i].x * R, y: o.from[i].y * R))
+            spokes.addLine(to: CGPoint(x: o.to[i].x * R, y: o.to[i].y * R))
+        }
+        c.stroke(spokes, with: .color(Color(hex: "#7FD3FF").opacity(0.7)), lineWidth: 0.75)
+        for (p, color) in [(o.from[0], Color.red), (o.to[0], Color.green)] {
+            c.fill(Path(ellipseIn: CGRect(x: p.x * R - 2.5, y: p.y * R - 2.5, width: 5, height: 5)), with: .color(color))
+        }
+    }
+
+    private static func label(_ text: String) -> some View {
+        Text(text).font(.system(size: 13, weight: .medium)).foregroundColor(.white.opacity(0.7))
     }
 
     /// TOMO_RENDER_VARIETY=<dir>: the same eight seeds at several `TomoLook.variety` settings, one row each.

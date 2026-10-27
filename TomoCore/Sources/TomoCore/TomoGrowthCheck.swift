@@ -3,7 +3,8 @@ import Foundation
 // MARK: - Growth, checked end to end (TOMO_SELFTEST; docs/verification.md)
 //
 // Beyond the rules' own checks in TomoProgress.selfTest: every level of every target pack can be finished, a birthday
-// evolves Tomo once (under Reduce Motion too: TomoBlob.motionSelfTest; its small touches: touchesSelfTest; its big
+// evolves Tomo once (under Reduce Motion too: TomoBlob.motionSelfTest; its morph: TomoFormMorph.selfTest and
+// TomoBlob.morphSelfTest; its small touches: touchesSelfTest; its big
 // moments' scripts: cueSelfTest; its arrivals and call glow: arrivalSelfTest; its material: materialSelfTest; its
 // hello: helloSelfTest; its badges: badgeSelfTest; its particles and weather: particleSelfTest; its dance:
 // danceSelfTest; standing under a ceiling: ceilingSelfTest; the calendar: TomoCalendar.selfTest), and simulated
@@ -12,10 +13,12 @@ import Foundation
 // step took: the pacing table for #38.
 
 extension TomoProgress {
-    /// Tomo's drawing: the evolution, its motion, touches, cue scripts, arrivals, material, hello, badges, particles,
-    /// dance and ceiling, and the calendar.
+    /// Tomo's drawing: the evolution and its morph, its motion, touches, cue scripts, arrivals, material, hello, badges,
+    /// particles, dance and ceiling, and the calendar.
     static func characterSelfTest(_ check: (Bool, String) -> Void) {
         evolutionSelfTest(check)
+        TomoFormMorph.selfTest(check)
+        TomoBlob.morphSelfTest(check)
         TomoBlob.motionSelfTest(check)
         TomoBlob.touchesSelfTest(check)
         TomoBlob.cueSelfTest(check)
@@ -131,18 +134,21 @@ extension TomoProgress {
     }
 
     /// A birthday evolves Tomo once: hearing it twice (the iPhone's view sees the age change, and the game says so)
-    /// mustn't cut the evolution short.
+    /// mustn't cut the evolution short or start it over.
     static func evolutionSelfTest(_ check: (Bool, String) -> Void) {
         let blob = TomoBlob(look: .mascot, material: .classic)
         var t = 100.0
         blob.clock = { t }
         blob.step()
         blob.grow(to: 1)
-        blob.grow(to: 1)
-        let evolving = blob.age == 0
-        t += 0.7                                       // past the birthday script's swap, at 0.62 s
+        t = 100.1
         blob.step()
-        check(evolving && blob.age == 1, "a birthday heard twice still evolves Tomo: the old shape, then the new one")
+        blob.grow(to: 1)
+        let evolving = blob.age == 1 && blob.morphFrame(t)?.form.morphed != nil
+        t = 101.25                                     // past the first morph's 1.2 s, not a second one's
+        blob.step()
+        check(evolving && blob.age == 1 && blob.morphFrame(t) == nil,
+              "a birthday heard twice evolves Tomo once: the old outline flowing into the new one, not started over")
     }
 }
 
