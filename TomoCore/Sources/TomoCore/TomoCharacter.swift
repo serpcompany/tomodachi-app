@@ -825,7 +825,8 @@ public final class TomoBlob: ObservableObject {
     }
 
     /// The idle moves' room under a `ceiling`: its stretch (9% taller) as it breathes in (1.8%; asleep, 3.5% and no
-    /// stretch), and a hop as it wakes (0.18 R up). A big moment's leap, which is rare and quick, may still reach past it.
+    /// stretch), and a hop as it wakes (0.18 R up). A birthday's morph, overshoot and stretch included, stays within it
+    /// (`ceilingSelfTest`); a big moment's leap, which is rare and quick, may still reach past it.
     static let idleStretch: CGFloat = 1.09 * 1.018
     static let idleLift: CGFloat = 0.18
 
@@ -2566,11 +2567,36 @@ extension TomoBlob {
 
     /// Small Tomo standing in a canvas of `size` (`overhang` of it above Tomo, as its hosts give it) under `ceiling`, for
     /// each look at every age: what it draws above `top` (canvas points) at rest, at the top of its idle stretch, and at
-    /// the top of a hop as it wakes, from renders. Empty when nothing reaches past `top`.
+    /// the top of a hop as it wakes, and through a birthday's morph into that age (its overshoot, wobble and stretch;
+    /// the body and topper only, as its drops and confetti may fly into the room above), from renders. Empty when
+    /// nothing reaches past `top`.
     public static func pokesAbove(_ top: CGFloat, ceiling: CGFloat?, size: CGSize, overhang: CGFloat,
                                   looks: [TomoLook]) -> [String] {
         var t = 100.0, out: [String] = []
         for look in looks {
+            for age in 1..<TomoLook.ages {
+                t = 100
+                let b = TomoBlob(look: look, material: .own)
+                b.clock = { t }
+                b.particleOverhang = overhang
+                b.ceiling = ceiling
+                b.setGrowth(CGFloat(age - 1))
+                b.step()
+                b.grow(to: CGFloat(age))
+                var most: (over: CGFloat, at: Double) = (0, 0)
+                for i in 1...23 {                           // every 0.05 s of the 1.2 s morph
+                    t = 100 + Double(i) * 0.05
+                    b.step()
+                    b.bits.removeAll()
+                    if let y = drawnTop(size: size, { ctx, s in b.draw(ctx, size: s) }), top - y > max(0.5, most.over) {
+                        most = (top - y, t - 100)
+                    }
+                }
+                if most.over > 0 {
+                    out.append(String(format: "%@ age %d a birthday's morph at %.2f s: %.1f pt over", look.seed, age,
+                                      most.at, most.over))
+                }
+            }
             for age in 0..<TomoLook.ages {
                 for (pose, move, peak) in [("at rest", nil, 0.0), ("stretched", Move.Kind.stretch, 0.45),
                                            ("hopping", .hop(TomoBlob.idleLift), 0.2)] as [(String, Move.Kind?, Double)] {
@@ -2612,8 +2638,9 @@ extension TomoBlob {
         let under = pokesAbove(roomTop, ceiling: roomTop + 1, size: size, overhang: overhang, looks: looks)
         let without = pokesAbove(roomTop, ceiling: nil, size: size, overhang: overhang, looks: looks)
         check(under.isEmpty && !without.isEmpty,
-              "under a ceiling small Tomo draws nothing above the room at any age, at rest, stretched or hopping"
-              + (under.isEmpty ? " (\(without.count) of \(looks.count * TomoLook.ages * 3) would without it)"
+              "under a ceiling small Tomo draws nothing above the room at any age, at rest, stretched, hopping or "
+              + "through a birthday's morph"
+              + (under.isEmpty ? " (\(without.count) of \(looks.count * (TomoLook.ages * 4 - 1)) would without it)"
                  : ": \(under.prefix(3).joined(separator: "; "))"))
         #endif
         var fits: [CGFloat] = []

@@ -241,6 +241,8 @@ public struct TomoMorph: Sendable {
     /// The biggest loop where the outline crosses itself: for each two edges that aren't neighbours and cross, the area
     /// of the smaller of the two pieces the crossing cuts the outline into (0 if it never crosses). Edges go into a grid
     /// about two edges wide, and only edges sharing a cell are compared, each pair once (in the first cell they share).
+    /// Infinite when the grid would be too big to check (points bunched far closer than the outline is wide): a check
+    /// that can't run counts as a tangle, never a pass.
     static func tangle(_ p: [CGPoint]) -> CGFloat {
         let n = p.count
         guard n > 3 else { return 0 }
@@ -248,7 +250,7 @@ public struct TomoMorph: Sendable {
         for q in p { lo = CGPoint(x: min(lo.x, q.x), y: min(lo.y, q.y)); hi = CGPoint(x: max(hi.x, q.x), y: max(hi.y, q.y)) }
         let cell = max(2 * perimeter(p) / CGFloat(n), 1e-9)
         let cols = Int((hi.x - lo.x) / cell) + 1, rows = Int((hi.y - lo.y) / cell) + 1
-        guard cols * rows < 1_000_000 else { return 0 }
+        guard cols * rows < 1_000_000 else { return .infinity }
         // Each edge's cells (x0, x1, y0, y1), then the cells' edges in one flat list, `first[c]..<first[c + 1]`.
         var span = [(Int, Int, Int, Int)](), first = [Int](repeating: 0, count: cols * rows + 1)
         span.reserveCapacity(n)
@@ -266,7 +268,7 @@ public struct TomoMorph: Sendable {
             for y in s.2...s.3 { for x in s.0...s.1 { edges[fill[y * cols + x]] = i; fill[y * cols + x] += 1 } }
         }
         var most: CGFloat = 0
-        let whole = abs(area(p))
+        let whole = area(p)
         for c in 0..<(cols * rows) where first[c + 1] - first[c] > 1 {
             for s in first[c]..<(first[c + 1] - 1) {
                 for t in (s + 1)..<first[c + 1] {
@@ -275,8 +277,10 @@ public struct TomoMorph: Sendable {
                     let a = span[i], b = span[j]
                     if max(a.2, b.2) * cols + max(a.0, b.0) != c { continue }   // not the first cell they share
                     guard let x = cross(p[i], p[(i + 1) % n], p[j], p[(j + 1) % n]) else { continue }
-                    let loop = abs(area([x] + p[(i + 1)...j]))
-                    most = max(most, min(loop, max(0, whole - loop)))
+                    // Signed, so a fold works too: its loop winds against the rest, and unsigned areas would cancel
+                    // when the loop holds the first point (the other piece is then the big one).
+                    let loop = area([x] + p[(i + 1)...j])
+                    most = max(most, min(abs(loop), abs(whole - loop)))
                 }
             }
         }
@@ -411,8 +415,9 @@ extension TomoFormMorph {
     /// `seed`'s Tomo at 3さい in `a`, growing into 4さい in `b`: every pair, the same shape twice included.
     public static func pair(_ seed: String, _ a: TomoForm.Silhouette, _ b: TomoForm.Silhouette) -> TomoFormMorph {
         let at = Dictionary(uniqueKeysWithValues: silhouettes.map { ($0.0, $0.1) })
+        // At variety 1 the bands are `TomoForm.bands` as they are; another variety reweights them.
         let look = TomoLook(seed: seed, overrides: ["age2.shape": at[a] ?? 0, "age3.shape": at[b] ?? 0],
-                            newShapeEachAge: false)
+                            newShapeEachAge: false, variety: 1)
         return TomoFormMorph(look.form(2), look.form(3))
     }
 
@@ -450,10 +455,35 @@ extension TomoFormMorph {
                        s.unsound.isEmpty ? "" : ": " + s.unsound.prefix(4).joined(separator: "; ")))
     }
 
-    /// The morph itself, on its own: every pair of silhouettes for two seeds (TOMO_RENDER_EVOLUTION surveys all eight;
-    /// here it would add seconds) and every real birthday of the eight holds together (no tangle, no flip, no spin), and
-    /// the ends are the forms themselves.
+    /// The morph itself, on its own: the tangle check catches known tangles, every pair of silhouettes for two seeds
+    /// and every real birthday of the eight holds together (no tangle, no flip, no spin), and the ends are the forms
+    /// themselves. Two seeds, not eight: unoptimised (Debug, `swift test`) the survey takes about 3.5 s a seed, so all
+    /// eight would add some 20 s to every self-test. TOMO_RENDER_EVOLUTION surveys all eight and fails on any unsound
+    /// morph; run it after changing a shape.
     static func selfTest(_ check: (Bool, String) -> Void) {
+        // The tangle check on outlines whose answer is known. A figure-eight is a fold: a small lobe wound against a
+        // big one, crossing once. Wherever the outline starts, in the small lobe or the big one, it's a tangle.
+        func eight(small: CGFloat, startInBig: Bool) -> [CGPoint] {
+            let n = 160
+            let ring = (0..<n).map { i -> CGPoint in
+                let t = 2 * CGFloat.pi * CGFloat(i) / CGFloat(n) + 0.013, k: CGFloat = cos(t) > 0 ? small : 1
+                return CGPoint(x: cos(t) * k, y: sin(2 * t) / 2 * k)
+            }
+            return startInBig ? Array(ring[(n / 2)...] + ring[..<(n / 2)]) : ring
+        }
+        var missed: [String] = []
+        for (small, share) in [(0.2, "4%"), (0.5, "33%")] as [(CGFloat, String)] {
+            for big in [false, true] where !TomoMorph.crossesItself(eight(small: small, startInBig: big)) {
+                missed.append("a \(share) loop starting in the \(big ? "big" : "small") lobe")
+            }
+        }
+        let oval = (0..<160).map { i in CGPoint(x: cos(2 * .pi * CGFloat(i) / 160), y: sin(2 * .pi * CGFloat(i) / 160) * 0.7) }
+        if TomoMorph.crossesItself(oval) { missed.append("an oval counted as a tangle") }
+        let fine = (0..<10_000).map { i in CGPoint(x: cos(2 * .pi * CGFloat(i) / 10_000), y: sin(2 * .pi * CGFloat(i) / 10_000)) }
+        if !TomoMorph.crossesItself(fine) { missed.append("an outline too fine to check passed") }
+        check(missed.isEmpty, "the tangle check finds a figure-eight's loop (4% and 33% of the body) wherever its outline "
+              + "starts, passes an oval, and fails an outline too fine to check" + (missed.isEmpty ? "" : ": " + missed.joined(separator: "; ")))
+
         let s = surveyReport(seeds: Array(seeds.prefix(2)))
         check(s.passed, s.words)
         var births = 0, bad: [String] = []
