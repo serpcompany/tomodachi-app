@@ -4,6 +4,24 @@ release-please writes this file from the squash commits on `main`, one entry per
 merges. Only `feat:`, `fix:`, `perf:` and `refactor:` titles show here. The Mac app's version is this version;
 the iPhone's is the App Store's, set by hand ([docs/decisions.md](docs/decisions.md)).
 
+## [0.3.0](https://github.com/serpcompany/tomodachi-app/compare/v0.2.1...v0.3.0) (2026-10-27)
+
+
+### Features
+
+* at each birthday Tomo's old shape flows into its new one ([#282](https://github.com/serpcompany/tomodachi-app/issues/282)) ([731a7cf](https://github.com/serpcompany/tomodachi-app/commit/731a7cf8274260158da5aabbc88db4429fc9a59b))
+* Tomo can look droopy or sickly, previewed from the Testing menu ([#285](https://github.com/serpcompany/tomodachi-app/issues/285)) ([2db5d0f](https://github.com/serpcompany/tomodachi-app/commit/2db5d0f14cc162fbbba64736231057e7c1892abf))
+* Tomo can turn mossy, or go back into its egg and hatch again, previewed from the Testing menu ([#286](https://github.com/serpcompany/tomodachi-app/issues/286)) ([9f82066](https://github.com/serpcompany/tomodachi-app/commit/9f82066bd21dc48eb5b1c6dfa434f5ebe42a474b))
+
+
+### Fixes
+
+* **ci:** the iPhone UI journeys pick a simulator runtime that has an iPhone 17 ([#284](https://github.com/serpcompany/tomodachi-app/issues/284)) ([a429774](https://github.com/serpcompany/tomodachi-app/commit/a4297744f83972c3187f0ffd333a0a56efb6a1ba))
+* **ios:** at the largest text, the word in Words grows with it and the Tomo screen wraps between phrases, never inside one ([#241](https://github.com/serpcompany/tomodachi-app/issues/241)) ([912896a](https://github.com/serpcompany/tomodachi-app/commit/912896a8f61edf572bff9e29cfff18459a8f8037))
+* **mac:** each Words stage looks different in light mode, stepping from a pale fill to a solid one ([#238](https://github.com/serpcompany/tomodachi-app/issues/238)) ([5d31e4d](https://github.com/serpcompany/tomodachi-app/commit/5d31e4da738b9bd6fedfcb785b18c4d5edcf4e70))
+* **mac:** the window's snapshots show the selected sidebar row's label in light mode ([#243](https://github.com/serpcompany/tomodachi-app/issues/243)) ([e8a0cbe](https://github.com/serpcompany/tomodachi-app/commit/e8a0cbe13a34a36bc5deda41c092883da7058bb0))
+* Tomodachi stays in English while you learn Japanese, and a Japanese setup from before keeps its Tomo ([#240](https://github.com/serpcompany/tomodachi-app/issues/240)) ([6b60c32](https://github.com/serpcompany/tomodachi-app/commit/6b60c320dfa368efe635c88b96df318ac1dbe465))
+
 ## [0.2.1](https://github.com/serpcompany/tomodachi-app/compare/v0.2.0...v0.2.1) (2026-10-11)
 
 

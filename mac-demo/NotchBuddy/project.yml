@@ -75,7 +75,7 @@ targets:
         NSHumanReadableCopyright: "Tomodachi by Zenbu Japanese. © 2026 Zenbu Japanese."
         CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)   # one place: the target's build setting
         CFBundleVersion: "1"
-        CFBundleShortVersionString: "0.2.1" # x-release-please-version
+        CFBundleShortVersionString: "0.3.0" # x-release-please-version
         CFBundlePackageType: APPL
         LSUIElement: YES   # starts as an agent, so a test run (TOMO_HEADLESS) never shows a Dock icon; AppDelegate then makes it a regular app with a Dock icon (decisions.md)
         NSHighResolutionCapable: YES
