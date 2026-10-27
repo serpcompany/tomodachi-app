@@ -112,28 +112,28 @@ public enum TomoEgg {
                      style: StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round))
     }
 
-    /// The hatch's halves flying apart, `k` of the way (0…1): the top flies up and spins away, and the bottom drops and
-    /// fades. Or, when the halves are drawn behind Tomo (`sinks`), the
-    /// bottom stays solid and sinks into the floor (the egg's foot), as it rose from it going in, so it never shows as a
-    /// see-through smudge round Tomo on a dark card. `ctx` is at the egg's centre.
-    static func drawSplit(_ ctx: GraphicsContext, k: CGFloat, width w: CGFloat, height h: CGFloat, sinks: Bool = false,
+    /// How solid the shell's halves are, `k` of the way through the hatch's split (0…1): solid until its last seventh
+    /// (0.1 s of the 0.7 s, six frames), when both have sunk most of the way into the floor beside and under Tomo's
+    /// foot, so half-faded cream never hangs round Tomo as a grey smudge on a dark card or the first run's dark page.
+    static func splitSolid(_ k: CGFloat) -> CGFloat { 1 - min(1, max(0, (k - 6 / 7) * 7)) }
+
+    /// The hatch's halves flying apart, `k` of the way (0…1), both solid (`splitSolid`) and gone below the floor (the
+    /// egg's foot) by the end. The top pops up a little (no higher than it ever did, so it stays in Tomo's room) and
+    /// tumbles off to the side, no further than the first run's egg frame keeps, then down into the floor; the bottom
+    /// sinks into it, as it rose from it going in. `ctx` is at the egg's centre.
+    static func drawSplit(_ ctx: GraphicsContext, k: CGFloat, width w: CGFloat, height h: CGFloat,
                           shell: (GraphicsContext) -> Void) {
-        let y = crackY(height: h)
-        var top = ctx
-        top.opacity *= Double(max(0, 1 - k * 1.3))
-        top.translateBy(x: w * 0.25 * k, y: -h * 0.9 * k + h * 0.6 * k * k)
-        top.rotate(by: .radians(Double(0.9 * k)))
+        let y = crackY(height: h), solid = Double(splitSolid(k))
+        var above = ctx
+        above.clip(to: Path(CGRect(x: -w * 4, y: -h * 4, width: w * 8, height: h * 4.5)))     // above the floor
+        above.opacity *= solid
+        var top = above
+        top.translateBy(x: w * 0.34 * k * (2 - k), y: h * (-1.8 * k + 3.1 * k * k))      // up 0.26 h at most, then down
+        top.rotate(by: .radians(Double(1.3 * k)))
         top.clip(to: half(crackY: y, width: w, height: h, top: true))
         shell(top)
-        var bottom = ctx
-        if sinks {
-            bottom.clip(to: Path(CGRect(x: -w * 2, y: -h * 2, width: w * 4, height: h * 2.5)))     // above the floor
-            bottom.opacity *= Double(1 - min(1, max(0, (k - 0.7) / 0.3)))
-            bottom.translateBy(x: 0, y: h * 0.62 * k * k)
-        } else {
-            bottom.opacity *= Double(max(0, 1 - k * 1.5))
-            bottom.translateBy(x: 0, y: h * 0.25 * k)
-        }
+        var bottom = above
+        bottom.translateBy(x: 0, y: h * 0.62 * k * k)
         bottom.clip(to: half(crackY: y, width: w, height: h, top: false))
         shell(bottom)
     }

@@ -799,8 +799,8 @@ public final class TomoBlob: ObservableObject {
                                 with: .color(self.paint.ink))
                 }
             }
-            if let k = e.split {                                            // behind Tomo, so the bottom sinks
-                TomoEgg.drawSplit(ctx, k: k, width: w, height: h, sinks: true, shell: shell)
+            if let k = e.split {                                            // behind Tomo
+                TomoEgg.drawSplit(ctx, k: k, width: w, height: h, shell: shell)
                 return
             }
             var bottom = ctx
@@ -3603,7 +3603,7 @@ extension TomoBlob {
         let hosts = [Host(name: "iPhone", size: CGSize(width: 120, height: 120), overhang: 0, ceiling: nil, top: 0),
                      Host(name: "card", size: CGSize(width: 120, height: 192), overhang: 72, ceiling: nil, top: 48),
                      Host(name: "small Tomo", size: room, overhang: overhang, ceiling: roomTop + 1, top: roomTop)]
-        var out: [String] = [], highest: [String: CGFloat] = [:], drawn = 0
+        var out: [String] = [], highest: [String: CGFloat] = [:], drawn = 0, faded = 0, fadedHigh: [String] = []
         for host in hosts {
             let pad: CGFloat = 60
             for age in 0..<TomoLook.ages {
@@ -3624,6 +3624,16 @@ extension TomoBlob {
                         guard let y = box.map({ $0.minY - pad }) else { return }
                         drawn += 1
                         highest[host.name] = min(highest[host.name] ?? .infinity, y)
+                        // Half-faded, the shell is low: everything drawn is below where the egg's middle stood.
+                        if let k = egg.split, TomoEgg.splitSolid(k) < 0.98, TomoEgg.splitSolid(k) > 0.02 {
+                            faded += 1
+                            let at = b.eggRoom(size: size), R = size.width * 0.27
+                            let w = b.ceiling.map { min(R * 1.45, max(1, at.floor.y - $0) / (1.28 * 1.1)) } ?? R * 1.45
+                            if y < at.floor.y - w * 1.28 / 2 {
+                                fadedHigh.append(String(format: "%@ age %d at %.2f s: %.0f pt high", host.name, age + 1, s,
+                                                        at.floor.y - w * 0.64 - y))
+                            }
+                        }
                         if y < host.top - 0.5 {
                             out.append(String(format: "%@ age %d %@ at %.2f s: %.1f pt over", host.name, age + 1,
                                               into ? "going in" : "hatching", s, host.top - y))
@@ -3637,6 +3647,13 @@ extension TomoBlob {
               + "(highest \(highest["iPhone"].map { String(format: "%.0f", $0) } ?? "-") pt), under the card's header "
               + "(\(highest["card"].map { String(format: "%.0f", $0) } ?? "-") pt, below 48) and under small Tomo's ceiling"
               + (out.isEmpty ? "" : ": \(out.count) over, \(out.prefix(3).joined(separator: "; "))"))
+        // As it hatches, the shell's halves stay solid until their last 0.1 s, and are low by then (in the egg's lower
+        // half, beside and under Tomo's foot), so half-faded cream never hangs round Tomo as a grey smudge.
+        let fadedEach = Double(faded) / Double(hosts.count * TomoLook.ages) / 60
+        check(faded > 0 && fadedEach <= 0.12 && fadedHigh.isEmpty,
+              String(format: "hatching, the shell's halves fade only in their last %.2f s (at most 0.12), low beside Tomo's "
+                     + "foot", fadedEach)
+              + (fadedHigh.isEmpty ? "" : ": \(fadedHigh.count) high, \(fadedHigh.prefix(3).joined(separator: "; "))"))
         #endif
     }
 }

@@ -87,7 +87,8 @@ for any change of shape. The morph is Tomo's, not the script's: a newer script d
   curls up and the first run's egg, speckled in its colours, closes round it (`intoEggCue`); there it rests, rocking
   now and then and peeking out every 4 to 6.5 s, and a poke wobbles it and makes it peek. Set back to false, it hatches
   as the first run's egg does (`hatchCue`): the egg shakes as its crack runs across, the halves part behind Tomo in a
-  few sparkles (the bottom sinks into the floor), and Tomo springs out saying `hatchWord` (the target pack's hello, which the host passes in; ばあ！ in
+  few sparkles (solid, the top tumbling off to the side and both sinking into the floor, fading only in their last
+  0.1 s, so no see-through shell greys a dark card), and Tomo springs out saying `hatchWord` (the target pack's hello, which the host passes in; ばあ！ in
   Japanese). It comes out as it went in: its seed, age, form and feeling stay. Under Reduce Motion Tomo fades into the
   egg and out of it with a glow and star eyes. In its egg it wears no badge or question mark and doesn't doze or say hello; a big moment
   that comes then plays behind the shell, only its particles showing. The halves stay in Tomo's room (`eggRoom`): its
