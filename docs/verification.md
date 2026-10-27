@@ -21,6 +21,9 @@ review; the Mac's island checks and the snapshots run locally.
   installed, choose it through `DEVELOPER_DIR`, for example
   `DEVELOPER_DIR=/Applications/Xcode-27.0.app/Contents/Developer`. When the pinned version isn't
   installed, say so in the PR and treat CI's compile as the one that counts.
+- **xcodegen:** regenerate the Mac project with xcodegen 2.44.1, which wrote the checked-in one.
+  Another version rewrites a couple of format lines (`compatibilityVersion`, `productRefGroup`), so
+  don't commit its output.
 
 The self-test: `TOMO_SELFTEST=1 TOMO_DATA_DIR=$(mktemp -d) <app binary>` checks the word-stage, level,
 store, sync-merge and look rules, the island's (which screen, where, Esc, opening and closing, the peek; a visit offered as a peek runs on the game itself, about 3 s, and logs as one), the Tomodachi window's sidebar (every line of every row's label stands out, selected or not, in light and dark, with the window behind others as its snapshots draw it and in front on the accent highlight: `TomoAppWindow.selfTest`), the stats (a learner simulated for three weeks, against its own tally: `TomoStatsCheck.swift`), who sees the first run, when reminders

@@ -207,6 +207,7 @@
 				};
 			};
 			buildConfigurationList = 2B80F5D9D7D10C755DEF1E61 /* Build configuration list for PBXProject "NotchBuddy" */;
+			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -219,7 +220,6 @@
 				1BC530D84049ED2B57B71DD3 /* XCLocalSwiftPackageReference "../../TomoCore" */,
 			);
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 6CF11AAA7898712CF6DB364A /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
