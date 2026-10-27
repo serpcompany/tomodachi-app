@@ -71,6 +71,10 @@ enum TomoIconRenderer {
             renderFeelings(to: URL(fileURLWithPath: dir))
             NSApp.terminate(nil)
         }
+        if let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_MOSS_EGG"] {   // mossy, the egg and the hatch (#258)
+            renderMossAndEgg(to: URL(fileURLWithPath: dir))
+            NSApp.terminate(nil)
+        }
         guard let dir = ProcessInfo.processInfo.environment["TOMO_RENDER_ICON"] else { return }
         let out = URL(fileURLWithPath: dir)
         try? FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
@@ -403,9 +407,9 @@ enum TomoIconRenderer {
         .background(Color.black)
     }
 
-    /// TOMO_RENDER_FEELINGS=<dir> (#257): Tomo well, droopy and sickly (`TomoBlob.feeling`).
-    ///   <dir>/tomo-feelings.png  one row each for well, droopy and sickly: a Tomo of each of the 10 silhouettes, then one
-    ///                            with ears at every age, then one with each topper
+    /// TOMO_RENDER_FEELINGS=<dir> (#257, #258): Tomo well, droopy, sickly and mossy (`TomoBlob.feeling`).
+    ///   <dir>/tomo-feelings.png  one row each for well, droopy, sickly and mossy: a Tomo of each of the 10 silhouettes,
+    ///                            then one with ears at every age, then one with each topper
     ///   <dir>/frames/frame-0000.png …  a 40-second scene at 10 fps on a scripted clock: well, droopy from 1 s, sickly
     ///                            from 22 s, well again from 34 s (its happy hop), a Tomo with ears (TOMO_SEED picks
     ///                            another) at 3さい
@@ -481,6 +485,107 @@ enum TomoIconRenderer {
             block(nil)
             block(.droopy)
             block(.sickly)
+            block(.mossy)
+        }
+        .padding(20)
+        .background(Color.black)
+    }
+
+    /// TOMO_RENDER_MOSS_EGG=<dir> (#258): mossy, back into its egg and the hatch, on a scripted clock.
+    ///   <dir>/tomo-moss-egg.png  the eight render seeds at 3さい, one per row: well, mossy (grown over), brushing the moss
+    ///                            off, going into its egg, resting in it, peeking out, cracking, hatching, and out again
+    ///   <dir>/tomo-moss-egg-calm.png  the same under Reduce Motion
+    ///   <dir>/frames/frame-0000.png …  a 30-second scene at 10 fps: mossy from 1 s, well again from 9 s (the brush-off),
+    ///                            sickly from 13 s, into its egg at 15 s, a poke at 19 s, the hatch at 23 s (sickly still),
+    ///                            well from 27 s; a Tomo with ears (TOMO_SEED picks another) at 3さい, TOMO_REDUCE_MOTION=1
+    ///                            for Reduce Motion
+    /// Tomo says the target pack's hello as it hatches.
+    private static func renderMossAndEgg(to out: URL) {
+        try? FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
+        write(mossEggSheet(calm: false), to: out.appendingPathComponent("tomo-moss-egg.png"))
+        write(mossEggSheet(calm: true), to: out.appendingPathComponent("tomo-moss-egg-calm.png"))
+        let frames = out.appendingPathComponent("frames")
+        try? FileManager.default.createDirectory(at: frames, withIntermediateDirectories: true)
+        var t = 0.0
+        let blob = TomoBlob(look: ProcessInfo.processInfo.environment["TOMO_SEED"].map { TomoLook(seed: $0) }
+                                ?? feelingLook({ $0.topper == .bunny }), material: .forRenders)
+        blob.reduceMotion = TomoMotion.forced
+        blob.clock = { t }
+        blob.particleOverhang = 40
+        blob.dozeAfter = 1e9
+        blob.hatchWord = TomoLanguages.shared.target.lines.hello?.say
+        blob.setGrowth(2)
+        let script: [(at: Double, run: (TomoBlob) -> Void)] = [
+            (1, { $0.feeling = .mossy }), (9, { $0.feeling = nil }), (13, { $0.feeling = .sickly }),
+            (15, { $0.inEgg = true }), (19, { $0.poke() }), (23, { $0.inEgg = false }), (27, { $0.feeling = nil }),
+        ]
+        var next = 0
+        let fps = 10.0
+        for i in 0..<Int(fps * 30) {
+            let shot = Double(i) / fps
+            repeat {                                            // stepped at 60 Hz between frames, as the notch is
+                t = min(shot, t + 1.0 / 60)
+                while next < script.count && script[next].at <= t { script[next].run(blob); next += 1 }
+                blob.step()
+            } while t < shot
+            let frame = Canvas { ctx, sz in blob.draw(ctx, size: sz) }
+                .frame(width: 240, height: 280)
+                .background(Color.black)
+            write(frame, to: frames.appendingPathComponent(String(format: "frame-%04d.png", i)))
+        }
+    }
+
+    /// `look`'s Tomo at 3さい after `script` (seconds from its first frame) has played for `until` seconds, stepped at
+    /// 60 Hz on a scripted clock, never dozing off.
+    private static func scene(_ look: TomoLook, calm: Bool, _ script: [(at: Double, run: (TomoBlob) -> Void)],
+                              until: Double) -> TomoBlob {
+        let blob = TomoBlob(look: look, material: .forRenders)
+        blob.reduceMotion = calm
+        var t = 100.0
+        blob.clock = { t }
+        blob.dozeAfter = 1e9
+        blob.hatchWord = TomoLanguages.shared.target.lines.hello?.say
+        blob.setGrowth(2)
+        blob.step()
+        var next = 0
+        while t < 100 + until {
+            t = min(100 + until, t + 1.0 / 60)
+            while next < script.count && 100 + script[next].at <= t { script[next].run(blob); next += 1 }
+            blob.step()
+        }
+        return blob
+    }
+
+    private static func mossEggSheet(calm: Bool) -> some View {
+        let mossy: (at: Double, run: (TomoBlob) -> Void) = (0.1, { $0.feeling = .mossy })
+        let into: (at: Double, run: (TomoBlob) -> Void) = (0.1, { $0.inEgg = true })
+        let hatch: (at: Double, run: (TomoBlob) -> Void) = (4, { $0.inEgg = false })
+        let closed = calm ? 0.9 : 2.4                           // the script into its egg, before its first peek
+        let columns: [(String, [(at: Double, run: (TomoBlob) -> Void)], Double)] = [
+            ("well", [], 1.2),
+            ("mossy", [mossy], 9),
+            ("brushing", [mossy, (9, { $0.feeling = nil })], 9.3),
+            ("into its egg", [into], calm ? 0.55 : 1.3),
+            ("in its egg", [into], 0.1 + closed + 1),
+            ("peeking", [into, (3.5, { $0.poke() })], 3.5 + 0.12 + 0.85),
+            (calm ? "hatching" : "cracking", [into, hatch], calm ? 4.25 : 4.6),
+            (calm ? "saying hello" : "hatching", [into, hatch], calm ? 4.7 : 5.25),
+            ("out again", [into, hatch], 8),
+        ]
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Color.clear.frame(width: 90, height: 20)
+                ForEach(0..<columns.count, id: \.self) { label(columns[$0].0).frame(width: 150) }
+            }
+            ForEach(0..<8, id: \.self) { i in
+                HStack(spacing: 6) {
+                    label("variety-\(i)").frame(width: 90)
+                    ForEach(0..<columns.count, id: \.self) { c in
+                        let blob = scene(TomoLook(seed: "variety-\(i)"), calm: calm, columns[c].1, until: columns[c].2)
+                        Canvas { ctx, sz in blob.draw(ctx, size: sz) }.frame(width: 150, height: 150)
+                    }
+                }
+            }
         }
         .padding(20)
         .background(Color.black)

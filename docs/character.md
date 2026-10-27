@@ -47,9 +47,8 @@ a birthday's drops and confetti in Tomo's own colours (`confettiColor`: its body
 Each lives 2 s at most and all are gone when the moment ends; under Reduce Motion there are a third, slower.
 At a birthday the new form comes at once and its outline flows out of the old one (`TomoFormMorph`, TomoMorph.swift):
 a port of [flubber](https://github.com/veltman/flubber) on the states lab's Flubber timing (1.2 s, springing past the
-new outline and settling), and under Reduce Motion a 0.9 s crossfade. Its function of two forms and a progress is for
-any change of shape (the egg's hatch, [#258](https://github.com/serpcompany/tomodachi-app/issues/258)). The morph is
-Tomo's, not the script's: a newer script doesn't stop it. Planned: evolution that reads as growing up, as cue scripts
+new outline and settling), and under Reduce Motion a 0.9 s crossfade. Its function of two forms and a progress works
+for any change of shape. The morph is Tomo's, not the script's: a newer script doesn't stop it. Planned: evolution that reads as growing up, as cue scripts
 ([#87](https://github.com/serpcompany/tomodachi-app/issues/87)).
 
 ## What its hosts pass in
@@ -73,14 +72,29 @@ Tomo's, not the script's: a newer script doesn't stop it. Planned: evolution tha
   loop on the clock, not a script: it fades in and out, a script takes over while one plays, and it's off under Reduce
   Motion.
 - A feeling over its own look (`feeling`, `TomoFeeling.swift`): droopy (it sags wider and lower, its ears and topper
-  flop, it looks at the floor, breathes slower and sighs every 5 to 7 s) or sickly (a green-grey tint, a little smaller,
-  heavy worried lids, a sweat drop, quick shallow breaths and a shiver). Only the Testing menu sets it for now
+  flop, it looks at the floor, breathes slower and sighs every 5 to 7 s), sickly (a green-grey tint, a little smaller,
+  heavy worried lids, a sweat drop, quick shallow breaths and a shiver) or mossy (asleep and curled up, breathing deep
+  and slow with Zz drifting up, while moss grows over its top in about 3 s, in patches from its seed, crown first, and
+  then a sprout that sways). Only the Testing menu sets it for now
   (`TomoGame.feeling`, or `TOMO_FEELING` at launch), and every live host passes it on; nothing ties it to progress yet
   ([#262](https://github.com/serpcompany/tomodachi-app/issues/262)). It eases in and out over about a second, and back
-  to well Tomo gives a small happy hop. Droopy slumps a birthday's morph too, frame by frame, so nothing pops as it
-  starts or ends. Under Reduce Motion the sigh and shiver become a puff. Its colour is a pass over
-  the look, never a new look: its seed, age and form stay. The look the feeling copies is
-  [the states lab](reference/tomo/states-lab.html) (Posture and Ill).
+  to well Tomo gives a small happy hop; from mossy it shakes the moss off instead, in a puff of spores (`brushCue`, a
+  cue script). Droopy slumps a birthday's morph too, frame by frame, so nothing pops as it starts or ends. Under
+  Reduce Motion the sigh, the shiver and the brush-off's shake become a puff, and the sprout stands still. Its colour
+  is a pass over the look, never a new look: its seed, age and form stay. The look the feeling copies is
+  [the states lab](reference/tomo/states-lab.html) (Posture, Ill and Patches).
+- Back in its egg (`inEgg`, `TomoEgg.swift`, [#258](https://github.com/serpcompany/tomodachi-app/issues/258)): Tomo
+  curls up and the first run's egg, speckled in its colours, closes round it (`intoEggCue`); there it rests, rocking
+  now and then and peeking out every 4 to 6.5 s, and a poke wobbles it and makes it peek. Set back to false, it hatches
+  as the first run's egg does (`hatchCue`): the egg shakes as its crack runs across, the halves part behind Tomo in a
+  few sparkles (solid, the top tumbling off to the side and both sinking into the floor, fading only in their last
+  0.1 s, so no see-through shell greys a dark card), and Tomo springs out saying `hatchWord` (the target pack's hello, which the host passes in; ばあ！ in
+  Japanese). It comes out as it went in: its seed, age, form and feeling stay. Under Reduce Motion Tomo fades into the
+  egg and out of it with a glow and star eyes. In its egg it wears no badge or question mark and doesn't doze or say hello; a big moment
+  that comes then plays behind the shell, only its particles showing. The halves stay in Tomo's room (`eggRoom`): its
+  frame, under a ceiling. Only the Testing menu sets it for now (`TomoGame.inEgg`; `TOMO_EGG` and `TOMO_HATCH`), and
+  the first run's hatch sounds play as the hatch starts (`onHatch`). The look is the states
+  lab's Shell on the first run's egg, which `TomoEggView` draws with `TomoEgg` too.
 - When it says hello: the island the first time Tomo shows after launch, greeting the launch visit's card instead of
   dripping into it, and when the Mac wakes (`TomoCharacterView.saysHello`); the iPhone's play screen when it first
   appears.
@@ -108,5 +122,9 @@ Tomo's, not the script's: a newer script doesn't stop it. Planned: evolution tha
   macOS, where the island is).
 - Nothing emits at rest: particles come only with moments, and the weather never reaches the resting island
   (`TomoBlob.particleSelfTest`).
-- A feeling never changes who Tomo is: its seed, age and form stay, it emits nothing (its sweat drop is drawn from the
-  clock), and well is drawn exactly as before (`TomoBlob.feelingSelfTest`, `TomoFeeling.colourSelfTest`).
+- A feeling never changes who Tomo is: its seed, age and form stay, it emits nothing (its sweat drop, moss and Zz are
+  drawn from the clock), and well is drawn exactly as before (`TomoBlob.feelingSelfTest`, `TomoBlob.mossSelfTest`,
+  `TomoFeeling.colourSelfTest`).
+- Tomo comes out of its egg as it went in: its seed, age, form, colours and feeling, for every look, age and feeling,
+  under Reduce Motion too. In its egg it emits nothing at rest, and the egg fits the island's sides and ceiling
+  (`TomoBlob.eggSelfTest`).

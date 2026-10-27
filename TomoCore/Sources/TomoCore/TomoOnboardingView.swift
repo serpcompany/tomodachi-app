@@ -698,12 +698,7 @@ private struct NotchSketch: View {
     }
 }
 
-// MARK: - The egg Tomo hatches from (drawn live, like Tomo)
-
-public enum TomoEgg {
-    /// From the first tap to the shell splitting open.
-    public static let crackTime = 0.9
-}
+// MARK: - The egg Tomo hatches from (drawn live, like Tomo; the egg itself is `TomoEgg`'s)
 
 /// A speckled egg in the colours of the Tomo inside it. It rocks while it waits, now and then with a wiggle;
 /// once `crackedAt` is set it shakes, cracks across, and the halves fly apart.
@@ -737,103 +732,18 @@ struct TomoEggView: View {
         context.fill(Path(ellipseIn: CGRect(x: cx - shadowW / 2, y: base - 7, width: shadowW, height: 14)),
                      with: .color(.black.opacity(0.35 * (split > 0 ? max(0, 1 - split / 0.4) : 1))))
 
-        let egg = Self.eggPath(width: w, height: h)                 // centred on (0, 0)
-        let crackY = -h * 0.04
-        let crack = Self.crackLine(width: w, y: crackY)
+        let egg = TomoEgg.path(width: w, height: h)                 // centred on (0, 0)
         let crackShown = e < 0 ? 0 : min(1, e / TomoEgg.crackTime)
-
-        func drawEgg(_ ctx: GraphicsContext) {
-            ctx.fill(egg, with: .linearGradient(Gradient(colors: [Color(hex: "#FFF9EC"), Color(hex: "#EBDDC3")]),
-                                                startPoint: CGPoint(x: -w * 0.3, y: -h * 0.5),
-                                                endPoint: CGPoint(x: w * 0.3, y: h * 0.5)))
-            var inside = ctx
-            inside.clip(to: egg)
-            for (i, s) in Self.spots(seed: look.seed).enumerated() {
-                let r = s.r * w
-                let rect = CGRect(x: s.x * w - r, y: s.y * h - r, width: r * 2, height: r * 2)
-                inside.fill(Path(ellipseIn: rect), with: .color((i % 3 == 0 ? look.accent : look.body).opacity(0.85)))
-            }
-            // A soft shine, top left
-            inside.fill(Path(ellipseIn: CGRect(x: -w * 0.32, y: -h * 0.38, width: w * 0.2, height: h * 0.16)),
-                        with: .color(.white.opacity(0.55)))
-            ctx.stroke(egg, with: .color(Color(hex: "#C9B48F").opacity(0.6)), lineWidth: 1.5)
-        }
+        let shell = { (ctx: GraphicsContext) in TomoEgg.drawShell(ctx, egg, width: w, height: h, look: look, outline: 1.5) }
 
         var ctx = context
         ctx.translateBy(x: cx, y: base - h / 2 - hop)
         if split <= 0 {
             ctx.rotate(by: .radians(rot))
-            drawEgg(ctx)
-            if crackShown > 0 {
-                var shell = ctx
-                shell.clip(to: egg)                                 // the crack stays on the shell
-                shell.stroke(crack.trimmedPath(from: 0, to: crackShown), with: .color(Color(hex: "#7A5F3A")),
-                             style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
-            }
+            shell(ctx)
+            TomoEgg.drawCrack(ctx, egg, width: w, y: TomoEgg.crackY(height: h), shown: crackShown, lineWidth: 2.5)
             return
         }
-        // Split: the top flies up and spins away, the bottom drops and fades.
-        let k = split / 0.7
-        var top = ctx
-        top.opacity = max(0, 1 - k * 1.3)
-        top.translateBy(x: w * 0.25 * k, y: -h * 0.9 * k + h * 0.6 * k * k)
-        top.rotate(by: .radians(0.9 * k))
-        top.clip(to: Self.half(crackY: crackY, width: w, height: h, top: true))
-        drawEgg(top)
-        var bottom = ctx
-        bottom.opacity = max(0, 1 - k * 1.5)
-        bottom.translateBy(x: 0, y: h * 0.25 * k)
-        bottom.clip(to: Self.half(crackY: crackY, width: w, height: h, top: false))
-        drawEgg(bottom)
-    }
-
-    /// An egg: narrower at the top.
-    private static func eggPath(width w: CGFloat, height h: CGFloat) -> Path {
-        var p = Path()
-        let n = 64
-        for i in 0...n {
-            let a = Double(i) / Double(n) * 2 * .pi
-            let up = sin(a)                                         // 1 at the top
-            let x = w / 2 * cos(a) * (1 - 0.14 * up)
-            let y = -h / 2 * up
-            if i == 0 { p.move(to: CGPoint(x: x, y: y)) } else { p.addLine(to: CGPoint(x: x, y: y)) }
-        }
-        p.closeSubpath()
-        return p
-    }
-
-    /// The zigzag crack across the egg, left to right.
-    private static func crackLine(width w: CGFloat, y: CGFloat) -> Path {
-        var p = Path()
-        let teeth = 7
-        p.move(to: CGPoint(x: -w * 0.56, y: y))
-        for i in 1...teeth {
-            let x = -w * 0.56 + w * 1.12 * CGFloat(i) / CGFloat(teeth)
-            p.addLine(to: CGPoint(x: x, y: y + (i % 2 == 0 ? -1 : 1) * w * 0.07))
-        }
-        return p
-    }
-
-    /// The part of the shell above (or below) the crack.
-    private static func half(crackY: CGFloat, width w: CGFloat, height h: CGFloat, top: Bool) -> Path {
-        var p = crackLine(width: w, y: crackY)
-        let edge = top ? -h : h
-        p.addLine(to: CGPoint(x: w, y: crackY))
-        p.addLine(to: CGPoint(x: w, y: edge))
-        p.addLine(to: CGPoint(x: -w, y: edge))
-        p.addLine(to: CGPoint(x: -w, y: crackY))
-        p.closeSubpath()
-        return p
-    }
-
-    /// Seven speckles placed from the seed (x, y in egg widths and heights from the centre; r in egg widths).
-    private static func spots(seed: String) -> [(x: CGFloat, y: CGFloat, r: CGFloat)] {
-        var h: UInt64 = 0xcbf29ce484222325
-        for b in seed.utf8 { h = (h ^ UInt64(b)) &* 0x100000001b3 }
-        func next() -> CGFloat {
-            h ^= h << 13; h ^= h >> 7; h ^= h << 17
-            return CGFloat(h % 10_000) / 10_000
-        }
-        return (0..<7).map { _ in (x: (next() - 0.5) * 0.8, y: (next() - 0.5) * 0.8, r: 0.05 + next() * 0.07) }
+        TomoEgg.drawSplit(ctx, k: split / 0.7, width: w, height: h, shell: shell)
     }
 }

@@ -1,14 +1,16 @@
 import SwiftUI
 
-// MARK: - How Tomo feels (#257)
+// MARK: - How Tomo feels (#257, #258)
 //
-// A look Tomo can show over its own: droopy or sickly, as the states lab drew them (docs/reference/tomo/states-lab.html:
-// Droopy is its Posture option, Sickly its Ill). The host passes it to TomoBlob (`feeling`); for now only the Testing
-// menu sets it (`TomoGame.feeling`). Nothing in the game reads or sets it: no level, age or mood rule (#262).
+// A look Tomo can show over its own: droopy, sickly or mossy, as the states lab drew them
+// (docs/reference/tomo/states-lab.html: Droopy is its Posture option, Sickly its Ill, Mossy its Patches). The host
+// passes it to TomoBlob (`feeling`); for now only the Testing menu sets it (`TomoGame.feeling`). Nothing in the game
+// reads or sets it: no level, age or mood rule (#262).
 //
-// Each feeling is a set of amounts Tomo eases toward, about 90% of the way in a second, so it slumps or perks up rather
-// than snapping. Its colours are a pass over the look (`TomoLook.tinted`), so the seed, the shape and `classic` never
-// change. The sweat drop is a fixed fill worked out from the clock, so nothing emits at rest.
+// Each feeling is a set of amounts Tomo eases toward, about 90% of the way in a second (moss in three), so it slumps or
+// perks up rather than snapping. Its colours are a pass over the look (`TomoLook.tinted`), so the seed, the shape and
+// `classic` never change. The sweat drop, the moss and its sprout are fixed fills worked out from the clock, so nothing
+// emits at rest.
 
 /// A look over Tomo's own; nil is well.
 public enum TomoFeeling: String, CaseIterable, Sendable {
@@ -16,6 +18,9 @@ public enum TomoFeeling: String, CaseIterable, Sendable {
     case droopy
     /// A green-grey tint, a size smaller, a sweat drop, quick shallow breaths, heavy worried lids, a shiver now and then.
     case sickly
+    /// Asleep and curled while moss grows over its top in seeded patches, then a sprout that sways; it breathes deep and
+    /// slow, and Zz drift up. Back to well, Tomo brushes the moss off (TomoBlob's brush-off script).
+    case mossy
 }
 
 extension TomoFeeling {
@@ -31,6 +36,9 @@ extension TomoFeeling {
         var sweat: CGFloat = 0         // the sweat drop's opacity
         var lid: CGFloat = 0           // the upper lids, this far down the eye
         var worry: CGFloat = 0         // the lids tipped down at their outer corners
+        var sleep: CGFloat = 0         // asleep: its eyes shut and its breath deep, 0…1
+        var curl: CGFloat = 0          // curled up: lower, wider and tipped a little, 0…1
+        var moss: CGFloat = 0          // how far the moss has grown (`mossPatches`, then the sprout), 0…1
 
         static let well = Amounts()
 
@@ -43,20 +51,27 @@ extension TomoFeeling {
             case .sickly:
                 green = 0.75; sat = 0.6; size = 0.92; sweat = 1; breathRate = 1.9; breathDepth = 0.55
                 lid = 0.45; worry = 0.35
+            case .mossy:
+                sleep = 1; curl = 1; moss = 1; breathRate = 0.65; breathDepth = 1.4
             }
         }
 
         init() {}
 
         private static var parts: [WritableKeyPath<Amounts, CGFloat>] {
-            [\.sag, \.flop, \.wide, \.tall, \.size, \.gaze, \.breathRate, \.breathDepth, \.sat, \.green, \.sweat, \.lid, \.worry]
+            [\.sag, \.flop, \.wide, \.tall, \.size, \.gaze, \.breathRate, \.breathDepth, \.sat, \.green, \.sweat, \.lid, \.worry,
+             \.sleep, \.curl, \.moss]
         }
 
-        /// Part of the way to `goal` after `dt` seconds (90% in one), and there once every part is within 0.002 of it.
+        /// Seconds each part takes to get 90% of the way: one, and moss three, so it creeps over Tomo (the lab's RATE).
+        private static func pace(_ part: WritableKeyPath<Amounts, CGFloat>) -> CGFloat { part == \.moss ? 3 : 1 }
+
+        /// Part of the way to `goal` after `dt` seconds (90% in a part's `pace`), and there once every part is within
+        /// 0.002 of it.
         mutating func ease(toward goal: Amounts, dt: CGFloat) {
-            let k = 1 - pow(0.1, dt)
             var near = true
             for part in Self.parts {
+                let k = 1 - pow(0.1, dt / Self.pace(part))
                 self[keyPath: part] += (goal[keyPath: part] - self[keyPath: part]) * k
                 if abs(goal[keyPath: part] - self[keyPath: part]) > 0.002 { near = false }
             }
@@ -136,6 +151,55 @@ extension TomoFeeling {
 
     /// The sweat drop's colour: a pale blue, the same on every Tomo.
     static let sweat = Color(red: 165 / 255, green: 214 / 255, blue: 1).opacity(0.95)
+
+    /// Mossy's patches for a Tomo (its `markSeed`): ten circles, top first, so the moss starts on its crown and spreads
+    /// down. `x` is across its width (-1…1 of `rx`), `y` from its top (0) to just over its eyes (1), `r` in body radii.
+    /// The lab's `seeded` generator, so each seed's moss is the lab's.
+    static func mossPatches(seed: Double) -> [(x: CGFloat, y: CGFloat, r: CGFloat)] {
+        var v = Int((seed + 0.13) * 233_280)
+        if v == 0 { v = 7 }
+        func next() -> CGFloat {
+            v = (v * 9301 + 49_297) % 233_280
+            return CGFloat(v) / 233_280
+        }
+        var patches: [(x: CGFloat, y: CGFloat, r: CGFloat)] = []
+        for _ in 0..<10 {
+            let x = (next() * 2 - 1) * 0.95, y = -0.1 + next() * 0.75, r = 0.15 + next() * 0.13
+            patches.append((x, y, r))
+        }
+        return patches.sorted { $0.y < $1.y }
+    }
+
+    /// How far patch `i` has grown when the moss is `amount` grown: one after another, each easing out.
+    static func patchGrowth(_ i: Int, amount: CGFloat) -> CGFloat {
+        let u = min(1, max(0, amount * 12 - CGFloat(i)))
+        return 1 - pow(1 - u, 3)
+    }
+
+    /// Moss's two greens for a Tomo whose head is drawn at lightness `l`: darker on a light Tomo, lighter on a dark one,
+    /// so it shows on every seed (the lab's `mossFor`).
+    static func mossColours(headLightness hl: Double) -> (base: Color, light: Color) {
+        let l = hl > 0.62 ? hl - 0.25 : hl + 0.2
+        return (TomoOklch(l: l, c: 0.11, h: 136).color, TomoOklch(l: min(1, l + 0.1), c: 0.12, h: 125).color)
+    }
+
+    /// The moss's sprout, `s` tall, its foot at the origin: a curved stem and two leaves (the lab's `drawSprout`).
+    static func sprout(_ s: CGFloat) -> (stem: Path, leaves: Path) {
+        var stem = Path()
+        stem.move(to: CGPoint(x: 0, y: s * 0.2))
+        stem.addQuadCurve(to: CGPoint(x: 0, y: -s), control: CGPoint(x: -s * 0.2, y: -s * 0.4))
+        var leaves = Path()
+        for d: CGFloat in [-1, 1] {
+            leaves.move(to: CGPoint(x: 0, y: -s))
+            leaves.addQuadCurve(to: CGPoint(x: d * s * 0.75, y: -s * 1.25), control: CGPoint(x: d * s * 0.35, y: -s * 1.45))
+            leaves.addQuadCurve(to: CGPoint(x: 0, y: -s), control: CGPoint(x: d * s * 0.45, y: -s * 0.95))
+            leaves.closeSubpath()
+        }
+        return (stem, leaves)
+    }
+
+    /// The brush-off's spores: a pale moss green.
+    static let spore = Color(red: 200 / 255, green: 230 / 255, blue: 160 / 255).opacity(0.9)
 }
 
 extension TomoLook {

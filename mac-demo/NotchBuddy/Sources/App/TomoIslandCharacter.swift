@@ -146,6 +146,13 @@ struct TomoCharacterView: View {
                     blob.weather = Self.weather(mode: state.mode, view: state.view, today: todaysWeather)
                     blob.dance = Self.dance(playing: music.playing, mode: state.mode, quiet: quiet, today: todaysDance)
                     blob.feeling = TomoGame.shared.feeling   // the Testing menu's look (#257)
+                    blob.inEgg = TomoGame.shared.inEgg       // and its egg (#258), with the pack's hello as it hatches
+                    blob.hatchWord = TomoLanguages.shared.target.lines.hello?.say
+                    if blob.onHatch == nil {                 // its sounds, after the frame that starts the hatch
+                        blob.onHatch = {
+                            DispatchQueue.main.async { MainActor.assumeIsolated { TomoGame.shared.hatchSounds() } }
+                        }
+                    }
                     blob.step()
                     blob.draw(context, size: geo.size)
                 }

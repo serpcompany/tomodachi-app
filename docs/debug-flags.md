@@ -118,11 +118,19 @@ Set these in the app's environment (run the binary in `Tomodachi.app/Contents/Ma
   crossfade, `tomo-morphs-calm.png`) and, for each seed, every shape's outline flowing into every other, with the
   points' paths (`tomo-morph-pairs-<seed>.png`). It prints the morph survey for all eight seeds and exits 1 if any
   morph tangles, flips or spins.
-- `TOMO_FEELING=droopy|sickly`: Tomo shows that look from launch, as the Testing menu's "Look droopy" and "Look sickly"
-  do (on the iPhone, which has no Testing menu, `SIMCTL_CHILD_TOMO_FEELING`). `TOMO_RENDER_FEELINGS=<dir>`: a sheet
-  (`tomo-feelings.png`: well, droopy and sickly rows, each with every silhouette, one Tomo at every age, and every
-  topper) and a 40-second scene (`frames/`, 10 fps: droopy from 1 s, sickly from 22 s, well again from 34 s), then
-  quit. It draws `TOMO_SEED`'s Tomo, or one with ears.
+- `TOMO_FEELING=droopy|sickly|mossy`: Tomo shows that look from launch, as the Testing menu's "Look droopy", "Look
+  sickly" and "Turn mossy" do (on the iPhone, which has no Testing menu, `SIMCTL_CHILD_TOMO_FEELING`); `TOMO_WELL=<s>`
+  makes it well again that many seconds after launch (from mossy, the brush-off). `TOMO_RENDER_FEELINGS=<dir>`: a sheet
+  (`tomo-feelings.png`: well, droopy, sickly and mossy rows, each with every silhouette, one Tomo at every age, and
+  every topper) and a 40-second scene (`frames/`, 10 fps: droopy from 1 s, sickly from 22 s, well again from 34 s),
+  then quit. It draws `TOMO_SEED`'s Tomo, or one with ears.
+- `TOMO_EGG=<s>`: Tomo goes back into its egg that many seconds after launch (`0`: it's in its egg from launch), and
+  `TOMO_HATCH=<s>` hatches it, as the Testing menu's "Go back into its egg" and "Hatch" do (on the iPhone,
+  `SIMCTL_CHILD_TOMO_EGG` and `SIMCTL_CHILD_TOMO_HATCH`). `TOMO_RENDER_MOSS_EGG=<dir>`: the eight render seeds well,
+  mossy, brushing the moss off, going into the egg, resting in it, peeking, cracking, hatching and out again
+  (`tomo-moss-egg.png`; under Reduce Motion, `tomo-moss-egg-calm.png`) and a 30-second scene (`frames/`, 10 fps:
+  mossy from 1 s, the brush-off at 9 s, sickly from 13 s, into its egg at 15 s, a poke at 19 s, the hatch at 23 s,
+  well at 27 s), then quit. The scene draws `TOMO_SEED`'s Tomo, or one with ears.
 
 ## Starting from a known state
 

@@ -93,8 +93,10 @@ passes: [hand-checks.md](hand-checks.md).
   a known learner's Tomo (the mascot otherwise), and the self-test's look checks (`TomoLook.selfTest`). They draw the
   learner's material (jelly); `TOMO_MATERIAL=classic` draws Tomo as before. A change to `classic` or to anything it
   draws needs `TOMO_RENDER_CARD_FRAMES` compared with main: those frames ship as the widgets' font. A change to a
-  feeling (droopy or sickly) needs `TOMO_RENDER_FEELINGS` too, and the card and small Tomo with `TOMO_FEELING` at
-  every age, Reduce Motion on and off.
+  feeling (droopy, sickly or mossy) needs `TOMO_RENDER_FEELINGS` too, and the card and small Tomo with `TOMO_FEELING` at
+  every age, Reduce Motion on and off. A change to the egg or the brush-off needs `TOMO_RENDER_MOSS_EGG`, and the card
+  and small Tomo with `TOMO_EGG` and `TOMO_HATCH` (and `TOMO_FEELING=mossy` with `TOMO_WELL`), Reduce Motion on and
+  off.
 - **Sounds:** `TOMO_RENDER_SOUNDS`, and listen. An agent can't listen: check each file with ffmpeg (`astats` or
   `volumedetect`: peaks at -3 dBFS or lower; `ebur128`: about the same loudness at every age) and look at a
   `showspectrumpic` sheet.
@@ -119,9 +121,10 @@ Tomodachi is the active app, and in the menu bar icon's menu: **Skip to talking 
 step** (⌘G), **Finish this level** (⌘L) and **Grow to the next birthday** (⌘B), which grow Tomo without waiting
 and celebrate as usual (`TomoGame.testGrow`); `TOMO_GROW=step|level|birthday` does the same 3 s after launch,
 for snapshots. Testing never touches the saved Tomo: another age, "Skip ahead a day" and Grow run on a copy in
-memory until **Back to my Tomo** (in the menu too), which also puts Tomo's clock back. **Look droopy** and **Look
-sickly** show that look on the card until **Look well again**; nothing is saved, and its level and age stay
-(`TomoGame.feeling`; `TOMO_FEELING` from launch).
+memory until **Back to my Tomo** (in the menu too), which also puts Tomo's clock back. **Look droopy**, **Look
+sickly** and **Turn mossy** show that look on the card until **Look well again**, and **Go back into its egg** puts Tomo
+in its egg until **Hatch**; nothing is saved, and its level and age stay (`TomoGame.feeling` and `TomoGame.inEgg`;
+`TOMO_FEELING` and `TOMO_EGG` from launch).
 
 ## Sync (iCloud)
 

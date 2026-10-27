@@ -297,10 +297,45 @@ public final class TomoGame: ObservableObject {
     private var taughtNew = false           // this visit already brought its one new item
     private var token = 0
 
-    /// A look Tomo shows over its own (#257: droopy or sickly; nil is well), passed to every Tomo drawn. Only the Testing
-    /// menu sets it for now, or TOMO_FEELING=droopy|sickly at launch: never saved or synced, and nothing in the game reads
-    /// it, so a learner's level and age never change with it.
+    /// A look Tomo shows over its own (#257, #258: droopy, sickly or mossy; nil is well), passed to every Tomo drawn. Only
+    /// the Testing menu sets it for now, or TOMO_FEELING=droopy|sickly|mossy at launch (TOMO_WELL=<s>: well again that
+    /// many seconds after launch): never saved or synced, and nothing in the game reads it, so a learner's level and age
+    /// never change with it.
     @Published public var feeling: TomoFeeling? = ProcessInfo.processInfo.environment["TOMO_FEELING"].flatMap(TomoFeeling.init(rawValue:))
+
+    /// Tomo back in its egg (#258, `TomoBlob.inEgg`), passed to every Tomo drawn; false again, it hatches as the first
+    /// run's egg does, with its sounds and hello (`hatchSounds`, as the hatch starts), and comes out as it went in. Only
+    /// the Testing menu sets it for now, or TOMO_EGG=<s> and TOMO_HATCH=<s> that many seconds after launch (TOMO_EGG=0:
+    /// in its egg from launch). Never saved or synced, and nothing in the game reads it.
+    @Published public var inEgg = ProcessInfo.processInfo.environment["TOMO_EGG"] == "0"
+
+    /// The first run's hatch, heard: a boing, the crack's sound as the shell splits, and Tomo's hello as it comes out
+    /// (`TomoOnboarding.hatch`, on `TomoBlob`'s hatch timing). The Tomo that hatches plays it as its hatch starts
+    /// (`TomoBlob.onHatch`), so it's heard only when a hatch is seen, and with it.
+    public func hatchSounds() {
+        TomoSounds.shared.play(.boing)
+        DispatchQueue.main.asyncAfter(deadline: .now() + TomoEgg.crackTime) {
+            MainActor.assumeIsolated {
+                TomoSounds.shared.play(.hatch)
+                if let line = self.lang.target.lines.hello { self.speak(line.say, slow: false) }
+            }
+        }
+    }
+
+    /// TOMO_EGG, TOMO_HATCH and TOMO_WELL, once a run (`start` runs again for another Tomo), for snapshots.
+    private static var previewsScheduled = false
+    private func schedulePreviews() {
+        guard !Self.previewsScheduled else { return }
+        Self.previewsScheduled = true
+        let env = ProcessInfo.processInfo.environment
+        func at(_ key: String, _ run: @escaping @MainActor () -> Void) {
+            guard let s = env[key].flatMap(Double.init), s > 0 else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + s) { MainActor.assumeIsolated { run() } }
+        }
+        at("TOMO_EGG") { self.inEgg = true }
+        at("TOMO_HATCH") { self.inEgg = false }
+        at("TOMO_WELL") { self.feeling = nil }
+    }
 
     /// Tomo's voice and sound effects (the speaker button, Settings → General). A headless test run
     /// (TOMO_HEADLESS) starts silent without saving it.
@@ -417,6 +452,7 @@ public final class TomoGame: ObservableObject {
         if let s = ProcessInfo.processInfo.environment["TOMO_STAGE"].flatMap(Int.init), s > 1 {
             jump(toAge: s, open: false)
         }
+        schedulePreviews()
     }
 
     /// Progress from another device was merged into the store (TomoSync): show it. A testing Tomo stays.

@@ -7,14 +7,15 @@ import Foundation
 // TomoBlob.morphSelfTest; its small touches: touchesSelfTest; its big
 // moments' scripts: cueSelfTest; its arrivals and call glow: arrivalSelfTest; its material: materialSelfTest; its
 // hello: helloSelfTest; its badges: badgeSelfTest; its particles and weather: particleSelfTest; its dance:
-// danceSelfTest; droopy and sickly: feelingSelfTest and TomoFeeling.colourSelfTest; standing under a ceiling:
+// danceSelfTest; droopy, sickly and mossy: feelingSelfTest, mossSelfTest and TomoFeeling.colourSelfTest; back into its
+// egg and out: eggSelfTest; standing under a ceiling:
 // ceilingSelfTest; the calendar: TomoCalendar.selfTest), and simulated learners grow on Tomo's clock, moved forward,
 // with the real rules (waits, early reviews at half the wait, new words a day, levels needing 9 of 10) from the first
 // word to the first talking question. The runs print how many days each step took: the pacing table for #38.
 
 extension TomoProgress {
     /// Tomo's drawing: the evolution and its morph, its motion, touches, cue scripts, arrivals, material, hello, badges,
-    /// particles, dance, feelings and ceiling, and the calendar.
+    /// particles, dance, feelings, egg and ceiling, and the calendar.
     static func characterSelfTest(_ check: (Bool, String) -> Void) {
         evolutionSelfTest(check)
         TomoFormMorph.selfTest(check)
@@ -29,6 +30,8 @@ extension TomoProgress {
         TomoBlob.particleSelfTest(check)
         TomoBlob.danceSelfTest(check)
         TomoBlob.feelingSelfTest(check)
+        TomoBlob.mossSelfTest(check)
+        TomoBlob.eggSelfTest(check)
         TomoFeeling.colourSelfTest(check)
         TomoBlob.ceilingSelfTest(check)
         TomoCalendar.selfTest(check)
