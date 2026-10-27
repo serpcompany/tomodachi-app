@@ -297,6 +297,11 @@ public final class TomoGame: ObservableObject {
     private var taughtNew = false           // this visit already brought its one new item
     private var token = 0
 
+    /// A look Tomo shows over its own (#257: droopy or sickly; nil is well), passed to every Tomo drawn. Only the Testing
+    /// menu sets it for now, or TOMO_FEELING=droopy|sickly at launch: never saved or synced, and nothing in the game reads
+    /// it, so a learner's level and age never change with it.
+    @Published public var feeling: TomoFeeling? = ProcessInfo.processInfo.environment["TOMO_FEELING"].flatMap(TomoFeeling.init(rawValue:))
+
     /// Tomo's voice and sound effects (the speaker button, Settings → General). A headless test run
     /// (TOMO_HEADLESS) starts silent without saving it.
     @Published public var soundEnabled = ProcessInfo.processInfo.environment["TOMO_HEADLESS"] == nil

@@ -92,7 +92,9 @@ passes: [hand-checks.md](hand-checks.md).
 - **Tomo's look or motion:** `TOMO_RENDER_SHEET` and `TOMO_RENDER_ANIM` frames, with `TOMO_SEED=<text>` for
   a known learner's Tomo (the mascot otherwise), and the self-test's look checks (`TomoLook.selfTest`). They draw the
   learner's material (jelly); `TOMO_MATERIAL=classic` draws Tomo as before. A change to `classic` or to anything it
-  draws needs `TOMO_RENDER_CARD_FRAMES` compared with main: those frames ship as the widgets' font.
+  draws needs `TOMO_RENDER_CARD_FRAMES` compared with main: those frames ship as the widgets' font. A change to a
+  feeling (droopy or sickly) needs `TOMO_RENDER_FEELINGS` too, and the card and small Tomo with `TOMO_FEELING` at
+  every age, Reduce Motion on and off.
 - **Sounds:** `TOMO_RENDER_SOUNDS`, and listen. An agent can't listen: check each file with ffmpeg (`astats` or
   `volumedetect`: peaks at -3 dBFS or lower; `ebur128`: about the same loudness at every age) and look at a
   `showspectrumpic` sheet.
@@ -117,7 +119,9 @@ Tomodachi is the active app, and in the menu bar icon's menu: **Skip to talking 
 step** (⌘G), **Finish this level** (⌘L) and **Grow to the next birthday** (⌘B), which grow Tomo without waiting
 and celebrate as usual (`TomoGame.testGrow`); `TOMO_GROW=step|level|birthday` does the same 3 s after launch,
 for snapshots. Testing never touches the saved Tomo: another age, "Skip ahead a day" and Grow run on a copy in
-memory until **Back to my Tomo** (in the menu too), which also puts Tomo's clock back.
+memory until **Back to my Tomo** (in the menu too), which also puts Tomo's clock back. **Look droopy** and **Look
+sickly** show that look on the card until **Look well again**; nothing is saved, and its level and age stay
+(`TomoGame.feeling`; `TOMO_FEELING` from launch).
 
 ## Sync (iCloud)
 

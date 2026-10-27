@@ -62,6 +62,13 @@ public final class TomoBlob: ObservableObject {
     /// about 0.8 s and out again, and Tomo stays awake and doesn't fidget while it dances; a big moment, an arrival or
     /// the hello takes over while it plays. Off under Reduce Motion.
     public var dance: TomoDance?
+    /// How Tomo feels (#257): a look over its own (`TomoFeeling`), or nil: well. Droopy slumps lower and wider, flops its
+    /// ears or topper, looks at the floor, breathes slower and sighs about every 20 s; sickly turns green-grey and a size
+    /// smaller, with a sweat drop, quick shallow breaths, heavy worried lids and a shiver every few seconds. It eases in
+    /// and out over about a second, and back to well Tomo gives a happy wiggle. Its colours are a pass over the look, so
+    /// the look never changes. Under Reduce Motion only its face, colour and pose change: the sigh and the shiver are a
+    /// puff, and the sweat drop stays put. Only the Testing menu sets it for now (`TomoGame.feeling`).
+    public var feeling: TomoFeeling?
     /// The top of the room Tomo stands in, in the canvas's own coordinates (points, y down), or nil: no ceiling. The
     /// island without a notch sets it a little inside its top edge, which floats below the screen's. A form too tall to
     /// stand under it, with its topper, its idle stretch and a hop, is drawn smaller (`fit`), standing where it stands
@@ -71,7 +78,10 @@ public final class TomoBlob: ObservableObject {
 
     /// Whose Tomo this is. Nil: the learner's own (`TomoLook.current`), changing with a pop when it does.
     public let fixedLook: TomoLook?
-    public private(set) var look: TomoLook
+    public private(set) var look: TomoLook { didSet { painted = nil } }
+    /// `look` as it's drawn: in the feeling's colours (`TomoLook.tinted`), else the look itself. Particles keep the look's.
+    private var paint: TomoLook
+    private var painted: (sat: Int, green: Int)?   // the tint `paint` has (`TomoFeeling.Amounts.tint`); nil: work it out
     /// What it's made of, given by its host and kept for life: `TomoMaterial.own` for the learner's Tomo, `.classic` for
     /// the mascot and the renders that ship as files.
     public let material: TomoMaterial
@@ -81,6 +91,7 @@ public final class TomoBlob: ObservableObject {
     public init(look: TomoLook? = nil, material: TomoMaterial, motion: TomoMotion? = nil) {
         fixedLook = look
         self.look = look ?? TomoLook.current
+        paint = self.look
         self.material = material
         self.motion = motion
         reduceMotion = motion?.reduce ?? false
@@ -117,6 +128,10 @@ public final class TomoBlob: ObservableObject {
     private var badgeShown: (badge: Badge, alpha: CGFloat) = (.dozing, 0)   // the badge on show, fading in or out
     private var weatherShown: (weather: TomoWeather, alpha: CGFloat) = (.snow, 0)   // fading in or out, like a badge
     private var danceShown: (dance: TomoDance, amount: CGFloat) = (.bounce, 0)     // fading in or out
+    private var feelingShown = TomoFeeling.Amounts.well   // `feeling`, eased
+    private var feelingWas: TomoFeeling?
+    private var breathLag: CGFloat = 0     // how far a feeling has moved the breath's phase, slowing or quickening it
+    private var slump: (seed: String, age: Int, R: CGFloat, sag: CGFloat, body: Path)?   // the sagged outline, kept
     private var sway: CGFloat = 0          // the sprout, lagging behind the body's moves
     private var swayVel: CGFloat = 0
     private var jiggle: CGFloat = 0        // the body's own wobble after a hop or a pop
@@ -322,6 +337,31 @@ public final class TomoBlob: ObservableObject {
         }
     }
 
+    /// The feeling on show (`feeling`): eased toward its amounts, the breath's phase following its pace, the colours
+    /// repainted when the tint moves; back to well, the happy hop and wiggle with a few sparkles (not during a big moment).
+    private func stepFeeling(_ now: Double, dt: CGFloat) {
+        if feeling != feelingWas {
+            if feeling == nil, cue == nil {
+                stir()
+                add(.hop(0.22), 0.45); add(.wiggle(4), 0.6)
+                flash = (.happy, now + 1.1)
+                emit(.sparkle, 3)
+                nextFidget = max(nextFidget, now + 2.5)
+            }
+            feelingWas = feeling
+        }
+        let goal = TomoFeeling.Amounts(feeling), easing = feelingShown != goal
+        if easing { feelingShown.ease(toward: goal, dt: dt) }
+        if feelingShown.breathRate != 1 { breathLag += dt * CGFloat(look.breathRate) * (feelingShown.breathRate - 1) }
+        guard easing || painted == nil else { return }      // the tint moves only with the feeling, or a new look
+        let tint = feelingShown.tint
+        if painted.map({ $0 != tint }) ?? true {
+            painted = tint
+            paint = tint == TomoFeeling.Amounts.well.tint ? look
+                : look.tinted(sat: Double(tint.sat) / 40, green: Double(tint.green) / 40)
+        }
+    }
+
     // MARK: Frame
 
     public func step() {
@@ -333,6 +373,8 @@ public final class TomoBlob: ObservableObject {
             lastTime = now; lastStir = now
             nextBlink = now + 1.5; nextFidget = now + .random(in: 2...4)
             if fixedLook == nil { look = TomoLook.current }
+            feelingShown = TomoFeeling.Amounts(feeling)     // a Tomo that appears feeling something already shows it
+            feelingWas = feeling
         }
         // Real elapsed time: if macOS pauses the frame timer (screen asleep, window hidden),
         // particles and timers still catch up instead of freezing. Smoothing is stable for any step.
@@ -345,6 +387,7 @@ public final class TomoBlob: ObservableObject {
             play(Self.newTomoCue, swap: (cue?.swap?.age ?? age, TomoLook.current))
         }
         advanceCue(now)
+        stepFeeling(now, dt: dt)
 
         moves.removeAll { now > $0.start + $0.duration }
         if let f = flash, now > f.until { flash = nil }
@@ -377,6 +420,10 @@ public final class TomoBlob: ObservableObject {
         }
         target.x += saccade.x
         target.y += saccade.y
+        if feelingShown.gaze > 0 {                          // droopy: down at the floor
+            target.x += (TomoFeeling.floor.x - target.x) * feelingShown.gaze
+            target.y += (TomoFeeling.floor.y - target.y) * feelingShown.gaze
+        }
         let kLook = 1 - pow(0.0005, dt), kSoft = 1 - pow(0.001, dt)
         look2.x += (target.x - look2.x) * kLook
         look2.y += (target.y - look2.y) * kLook
@@ -440,8 +487,11 @@ public final class TomoBlob: ObservableObject {
         // Fidgets while waiting (not during a big moment); dozing when ignored for a while.
         let calm = cue == nil && danceShown.amount == 0 && (state == .idle || state == .question || state == .thinking)
         if calm, !drowsy, flash == nil, moves.isEmpty, glance == nil, now > nextFidget {
-            fidget()
-            nextFidget = now + .random(in: 2.5...6)
+            switch feeling {                                // a feeling has its own, slower fidget
+            case .droopy?: add(.sigh, 1.8); nextFidget = now + .random(in: 16...24)
+            case .sickly?: add(.shiver(0.022), 0.8); nextFidget = now + .random(in: 3.5...5.5)
+            case nil: fidget(); nextFidget = now + .random(in: 2.5...6)
+            }
         } else if !calm {
             nextFidget = max(nextFidget, now + 2)
         }
@@ -484,12 +534,11 @@ public final class TomoBlob: ObservableObject {
         let middle = size.height / 2 + particleOverhang / 2 + R * 0.1     // where it stands, at rest
         let cy = middle + dy * R
         let g = form.scale * fit(form: own, R: R, ground: middle + own.bottom * R)
-        let rate = CGFloat(look.breathRate)
-        let breath = 1 + sin(t * rate) * (state == .sleeping || drowsy ? 0.035 : 0.018)
+        let feel = feelingShown, breath = breath(at: t)
 
         // Anchor scaling and rocking at Tomo's base, so squashes stay on the ground.
-        let sx = p.sx * puff * g * (1 - jiggle * 0.5)
-        let sy = p.sy * puff * g * breath * (1 + jiggle) * (shown?.beat.stretch ?? 1)
+        let sx = p.sx * puff * g * (1 - jiggle * 0.5) * feel.size * feel.wide
+        let sy = p.sy * puff * g * breath * (1 + jiggle) * (shown?.beat.stretch ?? 1) * feel.size * feel.tall
 
         if weatherShown.alpha > 0 { drawWeather(context, size: size, center: CGPoint(x: cx, y: cy), R: R, now: now) }
         if callGlowShown > 0 { drawCallGlow(context, center: CGPoint(x: cx, y: cy), R: R * g, now: now, fade: p.opacity) }
@@ -522,6 +571,7 @@ public final class TomoBlob: ObservableObject {
                 c.drawLayer { self.drawTopper($0, form: side, R: R, age: sideAge) }
             }
             self.drawBody(ctx, form: side, R: R, glow: glow, light: light)
+            if feel.sweat > 0.02 { self.drawSweat(ctx, form: side, R: R, t: t) }
             self.drawFace(ctx, form: side, R: R, now: now, mouth: p.mouth)
         }
         let whole = { (layer: GraphicsContext) in
@@ -549,6 +599,13 @@ public final class TomoBlob: ObservableObject {
             drawBadge(context, badgeShown.badge, at: badgeAnchor(center: CGPoint(x: cx, y: cy), r: R * g), unit: badgeUnit(R * g),
                       alpha: badgeShown.alpha * p.opacity, now: now)
         }
+    }
+
+    /// How far into its breath Tomo is drawn (1: between breaths), `t` seconds after it was born: at its own pace, deeper
+    /// asleep or dozing, and at the feeling's pace and depth (`breathLag` keeps it smooth as that pace changes).
+    func breath(at t: CGFloat) -> CGFloat {
+        let deep: CGFloat = state == .sleeping || drowsy ? 0.035 : 0.018
+        return 1 + sin(t * CGFloat(look.breathRate) + breathLag) * deep * feelingShown.breathDepth
     }
 
     // MARK: - Weather
@@ -735,11 +792,11 @@ public final class TomoBlob: ObservableObject {
         let top = R * 0.2, joint = R * 0.3
         if s.recoil == 0 {
             c.fill(piece(0, top, 1, s.reach < 1 ? R * 0.06 : joint, mid: R * (0.025 + 0.11 * s.neck)),
-                   with: .color(look.body))
+                   with: .color(paint.body))
         } else {                                           // let go: each end springs back to where it hangs from
             let k = 1 - s.recoil
-            c.fill(piece(0, top, 0.5 * k, 0.01 * R, mid: top * 0.35), with: .color(look.body))
-            c.fill(piece(1 - 0.3 * k, 0.01 * R, 1, joint * k, mid: joint * 0.4 * k), with: .color(look.body))
+            c.fill(piece(0, top, 0.5 * k, 0.01 * R, mid: top * 0.35), with: .color(paint.body))
+            c.fill(piece(1 - 0.3 * k, 0.01 * R, 1, joint * k, mid: joint * 0.4 * k), with: .color(paint.body))
         }
     }
 
@@ -749,19 +806,19 @@ public final class TomoBlob: ObservableObject {
         let form = Self.helloBead
         if d < form {                                       // swelling where it hangs
             let r = R * 0.14 * Self.inOut(d / form)
-            material.drawDrop(ctx, at: CGPoint(x: a.x, y: a.y + r * 1.15), r: r, stretch: 0.2, look: look)
+            material.drawDrop(ctx, at: CGPoint(x: a.x, y: a.y + r * 1.15), r: r, stretch: 0.2, look: paint)
             return
         }
         let u = (d - form) / (1 - form), r = R * (0.14 + 0.16 * u)
         let start = a.y + R * 0.14 * 1.15, end = b.y - r * 1.15
         material.drawDrop(ctx, at: CGPoint(x: a.x + (b.x - a.x) * u, y: start + (end - start) * u * u), r: r,
-                          stretch: 0.3 + 1.2 * u, look: look)
+                          stretch: 0.3 + 1.2 * u, look: paint)
     }
 
     private func drawBody(_ ctx: GraphicsContext, form: TomoForm, R: CGFloat, glow: CGFloat, light: TomoMaterial.Glow) {
-        let body = form.path(R: R)
         let top = -form.top * R, bottom = form.bottom * R
-        ctx.fill(body, with: .linearGradient(Gradient(colors: [look.bodyLight, look.body]),
+        let body = feelingShown.sag > 0.005 ? slumped(form, R: R, top: top, bottom: bottom) : form.path(R: R)
+        ctx.fill(body, with: .linearGradient(Gradient(colors: [paint.bodyLight, paint.body]),
                                              startPoint: CGPoint(x: 0, y: top), endPoint: CGPoint(x: 0, y: bottom)))
         var inner = ctx
         inner.clip(to: body)
@@ -787,9 +844,31 @@ public final class TomoBlob: ObservableObject {
         if glow > 0.01 { inner.fill(body, with: .color(.white.opacity(Double(glow)))) }
     }
 
+    /// Droopy's outline (`TomoFeeling.sagged`), kept while the sag holds, so a slumped Tomo at rest doesn't build it
+    /// every frame.
+    private func slumped(_ form: TomoForm, R: CGFloat, top: CGFloat, bottom: CGFloat) -> Path {
+        let sag = feelingShown.sag
+        if let s = slump, s.seed == look.seed, s.age == age, s.R == R, s.sag == sag { return s.body }
+        let body = TomoFeeling.sagged(form.path(R: R), top: top, bottom: bottom, by: sag)
+        slump = (look.seed, age, R, sag, body)
+        return body
+    }
+
+    /// Sickly's sweat drop, at the side of its head, sliding down and fading on a loop from the clock (fixed under
+    /// Reduce Motion): a fill, nothing emitted.
+    private func drawSweat(_ ctx: GraphicsContext, form: TomoForm, R: CGFloat, t: CGFloat) {
+        let phase = reduceMotion ? 0.3 : (t * 0.32).truncatingRemainder(dividingBy: 1)
+        let c = CGPoint(x: form.rx * 0.7 * R, y: (form.faceY - 0.42) * R + phase * 0.32 * R), s = R * 0.075
+        var drop = ctx
+        drop.opacity = Double(feelingShown.sweat * (reduceMotion ? 1 : min(1, (1 - phase) * 4, phase * 8 + 0.2)))
+        drop.fill(TomoFeeling.sweatDrop(at: c, s: s), with: .color(TomoFeeling.sweat))
+        drop.fill(Path(ellipseIn: CGRect(x: c.x - s * 0.48, y: c.y - s * 0.11, width: s * 0.36, height: s * 0.52)),
+                  with: .color(.white.opacity(0.8)))
+    }
+
     /// Its markings, in its second colour, kept off the face.
     private func drawPattern(_ ctx: GraphicsContext, form: TomoForm, R: CGFloat, top: CGFloat, bottom: CGFloat) {
-        let accent = GraphicsContext.Shading.color(look.accent)
+        let accent = GraphicsContext.Shading.color(paint.accent)
         let w = form.rx * R
         switch look.pattern {
         case .none:
@@ -819,7 +898,7 @@ public final class TomoBlob: ObservableObject {
             }
         case .twoTone:
             ctx.fill(Path(CGRect(x: -w * 2, y: top - R, width: w * 4, height: bottom - top + R * 2)),
-                     with: .linearGradient(Gradient(colors: [look.accent, look.accent.opacity(0)]),
+                     with: .linearGradient(Gradient(colors: [paint.accent, paint.accent.opacity(0)]),
                                            startPoint: CGPoint(x: -w, y: top), endPoint: CGPoint(x: w * 0.4, y: bottom)))
         }
     }
@@ -884,19 +963,21 @@ public final class TomoBlob: ObservableObject {
     }
 
     /// What grows on its head from 2さい (ears, horns, an antenna or a sprout), swaying after every move. `age`: the
-    /// form's (a birthday's crossfade draws the old one too).
+    /// form's (a birthday's crossfade draws the old one too). Droopy flops it (`feelingShown.flop`): ears and horns tip
+    /// out and down, the longer the floppier, and a stem bends over and droops.
     private func drawTopper(_ ctx: GraphicsContext, form: TomoForm, R: CGFloat, age: Int) {
         guard age >= 1, look.topper != .none else { return }
         let lift = Self.topperLift(form)
         let size = R * Self.topperSize(look.topper) * Self.topperGrow(age)
         let spread = form.rx * form.earSpread
-        let fill = GraphicsContext.Shading.color(look.bodyLight)
-        let inside = GraphicsContext.Shading.color(look.cheek.opacity(0.55))
-        func pair(_ draw: (GraphicsContext, CGFloat) -> Void) {
+        let fill = GraphicsContext.Shading.color(paint.bodyLight)
+        let inside = GraphicsContext.Shading.color(paint.cheek.opacity(0.55))
+        let fl = feelingShown.flop, lean: CGFloat = form.sproutLean < 0 ? -1 : 1
+        func pair(floppy k: CGFloat, _ draw: (GraphicsContext, CGFloat) -> Void) {
             for side: CGFloat in [-1, 1] {
                 var c = ctx
-                c.translateBy(x: side * spread * R, y: lift * R)
-                c.rotate(by: .radians(Double(side * 0.3 + sway * 0.5)))
+                c.translateBy(x: side * spread * R, y: (lift + 0.05 * fl * k) * R)
+                c.rotate(by: .radians(Double(side * (0.3 + k * fl) + sway * 0.5)))
                 draw(c, side)
             }
         }
@@ -904,43 +985,43 @@ public final class TomoBlob: ObservableObject {
         case .none:
             break
         case .cat:
-            pair { c, _ in
+            pair(floppy: 0.9) { c, _ in
                 let h = size, b = R * 0.24
                 c.fill(triangle(b, h), with: fill)
                 c.fill(triangle(b * 0.55, h * 0.62), with: inside)
             }
         case .bunny:
-            pair { c, _ in
+            pair(floppy: 1.4) { c, _ in
                 let h = size
                 c.fill(Path(ellipseIn: CGRect(x: -R * 0.13, y: -h, width: R * 0.26, height: h + R * 0.1)), with: fill)
                 c.fill(Path(ellipseIn: CGRect(x: -R * 0.065, y: -h * 0.85, width: R * 0.13, height: h * 0.75)), with: inside)
             }
         case .bear:
-            pair { c, _ in
+            pair(floppy: 0.3) { c, _ in
                 let r = size
                 c.fill(Path(ellipseIn: CGRect(x: -r, y: -r * 1.5, width: r * 2, height: r * 2)), with: fill)
                 c.fill(Path(ellipseIn: CGRect(x: -r * 0.5, y: -r, width: r, height: r)), with: inside)
             }
         case .horns:
-            pair { c, _ in
+            pair(floppy: 0.2) { c, _ in
                 c.fill(triangle(R * 0.11, size), with: .color(Palette.horn))
             }
         case .antenna:
             var c = ctx
             c.translateBy(x: 0, y: -form.top * R + R * 0.08)
-            c.rotate(by: .radians(Double(form.sproutLean + sway * 0.9)))
-            let L = size
+            c.rotate(by: .radians(Double(form.sproutLean + sway * 0.9 + lean * fl * 0.9)))
+            let L = size, tip = CGPoint(x: lean * fl * R * 0.2, y: -L * (1 - 0.3 * fl))   // flopped: bent over, lower
             var stem = Path()
             stem.move(to: .zero)
-            stem.addQuadCurve(to: CGPoint(x: 0, y: -L), control: CGPoint(x: R * 0.1, y: -L * 0.5))
-            c.stroke(stem, with: .color(look.ink.opacity(0.7)), style: StrokeStyle(lineWidth: R * 0.04, lineCap: .round))
-            c.fill(Path(ellipseIn: CGRect(x: -R * 0.09, y: -L - R * 0.09, width: R * 0.18, height: R * 0.18)),
-                   with: .color(look.pattern == .none ? look.cheek : look.accent))
+            stem.addQuadCurve(to: tip, control: CGPoint(x: R * 0.1 + tip.x, y: -L * 0.5))
+            c.stroke(stem, with: .color(paint.ink.opacity(0.7)), style: StrokeStyle(lineWidth: R * 0.04, lineCap: .round))
+            c.fill(Path(ellipseIn: CGRect(x: tip.x - R * 0.09, y: tip.y - R * 0.09, width: R * 0.18, height: R * 0.18)),
+                   with: .color(look.pattern == .none ? paint.cheek : paint.accent))
         case .sprout:
             var c = ctx
             c.translateBy(x: 0, y: -form.top * R + R * 0.06)
-            c.rotate(by: .radians(Double(form.sproutLean + sway * 0.9)))
-            let L = size
+            c.rotate(by: .radians(Double(form.sproutLean + sway * 0.9 + lean * fl * 0.8)))
+            let L = size * (1 - 0.2 * fl)
             var stem = Path()
             stem.move(to: .zero)
             stem.addQuadCurve(to: CGPoint(x: 0, y: -L), control: CGPoint(x: -R * 0.08, y: -L * 0.5))
@@ -950,6 +1031,10 @@ public final class TomoBlob: ObservableObject {
                 leaf.move(to: CGPoint(x: 0, y: -L))
                 leaf.addQuadCurve(to: CGPoint(x: side * R * 0.24, y: -L - R * 0.1), control: CGPoint(x: side * R * 0.1, y: -L - R * 0.16))
                 leaf.addQuadCurve(to: CGPoint(x: 0, y: -L), control: CGPoint(x: side * R * 0.16, y: -L + R * 0.02))
+                if fl > 0 {                                 // flopped: the leaves droop, turning about the tip
+                    leaf = leaf.applying(CGAffineTransform(translationX: 0, y: -L).rotated(by: fl * 0.35 * side)
+                        .translatedBy(x: 0, y: L))
+                }
                 c.fill(leaf, with: .color(Palette.leaf))
             }
         }
@@ -984,7 +1069,8 @@ public final class TomoBlob: ObservableObject {
         let face = shownFace
         let fit = min(1, form.faceW / 0.8) * (isMini ? 1.4 : 1)       // a small face gets smaller eyes
         let one: CGFloat = look.cyclops ? 1.55 : 1
-        let fx = look2.x * R * 0.16 * form.faceW, fy = -look2.y * R * 0.1 + (form.faceY + look.eyeY * fit) * R
+        let faceY = form.faceY + 0.08 * feelingShown.sag                  // a slumped face sits lower
+        let fx = look2.x * R * 0.16 * form.faceW, fy = -look2.y * R * 0.1 + (faceY + look.eyeY * fit) * R
         let ew = look.eyeW * R * fit * one, eh = look.eyeH * R * fit * one
         let unit = R * 0.095 * fit * one                                // the size expressions are drawn at
         let gap = look.cyclops ? 0 : look.eyeGap * R * max(0.7, fit)
@@ -1000,7 +1086,7 @@ public final class TomoBlob: ObservableObject {
                 let far = 1 - 0.3 * max(0, -side * look2.x)
                 let c = CGPoint(x: side * cheekX + fx * 0.6, y: low)
                 ctx.fill(Path(ellipseIn: CGRect(x: c.x - R * 0.11 * far, y: c.y - R * 0.06, width: R * 0.22 * far, height: R * 0.12)),
-                         with: .color(look.cheek.opacity(Double(cheekA))))
+                         with: .color(paint.cheek.opacity(Double(cheekA))))
             }
         }
         if form.details.contains(.freckles) {
@@ -1008,7 +1094,7 @@ public final class TomoBlob: ObservableObject {
                 for (dx, dy) in [(-0.06, 0.0), (0.05, -0.02), (0.0, 0.06)] as [(CGFloat, CGFloat)] {
                     let c = CGPoint(x: side * cheekX + fx * 0.6 + dx * R, y: low + dy * R)
                     ctx.fill(Path(ellipseIn: CGRect(x: c.x - R * 0.018, y: c.y - R * 0.018, width: R * 0.036, height: R * 0.036)),
-                             with: .color(look.ink.opacity(0.35)))
+                             with: .color(paint.ink.opacity(0.35)))
                 }
             }
         }
@@ -1030,12 +1116,12 @@ public final class TomoBlob: ObservableObject {
         if o > 0.03 {
             let mw = R * (0.07 + 0.05 * o), mh = R * 0.16 * o
             ctx.fill(Path(roundedRect: CGRect(x: fx * 1.2 - mw, y: my, width: mw * 2, height: max(R * 0.03, mh)),
-                          cornerRadius: mw), with: .color(look.ink))
+                          cornerRadius: mw), with: .color(paint.ink))
             return
         }
         var m = ctx
         m.translateBy(x: fx * 1.2, y: my + R * 0.02)
-        let ink = GraphicsContext.Shading.color(look.ink)
+        let ink = GraphicsContext.Shading.color(paint.ink)
         let line = StrokeStyle(lineWidth: R * 0.032, lineCap: .round, lineJoin: .round)
         switch look.mouth {
         case .none:
@@ -1070,7 +1156,7 @@ public final class TomoBlob: ObservableObject {
     /// every Tomo's faces read the same.
     private func drawEye(_ ctx: GraphicsContext, face: Face, side: CGFloat, w: CGFloat, h: CGFloat, unit u: CGFloat,
                          open: CGFloat, now: Double) {
-        let ink = GraphicsContext.Shading.color(look.ink)
+        let ink = GraphicsContext.Shading.color(paint.ink)
         let line = StrokeStyle(lineWidth: u * 1.05, lineCap: .round, lineJoin: .round)
         func eye(_ k: CGFloat, dy: CGFloat = 0) {
             let rw = w * k, rh = h * k * open
@@ -1095,8 +1181,20 @@ public final class TomoBlob: ObservableObject {
             p.addQuadCurve(to: CGPoint(x: u * 1.5, y: u * 0.5), control: CGPoint(x: 0, y: -u * 1.7))
             ctx.stroke(p, with: ink, style: line)
         }
+        /// Sickly's heavy lids (`feelingShown.lid`), tipped down at the outer corners into a worry (`worry`); a lidded eye's
+        /// own lid stays at least where it was.
+        func tired() {
+            let rw = w, rh = h * open, f = feelingShown
+            let lid = max(f.lid, look.eyeStyle == .lidded ? 0.375 : 0)
+            var c = ctx
+            c.clip(to: TomoFeeling.underLid(rw: rw, rh: rh, lid: lid, tilt: f.worry * rh * 0.9, side: side))
+            c.fill(TomoForm.superellipse(rx: rw, ry: rh, n: look.eyeN), with: ink)
+            guard open > 0.6, look.eyeStyle != .bead, lid < 0.6 else { return }
+            let s = rw * (look.eyeStyle == .big ? 0.38 : 0.3), gy = max(-rh * 0.45, -rh + 2 * rh * lid + rh * 0.3)
+            ctx.fill(Path(ellipseIn: CGRect(x: rw * 0.2 - s, y: gy - s, width: s * 2, height: s * 2)), with: .color(.white.opacity(0.9)))
+        }
         switch face {
-        case .normal: eye(1)
+        case .normal: if feelingShown.lid > 0.02 || feelingShown.worry > 0.02 { tired() } else { eye(1) }
         case .surprised: eye(1.22)
         case .confused: side < 0 ? eye(0.72, dy: -h * 0.15) : eye(1.12)
         case .happy: smile()
@@ -1290,6 +1388,8 @@ public final class TomoBlob: ObservableObject {
         public enum Kind {
             case hop(CGFloat), nudge, shake, wiggle(Int), gulp, rock, squish, wobble, mouth
             case peep, stretch, tiltHold(CGFloat), shuffle, lean(CGFloat)
+            case sigh                          // droopy's fidget: it sinks a little, mouth a little open, and back
+            case shiver(CGFloat)               // sickly's fidget: a quick side-to-side tremble that dies away
             case puff                          // Reduce Motion's stand-in for the others: a small swell
             // The cue scripts' moves. Each starts and ends at rest, so they add up; times are in seconds.
             case crouch                        // squeeze down, then let go to take off
@@ -1403,6 +1503,10 @@ public final class TomoBlob: ObservableObject {
             case .lean(let side):
                 let e = Self.hold(q)
                 p.rot += side * 0.16 * e; p.dy += 0.05 * e; p.sy *= 1 - 0.04 * e
+            case .sigh:
+                p.sy *= 1 - 0.06 * arc; p.dy += 0.04 * arc; p.mouth = max(p.mouth, 0.25 * arc)
+            case .shiver(let a):
+                p.dx += sin(q * 18 * .pi) * a * (1 - q * 0.5)
             case .puff:
                 puffed = max(puffed, arc)
             case .crouch:                          // the squash builds, then lets go in the last fifth
@@ -1803,15 +1907,16 @@ extension TomoBlob {
     /// Reduce Motion, on a scripted clock: a win, a miss, a poke, a nudge, a level-up and a birthday keep Tomo on its
     /// spot with only a small puff, a win's sparkles are a third, the level-up and the birthday are a glow and star eyes,
     /// the birthday still swaps the shape, and Tomo still blinks. The same script with it off must hop, so the check can
-    /// tell.
+    /// tell. Each material runs it well, droopy and sickly (#257).
     static func motionSelfTest(_ check: (Bool, String) -> Void) {
         struct Run {
             var moved: CGFloat = 0, swell: CGFloat = 0, squash: CGFloat = 0, glow: CGFloat = 0
             var sparkles = 0, age = 0, blinks = 0, stars = 0
         }
-        func run(reduce: Bool, _ material: TomoMaterial) -> Run {
+        func run(reduce: Bool, _ material: TomoMaterial, _ feeling: TomoFeeling?) -> Run {
             let blob = TomoBlob(look: .mascot, material: material)
             blob.reduceMotion = reduce
+            blob.feeling = feeling
             var t = 100.0
             blob.clock = { t }
             blob.step()
@@ -1842,9 +1947,11 @@ extension TomoBlob {
             r.age = blob.age
             return r
         }
-        // Every material keeps these rules: its springs never move Tomo under Reduce Motion.
-        let materials = TomoMaterial.allCases, names = materials.map(\.rawValue).joined(separator: ", ")
-        let calms = materials.map { run(reduce: true, $0) }, livelies = materials.map { run(reduce: false, $0) }
+        // Every material keeps these rules, whatever Tomo feels: its springs never move Tomo under Reduce Motion.
+        let materials = TomoMaterial.allCases, feelings: [TomoFeeling?] = [nil] + TomoFeeling.allCases
+        let names = materials.map(\.rawValue).joined(separator: ", ") + "; well, droopy and sickly"
+        let calms = materials.flatMap { m in feelings.map { run(reduce: true, m, $0) } }
+        let livelies = materials.flatMap { m in feelings.map { run(reduce: false, m, $0) } }
         let swell = calms.map(\.swell).max() ?? 1
         check(livelies.allSatisfy { $0.moved > 0.2 },
               "Tomo hops and shakes for a win, a miss, a poke, a level-up and a birthday (\(names))")
@@ -2539,6 +2646,151 @@ extension TomoBlob {
 }
 
 extension TomoBlob {
+    /// How Tomo feels (#257), on a clock only the check moves, at every age: a feeling eases in over about a second (and
+    /// shows at once on a Tomo that starts with it) and changes only how Tomo is drawn, never its age or look; droopy
+    /// slumps wider without getting taller, looks at the floor, breathes slower and sighs about every 20 s; sickly
+    /// breathes quicker and shallower, shivers every few seconds and is repainted; under Reduce Motion the sigh and the
+    /// shiver are a puff and it still breathes and blinks; nothing emits at rest; and back to well it gives a happy
+    /// wiggle with a few sparkles.
+    static func feelingSelfTest(_ check: (Bool, String) -> Void) {
+        var t = 100.0
+        let look = TomoLook(seed: "feelings")
+        func blob(_ f: TomoFeeling?, age: Int = 0, reduce: Bool = false) -> TomoBlob {
+            t = 100
+            let b = TomoBlob(look: look, material: .own)
+            b.reduceMotion = reduce
+            b.dice = TomoDice(seed: 257)
+            b.dozeAfter = 1e9
+            b.clock = { t }
+            b.feeling = f
+            b.setGrowth(CGFloat(age))
+            b.step()
+            return b
+        }
+        struct Run {
+            var moved: CGFloat = 0, swell: CGFloat = 0, squash: CGFloat = 0, dx: CGFloat = 0
+            var blinks = 0, sighs = 0, shivers = 0, emitted = 0, peaks = 0, deepest: CGFloat = 0, gazeY: CGFloat = 0
+        }
+        func run(_ f: TomoFeeling?, age: Int = 0, reduce: Bool = false, seconds: Double = 120) -> (Run, TomoBlob) {
+            let b = blob(f, age: age, reduce: reduce)
+            var r = Run(), lastBlink = b.blinkAt, last = b.breath(at: CGFloat(t - b.born)), rising = false
+            for _ in 0..<Int(seconds * 60) {
+                t += 1.0 / 60
+                b.step()
+                let p = b.pose
+                r.moved = max(r.moved, abs(p.dx), abs(p.dy), abs(p.rot), abs(b.jiggle))
+                r.dx = max(r.dx, abs(p.dx))
+                r.swell = max(r.swell, p.sx - 1, p.sy - 1)
+                r.squash = max(r.squash, 1 - p.sx, 1 - p.sy)
+                r.emitted = max(r.emitted, b.bits.count)
+                if b.blinkAt != lastBlink { r.blinks += 1; lastBlink = b.blinkAt }
+                for m in b.moves where abs(m.start - t) < 1e-9 {
+                    if case .sigh = m.kind { r.sighs += 1 }
+                    if case .shiver = m.kind { r.shivers += 1 }
+                    if case .puff = m.kind { if f == .droopy { r.sighs += 1 } else { r.shivers += 1 } }
+                }
+                let breath = b.breath(at: CGFloat(t - b.born))
+                if rising, breath < last { r.peaks += 1 }
+                rising = breath > last
+                last = breath
+                r.deepest = max(r.deepest, abs(breath - 1))
+                r.gazeY += b.look2.y / CGFloat(seconds * 60)      // its gaze on average
+            }
+            return (r, b)
+        }
+
+        // It eases in, and a Tomo that starts feeling something shows it from its first frame.
+        let easing = blob(nil)
+        easing.feeling = .droopy
+        var sags: [CGFloat] = []
+        for _ in 0..<180 { t += 1.0 / 60; easing.step(); sags.append(easing.feelingShown.sag) }
+        check(sags[0] < 0.2 && abs(sags[59] - 0.85) < 0.1 && sags[179] == 0.85 && blob(.sickly).feelingShown == .init(.sickly),
+              String(format: "a feeling eases in (%.0f%% of droopy's slump after 1 s, there by 3 s) and shows at once on a Tomo that starts with it",
+                     sags[59] / 0.85 * 100))
+
+        // Only how it's drawn: its age, its look and its own colours stay.
+        var kept = true
+        for f in TomoFeeling.allCases {
+            for age in 0..<TomoLook.ages {
+                let (_, b) = run(f, age: age, seconds: 6)
+                if b.age != age || b.look.seed != look.seed || b.look.body != look.body || b.look.forms.count != look.forms.count {
+                    kept = false
+                }
+            }
+        }
+        let ill = blob(.sickly), well = blob(nil)
+        check(kept && ill.paint.body != look.body && ill.paint.seed == look.seed && well.paint.body == look.body,
+              "a feeling changes only how Tomo is drawn: sickly is repainted, and its age and look stay its own at every age")
+
+        // Droopy's outline: as tall as its own, its lower half wider, for every silhouette.
+        let forms = (0..<400).lazy.map { TomoLook(seed: "slump-\($0)").form(3) }
+        var shapes: [TomoForm.Silhouette: TomoForm] = [:]
+        for form in forms where shapes[form.silhouette] == nil { shapes[form.silhouette] = form; if shapes.count == 10 { break } }
+        let slumps = shapes.values.allSatisfy { form in
+            let own = form.path(R: 100), top = -form.top * 100, bottom = form.bottom * 100
+            let low = TomoFeeling.sagged(own, top: top, bottom: bottom, by: 0.85)
+            let a = own.boundingRect, b = low.boundingRect
+            return abs(a.minY - b.minY) < 0.5 && abs(a.maxY - b.maxY) < 0.5 && b.width > a.width * 1.02
+        }
+        check(shapes.count == 10 && slumps, "droopy slumps every silhouette wider at the bottom, no taller and no lower at the top")
+
+        // Each one's own life: droopy looks down, breathes slower and sighs about every 20 s; sickly breathes quicker and
+        // shallower and shivers every few seconds. All at every age, with nothing emitted.
+        let (calmWell, _) = run(nil)
+        let (droopy, _) = run(.droopy), (sickly, _) = run(.sickly)
+        check(droopy.gazeY < -0.4 && calmWell.gazeY > -0.2,
+              String(format: "droopy looks at the floor (gaze %.2f, well %.2f)", droopy.gazeY, calmWell.gazeY))
+        let slow = CGFloat(droopy.peaks) / CGFloat(calmWell.peaks), quick = CGFloat(sickly.peaks) / CGFloat(calmWell.peaks)
+        check(abs(slow - 0.75) < 0.06 && abs(quick - 1.9) < 0.1 && abs(sickly.deepest / calmWell.deepest - 0.55) < 0.03,
+              String(format: "droopy breathes at %.2f× the pace, sickly at %.2f× and %.0f%% as deep", slow, quick,
+                     sickly.deepest / calmWell.deepest * 100))
+        check((5...8).contains(droopy.sighs) && droopy.squash > 0.04 && (20...34).contains(sickly.shivers) && sickly.dx > 0.015,
+              "droopy sighs about every 20 s (\(droopy.sighs) in 2 min) and sickly shivers every few seconds (\(sickly.shivers))")
+        var calm = true, still = true, quiet = true
+        for f in TomoFeeling.allCases {
+            for age in 0..<TomoLook.ages {
+                let (r, _) = run(f, age: age, reduce: true, seconds: 30)
+                if r.moved != 0 || r.squash != 0 || r.swell > 0.046 || r.blinks == 0 || r.peaks == 0 { calm = false }
+                if (f == .droopy ? r.sighs : r.shivers) == 0 { still = false }
+                let (lively, _) = run(f, age: age, seconds: 30)
+                if r.emitted > 0 || lively.emitted > 0 { quiet = false }
+            }
+        }
+        check(calm && still, "under Reduce Motion droopy's sigh and sickly's shiver are a puff: nothing moves, and it still breathes and blinks")
+        check(quiet && droopy.emitted == 0 && sickly.emitted == 0, "nothing emits while Tomo is droopy or sickly, at any age")
+
+        // Back to well: a happy hop and wiggle, a few sparkles (a puff and the happy face under Reduce Motion).
+        func recover(reduce: Bool) -> (hop: CGFloat, happy: Bool, sparkles: Int, well: Bool) {
+            let b = blob(.droopy, reduce: reduce)
+            for _ in 0..<60 { t += 1.0 / 60; b.step() }
+            b.feeling = nil
+            var hop: CGFloat = 0, happy = false, sparkles = 0
+            for _ in 0..<(60 * 3) {
+                t += 1.0 / 60
+                b.step()
+                hop = max(hop, -b.pose.dy); happy = happy || b.shownFace == .happy; sparkles = max(sparkles, b.bits.count)
+            }
+            return (hop, happy, sparkles, b.feelingShown == .well && b.paint.body == look.body)
+        }
+        let up = recover(reduce: false), calmUp = recover(reduce: true)
+        check(up.hop > 0.15 && up.happy && up.sparkles == 3 && up.well && calmUp.hop == 0 && calmUp.happy && calmUp.sparkles == 1
+              && calmUp.well,
+              "back to well Tomo hops and wiggles happily with 3 sparkles (a puff, the happy face and 1 under Reduce Motion), in its own colours")
+
+        #if os(macOS)   // rendered, so macOS only (ImageRenderer can time out on the iOS simulator, #196)
+        let bunny = TomoLook(seed: "en-ja-1791104407")   // long ears: the snapshots' Tomo, and the lab's
+        let looks = [TomoLook.mascot, look, bunny] + (0..<16).map { TomoLook(seed: "ceiling-\($0)") }
+        let reach = [nil, TomoFeeling.droopy, .sickly].map { sideReach(looks: looks, feeling: $0) }
+        let room = TomoBlobView.sideRoom
+        check(reach.allSatisfy { $0.reach <= room },
+              String(format: "droopy's flopped ears and topper stay inside the room its canvas has at its sides (%.2f of "
+                     + "its width) at every age: %.2f at most (%@; well %.2f, sickly %.2f)",
+                     room, reach[1].reach, reach[1].at, reach[0].reach, reach[2].reach))
+        #endif
+    }
+}
+
+extension TomoBlob {
     #if os(macOS)
     // Rendered checks of the ceiling, macOS only: only the Mac island sets one (its small Tomo), and on the iOS
     // simulator ImageRenderer can time out, turning a 3 s test into minutes (#196).
@@ -2546,6 +2798,12 @@ extension TomoBlob {
     /// The highest point anything is drawn at in a canvas of `size` (points, y down), from a render at `scale`; nil when
     /// nothing is drawn.
     public static func drawnTop(size: CGSize, scale: CGFloat = 2, _ draw: @escaping (GraphicsContext, CGSize) -> Void) -> CGFloat? {
+        drawnBox(size: size, scale: scale, draw)?.minY
+    }
+
+    /// The box everything drawn in a canvas of `size` fits in (points, y down), from a render at `scale`; nil when
+    /// nothing is drawn.
+    static func drawnBox(size: CGSize, scale: CGFloat = 2, _ draw: @escaping (GraphicsContext, CGSize) -> Void) -> CGRect? {
         let renderer = ImageRenderer(content: Canvas { ctx, s in draw(ctx, s) }.frame(width: size.width, height: size.height))
         renderer.scale = scale
         guard let image = renderer.cgImage else { return nil }
@@ -2559,19 +2817,48 @@ extension TomoBlob {
             return true
         }
         guard drawn else { return nil }
-        for row in 0..<h where (0..<w).contains(where: { px[(row * w + $0) * 4 + 3] > 24 }) {   // the first row: the top
-            return CGFloat(row) / scale
+        var left = w, right = -1, top = h, bottom = -1
+        for row in 0..<h {
+            for col in 0..<w where px[(row * w + col) * 4 + 3] > 24 {
+                left = min(left, col); right = max(right, col); top = min(top, row); bottom = max(bottom, row)
+            }
         }
-        return nil
+        guard right >= 0 else { return nil }
+        return CGRect(x: CGFloat(left) / scale, y: CGFloat(top) / scale,
+                      width: CGFloat(right + 1 - left) / scale, height: CGFloat(bottom + 1 - top) / scale)
+    }
+
+    /// How far past its frame's sides Tomo draws at rest, in units of the frame's width, for each look at every age,
+    /// feeling `feeling`: the most, and where (rendered in a canvas a frame wider on each side).
+    static func sideReach(looks: [TomoLook], feeling: TomoFeeling?, width: CGFloat = 60) -> (reach: CGFloat, at: String) {
+        var most: (reach: CGFloat, at: String) = (0, "")
+        for look in looks {
+            for age in 0..<TomoLook.ages {
+                let t = 100.0, b = TomoBlob(look: look, material: .own)
+                b.clock = { t }
+                b.feeling = feeling
+                b.setGrowth(CGFloat(age))
+                b.step()
+                let frame = CGSize(width: width, height: width)
+                guard let box = drawnBox(size: CGSize(width: width * 3, height: width), { ctx, _ in
+                    var ctx = ctx
+                    ctx.translateBy(x: width, y: 0)
+                    b.draw(ctx, size: frame)
+                }) else { continue }
+                let reach = max(width - box.minX, box.maxX - 2 * width, 0) / width
+                if reach > most.reach { most = (reach, "\(look.seed) age \(age + 1)") }
+            }
+        }
+        return most
     }
 
     /// Small Tomo standing in a canvas of `size` (`overhang` of it above Tomo, as its hosts give it) under `ceiling`, for
     /// each look at every age: what it draws above `top` (canvas points) at rest, at the top of its idle stretch, and at
     /// the top of a hop as it wakes, and through a birthday's morph into that age (its overshoot, wobble and stretch;
-    /// the body and topper only, as its drops and confetti may fly into the room above), from renders. Empty when
-    /// nothing reaches past `top`.
+    /// the body and topper only, as its drops and confetti may fly into the room above), from renders, feeling
+    /// `feeling`. Empty when nothing reaches past `top`.
     public static func pokesAbove(_ top: CGFloat, ceiling: CGFloat?, size: CGSize, overhang: CGFloat,
-                                  looks: [TomoLook]) -> [String] {
+                                  looks: [TomoLook], feeling: TomoFeeling? = nil) -> [String] {
         var t = 100.0, out: [String] = []
         for look in looks {
             for age in 1..<TomoLook.ages {
@@ -2580,6 +2867,7 @@ extension TomoBlob {
                 b.clock = { t }
                 b.particleOverhang = overhang
                 b.ceiling = ceiling
+                b.feeling = feeling
                 b.setGrowth(CGFloat(age - 1))
                 b.step()
                 b.grow(to: CGFloat(age))
@@ -2605,6 +2893,7 @@ extension TomoBlob {
                     b.clock = { t }
                     b.particleOverhang = overhang
                     b.ceiling = ceiling
+                    b.feeling = feeling
                     b.setGrowth(CGFloat(age))
                     b.step()
                     if let move { b.add(move, peak * 2) }
@@ -2642,6 +2931,12 @@ extension TomoBlob {
               + "through a birthday's morph"
               + (under.isEmpty ? " (\(without.count) of \(looks.count * (TomoLook.ages * 4 - 1)) would without it)"
                  : ": \(under.prefix(3).joined(separator: "; "))"))
+        let feeling = TomoFeeling.allCases.flatMap { f in
+            pokesAbove(roomTop, ceiling: roomTop + 1, size: size, overhang: overhang, looks: looks, feeling: f)
+                .map { "\(f.rawValue) \($0)" }
+        }
+        check(feeling.isEmpty, "droopy or sickly, small Tomo still draws nothing above the room under a ceiling"
+              + (feeling.isEmpty ? "" : ": \(feeling.prefix(3).joined(separator: "; "))"))
         #endif
         var fits: [CGFloat] = []
         for look in looks {
@@ -2666,32 +2961,49 @@ extension TomoBlob {
 
 /// Tomo on its own: a Canvas redrawn every frame. Shells that know where the pointer is set `gaze`.
 /// `look`: nil for the learner's own Tomo; `material`: what it's made of (`TomoMaterial.own` for the learner's own).
-/// `hello`: it says hello when it first appears (the iPhone's play screen, as the app starts). It follows Reduce Motion
-/// (`TomoMotion`).
+/// `hello`: it says hello when it first appears (the iPhone's play screen, as the app starts). `feeling`: how it feels
+/// (`TomoBlob.feeling`). It follows Reduce Motion (`TomoMotion`).
 public struct TomoBlobView: View {
+    /// The room its canvas has beyond its frame on each side, as a share of the frame's width, so a droopy Tomo's flopped
+    /// ears aren't cut off by the canvas's edge (as the Mac island's `canvasRoom`). Tomo is still drawn at the frame's
+    /// size and place; `TomoBlob.feelingSelfTest` checks nothing reaches further at rest.
+    public static let sideRoom: CGFloat = 0.2
+
     @StateObject private var blob: TomoBlob
     @State private var greeted = false
     public var state: BotState
     public var growth: CGFloat
     public var hello: Bool
+    public var feeling: TomoFeeling?
     public var gaze: (() -> CGPoint)?
 
     public init(state: BotState = .idle, growth: CGFloat, look: TomoLook? = nil, material: TomoMaterial,
-                hello: Bool = false, gaze: (() -> CGPoint)? = nil) {
+                hello: Bool = false, feeling: TomoFeeling? = nil, gaze: (() -> CGPoint)? = nil) {
         _blob = StateObject(wrappedValue: TomoBlob(look: look, material: material, motion: .shared))
         self.state = state
         self.growth = growth
         self.hello = hello
+        self.feeling = feeling
         self.gaze = gaze
     }
 
     public var body: some View {
-        TimelineView(.animation) { timeline in
-            Canvas { context, size in
-                blob.frameDate = timeline.date
-                if let g = gaze?() { blob.lookX = g.x; blob.lookY = g.y }
-                blob.step()
-                blob.draw(context, size: size)
+        GeometryReader { geo in
+            TimelineView(.animation) { timeline in
+                // The frame's size from the canvas's own, not the reader's, so Tomo stays in its middle while a host
+                // animates its frame (the reader reports the final size at once).
+                Canvas { context, size in
+                    let frame = CGSize(width: size.width / (1 + 2 * Self.sideRoom), height: size.height)
+                    var context = context
+                    context.translateBy(x: frame.width * Self.sideRoom, y: 0)
+                    blob.frameDate = timeline.date
+                    blob.feeling = feeling
+                    if let g = gaze?() { blob.lookX = g.x; blob.lookY = g.y }
+                    blob.step()
+                    blob.draw(context, size: frame)
+                }
+                .frame(width: geo.size.width * (1 + 2 * Self.sideRoom), height: geo.size.height)
+                .offset(x: -geo.size.width * Self.sideRoom)
             }
         }
         .onChange(of: state) { _, s in blob.setState(s) }

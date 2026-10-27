@@ -9,7 +9,9 @@ give it. The systems around it are in [architecture.md](architecture.md); what a
 `TomoBlob` in `TomoCharacter.swift` (TomoCore): a blob drawn every frame in code. Its time comes from a clock, so it can
 be rendered offline. It's driven by notifications (`.botGrow`, `.botLevelUp`, `.triggerEmote` and others, in
 `TomoSignals.swift`) and Tomo's state (`TomoGame.onBotState`), never called directly, so any screen can host it:
-`TomoBlobView` on the iPhone, `TomoLiveAvatar` on the screens, `TomoCharacterView` in the island.
+`TomoBlobView` on the iPhone, `TomoLiveAvatar` on the screens, `TomoCharacterView` in the island. TomoBlobView and the
+island draw on a canvas wider than their frame, so ears and toppers that reach past Tomo's sides (a droopy Tomo's flop
+out) are never cut off; `TomoBlob.feelingSelfTest` renders every age to check they fit (`TomoBlobView.sideRoom`).
 
 ## Its look
 
@@ -70,6 +72,14 @@ Tomo's, not the script's: a newer script doesn't stop it. Planned: evolution tha
   BPM, or the 盆踊り side-step at half speed on the days the language's calendar says (`TomoCalendar.danceToday`). A
   loop on the clock, not a script: it fades in and out, a script takes over while one plays, and it's off under Reduce
   Motion.
+- A feeling over its own look (`feeling`, `TomoFeeling.swift`): droopy (it sags wider and lower, its ears and topper
+  flop, it looks at the floor, breathes slower and sighs now and then) or sickly (a green-grey tint, a little smaller,
+  heavy worried lids, a sweat drop, quick shallow breaths and a shiver). Only the Testing menu sets it for now
+  (`TomoGame.feeling`, or `TOMO_FEELING` at launch), and every live host passes it on; nothing ties it to progress yet
+  ([#262](https://github.com/serpcompany/tomodachi-app/issues/262)). It eases in and out over about a second, and back
+  to well Tomo gives a small happy hop. Under Reduce Motion the sigh and shiver become a puff. Its colour is a pass over
+  the look, never a new look: its seed, age and form stay. The look the feeling copies is
+  [the states lab](reference/tomo/states-lab.html) (Posture and Ill).
 - When it says hello: the island the first time Tomo shows after launch, greeting the launch visit's card instead of
   dripping into it, and when the Mac wakes (`TomoCharacterView.saysHello`); the iPhone's play screen when it first
   appears.
@@ -97,3 +107,5 @@ Tomo's, not the script's: a newer script doesn't stop it. Planned: evolution tha
   macOS, where the island is).
 - Nothing emits at rest: particles come only with moments, and the weather never reaches the resting island
   (`TomoBlob.particleSelfTest`).
+- A feeling never changes who Tomo is: its seed, age and form stay, it emits nothing (its sweat drop is drawn from the
+  clock), and well is drawn exactly as before (`TomoBlob.feelingSelfTest`, `TomoFeeling.colourSelfTest`).
