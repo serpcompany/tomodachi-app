@@ -1,0 +1,1204 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Tomo States Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a lab bench. A sticky bar picks the seed, the age and Reduce Motion; below it every state on notch-black
+   tiles, the five open look questions as three cards each, and a playthrough from well to the egg and back. */
+:root{
+  --bg:#EAECF1; --surface:#FFFFFF; --ink:#141625; --muted:#565B6F; --line:#D2D6E0; --soft:#E0E3EB;
+  --accent:#2F3C96; --accent-soft:#DEE2F6; --accent-ink:#26307A; --on-accent:#FFFFFF;
+  --n-notch:#000000; --n-ink:#F2F3F7; --n-muted:#9A9FB1; --n-chip:#FFFFFF14; --n-chip-line:#FFFFFF2E;
+  --n-amber:#F2B04A; --n-pouty:#FF8FB8; --n-lonely:#8FB4FF; --n-moss:#9BCB7A;
+  --f-display:"Zen Maru Gothic","Hiragino Maru Gothic ProN",ui-rounded,system-ui,sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,-apple-system,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E0F15; --surface:#171922; --ink:#ECEDF3; --muted:#9A9FB1; --line:#292C38; --soft:#1F222C;
+  --accent:#97A3FF; --accent-soft:#252B52; --accent-ink:#B9C1FF; --on-accent:#0E0F15;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0E0F15; --surface:#171922; --ink:#ECEDF3; --muted:#9A9FB1; --line:#292C38; --soft:#1F222C;
+  --accent:#97A3FF; --accent-soft:#252B52; --accent-ink:#B9C1FF; --on-accent:#0E0F15;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.6 var(--f-body);margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.page{max-width:1200px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:30px 72px}
+@media (min-width:760px){.page{padding-left:max(32px,env(safe-area-inset-left,0px));padding-right:max(32px,env(safe-area-inset-right,0px))}}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+p{margin:0}
+button{font:inherit;color:inherit}
+a{color:var(--accent-ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono)}
+.eyebrow{font:500 11.5px/1.4 var(--f-mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+
+/* header */
+.top{display:grid;gap:16px;padding-bottom:22px}
+.top h1{font-size:clamp(32px,5vw,50px);font-weight:900;letter-spacing:-.01em}
+.lede{max-width:70ch;color:var(--muted);font-size:15.5px}
+.lede b{color:var(--ink);font-weight:700}
+.rules{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}
+.rules li{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 12px;font-size:13px}
+
+/* the sticky bar: seed, age, Reduce Motion */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 0;display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center}
+.grp{display:flex;align-items:center;gap:8px;min-width:0;max-width:100%}
+.lbl{font:500 11px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.seeds{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;min-width:0;padding:2px}
+.seed{display:grid;justify-items:center;border:0;background:var(--n-notch);border-radius:0 0 12px 12px;padding:0 3px 3px;cursor:pointer;color:var(--n-muted);flex:none}
+.seed .seed-cv{width:44px;height:38px;display:block}
+.seed span{font-size:10px;line-height:1.15;white-space:nowrap}
+.seed[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px;color:var(--n-ink)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface);flex:none}
+.seg button{border:0;background:transparent;padding:4px 12px;font-size:13px;cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);font-weight:700}
+.switch{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px 4px 6px;cursor:pointer;font-size:13px;flex:none}
+.switch i{width:28px;height:16px;border-radius:999px;background:var(--line);position:relative}
+.switch i::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--surface);transition:transform .2s}
+.switch[aria-checked="true"] i{background:var(--accent)}
+.switch[aria-checked="true"] i::after{transform:translateX(12px)}
+.cap{font-size:12.5px;color:var(--muted);flex:1 1 200px;min-width:0}
+
+/* sections */
+section{padding-top:46px;display:grid;gap:16px;scroll-margin-top:130px}
+.sec-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 16px}
+.sec-head h2{font-size:clamp(22px,3vw,30px);font-weight:900}
+.num{display:block;font:500 11.5px/1.4 var(--f-mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.intro{max-width:74ch;color:var(--muted)}
+.intro b{color:var(--ink)}
+.c-act{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 14px;font-size:13px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:700}
+.hint{font-size:12.5px;color:var(--accent-ink)}
+.grp-h{font:700 15px var(--f-display);display:flex;gap:10px;align-items:baseline}
+.grp-h small{font:400 13px var(--f-body);color:var(--muted)}
+
+/* every state */
+.states{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.tile{background:var(--n-notch);color:var(--n-ink);border-radius:0 0 22px 22px;margin:0;padding:2px 12px 12px;display:grid;align-content:start;gap:2px;min-width:0}
+.tile .cv{width:100%;max-width:100%;aspect-ratio:1/1;height:auto;display:block}
+.tile b{font:700 15px var(--f-display)}
+.tile small{display:block;font-size:12px;color:var(--n-muted);line-height:1.4}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;font:500 11px/1.4 var(--f-mono)}
+.meta a{color:var(--n-muted)}
+.meta .pk{color:var(--n-amber)}
+.strip{background:var(--n-notch);border-radius:0 0 26px 26px;overflow-x:auto;padding:2px 16px 10px}
+.strip-in{display:flex;gap:4px;width:max-content;margin:0 auto}
+.nt{display:grid;justify-items:center}
+.notch-cv{width:44px;height:32px;display:block}
+.nt small{font-size:10px;color:var(--n-muted);white-space:nowrap}
+.note{font-size:13px;color:var(--muted);max-width:74ch}
+
+/* the questions */
+.tools{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.tools label{display:flex;gap:8px;align-items:center;font-size:13.5px}
+.tools input[type=range]{width:160px;accent-color:var(--accent)}
+.opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:880px){.opts{grid-template-columns:minmax(0,1fr)}}
+.opt{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:grid;grid-template-rows:auto 1fr;min-width:0}
+.opt.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.stage{background:var(--n-notch);position:relative}
+.stage .big{width:100%;max-width:100%;aspect-ratio:4/3;height:auto;display:block}
+.mini{position:absolute;right:10px;top:0;background:var(--n-notch);border:1px solid var(--n-chip-line);border-top:0;border-radius:0 0 12px 12px;padding:0 4px 2px;display:grid;justify-items:center}
+.mini small{font:500 9px/1.2 var(--f-mono);color:var(--n-muted);letter-spacing:.04em}
+.opt-body{padding:12px 14px 14px;display:grid;gap:8px;align-content:start}
+.opt-k{font:700 17px var(--f-display);display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.opt-k .k{font:500 12px var(--f-mono);color:var(--muted)}
+.opt-k .src{font:500 11px var(--f-mono);color:var(--muted)}
+.opt-body p{font-size:13.5px;line-height:1.5}
+.opt-body p b{font-weight:700}
+.pick{justify-self:start;border:1px solid var(--line);background:transparent;border-radius:999px;padding:4px 14px;font-size:13px;cursor:pointer}
+.pick[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:700}
+.rm-note{font-size:13px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px;max-width:74ch}
+
+/* the playthrough */
+.play{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:880px){.play{grid-template-columns:minmax(0,1fr)}}
+.pstage{background:var(--n-notch);border-radius:0 0 26px 26px;position:relative;overflow:hidden}
+.pstage .big{width:100%;max-width:100%;aspect-ratio:4/3;height:auto;display:block}
+.hud{position:absolute;left:12px;bottom:10px;right:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--n-muted)}
+.hud b{background:var(--n-chip);border:1px solid var(--n-chip-line);color:var(--n-ink);border-radius:999px;padding:2px 10px;font:700 12px var(--f-display)}
+.pside{display:grid;gap:12px;min-width:0}
+.stops{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.stop{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.stop.done{color:var(--ink)}
+.stop[aria-current="step"]{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:700}
+.half-lbl{font:500 11px/1.4 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);flex-basis:100%}
+.pnote{font-size:14.5px;min-height:4.6em}
+.pnote b{font-family:var(--f-display)}
+.picks-line{font-size:13px;color:var(--muted)}
+footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:grid;gap:8px;max-width:84ch}
+</style>
+
+<div class="page">
+  <header class="top">
+    <p class="eyebrow">Issue #251 · design round 1 · 2026-10-27</p>
+    <h1>Tomo’s states lab</h1>
+    <p class="lede">Every mood and condition Tomo could show, alive on the seed and age you pick, and the <b>five open look questions</b> with two or three options each. These are <b>looks, not rules</b>: nothing here is tied to progress yet, and a Testing-menu preview will play them in the app. Pick one option per question with <b>Use this</b>; the grid and the playthrough follow your picks. Click any Tomo to poke it.</p>
+    <ul class="rules" aria-label="Rules every state keeps">
+      <li>Tomo is always alive</li><li>Level and age never go down</li><li>Tomo never dies</li><li>No growing count of things to do</li>
+    </ul>
+  </header>
+
+  <div class="bar" role="toolbar" aria-label="Seed, age and Reduce Motion">
+    <div class="grp"><span class="lbl">Seed</span><div class="seeds" id="seeds"></div></div>
+    <div class="grp"><span class="lbl">Age</span><div class="seg" id="ages"></div></div>
+    <button type="button" class="switch" id="rm" role="switch" aria-checked="false"><i aria-hidden="true"></i>Reduce Motion</button>
+    <p class="cap" id="cap" aria-live="polite"></p>
+  </div>
+
+  <section id="every" aria-labelledby="every-h">
+    <div class="sec-head">
+      <div><span class="num">1 · Every state</span><h2 id="every-h">Every state, alive</h2></div>
+      <div class="c-act"><button type="button" class="btn js-comment" data-for="every">Comment</button><span class="hint" aria-live="polite"></span></div>
+    </div>
+    <p class="intro">The moods from <a href="https://github.com/serpcompany/tomodachi-app/issues/130" target="_blank" rel="noopener">#130</a> and the conditions from <a href="https://github.com/serpcompany/tomodachi-app/issues/257" target="_blank" rel="noopener">#257</a> and <a href="https://github.com/serpcompany/tomodachi-app/issues/258" target="_blank" rel="noopener">#258</a>, each with its own breath, blink and motion. <b>Droopy, Sickly and Mossy use your picks</b> from the questions below; the amber tag says which.</p>
+    <p class="grp-h">Moods <small>how Tomo feels right now</small></p>
+    <div class="states" id="moods"></div>
+    <p class="grp-h">Conditions <small>how Tomo is doing, from well to back in its egg</small></p>
+    <div class="states" id="conds"></div>
+    <p class="grp-h">At notch size <small>the same states as small Tomo beside the notch</small></p>
+    <div class="strip" id="strip"></div>
+    <p class="note">Fidgets come every few seconds here so you can see them. #257’s own timings are slower: a sigh about every 20 s, a tummy rumble about every 30 s.</p>
+  </section>
+
+  <div id="questions"></div>
+
+  <section id="play" aria-labelledby="play-h">
+    <div class="sec-head">
+      <div><span class="num">7 · Playthrough</span><h2 id="play-h">From well to the egg and back</h2></div>
+      <div class="c-act"><button type="button" class="btn js-comment" data-for="play">Comment</button><span class="hint" aria-live="polite"></span></div>
+    </div>
+    <p class="intro">One Tomo steps down through the conditions into its egg, hatches, and climbs back up to well. Its <b>age and level stay the same</b> the whole way: only the look changes.</p>
+    <div class="play">
+      <div class="pstage">
+        <div id="play-cv"></div>
+        <div class="mini" style="right:12px"><div id="play-mini"></div><small>notch size</small></div>
+        <div class="hud"><b id="hud-age">3さい · Lv 7</b><span>age and level stay the same</span></div>
+      </div>
+      <div class="pside">
+        <div class="tools">
+          <button type="button" class="btn primary" id="pp">Play</button>
+          <button type="button" class="btn" id="back">Back</button>
+          <button type="button" class="btn" id="next">Next</button>
+        </div>
+        <ol class="stops" id="stops"></ol>
+        <p class="pnote" id="pnote" aria-live="polite"></p>
+        <p class="picks-line" id="picks-line"></p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Prototype for <a href="https://github.com/serpcompany/tomodachi-app/issues/251" target="_blank" rel="noopener">#251</a>. Tomo here is the JavaScript port of <span class="mono">TomoLook.swift</span> and <span class="mono">TomoCharacter.swift</span> used by the other design pages, in its jelly material, with the states added on top. The real Tomo stays in Swift.</p>
+    <p>Everything is drawn in code each frame: no images, no sprites. Moss, the sweat drop, the rain and the cloud are fixed fills worked out from the clock, so nothing emits at rest; only moments (a hatch, a brush-off, a birthday) give off sparkles, spores or confetti.</p>
+    <p>The egg is a port of the first-run egg (<span class="mono">TomoEggView</span>), with its rocking, its crack and its seeded spots. Your seed, age and picks are kept in this browser only.</p>
+  </footer>
+</div>
+
+<script>
+"use strict";
+/* ---------- Tomo's look: a port of TomoLook.swift ---------- */
+const TAU=Math.PI*2, T=()=>performance.now()/1000;
+const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
+const rand=(a,b)=>a+Math.random()*(b-a);
+const enc=new TextEncoder();
+function feed(h,bytes){for(const b of bytes){h=Math.imul((h^b)>>>0,3432918353)>>>0;h=((h<<13)|(h>>>19))>>>0;}return h;}
+function fmix(h){h=Math.imul((h^(h>>>16))>>>0,2246822507)>>>0;h=Math.imul((h^(h>>>13))>>>0,3266489909)>>>0;return (h^(h>>>16))>>>0;}
+class Traits{
+  constructor(seed,ovr={}){const s=seed.normalize('NFC').trim().toLowerCase();const b=enc.encode(s);this.st=feed((1779033703^b.length)>>>0,b);this.ovr=ovr;}
+  v(k){if(k in this.ovr)return clamp(this.ovr[k],0,.999999);return fmix(feed(feed(this.st,[255]),enc.encode(k)))/4294967296;}
+  num(k,lo,hi){return (lo+hi)/2+(this.v(k)-.5)*(hi-lo);}
+  jit(k,a){return (this.v(k)*2-1)*a;}
+  chance(k,p){return this.v(k)<Math.min(.5,p);}
+  band(k,bands){const v=this.v(k);for(const [x,e] of bands)if(v<e)return x;return bands[bands.length-1][0];}
+}
+function okLinear(l,c,h){const r=h*Math.PI/180,a=c*Math.cos(r),b=c*Math.sin(r);
+  const l_=l+.3963377774*a+.2158037573*b,m_=l-.1055613458*a-.0638541728*b,s_=l-.0894841775*a-1.291485548*b;
+  const L=l_*l_*l_,M=m_*m_*m_,S=s_*s_*s_;
+  return [4.0767416621*L-3.3077115913*M+.2309699292*S,-1.2684380046*L+2.6097574011*M-.3413193965*S,-.0041960863*L-.7034186147*M+1.707614701*S];}
+function okRGB(o){const ok=v=>v.every(x=>x>=-1e-4&&x<=1+1e-4);let v=okLinear(o.l,o.c,o.h);
+  if(!ok(v)){let lo=0,hi=o.c;for(let i=0;i<12;i++){const m=(lo+hi)/2;if(ok(okLinear(o.l,m,o.h)))lo=m;else hi=m;}v=okLinear(o.l,lo,o.h);}
+  return v.map(x=>clamp(x,0,1));}
+function lum(o){const v=okRGB(o);return .2126*v[0]+.7152*v[1]+.0722*v[2];}
+function contrast(a,b){const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);}
+function ensure(o,bg,target){if(contrast(o,bg)>=target)return o;const lean=o.l>=bg.l?1:-1;
+  for(const dir of [lean,-lean]){const p={...o};for(let i=0;i<60;i++){p.l=clamp(p.l+dir*.02,0,1);if(contrast(p,bg)>=target)return p;if(p.l===0||p.l===1)break;}}return o;}
+function css(o,a=1){const v=okRGB(o).map(x=>x<=.0031308?12.92*x:1.055*Math.pow(x,1/2.4)-.055);return `rgba(${Math.round(v[0]*255)},${Math.round(v[1]*255)},${Math.round(v[2]*255)},${a})`;}
+const NOTCH={l:.145,c:0,h:0};
+const TONES=[[{l:.86,c:.09},.3],[{l:.75,c:.13},.6],[{l:.87,c:.16},.82],[{l:.66,c:.16},.97],[{l:.93,c:.03},1]];
+const TONE_NAMES=['Pastel','Mid','Bright','Deep','Pale'];
+const SHAPEB=[['round',.22],['organic',.46],['boxy',.58],['capsule',.68],['nub',.78],['cloud',.86],['droplet',.915],['hexagon',.95],['sun',.98],['triangle',1]];
+const BABY=[['round',.45],['organic',.8],['nub',1]];
+const SHAPE_NAMES={round:'Round',organic:'Pebble',boxy:'Boxy',capsule:'Capsule',nub:'Nub',cloud:'Cloud',droplet:'Droplet',hexagon:'Hexagon',sun:'Sun',triangle:'Triangle'};
+function bandIdx(v,b){for(let i=0;i<b.length;i++)if(v<b[i][1])return i;return b.length-1;}
+
+function makeForm(t,ka,det,after,forced,sa){
+  const k='age'+ka+'.',bands=ka===0?BABY:SHAPEB;
+  let sil=forced||t.band(k+'shape',bands);
+  if(!forced){if(sil===after)sil=t.band(k+'shape.again',bands);if(sil===after){const i=bands.findIndex(b=>b[0]===sil);sil=bands[(i+1)%bands.length][0];}}
+  const ratio=t.num(k+'body.ratio',.78,1.22);
+  let rx=1,ry=ratio,n=t.num(k+'body.n',1.9,2.5),rot=0,radii=[],petals=[],sides=0,corner=0,tip=0,faceY=-.05,faceW=1;
+  switch(sil){
+    case 'organic':{const c=Math.floor(t.num(k+'body.pts',6,8.99));radii=[...Array(c)].map((_,i)=>1+t.jit(k+'body.r'+i,.14));faceW=Math.min(...radii)*.95;break;}
+    case 'boxy':rx=.9;ry=.9*ratio;n=t.num(k+'boxy.n',3.4,6);rot=t.jit(k+'boxy.rot',.25);break;
+    case 'capsule':rx=1.05;ry=1.05*t.num(k+'capsule.squat',.6,.72);petals=[{x:-(rx-ry),y:0,r:ry},{x:rx-ry,y:0,r:ry}];faceY=0;break;
+    case 'nub':{rx=.9;ry=.9*ratio;const cnt=t.v(k+'nub.count')<.5?1:2;for(let i=0;i<cnt;i++){const a=-Math.PI/2+t.jit(k+'nub.a'+i,1.3);petals.push({x:rx*.85*Math.cos(a),y:ry*.85*Math.sin(a),r:rx*t.num(k+'nub.r'+i,.24,.36)});}break;}
+    case 'cloud':{rx=.85;ry=.8;const cnt=Math.floor(t.num(k+'cloud.n',4,6.99));radii=[...Array(8)].map((_,i)=>1+t.jit(k+'body.r'+i,.08));for(let i=0;i<cnt;i++){const a=Math.PI+Math.PI*(i+.5)/cnt;petals.push({x:rx*.8*Math.cos(a),y:ry*.55*Math.sin(a),r:rx*t.num(k+'cloud.r'+i,.4,.56)});}faceY=.05;faceW=.85;break;}
+    case 'droplet':rx=.82;ry=.82;n=2;tip=t.num(k+'droplet.tip',1.4,1.65);faceY=.04;faceW=.88;break;
+    case 'hexagon':rx=1.04;ry=1.04*ratio;sides=6;corner=t.num(k+'poly.round',.25,.5);rot=t.jit(k+'poly.rot',.2);faceW=.84;break;
+    case 'sun':{rx=.74;ry=.74;const cnt=Math.floor(t.num(k+'sun.n',6,9.99)),dist=rx*t.num(k+'sun.dist',1,1.08),pr=rx*t.num(k+'sun.r',.2,.26),off=t.num(k+'sun.rot',0,TAU);for(let i=0;i<cnt;i++){const a=off+TAU*i/cnt;petals.push({x:dist*Math.cos(a),y:dist*Math.sin(a),r:pr});}break;}
+    case 'triangle':rx=1.18;ry=1.1;sides=3;corner=t.num(k+'poly.round',.35,.55);rot=t.jit(k+'poly.rot',.06);faceY=.22;faceW=.55;break;
+  }
+  if(sil==='droplet')faceY+=.18;
+  let top=ry;if(tip>0)top=ry*tip*.95-.18;for(const c of petals)top=Math.max(top,-c.y+c.r);
+  let bottom=ry+(sil==='droplet'?.18:0);for(const c of petals)bottom=Math.max(bottom,c.y+c.r);
+  return {sil,scale:1+.07*sa,det,sproutLean:t.jit(k+'sprout',.35),rx,ry,n,rot,radii,petals,sides,corner,tip,faceY,faceW,top,bottom};
+}
+/* picks pin a trait the way TomoLook's overrides do; o.lock keeps the 1さい shape for life. */
+function makeLook(seed,picks={},o={}){
+  const t=new Traits(seed,o.ovr||{});
+  let hue=85+(t.v('hue')-.5)*360;hue=((hue%360)+360)%360;if(picks.hue!=null)hue=picks.hue;
+  const toneIdx=picks.tone!=null?picks.tone:bandIdx(t.v('tone'),TONES);
+  const tone=TONES[toneIdx][0];
+  const head=ensure({l:tone.l,c:tone.c,h:hue},NOTCH,3);
+  const eye=head.l>=.5?{l:.2,c:.03,h:hue}:{l:.97,c:.012,h:hue};
+  const L={seed,hue,toneIdx,head};
+  L.body=css(head);L.bodyLight=css({l:Math.min(1,head.l+.07),c:head.c*.85,h:hue});
+  L.ink=css(ensure(eye,head,4.5));L.cheek={l:.72,c:.15,h:12};
+  L.pattern=picks.pattern??t.band('pattern',[['none',.3],['belly',.46],['cap',.6],['spots',.74],['stripes',.86],['twoTone',1]]);
+  const shift=t.num('accent.hue',40,160)*(t.v('accent.dir')<.5?-1:1),darker=head.l>.6?-.13:.13;
+  L.accentOk=L.pattern==='belly'?{l:Math.min(.97,head.l+.1),c:head.c*.35,h:hue}:L.pattern==='twoTone'?{l:head.l,c:Math.max(head.c,.1),h:hue+shift*.45}:{l:head.l+darker,c:Math.max(head.c,.11),h:hue+shift*.5};
+  L.accent=css(L.accentOk);
+  L.eyeStyle=picks.eye??t.band('eye.style',[['bar',.3],['dot',.55],['big',.72],['lidded',.87],['bead',1]]);
+  L.cyclops=picks.cyclops??t.chance('eye.cyclops',.05);
+  switch(L.eyeStyle){
+    case 'bar':L.eyeW=t.num('eye.w',.085,.11);L.eyeH=L.eyeW*t.num('eye.ratio',1.7,2.6);L.eyeN=t.num('eye.n',3.5,6);break;
+    case 'dot':L.eyeW=t.num('eye.w',.085,.115);L.eyeH=L.eyeW*t.num('eye.ratio',1,1.15);L.eyeN=2;break;
+    case 'big':L.eyeW=t.num('eye.w',.13,.16);L.eyeH=L.eyeW*t.num('eye.ratio',1.15,1.35);L.eyeN=2;break;
+    case 'lidded':L.eyeW=t.num('eye.w',.11,.14);L.eyeH=L.eyeW*t.num('eye.ratio',1,1.2);L.eyeN=2;break;
+    default:L.eyeW=t.num('eye.w',.05,.065);L.eyeH=L.eyeW*t.num('eye.ratio',1,1.2);L.eyeN=2;
+  }
+  L.eyeGap=Math.max(t.num('eye.gap',.2,.42),L.eyeW*1.7);L.eyeY=t.num('eye.y',-.16,.1);
+  L.mouth=picks.mouth??t.band('mouth',[['none',.35],['smile',.58],['cat',.74],['o',.84],['fang',.93],['flat',1]]);
+  L.topper=picks.topper??t.band('topper',[['none',.3],['cat',.44],['bunny',.56],['bear',.7],['horns',.8],['antenna',.9],['sprout',1]]);
+  L.markSeed=t.v('mark');L.breath=t.num('motion.breath',1.45,1.95);L.blinkPace=t.num('motion.blink',.8,1.25);
+  const pool=['cheeks','freckles','sheen','mark'],order=[];
+  for(let i=0;i<4;i++){const k=Math.floor(t.v('detail.'+i)*pool.length);order.push(pool.splice(Math.min(k,pool.length-1),1)[0]);}
+  L.forms=[];
+  for(let age=0;age<6;age++){
+    const det=new Set(order.slice(0,Math.min(3,Math.floor((age+1)/2))));
+    if(o.lock)L.forms.push(makeForm(t,0,det,null,picks.shape||null,age));
+    else L.forms.push(makeForm(t,age,det,o.noEvolve?null:(L.forms[age-1]?.sil??null),age===0?(picks.shape||null):null,age));
+  }
+  return L;
+}
+const lookCache=new Map();
+function lookFor(seed,picks={},o={}){const key=seed+'|'+JSON.stringify(picks)+'|'+(o.lock?1:0)+(o.noEvolve?1:0);let L=lookCache.get(key);if(!L){if(lookCache.size>400)lookCache.clear();L=makeLook(seed,picks,o);lookCache.set(key,L);}return L;}
+const MASCOT_OVR={hue:.5,tone:.7,'eye.style':.1,'eye.cyclops':.9,'eye.w':.8,'eye.ratio':.5,'eye.n':.4,'eye.gap':.5,'eye.y':.4,mouth:.1,pattern:.1,topper:.1};
+for(let a=0;a<6;a++){MASCOT_OVR[`age${a}.body.ratio`]=.45;MASCOT_OVR[`age${a}.shape`]=.1;}
+const MASCOT=makeLook('tomodachi',{},{ovr:MASCOT_OVR,noEvolve:true});
+
+/* ---------- Paths: blobatar's primitives, as in TomoForm ---------- */
+function seP(P,a,b,n,rot,oy){const k=Math.min(1,(8*Math.pow(2,-1/n)-4)/3);
+  const pts=[[a,0],[a,b*k],[a*k,b],[0,b],[-a*k,b],[-a,b*k],[-a,0],[-a,-b*k],[-a*k,-b],[0,-b],[a*k,-b],[a,-b*k],[a,0]];
+  const c=Math.cos(rot),s=Math.sin(rot),at=i=>[pts[i][0]*c-pts[i][1]*s,pts[i][0]*s+pts[i][1]*c+oy];
+  const p0=at(0);P.moveTo(p0[0],p0[1]);
+  for(let i=1;i<13;i+=3){const a1=at(i),a2=at(i+1),a3=at(i+2);P.bezierCurveTo(a1[0],a1[1],a2[0],a2[1],a3[0],a3[1]);}P.closePath();}
+function splineP(P,rx,ry,radii,oy){const n=radii.length;const pts=radii.map((m,i)=>{const a=TAU*i/n;return [rx*m*Math.cos(a),ry*m*Math.sin(a)+oy];});
+  const at=i=>pts[((i%n)+n)%n];P.moveTo(at(0)[0],at(0)[1]);
+  for(let i=0;i<n;i++){const p0=at(i-1),p1=at(i),p2=at(i+1),p3=at(i+2);
+    P.bezierCurveTo(p1[0]+(p2[0]-p0[0])/6,p1[1]+(p2[1]-p0[1])/6,p2[0]-(p3[0]-p1[0])/6,p2[1]-(p3[1]-p1[1])/6,p2[0],p2[1]);}P.closePath();}
+function polyP(P,rx,ry,sides,round,rot,oy){const k=Math.min(.5,Math.max(0,round/2));
+  const v=[...Array(sides)].map((_,i)=>{const a=rot-Math.PI/2+TAU*i/sides;return [rx*Math.cos(a),ry*Math.sin(a)+oy];});
+  const at=i=>v[((i%sides)+sides)%sides],cut=(i,j)=>{const a=at(i),b=at(j);return [a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k];};
+  const s=cut(0,-1);P.moveTo(s[0],s[1]);
+  for(let i=0;i<sides;i++){const c=at(i),e=cut(i,i+1);P.quadraticCurveTo(c[0],c[1],e[0],e[1]);if(k<.5){const l=cut(i+1,i);P.lineTo(l[0],l[1]);}}P.closePath();}
+function taperP(P,rx,ry,tip,oy){const t=Math.max(1.05,tip),tx=rx*Math.sqrt(1-1/(t*t)),ty=-ry/t,apex=-t*ry,px=tx*.14,py=ty+.86*(apex-ty);
+  P.moveTo(-tx,ty+oy);P.lineTo(-px,py+oy);P.quadraticCurveTo(0,apex+oy,px,py+oy);P.lineTo(tx,ty+oy);P.closePath();}
+function formPath(F,R){const P=new Path2D(),oy=F.sil==='droplet'?.18*R:0,rx=F.rx*R,ry=F.ry*R;
+  if(F.sides>0)polyP(P,rx,ry,F.sides,F.corner,F.rot,oy);else if(F.radii.length)splineP(P,rx,ry,F.radii,oy);
+  else if(F.sil==='capsule')P.rect(-(rx-ry),-ry+oy,2*(rx-ry),2*ry);else seP(P,rx,ry,F.n,F.rot,oy);
+  for(const c of F.petals){P.moveTo(c.x*R+c.r*R,c.y*R+oy);P.arc(c.x*R,c.y*R+oy,c.r*R,0,TAU);}
+  if(F.tip>0)taperP(P,rx,ry,F.tip,oy);return P;}
+function heartPath(s){const P=new Path2D();P.moveTo(0,s*.35);P.bezierCurveTo(-s*.1,s*.2,-s*.5,s*.12,-s*.5,-s*.1);
+  P.arc(-s*.25,-s*.12,s*.25,Math.PI,0,false);P.arc(s*.25,-s*.12,s*.25,Math.PI,0,false);P.bezierCurveTo(s*.5,s*.12,s*.1,s*.2,0,s*.35);P.closePath();return P;}
+function starPath(r,inner,pts){const P=new Path2D();for(let i=0;i<pts*2;i++){const a=i*Math.PI/pts-Math.PI/2,rr=i%2===0?r:r*inner;if(i===0)P.moveTo(Math.cos(a)*rr,Math.sin(a)*rr);else P.lineTo(Math.cos(a)*rr,Math.sin(a)*rr);}P.closePath();return P;}
+function triPath(b,h){const P=new Path2D();P.moveTo(-b,b*.4);P.quadraticCurveTo(-b*.6,-h*.5,0,-h);P.quadraticCurveTo(b*.6,-h*.5,b,b*.4);P.closePath();return P;}
+function ell(ctx,cx,cy,rx,ry,rot=0){ctx.beginPath();ctx.ellipse(cx,cy,Math.max(.01,rx),Math.max(.01,ry),rot,0,TAU);ctx.fill();}
+function rr(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+/* the outline as polar samples, for the fluffy sketch */
+const probe=Object.assign(document.createElement('canvas'),{width:4,height:4}).getContext('2d');
+const fluffCache=new WeakMap();
+function outline(F,R){let c=fluffCache.get(F);if(c&&Math.abs(c.R-R)<.5)return c.pts;
+  const P=formPath(F,R),cy0=F.sil==='droplet'?.18*R:0,pts=[],N=96;
+  for(let i=0;i<N;i++){const a=TAU*i/N,dx=Math.cos(a),dy=Math.sin(a);let r=R*2.4;
+    for(;r>0;r-=R*.015){if(probe.isPointInPath(P,dx*r,cy0+dy*r))break;}pts.push([dx*r,cy0+dy*r,a]);}
+  fluffCache.set(F,{R,pts});return pts;}
+
+/* ---------- Tomo alive: a port of TomoBlob ---------- */
+const PTR={x:0,y:0,on:false};
+addEventListener('pointermove',e=>{PTR.x=e.clientX;PTR.y=e.clientY;PTR.on=true;},{passive:true});
+const NEUTRAL={dx:0,dy:0,rot:0,sx:1,sy:1,mouth:0,glow:0};
+const hold=q=>{const e=Math.min(1,Math.min(q,1-q)*4);return e*e*(3-2*e);};
+const BODY_MOVES=new Set(['hop','nudge','shake','wiggle','rock','squish','wobble','stretch','tilt','shuffle','lean','stomp','sigh']);
+class Blob{
+  constructor(cv,o){this.cv=cv;this.o=o;this.ctx=cv.getContext('2d');const now=T();
+    this.born=o.static?now:now-Math.random()*4;this.last=now;this.flash=null;this.moves=[];this.bits=[];
+    this.blinkAt=-10;this.second=null;this.nextBlink=now+rand(1,2.5);this.nextFidget=now+rand(1.5,3.5);
+    this.look2={x:0,y:0};this.wander={x:0,y:0};this.nextWander=0;this.sac={x:0,y:0};this.nextSac=0;this.glance=null;
+    this.tilt=0;this.puff=1;this.blush=0;this.sway=0;this.swayVel=0;this.jig=0;this.jigVel=0;this.lastDy=0;this.lastDx=0;this.lastRot=0;
+    this.visible=false;this.p=NEUTRAL;this.lastAmb=0;this.waveUntil=0;}
+  get rm(){const r=this.o.reduced;return r==null?REDUCED:!!(typeof r==='function'?r():r);}
+  get fo(){const f=this.o.face;return typeof f==='function'?f():f;}
+  get look(){const l=this.o.look;return typeof l==='function'?l():(l||MASCOT);}
+  get age(){const a=this.o.age;return clamp(typeof a==='function'?a():(a||0),0,5);}
+  get mood(){const m=this.o.mood;return typeof m==='function'?m():(m||null);}
+  get hands(){const h=this.o.hands;return typeof h==='function'?h():!!h;}
+  add(kind,dur,arg){const now=T();
+    if(this.rm&&BODY_MOVES.has(kind)){if(!this.moves.some(m=>m.kind==='puff'&&now-m.start<.3))this.moves.push({kind:'puff',start:now,dur:.5});return;}
+    this.moves.push({kind,start:now,dur,arg});}
+  setFlash(face,s){this.flash={face,until:T()+s};}
+  react(kind){const now=T();this.nextFidget=Math.max(this.nextFidget,now+2.5);
+    switch(kind){
+      case 'happy':this.add('hop',.45,.22);this.add('wiggle',.6,4);this.setFlash('happy',1.1);this.emit('sparkle',3);break;
+      case 'star':this.add('hop',.45,.3);this.add('wiggle',.5,4);this.add('rock',.9);this.setFlash('star',1.8);this.emit('sparkle',8);break;
+      case 'levelup':this.add('hop',.45,.3);this.add('wiggle',.5,4);this.add('rock',.9);this.setFlash('star',1.6);this.emit('sparkle',10);this.emit('confetti',14);break;
+      case 'love':this.setFlash('love',1.6);this.blush=1;this.emit('heart',4);break;
+      case 'poke':this.add('squish',.35);this.setFlash('squeeze',.5);if(!this.rm){this.swayVel+=(Math.random()<.5?1:-1)*16;this.jigVel+=5;}break;
+      case 'wave':this.waveUntil=now+1.7;this.add('hop',.4,.14);this.setFlash('happy',1.5);break;
+      case 'think':this.glance={x:.6,y:.6,until:now+1.4};this.setFlash('confused',1.3);this.add('tilt',1.4,.15);break;
+    }}
+  emit(kind,n){if(this.o.static)return;n=this.rm?Math.max(1,Math.round(n/3)):n;const pace=this.rm?.4:1;
+    for(let i=0;i<n;i++){let b;
+      if(kind==='sparkle'){const a=rand(0,TAU),sp=rand(.7,1.2);b={pos:{x:Math.cos(a)*.9,y:Math.sin(a)*.9-.1},vel:{x:Math.cos(a)*sp,y:Math.sin(a)*sp-.5},life:rand(.6,.9),size:rand(.12,.2),spin:rand(-4,4),g:.6};}
+      else if(kind==='heart'){b={pos:{x:rand(-.6,.6),y:-.9},vel:{x:rand(-.3,.3),y:rand(-.9,-.6)},life:rand(1,1.4),size:rand(.22,.3),spin:0,g:-.15};}
+      else if(kind==='z'){b={pos:{x:.6,y:-.8},vel:{x:.25,y:-.45},life:1.8,size:.3,spin:0,g:-.15};}
+      else if(kind==='confetti'){const a=rand(-Math.PI*.9,-Math.PI*.1),sp=rand(1.4,2.4);b={pos:{x:rand(-.3,.3),y:-.4},vel:{x:Math.cos(a)*sp,y:Math.sin(a)*sp},life:rand(1,1.5),size:rand(.07,.11),spin:rand(-8,8),g:2.2,col:[this.look.body,this.look.accent,'#FFC83D','#FFF3B0'][i%4]};}
+      else if(kind==='rain'){b={pos:{x:rand(-.35,.35),y:-1.05},vel:{x:0,y:1.1},life:.55,size:.05,spin:0,g:.8};}
+      if(b){b.kind=kind;b.age=0;b.pace=pace;this.bits.push(b);}}}
+  pose(now){const p={...NEUTRAL},body=this.rm?0:1;
+    for(const m of this.moves){const q=clamp((now-m.start)/m.dur,0,1),arc=Math.sin(Math.PI*q);
+      switch(m.kind){
+        case 'hop':p.dy-=m.arg*arc;p.sy*=1+.08*arc;p.sx*=1-.05*arc;break;
+        case 'nudge':p.dy-=q<.55?.42*Math.sin(Math.PI*q/.55):.2*Math.sin(Math.PI*(q-.55)/.45);{const w=Math.sin(q*8*Math.PI)*.06;p.sx*=1+w;p.sy*=1-w;}break;
+        case 'shake':p.dx+=Math.sin(q*6*Math.PI)*.09*(1-q);break;
+        case 'wiggle':{const w=Math.sin(q*m.arg*Math.PI)*.07*(1-q*.5);p.sx*=1+w;p.sy*=1-w;p.rot+=w*.6;}break;
+        case 'rock':p.rot+=Math.sin(q*4*Math.PI)*.13*(1-q*.6);break;
+        case 'squish':p.sy*=1-.2*arc;p.sx*=1+.15*arc;break;
+        case 'wobble':p.rot+=Math.sin(q*7*Math.PI)*.16*(1-q);break;
+        case 'mouth':p.mouth=Math.max(p.mouth,arc);p.dy-=.04*arc*body;break;
+        case 'peep':p.mouth=Math.max(p.mouth,.55*arc);p.dy-=.05*arc*body;break;
+        case 'stretch':p.sy*=1+.09*arc;p.sx*=1-.05*arc;break;
+        case 'tilt':p.rot+=m.arg*hold(q);break;
+        case 'shuffle':p.dx+=Math.sin(q*4*Math.PI)*.05;p.rot+=Math.sin(q*4*Math.PI)*.05;break;
+        case 'lean':{const e=hold(q);p.rot+=m.arg*.16*e;p.dy+=.05*e;p.sy*=1-.04*e;}break;
+        case 'stomp':{const s=Math.abs(Math.sin(q*2*Math.PI));p.dy+=.05*s;p.sy*=1-.07*s;p.sx*=1+.05*s;p.rot+=Math.sin(q*2*Math.PI)*.04;}break;
+        case 'sigh':p.sy*=1-.06*arc;p.dy+=.04*arc;p.mouth=Math.max(p.mouth,.25*arc);break;
+        case 'puff':p.sx*=1+.045*arc;p.sy*=1+.045*arc;p.glow=Math.max(p.glow,.16*arc);break;
+      }}return p;}
+  step(now){const dt=Math.min(Math.max(0,now-this.last),1);this.last=now;if(this.o.pre)this.o.pre(this,now);
+    this.moves=this.moves.filter(m=>now<=m.start+m.dur);
+    if(this.flash&&now>this.flash.until)this.flash=null;
+    if(this.glance&&now>this.glance.until)this.glance=null;
+    const p=this.pose(now);if(this.o.posefx)this.o.posefx(p,now,this);this.p=p;const mood=this.mood;
+    let tx,ty;
+    if(this.o.follow&&PTR.on){const r=this.cv.getBoundingClientRect(),ax=this.o.place&&this.at?r.left+this.at.x:r.left+r.width/2,ay=this.o.place&&this.at?r.top+this.at.y:r.top+r.height/2;tx=clamp((PTR.x-ax)/320,-1,1);ty=clamp((ay-PTR.y)/320,-1,1);}
+    else{if(now>this.nextWander){this.wander={x:rand(-.8,.8),y:rand(-.4,.4)};this.nextWander=now+rand(.9,2.6);}tx=this.wander.x;ty=this.wander.y;}
+    if(this.glance){tx=this.glance.x;ty=this.glance.y;}
+    if(mood==='lonely'){tx=-.85;ty=-.4;}
+    if(now>this.nextSac){this.sac={x:rand(-.12,.12),y:rand(-.08,.08)};this.nextSac=now+rand(.8,2.4);}
+    tx+=this.sac.x;ty+=this.sac.y;
+    const kL=1-Math.pow(.0005,dt),kS=1-Math.pow(.001,dt);
+    this.look2.x+=(tx-this.look2.x)*kL;this.look2.y+=(ty-this.look2.y)*kL;
+    this.tilt+=((mood==='lonely'?-.12:0)-this.tilt)*kS;
+    this.puff+=((mood==='pouty'?1.05:1)-this.puff)*kS;
+    this.blush+=(0-this.blush)*(1-Math.pow(.4,dt));
+    if(dt>0){const vy=(p.dy-this.lastDy)/dt,vx=(p.dx-this.lastDx)/dt,vr=(p.rot+this.tilt-this.lastRot)/dt;
+      const st=clamp(-vr*.08-vx*.6-this.look2.x*.1,-.6,.6);let left=dt;
+      while(left>0){const h=Math.min(left,1/120);
+        this.swayVel+=(18*18*(st-this.sway)-2*.18*18*this.swayVel-vy*4)*h;this.sway+=this.swayVel*h;
+        this.jigVel+=(-22*22*this.jig-2*.2*22*this.jigVel+vy*.9)*h;this.jig+=this.jigVel*h;left-=h;}
+      this.jig=clamp(this.jig,-.12,.12);}
+    this.lastDy=p.dy;this.lastDx=p.dx;this.lastRot=p.rot+this.tilt;
+    if(now>this.nextBlink){if(this.fo!=='sleep'){this.blinkAt=now;if(Math.random()<.22)this.second=now+.26;}this.nextBlink=now+rand(2.2,5.4)*this.look.blinkPace;}
+    if(this.second&&now>this.second){this.blinkAt=now;this.second=null;}
+    const calm=!this.flash&&!this.moves.length&&!this.glance;
+    if(calm&&now>this.nextFidget&&!this.o.still){this.fidget(now,mood);}
+    if(mood==='lonely'&&now-this.lastAmb>.22){this.lastAmb=now;this.emit('rain',1);}
+    if(this.fo==='sleep'&&!this.o.noZ&&now-this.lastAmb>1.4){this.lastAmb=now;this.emit('z',1);}
+    for(const b of this.bits){b.age+=dt;b.pos.x+=b.vel.x*dt*b.pace;b.pos.y+=b.vel.y*dt*b.pace;b.vel.y+=b.g*dt*b.pace;}
+    this.bits=this.bits.filter(b=>b.age<b.life);
+    if(this.o.onFrame)this.o.onFrame(this,now);}
+  fidget(now,mood){const r=Math.floor(Math.random()*7);
+    if(this.o.eager||mood==='eager'){this.add('nudge',.75);this.nextFidget=now+2.6;return;}
+    if(mood==='restless'){if(Math.random()<.6)this.add('nudge',.75);else this.glance={x:(Math.random()<.5?-1:1)*rand(.6,1),y:rand(-.2,.5),until:now+.8};this.nextFidget=now+rand(1.1,2.2);return;}
+    if(mood==='pouty'){this.add('stomp',.7);this.nextFidget=now+rand(2.6,4);return;}
+    if(mood==='lonely'){this.add('sigh',1.6);this.nextFidget=now+rand(3.6,5.2);return;}
+    switch(r){
+      case 0:this.glance={x:(Math.random()<.5?-1:1)*rand(.6,1),y:rand(-.3,.5),until:now+rand(.7,1.3)};break;
+      case 1:this.add('peep',.35);break;
+      case 2:this.add('stretch',.9);break;
+      case 3:this.add('tilt',1.4,Math.random()<.5?.15:-.15);break;
+      case 4:this.add('shuffle',.8);break;
+      case 5:this.add('lean',1,Math.random()<.5?1:-1);this.setFlash('sleep',.7);break;
+      default:this.add('hop',.35,.12);this.add('wiggle',.35,2);}
+    this.nextFidget=now+rand(2.5,6);}
+  fit(){const dpr=Math.min(2,devicePixelRatio||1),w=this.cv.clientWidth,h=this.cv.clientHeight;
+    if(!w||!h)return null;const W=Math.round(w*dpr),H=Math.round(h*dpr);
+    if(this.cv.width!==W||this.cv.height!==H){this.cv.width=W;this.cv.height=H;}return {w,h,dpr};}
+  render(now){const f=this.fit();if(!f)return;const {w:W,h:H,dpr}=f,main=this.ctx;
+    main.setTransform(dpr,0,0,dpr,0,0);main.clearRect(0,0,W,H);
+    if(this.o.under)this.o.under(main,this,now,W,H);
+    const pl=this.o.place?this.o.place(this,now,W,H):null;
+    const L=this.look,age=this.age,F=L.forms[age],p=this.o.static?NEUTRAL:this.p,R=pl?pl.R:Math.min(W,H*1.15)*.27*(this.o.size||1);
+    const ground=F.bottom*R,t=now-this.born,mood=this.mood,alpha=pl&&pl.alpha!=null?clamp(pl.alpha,0,1):1;
+    const rot=this.tilt+p.rot+this.look2.x*.06,dy=p.dy;
+    const cx=(pl?pl.x:W/2+(this.o.dx||0)*W)+(p.dx+this.look2.x*.04)*R,cy=pl?pl.y+dy*R:H*(this.o.cy??.5)+dy*R+R*.1;
+    this.at={x:cx,y:cy,R};this.miniNow=pl&&pl.mini!=null?pl.mini:(this.o.mini?1:0);
+    if(alpha>.004){let ctx=main;
+      if(alpha<.995){if(!this.layer)this.layer=document.createElement('canvas');const lc=this.layer;
+        if(lc.width!==main.canvas.width||lc.height!==main.canvas.height){lc.width=main.canvas.width;lc.height=main.canvas.height;}
+        ctx=lc.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);}
+      const g=F.scale,breath=this.o.static?1:1+Math.sin(t*L.breath)*(this.fo==='sleep'?.035:.018);
+      const glow=typeof this.o.glow==='function'?this.o.glow():this.o.glow;
+      if(glow){const a=glow*(this.rm?.8:.62+.38*Math.sin(t*TAU/2.6));const gr=ctx.createRadialGradient(cx,cy,R*.3,cx,cy,R*2);
+        gr.addColorStop(0,`rgba(245,175,70,${.42*a})`);gr.addColorStop(1,'rgba(245,175,70,0)');ctx.fillStyle=gr;ctx.fillRect(0,0,W,H);}
+      const fx=this.o.fx;
+      if(fx&&fx.shadow)fx.shadow(ctx,{cx,floor:cy-dy*R+ground*g,R,g,dy,L,b:this});
+      else if(this.o.shadow!==false){ctx.fillStyle='rgba(0,0,0,.16)';ell(ctx,cx,cy+ground*g+R*.04,R*.75*g*(1-Math.min(.5,-dy*.6)),R*.09*g);}
+      ctx.save();ctx.translate(cx,cy+ground);ctx.rotate(rot);
+      ctx.scale(p.sx*this.puff*g*(1-this.jig*.5),p.sy*this.puff*g*breath*(1+this.jig));ctx.translate(0,-ground);
+      this.drawTopper(ctx,F,R,L,age);
+      this.drawBody(ctx,F,R,L,p.glow);
+      this.drawFace(ctx,F,R,L,now,p.mouth);
+      if(this.hands)this.drawHands(ctx,F,R,L,t,now);
+      ctx.restore();
+      if(mood==='lonely')this.drawCloud(ctx,cx-R*.15,cy-(F.top*g+.75)*R,R*.42);
+      this.drawBits(ctx,cx,cy,R*g,L);
+      if(ctx!==main){main.save();main.setTransform(1,0,0,1,0,0);main.globalAlpha=alpha;main.drawImage(this.layer,0,0);main.restore();}}
+    if(this.o.over)this.o.over(main,this,now,W,H);}
+  drawTopper(ctx,F,R,L,age){if(!(age>=1||this.o.showTopper)||L.topper==='none')return;
+    const grow=.8+.06*age,lift=(F.sil==='droplet'?.18:0)-F.ry*.74,spread=F.rx*(F.sil==='triangle'?.3:.58);
+    const fill=L.bodyLight,inside=css(L.cheek,.55),sway=this.sway;
+    const pair=fn=>{for(const side of [-1,1]){ctx.save();ctx.translate(side*spread*R,lift*R);ctx.rotate(side*.3+sway*.5);fn(side);ctx.restore();}};
+    switch(L.topper){
+      case 'cat':pair(()=>{const h=R*.48*grow,b=R*.24;ctx.fillStyle=fill;ctx.fill(triPath(b,h));ctx.fillStyle=inside;ctx.fill(triPath(b*.55,h*.62));});break;
+      case 'bunny':pair(()=>{const h=R*.8*grow;ctx.fillStyle=fill;ell(ctx,0,-h+(h+R*.1)/2,R*.13,(h+R*.1)/2);ctx.fillStyle=inside;ell(ctx,0,-h*.85+h*.375,R*.065,h*.375);});break;
+      case 'bear':pair(()=>{const r=R*.21*grow;ctx.fillStyle=fill;ell(ctx,0,-r*.5,r,r);ctx.fillStyle=inside;ell(ctx,0,-r*.5,r*.5,r*.5);});break;
+      case 'horns':pair(()=>{ctx.fillStyle='#FFF1D6';ctx.fill(triPath(R*.11,R*.36*grow));});break;
+      case 'antenna':{ctx.save();ctx.translate(0,-F.top*R+R*.08);ctx.rotate(F.sproutLean+sway*.9);const Ln=R*.42*grow;
+        ctx.strokeStyle=L.ink;ctx.globalAlpha=.7;ctx.lineWidth=R*.04;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(R*.1,-Ln*.5,0,-Ln);ctx.stroke();ctx.globalAlpha=1;
+        ctx.fillStyle=L.pattern==='none'?css(L.cheek):L.accent;ell(ctx,0,-Ln,R*.09,R*.09);ctx.restore();break;}
+      case 'sprout':{ctx.save();ctx.translate(0,-F.top*R+R*.06);ctx.rotate(F.sproutLean+sway*.9);const Ln=R*.3*grow;
+        ctx.strokeStyle='#4FA845';ctx.lineWidth=R*.06;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(-R*.08,-Ln*.5,0,-Ln);ctx.stroke();
+        ctx.fillStyle='#7FD36B';for(const s of [-1,1]){ctx.beginPath();ctx.moveTo(0,-Ln);ctx.quadraticCurveTo(s*R*.1,-Ln-R*.16,s*R*.24,-Ln-R*.1);ctx.quadraticCurveTo(s*R*.16,-Ln+R*.02,0,-Ln);ctx.fill();}
+        ctx.restore();break;}
+    }}
+  drawBody(ctx,F,R,L,glow){const body=formPath(F,R),top=-F.top*R,bottom=F.bottom*R,fx=this.o.fx,arg={ctx,F,R,L,body,top,bottom,b:this};
+    if(fx&&fx.back)fx.back(arg);
+    const gr=ctx.createLinearGradient(0,top,0,bottom);gr.addColorStop(0,L.bodyLight);gr.addColorStop(1,L.body);
+    const fluffy=typeof this.o.fluffy==='function'?this.o.fluffy():this.o.fluffy;
+    if(fluffy){const pts=outline(F,R);ctx.fillStyle=gr;
+      pts.forEach(([x,y,a],i)=>{const k=(i%3===0?1.15:i%3===1?.9:1);ctx.beginPath();ctx.ellipse(x+Math.cos(a)*R*.03,y+Math.sin(a)*R*.03,R*.075*k,R*.05*k,a+Math.PI/2,0,TAU);ctx.fill();});}
+    if(fx&&fx.fill)fx.fill(arg);else{ctx.fillStyle=gr;ctx.fill(body);}
+    ctx.save();ctx.clip(body);
+    this.drawPattern(ctx,F,R,L,top,bottom);
+    ctx.fillStyle='rgba(0,0,0,.08)';ell(ctx,0,bottom-R*.35+R*.45,R*1.4,R*.45);
+    if(F.det.has('sheen')){ctx.save();ctx.rotate(-.5);ctx.fillStyle='rgba(255,255,255,.4)';ell(ctx,-R*.62+R*.18,top+R*.2+R*.11,R*.18,R*.11);ctx.restore();}
+    if(F.det.has('mark')){const side=L.markSeed<.5?-1:1;ctx.save();ctx.translate(side*F.rx*R*.48,(F.faceY-.42)*R);ctx.rotate(side*.3);const s=R*.16;
+      ctx.fillStyle='rgba(255,255,255,.6)';ctx.fill((L.markSeed%.5)<.25?heartPath(s):starPath(s*.55,.45,5));ctx.restore();}
+    if(fluffy){ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=R*.018;ctx.lineCap='round';let s=L.markSeed;
+      for(let i=0;i<70;i++){s=(s*9301+.4929)%1;const x=(s*2-1)*F.rx*R;s=(s*9301+.4929)%1;const y=(s*2-1)*F.ry*R;s=(s*9301+.4929)%1;const a=-Math.PI/2+(s-.5)*1.4;
+        ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.cos(a)*R*.07,y+Math.sin(a)*R*.07);ctx.stroke();}}
+    if(fx&&fx.inside)fx.inside(arg);
+    if(glow>.01){ctx.fillStyle=`rgba(255,255,255,${glow})`;ctx.fill(body);}
+    ctx.restore();
+    if(fx&&fx.front)fx.front(arg);}
+  drawPattern(ctx,F,R,L,top,bottom){const w=F.rx*R;ctx.fillStyle=L.accent;
+    switch(L.pattern){
+      case 'belly':ell(ctx,0,bottom-R*.72+R*.55,w*.62,R*.55);break;
+      case 'cap':ell(ctx,0,top-R*1.3+R*.875,w*1.5,R*.875);break;
+      case 'spots':{let r=L.markSeed;for(let i=0;i<7;i++){r=(r*9301+.4929)%1;const x=(r*2-1)*F.rx*.85;r=(r*9301+.4929)%1;const y=(r*1.7-.85)*F.ry;const rad=R*(.09+.07*r);
+        if(!(Math.abs(y-F.faceY-L.eyeY)>.3||Math.abs(x)>.55))continue;ell(ctx,x*R,y*R,rad,rad);}break;}
+      case 'stripes':ctx.strokeStyle=L.accent;ctx.lineWidth=R*.075;ctx.lineCap='round';
+        for(let i=0;i<3;i++){const y=top+R*(.1+.17*i);ctx.beginPath();ctx.moveTo(-w*1.5,y);ctx.quadraticCurveTo(0,y-R*.12,w*1.5,y);ctx.stroke();}break;
+      case 'twoTone':{const g=ctx.createLinearGradient(-w,top,w*.4,bottom);g.addColorStop(0,css(L.accentOk,1));g.addColorStop(1,css(L.accentOk,0));ctx.fillStyle=g;ctx.fillRect(-w*2,top-R,w*4,bottom-top+R*2);break;}
+    }}
+  faceNow(){if(this.flash)return this.flash.face;if(this.fo)return this.fo;const m=this.mood;return m==='pouty'?'pouty':m==='lonely'?'sad':'normal';}
+  drawFace(ctx,F,R,L,now,mouthOpen){const face=this.faceNow(),mini=this.miniNow||0;
+    const fit=Math.min(1,F.faceW/.8)*(1+.4*mini),one=L.cyclops?1.55:1,lx=this.o.static?0:this.look2.x,ly=this.o.static?0:this.look2.y;
+    const fx=lx*R*.16*F.faceW,fy=-ly*R*.1+(F.faceY+L.eyeY*fit)*R;
+    const ew=L.eyeW*R*fit*one,eh=L.eyeH*R*fit*one,unit=R*.095*fit*one,gap=L.cyclops?0:L.eyeGap*R*Math.max(.7,fit);
+    const eyeY=fy-eh*.2,cheekX=L.cyclops?ew*1.9:gap+Math.max(ew,unit)*1.4,low=eyeY+Math.max(eh,unit*1.4)*.75;
+    let cheekA=Math.max(F.det.has('cheeks')?.5:0,.9*this.blush);const big=face==='pouty'?1.4:1;if(face==='pouty')cheekA=Math.max(cheekA,.85);
+    if(cheekA>.02){ctx.fillStyle=css(L.cheek,cheekA);for(const side of [-1,1]){const far=1-.3*Math.max(0,-side*lx);ell(ctx,side*cheekX+fx*.6,low,R*.11*far*big,R*.06*big);}}
+    if(F.det.has('freckles')){ctx.fillStyle=L.ink;ctx.globalAlpha=.35;for(const side of [-1,1])for(const [dx,dy] of [[-.06,0],[.05,-.02],[0,.06]])ell(ctx,side*cheekX+fx*.6+dx*R,low+dy*R,R*.018,R*.018);ctx.globalAlpha=1;}
+    const since=now-this.blinkAt,open=this.o.static?1:(since<.09?1-since/.09:since<.2?(since-.09)/.11:1);
+    for(const side of (L.cyclops?[1]:[-1,1])){ctx.save();ctx.translate(side*gap+fx,eyeY);if(!L.cyclops)ctx.scale(1-.25*Math.max(0,-side*lx),1);
+      this.drawEye(ctx,L,face,side,ew,eh,unit,Math.max(.08,open),now);ctx.restore();}
+    const o=Math.min(1,mouthOpen+(face==='surprised'?.4:0)),my=low+R*.04;
+    ctx.fillStyle=L.ink;ctx.strokeStyle=L.ink;
+    if(o>.03){const mw=R*(.07+.05*o),mh=R*.16*o;rr(ctx,fx*1.2-mw,my,mw*2,Math.max(R*.03,mh),mw);ctx.fill();return;}
+    ctx.save();ctx.translate(fx*1.2,my+R*.02);ctx.lineWidth=R*.032;ctx.lineCap='round';ctx.lineJoin='round';
+    const m=(face==='pouty'||face==='sad')?'frown':L.mouth;ctx.beginPath();
+    switch(m){
+      case 'frown':ctx.moveTo(-R*.055,R*.04);ctx.quadraticCurveTo(0,-R*.02,R*.055,R*.04);ctx.stroke();break;
+      case 'smile':case 'fang':ctx.moveTo(-R*.075,0);ctx.quadraticCurveTo(0,R*.08,R*.075,0);ctx.stroke();
+        if(m==='fang'){ctx.beginPath();ctx.moveTo(R*.015,R*.035);ctx.lineTo(R*.06,R*.025);ctx.lineTo(R*.04,R*.075);ctx.closePath();ctx.fillStyle='#fff';ctx.fill();}break;
+      case 'cat':ctx.moveTo(-R*.08,0);ctx.quadraticCurveTo(-R*.04,R*.06,0,0);ctx.quadraticCurveTo(R*.04,R*.06,R*.08,0);ctx.stroke();break;
+      case 'o':ctx.ellipse(0,R*.025,R*.032,R*.035,0,0,TAU);ctx.stroke();break;
+      case 'flat':ctx.moveTo(-R*.05,R*.02);ctx.lineTo(R*.05,R*.02);ctx.stroke();break;
+    }ctx.restore();}
+  drawEye(ctx,L,face,side,w,h,u,open,now){const ink=L.ink;ctx.fillStyle=ink;ctx.strokeStyle=ink;
+    const eye=(k,dy=0,lid=null)=>{const rw=w*k,rh=h*k*open,P=new Path2D();seP(P,rw,rh,L.eyeN,0,dy);
+      if(L.eyeStyle==='lidded'||lid){ctx.save();const c=new Path2D();
+        if(lid==='pouty')c.rect(-rw*2,dy-rh*.05,rw*4,rh*3);
+        else if(lid==='sad'){c.moveTo(-rw*2,dy-rh*.15+side*rw*.5);c.lineTo(rw*2,dy-rh*.15-side*rw*.5);c.lineTo(rw*2,dy+rh*3);c.lineTo(-rw*2,dy+rh*3);c.closePath();}
+        else c.rect(-rw*2,dy-rh*.25,rw*4,rh*3);
+        ctx.clip(c);ctx.fill(P);ctx.restore();}else ctx.fill(P);
+      if(open<=.6||(L.eyeStyle==='bead'&&k<=1))return;
+      const s=rw*(L.eyeStyle==='big'?.38:.3),gy=(L.eyeStyle==='lidded'||lid)?dy+rh*.2:dy-rh*.45;
+      ctx.fillStyle='rgba(255,255,255,.9)';ell(ctx,rw*.2,gy,s,s);
+      if(L.eyeStyle==='big'){ctx.fillStyle='rgba(255,255,255,.7)';ell(ctx,-rw*.35,dy+rh*.35,s*.45,s*.45);}ctx.fillStyle=ink;};
+    const arcLine=(up)=>{ctx.lineWidth=u*1.05;ctx.lineCap='round';ctx.beginPath();if(up){ctx.moveTo(-u*1.5,u*.5);ctx.quadraticCurveTo(0,-u*1.7,u*1.5,u*.5);}else{ctx.moveTo(-u*1.5,0);ctx.quadraticCurveTo(0,u*1.2,u*1.5,0);}ctx.stroke();};
+    switch(face){
+      case 'normal':eye(1);break;
+      case 'surprised':eye(1.22);break;
+      case 'confused':side<0?eye(.72,-h*.15):eye(1.12);break;
+      case 'happy':arcLine(true);break;
+      case 'wink':side>0?arcLine(true):eye(1);break;
+      case 'sleep':arcLine(false);break;
+      case 'pouty':eye(1,0,'pouty');break;
+      case 'sad':eye(.92,h*.08,'sad');break;
+      case 'squeeze':{const d=-side;ctx.lineWidth=u*.95;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(-u*1.2*d,-u*1.1);ctx.lineTo(u*1.1*d,0);ctx.lineTo(-u*1.2*d,u*1.1);ctx.stroke();break;}
+      case 'love':ctx.fillStyle='#FF5C8A';ctx.fill(heartPath(u*3.6));break;
+      case 'star':{ctx.save();ctx.rotate(this.rm?0:Math.sin(now*5)*.2);const s=starPath(u*2.5,.5,5);ctx.strokeStyle='#B5630C';ctx.lineWidth=u*.5;ctx.lineJoin='round';ctx.stroke(s);ctx.fillStyle='#FFC83D';ctx.fill(s);ctx.restore();break;}
+      default:eye(1);
+    }}
+  drawHands(ctx,F,R,L,t,now){const waving=now<this.waveUntil;
+    for(const side of [-1,1]){const bob=this.rm?0:Math.sin(t*2.2+side)*.05;let x=side*(F.rx+.28)*R,y=(.18+bob)*R,rot=side*.3;
+      if(side>0&&waving){y=(-.32)*R;rot=Math.sin(now*14)*.55-.2;}
+      ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.fillStyle=L.bodyLight;ctx.strokeStyle='rgba(0,0,0,.18)';ctx.lineWidth=R*.02;
+      ctx.beginPath();ctx.ellipse(0,0,R*.17,R*.14,0,0,TAU);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.ellipse(-side*R*.12,-R*.07,R*.065,R*.055,-side*.6,0,TAU);ctx.fill();ctx.stroke();ctx.restore();}}
+  drawCloud(ctx,x,y,s){ctx.fillStyle='rgba(176,190,214,.92)';for(const [dx,dy,r] of [[-.5,.1,.42],[0,-.12,.55],[.52,.08,.4],[.05,.22,.42]])ell(ctx,x+dx*s,y+dy*s,r*s,r*s);}
+  drawBits(ctx,cx,cy,R,L){for(const b of this.bits){ctx.save();ctx.globalAlpha=Math.max(0,1-b.age/b.life);ctx.translate(cx+b.pos.x*R,cy+b.pos.y*R);ctx.rotate(b.spin*b.pace*b.age);const s=b.size*R;
+      if(b.kind==='sparkle'){const P=new Path2D();for(let i=0;i<8;i++){const a=i*Math.PI/4,r=i%2===0?s:s*.3;if(i===0)P.moveTo(Math.cos(a)*r,Math.sin(a)*r);else P.lineTo(Math.cos(a)*r,Math.sin(a)*r);}P.closePath();ctx.fillStyle='#FFF3B0';ctx.fill(P);}
+      else if(b.kind==='heart'){ctx.fillStyle='#FF5C8A';ctx.fill(heartPath(s*2));}
+      else if(b.kind==='z'){ctx.fillStyle='rgba(255,255,255,.8)';ctx.font=`700 ${s*1.4}px ${getComputedStyle(document.body).fontFamily}`;ctx.textAlign='center';ctx.fillText('z',0,0);}
+      else if(b.kind==='confetti'){ctx.fillStyle=b.col;ctx.fillRect(-s,-s*.5,s*2,s);}
+      else if(b.kind==='rain'){ctx.fillStyle='rgba(130,170,240,.9)';ell(ctx,0,0,s*.6,s*1.4);}
+      ctx.restore();}}
+}
+/* registry: every live Tomo animates while it's on screen */
+const LIVE=new Set();let PENDING=new Map(),uid=0;
+const io=new IntersectionObserver(es=>{for(const e of es){const b=e.target.__blob;if(b)b.visible=e.isIntersecting;}},{rootMargin:'120px'});
+function tomo(spec,cls='cv'){const id='t'+(++uid);PENDING.set(id,spec);return `<canvas class="tomo ${cls}" data-tomo="${id}" aria-hidden="true"></canvas>`;}
+function mountTomos(root){root.querySelectorAll('canvas[data-tomo]').forEach(cv=>{const spec=PENDING.get(cv.dataset.tomo);if(!spec||cv.__blob)return;PENDING.delete(cv.dataset.tomo);
+  const b=new Blob(cv,spec);cv.__blob=b;if(spec.ref)spec.ref(b);b.render(T());if(!spec.static){LIVE.add(b);io.observe(cv);}
+  if(spec.poke!==false&&!spec.static){cv.style.cursor='pointer';cv.addEventListener('click',()=>b.react('poke'));}});}
+function loop(){const now=T();for(const b of LIVE){if(!b.cv.isConnected){LIVE.delete(b);io.unobserve(b.cv);continue;}if(b.visible){const fps=typeof b.o.fps==='function'?b.o.fps():b.o.fps;if(fps){if(now-(b.lastDraw||0)<1/fps-.004)continue;b.lastDraw=now;}b.step(now);b.render(now);}}requestAnimationFrame(loop);}
+const lerp=(a,b,t)=>a+(b-a)*t;
+const seg=(q,a,b)=>clamp((q-a)/(b-a),0,1);
+const eOut=t=>1-Math.pow(1-clamp(t,0,1),3), eIn=t=>Math.pow(clamp(t,0,1),3);
+const eIO=t=>{t=clamp(t,0,1);return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;};
+const bump=t=>Math.sin(Math.PI*clamp(t,0,1));
+const springTo=(t,b=6,f=1.7)=>t<=0?0:t>=1?1:1-Math.exp(-b*t)*Math.cos(f*TAU*t);
+function rgbOf(c){c=String(c).trim();if(c[0]==='#'){if(c.length===4)c='#'+c[1]+c[1]+c[2]+c[2]+c[3]+c[3];const n=parseInt(c.slice(1,7),16);return [n>>16&255,n>>8&255,n&255];}
+  const m=c.match(/rgba?\(([^)]+)\)/);if(m){const p=m[1].split(',').map(s=>parseFloat(s));return [p[0],p[1],p[2]];}return [128,128,128];}
+const withA=(c,a)=>{const v=rgbOf(c);return `rgba(${v[0]|0},${v[1]|0},${v[2]|0},${clamp(a,0,1).toFixed(3)})`;};
+const shade=(c,k)=>{const v=rgbOf(c);return `rgb(${v.map(x=>Math.round(x*(1-k))).join(',')})`;};
+const NOLIGHT={c:'#000000',a:0,m:0};
+function fxJelly(src){return{
+  inside({ctx,R,body,top,bottom}){const LT=src.LT||NOLIGHT;let g;
+    g=ctx.createRadialGradient(0,bottom-R*.35,R*.05,0,bottom-R*.35,R*1.3);g.addColorStop(0,'rgba(255,255,255,.3)');g.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=g;ctx.fillRect(-R*2,top-R,R*4,bottom-top+R*2);
+    if(LT.a>.01){g=ctx.createRadialGradient(0,(top+bottom)*.5,0,0,(top+bottom)*.5,R*1.25);g.addColorStop(0,withA(LT.c,.8*LT.a));g.addColorStop(1,withA(LT.c,0));ctx.fillStyle=g;ctx.fillRect(-R*2,top-R,R*4,bottom-top+R*2);}
+    ctx.lineWidth=R*.12;ctx.strokeStyle='rgba(255,255,255,.17)';ctx.stroke(body);
+    ctx.save();ctx.translate(-R*.36,top+R*.36);ctx.rotate(-.55);ctx.fillStyle='rgba(255,255,255,.72)';ell(ctx,0,0,R*.21,R*.1);ctx.fillStyle='rgba(255,255,255,.9)';ell(ctx,R*.34,R*.07,R*.045,R*.045);ctx.restore();}}}
+
+/* =====================================================================================================
+   The states lab. Everything below builds on the engine above. A LabBlob is a Blob whose look eases
+   toward a state's numbers (lids, posture, tint, breath, moss...), and which can play three kinds of cue:
+   into the egg, out of it, and a birthday morph. Nothing emits at rest: moss, sweat, rain and the cloud are
+   fixed fills worked out from the clock.
+   ===================================================================================================== */
+const ISSUE=n=>`https://github.com/serpcompany/tomodachi-app/issues/${n}`;
+const SEEDS=[
+  {seed:'en-ja-1791100800',label:'Big eyes'},{seed:'en-ja-1791133263',label:'Bar eyes'},
+  {seed:'en-ja-1791104407',label:'Dot eyes'},{seed:'en-ja-1791227045',label:'Lidded'},
+  {seed:'en-ja-1791237866',label:'Bead eyes'},{seed:'en-ja-1791118835',label:'Bar, antenna'},
+  {seed:'en-ja-1791346076',label:'Cyclops'}];
+const AGES=[{i:0,label:'1さい'},{i:2,label:'3さい'},{i:5,label:'6さい'}];
+const sai=i=>(i+1)+'さい';
+const DEF_PICKS={q1:'B',q2:'ill',q3:'A',q4:'shell',q5:'flubber'};
+const OPTS={q1:['A','B','C'],q2:['mild','ill','fever'],q3:['A','B','C'],q4:['shell','melt','tuck'],q5:['pop','flubber','grand']};
+const SEL={seed:SEEDS[0].seed,ageIdx:2,picks:{...DEF_PICKS},sadM:1};
+let RM_ON=REDUCED;
+const STORE='tomo-states-lab-v1';
+function load(){try{const s=JSON.parse(localStorage.getItem(STORE)||'null');if(!s||typeof s!=='object')return;
+  if(SEEDS.some(x=>x.seed===s.seed))SEL.seed=s.seed;if(AGES.some(a=>a.i===s.ageIdx))SEL.ageIdx=s.ageIdx;
+  if(s.picks)for(const k in OPTS)if(OPTS[k].includes(s.picks[k]))SEL.picks[k]=s.picks[k];
+  if(typeof s.sadM==='number')SEL.sadM=clamp(s.sadM,0,1);}catch(e){}}
+function save(){try{localStorage.setItem(STORE,JSON.stringify({seed:SEL.seed,ageIdx:SEL.ageIdx,picks:SEL.picks,sadM:SEL.sadM}));}catch(e){}}
+
+/* ---------- each state as numbers the blob eases toward ---------- */
+const BASE={lid:0,worry:0,lowLid:0,gx:0,gy:0,gaze:0,sag:0,flop:0,size:1,wide:1,tall:1,sat:1,light:0,green:0,cool:0,flush:0,warm:0,
+  breathRate:1,breathDepth:1,hop:1,wrinkle:0,wob:0,sweat:0,moss:0,sleep:0,curl:0,glowA:0,ltA:0,cloud:0};
+const RATE={moss:3};
+BODY_MOVES.add('shiver');BODY_MOVES.add('rumble');
+const PINK='#FF8FB8',BLUE='#8FB4FF';
+const SAD={
+  A:m=>({p:{lid:.5*m,worry:.85*m,gaze:.6*m,gy:-.55},fid:'glanceLow'}),
+  B:m=>({p:{sag:.85*m,flop:m,wide:1+.05*m,tall:1-.06*m,gaze:.7*m,gy:-.7,breathRate:1-.25*m},fid:'sigh'}),
+  C:m=>({p:{sat:1-.6*m,cool:.6*m,light:-.03*m,ltA:.35*m},light:BLUE,fid:'glanceLow'})};
+const SICK={
+  mild:{p:{green:.35,sat:.85,lid:.25},fid:'shiverRare'},
+  ill:{p:{green:.75,sat:.6,size:.92,sweat:1,breathRate:1.9,breathDepth:.55,lid:.45,worry:.35},fid:'shiver'},
+  fever:{p:{flush:1,wob:1,sweat:1,breathRate:2.4,breathDepth:.6,lid:.5,worry:.45,size:.92,warm:1,sat:.9},fid:'shiverHard'}};
+function stateDef(id,v){const P=SEL.picks;
+  switch(id){
+    case 'restless':return {p:{hop:1.25,glowA:1},mood:'restless',follow:true};
+    case 'pouty':return {p:{ltA:.6},light:PINK,mood:'pouty'};
+    case 'lonely':return {p:{ltA:.5,cloud:1},light:BLUE,mood:'lonely'};
+    case 'asleep':return {p:{sleep:1}};
+    case 'droopy':return SAD[v||P.q1](SEL.sadM);
+    case 'weak':return {p:{sat:.7,light:.05,hop:.6,lid:.2,breathRate:.9},fid:'weak'};
+    case 'sickly':{const s=SICK[v||P.q2];return {p:{...s.p},fid:s.fid};}
+    case 'mossy':return {p:{sleep:1,curl:1,moss:1,breathRate:.65,breathDepth:1.4},moss:v||P.q3};
+    case 'shrunk':return {p:{size:.75,wrinkle:1,sat:.15,breathRate:.7,breathDepth:.8,sleep:1,tall:.94},fid:'shrunk'};
+    case 'egg':return {p:{size:.75,sat:.15,wrinkle:1,tall:.94},egg:true,fid:'none'};
+  }return {p:{}};}
+
+/* ---------- a tinted copy of the look (sat, light, green, cool, flush), cached per step ---------- */
+const hueLerp=(a,b,t)=>{const d=((b-a+540)%360)-180;return (a+d*t+360)%360;};
+const tintCache=new WeakMap();
+function tintLook(L,sp){if(Math.abs(sp.sat-1)<.012&&Math.abs(sp.light)<.006&&sp.green<.012&&sp.cool<.012&&sp.flush<.012&&sp.warm<.012)return L;
+  const q=x=>Math.round(x*40);let m=tintCache.get(L);if(!m){m=new Map();tintCache.set(L,m);}
+  const key=[q(sp.sat),q(sp.light),q(sp.green),q(sp.cool),q(sp.flush),q(sp.warm)].join(',');let out=m.get(key);if(out)return out;
+  const s=q(sp.sat)/40,li=q(sp.light)/40,gr=q(sp.green)/40,co=q(sp.cool)/40,fl=q(sp.flush)/40,wa=q(sp.warm)/40;
+  const tint=o=>{let x={l:clamp(o.l+li,0,1),c:o.c*s,h:o.h};
+    if(gr>0){const t=.8*gr;x={l:clamp(x.l-.03*gr,0,1),c:lerp(x.c,.05,t),h:hueLerp(x.h,125,t)};}
+    if(co>0)x.h=hueLerp(x.h,250,.7*co);if(wa>0){const t=.55*wa;x={l:clamp(x.l+.02*wa,0,1),c:lerp(x.c,.13,t),h:hueLerp(x.h,22,t)};}return x;};
+  const head=ensure(tint(L.head),NOTCH,3),eye=L.head.l>=.5?{l:.2,c:.03,h:head.h}:{l:.97,c:.012,h:head.h};
+  out={...L,head,body:css(head),bodyLight:css({l:Math.min(1,head.l+.07),c:head.c*.85,h:head.h}),ink:css(ensure(eye,head,4.5)),
+    accentOk:tint(L.accentOk),cheek:{...L.cheek,c:.15*Math.max(.25,s)+.03*fl}};
+  out.accent=css(out.accentOk);m.set(key,out);return out;}
+
+/* ---------- outlines as 96 rays, so a body can sag, wrinkle, wobble, morph or melt into the egg ---------- */
+const UCACHE=new WeakMap();
+function unitOutline(F){let U=UCACHE.get(F);if(U)return U;const R=100,P=formPath(F,R),cy0=F.sil==='droplet'?.18*R:0,N=96,r=new Float32Array(N);
+  for(let i=0;i<N;i++){const a=TAU*i/N,dx=Math.cos(a),dy=Math.sin(a);let x=R*2.8;
+    for(;x>0;x-=R*.04){if(probe.isPointInPath(P,dx*x,cy0+dy*x))break;}
+    let lo=Math.max(0,x),hi=Math.min(R*2.8,lo+R*.04);
+    for(let k=0;k<7;k++){const m=(lo+hi)/2;if(probe.isPointInPath(P,dx*m,cy0+dy*m))lo=m;else hi=m;}r[i]=lo/R;}
+  U={cy:cy0/R,r};UCACHE.set(F,U);return U;}
+function smoothClosed(pts){const P=new Path2D(),n=pts.length,mid=i=>{const a=pts[i%n],b=pts[(i+1)%n];return [(a[0]+b[0])/2,(a[1]+b[1])/2];};
+  const m0=mid(n-1);P.moveTo(m0[0],m0[1]);for(let i=0;i<n;i++){const m=mid(i);P.quadraticCurveTo(pts[i][0],pts[i][1],m[0],m[1]);}P.closePath();return P;}
+function rad(U,i,a,sp,t){let r=U.r[i];
+  if(sp.wrinkle>.005)r*=1+sp.wrinkle*(.024*Math.sin(11*a+1.3)+.014*Math.sin(19*a+.4));
+  if(sp.wob>.005)r*=1+sp.wob*.032*Math.sin(3*a+t*4.2)*Math.sin(2*a+t*2.3+1);return r;}
+function warpPath(F,R,sp,t){const U=unitOutline(F),n=U.r.length,cy=U.cy*R,top=-F.top*R,bot=F.bottom*R,pts=[];
+  for(let i=0;i<n;i++){const a=TAU*i/n,r=rad(U,i,a,sp,t)*R;let x=Math.cos(a)*r;const y=cy+Math.sin(a)*r;
+    if(sp.sag>.005){const v=clamp((y-top)/(bot-top),0,1);x*=1+.16*sp.sag*v*v;}pts.push([x,y]);}
+  return smoothClosed(pts);}
+function meltPath(F,R,sp,t,mi){const U=unitOutline(F),n=U.r.length,cy=U.cy*R,u=mi.u,wb=.05*bump(u),pts=[];
+  for(let i=0;i<n;i++){const a=TAU*i/n,r=rad(U,i,a,sp,t)*R,c=Math.cos(a),s=Math.sin(a);
+    const x1=mi.eW*.5*c*(1+.14*s),y1=mi.ec+mi.eH*.5*s;pts.push([lerp(c*r,x1,u)*(1+wb*Math.sin(3*a+u*9)),lerp(cy+s*r,y1,u)]);}
+  return smoothClosed(pts);}
+function morphPath(A,B,R,u,wob,ph){const UA=unitOutline(A),UB=unitOutline(B),n=UA.r.length,cy=lerp(UA.cy,UB.cy,u)*R,pts=[];
+  for(let i=0;i<n;i++){const a=TAU*i/n,r=Math.max(.05,lerp(UA.r[i],UB.r[i],u)*(1+wob*Math.sin(4*a+ph)))*R;pts.push([Math.cos(a)*r,cy+Math.sin(a)*r]);}
+  return smoothClosed(pts);}
+function blendF(A,B,u){const k=clamp(u,-.25,1.25),C=k<.5?A:B;
+  return {...C,rx:lerp(A.rx,B.rx,k),ry:lerp(A.ry,B.ry,k),faceY:lerp(A.faceY,B.faceY,k),faceW:Math.max(.4,lerp(A.faceW,B.faceW,k)),
+    top:lerp(A.top,B.top,k),bottom:lerp(A.bottom,B.bottom,k),scale:lerp(A.scale,B.scale,k),sproutLean:lerp(A.sproutLean,B.sproutLean,k)};}
+
+/* ---------- the egg: a port of the first run's TomoEggView ---------- */
+function eggPath(w,h){const P=new Path2D();for(let i=0;i<=64;i++){const a=i/64*TAU,up=Math.sin(a),x=w/2*Math.cos(a)*(1-.14*up),y=-h/2*up;i?P.lineTo(x,y):P.moveTo(x,y);}P.closePath();return P;}
+function crackPts(w,y){const p=[[-w*.56,y]];for(let i=1;i<=7;i++)p.push([-w*.56+w*1.12*i/7,y+(i%2===0?-1:1)*w*.07]);return p;}
+function halfPath(w,h,y,top){const P=new Path2D(),c=crackPts(w,y),edge=top?-h:h;P.moveTo(c[0][0],c[0][1]);for(const q of c.slice(1))P.lineTo(q[0],q[1]);
+  P.lineTo(w,y);P.lineTo(w,edge);P.lineTo(-w,edge);P.lineTo(-w,y);P.closePath();return P;}
+const spotCache=new Map();
+function eggSpots(seed){let s=spotCache.get(seed);if(s)return s;const M=(1n<<64n)-1n;let h=0xcbf29ce484222325n;
+  for(const b of enc.encode(seed))h=((h^BigInt(b))*0x100000001b3n)&M;
+  const next=()=>{h=(h^(h<<13n))&M;h=h^(h>>7n);h=(h^(h<<17n))&M;return Number(h%10000n)/10000;};
+  s=[];for(let i=0;i<7;i++){const x=(next()-.5)*.8,y=(next()-.5)*.8,r=.05+next()*.07;s.push({x,y,r});}spotCache.set(seed,s);return s;}
+
+/* ---------- moss, sweat, rumble, rain cloud and the ばあ！ bubble: fixed fills from the clock ---------- */
+function mossFor(L){const l=L.head.l>.62?L.head.l-.25:L.head.l+.2;return {base:css({l,c:.11,h:136}),hi:css({l:Math.min(1,l+.1),c:.12,h:125})};}
+function seeded(s){let v=Math.floor(s*233280)||7;return()=>{v=(v*9301+49297)%233280;return v/233280;};}
+const h01=(a,b)=>{const x=Math.sin(a*12.9898+b*78.233)*43758.5453;return x-Math.floor(x);};
+
+class LabBlob extends Blob{
+  constructor(cv,o){super(cv,o);
+    this.ovr={};this.cue=null;this.bph=Math.random()*TAU;this.peekAt=-9;this.nextPeek=T()+rand(1.5,3);this.eggPoke=-9;this.morphed=false;this.faceO=null;
+    this.d=null;this.readDef();this.inEgg=!!this.d.egg;this.sp={...BASE,...this.d.p};
+    this.ltRGB=rgbOf(this.d.light||'#000000');this.LT={c:'#000000',a:0};
+    o.fx=fxJelly(this);
+    o.mood=()=>this.inEgg||this.cue?null:(this.d.mood||null);
+    o.face=()=>this.sp.sleep>.5&&!this.inEgg?'sleep':null;}
+  readDef(){const o=this.o,id=typeof o.state==='function'?o.state():(o.state||'content'),v=typeof o.variant==='function'?o.variant():o.variant;
+    const d=stateDef(id,v);d.id=id;this.d=d;return d;}
+  get age(){if(this.o.morphCard){const to=Math.max(1,SEL.ageIdx);return this.morphed?to:to-1;}return super.age;}
+  step(now){const dt=Math.min(Math.max(0,now-this.last),1),prev=this.d.id,d=this.readDef();
+    if(d.id!==prev)this.changed(prev,d.id);
+    if(!this.cue&&!!d.egg!==this.inEgg)this.playEgg(d.egg?'toEgg':'hatch');
+    const tgt={...BASE,...d.p,...this.ovr},sp=this.sp;
+    for(const k in BASE){const r=1-Math.pow(.1,dt/(RATE[k]||1));sp[k]+=(tgt[k]-sp[k])*r;}
+    if(d.light){const c=rgbOf(d.light),r=Math.min(1,dt*3);for(let i=0;i<3;i++)this.ltRGB[i]+=(c[i]-this.ltRGB[i])*r;}
+    this.LT={c:`rgb(${this.ltRGB.map(x=>Math.round(x)).join(',')})`,a:sp.ltA};
+    const o=this.o;o.follow=!!d.follow&&!this.inEgg&&!this.cue;o.noZ=this.inEgg||!!this.cue;o.still=this.inEgg||!!this.cue;
+    super.step(now);
+    this.bits=this.bits.filter(b=>b.kind!=='rain');
+    this.blush=Math.max(this.blush,sp.flush*.9);
+    this.bph+=dt*this.look.breath*sp.breathRate;
+    const c=this.cue;
+    if(c){if(c.mid&&!c.midDone&&now>=c.start+c.dur*.5){c.midDone=true;c.mid();}
+      if(now>=c.start+c.dur){this.cue=null;if(c.end)c.end();}}
+    if(this.inEgg&&!this.cue&&now>this.nextPeek){this.peekAt=now;this.nextPeek=now+rand(4,6.5);}}
+  changed(from,to){this.ovr={};if(to==='mossy')this.sp.moss=0;
+    if(to==='content'&&from&&from!=='content'&&!this.cue&&!this.inEgg)this.react('happy');}
+  playEgg(kind){const style=this.o.eggStyle||SEL.picks.q4,rm=this.rm,now=T();
+    const dur=kind==='toEgg'?(rm?.9:{shell:2.4,melt:1.9,tuck:2.3}[style]):(rm?1.6:{shell:2.8,melt:3,tuck:2.8}[style]);
+    this.moves=[];this.flash=null;this.glance=null;
+    if(kind==='hatch'){this.inEgg=false;if(rm)this.add('puff',.5);}
+    this.cue={kind,style,rm,start:now,dur,fired:{},end:kind==='toEgg'?()=>{this.inEgg=true;this.nextPeek=T()+rand(1.2,2.5);}:null};}
+  forceEgg(){this.cue=null;this.inEgg=true;this.faceO=null;this.nextPeek=T()+9;}
+  react(kind){if(this.cue)return;
+    if(this.inEgg){if(kind==='poke'){const now=T();this.eggPoke=now;if(now-this.peekAt>1.8)this.peekAt=now+.12;}return;}
+    super.react(kind);}
+  add(kind,dur,arg){if(kind==='hop'&&arg!=null&&this.sp)arg*=this.sp.hop;super.add(kind,dur,arg);}
+  brush(){if(this.cue||this.inEgg)return;this.ovr={moss:0};this.add('shake',.6);this.emit('spore',12);this.emit('sparkle',4);this.setFlash('happy',1.2);
+    this.cue={kind:'brush',start:T(),dur:1.4,end:()=>{this.sp.moss=0;}};}
+  regrow(){if(this.cue&&this.cue.kind==='brush')return;this.ovr={};this.sp.moss=0;}
+  playMorph(){if(this.inEgg||this.cue)return;
+    const go=()=>{const L=this.look,to=Math.max(1,SEL.ageIdx),style=this.o.morphStyle||SEL.picks.q5,rm=this.rm;
+      this.moves=[];this.flash=null;this.glance=null;
+      this.cue={kind:'morph',style,rm,start:T(),dur:rm?.9:{pop:.6,flubber:1.2,grand:2.6}[style],FA:L.forms[to-1],FB:L.forms[to],ageA:to-1,ageB:to,fired:{},end:()=>{this.morphed=true;}};};
+    if(this.morphed)this.cue={kind:'fade',start:T(),dur:.6,mid:()=>{this.morphed=false;},end:go};else go();}
+  pose(now){const p=super.pose(now),body=this.rm?0:1;
+    for(const m of this.moves){const q=clamp((now-m.start)/m.dur,0,1);
+      switch(m.kind){
+        case 'shiver':p.dx+=Math.sin(q*TAU*9)*m.arg*(1-q*.5);break;
+        case 'rumble':{const s=Math.abs(Math.sin(q*3*Math.PI));p.sy*=1-.04*s;p.sx*=1+.035*s;}break;
+        case 'yawn':p.mouth=Math.max(p.mouth,.95*hold(q));p.sy*=1+.06*Math.sin(Math.PI*q)*body;break;
+      }}return p;}
+  fidget(now,mood){const f=this.d.fid,nx=(a,b)=>{this.nextFidget=now+rand(a,b);};
+    switch(f){
+      case 'sigh':this.add('sigh',1.8);return nx(5,7);
+      case 'glanceLow':this.glance={x:rand(-.5,.5),y:-.7,until:now+1.6};return nx(4,6);
+      case 'weak':if(Math.random()<.5)this.add('rumble',.9);else{this.add('yawn',1.8);this.setFlash('sleep',1.4);}return nx(4.5,6.5);
+      case 'shiver':this.add('shiver',.8,.022);return nx(3.5,5.5);
+      case 'shiverRare':this.add('shiver',.6,.014);return nx(6,9);
+      case 'shiverHard':this.add('shiver',1,.035);return nx(2.5,4);
+      case 'shrunk':this.add('shiver',.6,.015);return nx(6,9);
+      case 'none':return nx(3,5);}
+    if(this.sp.sleep>.5)return nx(3,5);
+    super.fidget(now,mood);}
+  emit(kind,n){if(kind!=='spore')return super.emit(kind,n);n=this.rm?Math.max(1,Math.round(n/3)):n;const pace=this.rm?.4:1;
+    for(let i=0;i<n;i++)this.bits.push({kind:'spore',pos:{x:rand(-.6,.6),y:-.7},vel:{x:rand(-.6,.6),y:rand(-.9,-.4)},life:rand(.9,1.4),size:rand(.04,.07),spin:0,g:.3,age:0,pace});}
+  drawBits(ctx,cx,cy,R,L){super.drawBits(ctx,cx,cy,R,L);
+    for(const b of this.bits){if(b.kind!=='spore')continue;ctx.save();ctx.globalAlpha=Math.max(0,1-b.age/b.life);ctx.fillStyle='rgba(200,230,160,.9)';ell(ctx,cx+b.pos.x*R,cy+b.pos.y*R,b.size*R,b.size*R);ctx.restore();}}
+  faceNow(){return this.faceO||super.faceNow();}
+  /* continuous lids for the plain face: how far down (lid), how worried (tilt), and a lower lid */
+  drawEye(ctx,L,face,side,w,h,u,open,now){const sp=this.sp;
+    if(face!=='normal'||!(sp.lid>.02||sp.worry>.02||sp.lowLid>.02))return super.drawEye(ctx,L,face,side,w,h,u,open,now);
+    const rw=w,rh=h*open,P=new Path2D();seP(P,rw,rh,L.eyeN,0,0);
+    const lid=Math.max(sp.lid,L.eyeStyle==='lidded'?.375:0),tilt=sp.worry*rh*.9,yT=-rh+2*rh*lid,yB=rh-rh*sp.lowLid;
+    ctx.save();const c=new Path2D();c.moveTo(-2*rw,yT-side*tilt);c.lineTo(2*rw,yT+side*tilt);c.lineTo(2*rw,yB);c.lineTo(-2*rw,yB);c.closePath();
+    ctx.fillStyle=L.ink;ctx.clip(c);ctx.fill(P);ctx.restore();
+    if(open>.6&&L.eyeStyle!=='bead'&&lid<.6){const s=rw*(L.eyeStyle==='big'?.38:.3);ctx.fillStyle='rgba(255,255,255,.9)';ell(ctx,rw*.2,Math.max(-rh*.45,yT+rh*.3),s,s);}
+    ctx.fillStyle=L.ink;}
+
+  /* ---------- drawing ---------- */
+  render(now){const f=this.fit();if(!f)return;const {w:W,h:H,dpr}=f,main=this.ctx;
+    main.setTransform(dpr,0,0,dpr,0,0);main.clearRect(0,0,W,H);
+    const Rb=Math.min(W,H*1.15)*.27*(this.o.size||1),G={W,H,dpr,Rb,floorY:H*(this.o.floor??.8),cx0:W/2};
+    this.miniNow=this.o.mini?1:0;
+    const fr=this.frame(now,G),t=now-this.born,pulse=this.rm?.8:.62+.38*Math.sin(t*TAU/2.6),ga=Math.max(fr.glow,this.sp.glowA*pulse);
+    if(ga>.01){const cy=G.floorY-Rb*.9,gr=main.createRadialGradient(G.cx0,cy,Rb*.3,G.cx0,cy,Rb*2);
+      gr.addColorStop(0,`rgba(245,175,70,${.42*ga})`);gr.addColorStop(1,'rgba(245,175,70,0)');main.fillStyle=gr;main.fillRect(0,0,W,H);}
+    if(fr.egg&&fr.egg.backTop)this.drawEgg(main,now,G,fr.egg,'back');
+    if(fr.xfade){const u=fr.xfade.u;this.layered(main,G,1-u,c=>this.drawTomo(c,now,G,fr,'A'));this.layered(main,G,u,c=>this.drawTomo(c,now,G,fr,'B'));}
+    else this.layered(main,G,fr.tomoA,c=>this.drawTomo(c,now,G,fr,null));
+    if(fr.egg)this.drawEgg(main,now,G,fr.egg,'front');
+    const at=this.at||{x:G.cx0,y:G.floorY-Rb,R:Rb};this.drawBits(main,at.x,at.y,at.R,this.look);
+    if(fr.bubble>.01&&Rb>14)this.drawBubble(main,G,fr.bubble);}
+  layered(main,G,a,fn){if(a<=.004)return;if(a>=.995){fn(main);return;}
+    if(!this.layer)this.layer=document.createElement('canvas');const lc=this.layer;
+    if(lc.width!==main.canvas.width||lc.height!==main.canvas.height){lc.width=main.canvas.width;lc.height=main.canvas.height;}
+    const c=lc.getContext('2d');c.setTransform(G.dpr,0,0,G.dpr,0,0);c.clearRect(0,0,G.W,G.H);fn(c);
+    main.save();main.setTransform(1,0,0,1,0,0);main.globalAlpha=a;main.drawImage(lc,0,0);main.restore();}
+  frame(now,G){const fr={tomoA:this.inEgg?0:1,egg:this.inEgg?{mode:'rest'}:null,glow:0,bubble:0,sx:1,sy:1,dy:0,size:1,face:null,mouth:0,
+      morph:null,xfade:null,melt:0,sink:0,topA:1,faceA:1,clipFloor:false,mossK:1};
+    const c=this.cue;
+    if(c){const e=now-c.start,q=clamp(e/c.dur,0,1);
+      if(c.kind==='morph')this.morphFrame(fr,c,e,q);
+      else if(c.kind==='toEgg')this.toEggFrame(fr,c,e,q,G);
+      else if(c.kind==='hatch')this.hatchFrame(fr,c,e,q,G);
+      else if(c.kind==='brush')fr.mossK=1-eOut(seg(q,0,.45));
+      else if(c.kind==='fade')fr.tomoA=q<.5?1-eIO(q*2):eIO(q*2-1);}
+    this.faceO=fr.face;return fr;}
+  morphFrame(fr,c,e,q){const once=(k,fn)=>{if(!c.fired[k]){c.fired[k]=1;fn();}};
+    const M={FA:c.FA,FB:c.FB,ageA:c.ageA,ageB:c.ageB,u:0,wob:0,ph:0};fr.morph=M;
+    if(c.rm){fr.xfade={u:eIO(q)};fr.glow=bump(q)*.5;fr.face=q>.15&&q<.85?'star':null;return;}
+    switch(c.style){
+      case 'pop':if(q<.35){const s=eIn(q/.35);fr.sy=1-.25*s;fr.sx=1+.18*s;}
+        else{once('sw',()=>this.emit('sparkle',6));const s=springTo((q-.35)/.65,5,1.3);fr.sy=.75+.25*s;fr.sx=1.18-.18*s;M.u=1;}break;
+      case 'flubber':M.u=springTo(q,5.5,1.5);M.wob=.06*(1-q);M.ph=e*16;fr.sy=1+.05*bump(q)*Math.sin(e*14);break;
+      case 'grand':{const st=eIO(seg(e,0,.8)),rel=eIO(seg(e,1.6,2));fr.sy=1+.14*st*(1-rel);fr.sx=1-.07*st*(1-rel);
+        fr.glow=seg(e,0,.7)*(1-seg(e,1.9,2.6));fr.face=e>.2&&e<1.9?'star':null;
+        M.u=eIO(seg(e,.8,1.75));M.wob=.08*bump(seg(e,.8,1.75));M.ph=e*12;
+        if(e>=1.8)once('cf',()=>{this.emit('confetti',16);this.emit('sparkle',6);this.add('hop',.45,.25);});break;}
+    }}
+  toEggFrame(fr,c,e,q,G){
+    if(c.rm){fr.tomoA=1-eIO(seg(q,0,.6));fr.egg={mode:'still',alpha:eIO(seg(q,.35,1))};fr.glow=bump(q)*.8;fr.face='star';return;}
+    switch(c.style){
+      case 'shell':{const curl=eIO(seg(e,0,.7));fr.sy=1-.16*curl;fr.sx=1+.05*curl;fr.size=1-.2*curl;fr.face=e>.3?'sleep':null;
+        const b=eOut(seg(e,.5,1.2)),d=seg(e,1,1.6),land=seg(e,1.6,2.4);fr.tomoA=1-seg(e,1.3,1.6);
+        fr.egg={mode:'still',bottom:{dy:(1-b)*.62,alpha:seg(e,.5,.65)},top:{dy:-(1-eIn(d))*1.1,alpha:seg(e,1,1.15)},clipFloor:true,rot:Math.sin(land*14)*.07*(1-land)};break;}
+      case 'melt':fr.melt=eIO(q);fr.faceA=1-seg(q,0,.45);fr.topA=1-seg(q,0,.35);fr.face='sleep';break;
+      case 'tuck':{const y=seg(e,0,.9);fr.mouth=.95*hold(y);fr.sy=1+.05*bump(y);fr.face='sleep';
+        fr.sink=eIn(seg(e,.85,1.6));fr.clipFloor=true;const a=eOut(seg(e,1.1,2));
+        fr.egg={mode:'still',alpha:a,hop:-(1-a)*G.Rb*.25,clipFloor:true};fr.glow=bump(seg(e,.9,2.3))*.9;break;}
+    }}
+  hatchFrame(fr,c,e,q,G){const h=G.Rb*1.45*1.28,once=(k,fn)=>{if(!c.fired[k]){c.fired[k]=1;fn();}};
+    if(c.rm){fr.egg={mode:'still',alpha:1-eIO(seg(e,0,.55))};fr.tomoA=eIO(seg(e,.3,.9));fr.glow=bump(seg(e,0,1.4))*.8;
+      fr.face=e<1.2?'star':null;fr.bubble=seg(e,.4,.55)*(1-seg(e,1.3,1.6));return;}
+    switch(c.style){
+      case 'shell':if(e<.9){fr.tomoA=0;fr.egg={mode:'still',crack:e/.9,rot:Math.sin(e*60)*.12*Math.min(1,e*3),hop:Math.abs(Math.sin(e*14))*G.Rb*.05};}
+        else{once('sp',()=>this.emit('sparkle',5));fr.egg={mode:'still',split:seg(e,.9,1.6)};fr.size=.5+.5*springTo(seg(e,.9,1.8),5,1.3);
+          fr.face=e<1.5?'surprised':null;fr.bubble=seg(e,1,1.15)*(1-seg(e,2.4,2.8));}break;
+      case 'melt':if(e<.9){fr.egg={mode:'still',lift:h*.075*hold(e/.9)};fr.tomoA=0;}
+        else{fr.melt=1-eIO(seg(e,.9,2));fr.faceA=seg(e,1.4,1.95);fr.topA=seg(e,1.6,2);fr.face=e<1.95?'sleep':e<2.5?'happy':null;
+          fr.bubble=seg(e,1.95,2.1)*(1-seg(e,2.6,3));if(e>1.95)once('hp',()=>this.add('hop',.4,.15));}break;
+      case 'tuck':fr.egg={mode:'still',top:{hinge:-1.3*eOut(seg(e,.45,1.05)),alpha:1-seg(e,1.5,2)},bottom:{dy:.62*eIn(seg(e,1.35,2.1)),alpha:1-seg(e,1.85,2.1)},
+          clipFloor:true,backTop:true,rot:e<.45?Math.sin(e*45)*.05:0};
+        fr.tomoA=seg(e,.55,.8);fr.clipFloor=true;fr.dy=1.15*(1-eOut(seg(e,.55,1.35)))-.35*bump(seg(e,1.45,1.85));
+        fr.face=e<1.45?'surprised':e<2.3?'happy':null;fr.bubble=seg(e,1.4,1.55)*(1-seg(e,2.4,2.8));break;
+    }}
+  drawTomo(ctx,now,G,fr,side){const sp=this.sp,L0=this.look,L=tintLook(L0,sp),t=now-this.born,p=this.p,M=fr.morph;
+    let F=L0.forms[this.age],age=this.age,blend=false,topA=fr.topA;
+    if(M){if(side){F=side==='A'?M.FA:M.FB;age=side==='A'?M.ageA:M.ageB;}
+      else if(M.u<=0&&!M.wob){F=M.FA;age=M.ageA;}else if(M.u>=1&&!M.wob){F=M.FB;age=M.ageB;}
+      else{F=blendF(M.FA,M.FB,M.u);age=M.ageB;blend=true;if(M.ageA<1)topA*=seg(M.u,.35,.65);}}
+    const R=G.Rb*sp.size*fr.size,g=F.scale,ground=F.bottom*R,calm=1-fr.melt;
+    const saved=this.look2;this.look2={x:lerp(saved.x,sp.gx,sp.gaze)*calm,y:lerp(saved.y,sp.gy,sp.gaze)*calm};
+    const breath=1+Math.sin(this.bph)*lerp(.018,.035,sp.sleep)*sp.breathDepth*calm;
+    const rot=(this.tilt+p.rot+this.look2.x*.06)*calm+sp.curl*.1;
+    const ay=G.floorY+(p.dy+fr.dy)*R+fr.sink*(F.top+F.bottom)*R*g*1.05,cx=G.cx0+(p.dx+this.look2.x*.04)*R*calm;
+    const sx=p.sx*fr.sx*this.puff*g*(1-this.jig*.5)*sp.wide*(1+.07*sp.curl),sy=p.sy*fr.sy*this.puff*g*breath*(1+this.jig)*sp.tall*(1-.13*sp.curl);
+    this.at={x:cx,y:ay-ground*sy,R:R*g};
+    if(fr.sink<.02){ctx.save();ctx.globalAlpha*=calm;ctx.fillStyle='rgba(0,0,0,.16)';ell(ctx,cx,G.floorY+R*.04,R*.75*g*sp.wide*(1-Math.min(.5,-(p.dy+fr.dy)*.6)),R*.09*g);ctx.restore();}
+    ctx.save();
+    if(fr.sink>0||fr.clipFloor){ctx.beginPath();ctx.rect(0,0,G.W,G.floorY);ctx.clip();}
+    ctx.translate(cx,ay);ctx.rotate(rot);ctx.scale(sx,sy);ctx.translate(0,-ground);
+    let body,mi=null;
+    if(blend)body=morphPath(M.FA,M.FB,R,M.u,M.wob,M.ph);
+    else if(fr.melt>0){const eW=G.Rb*1.45/sx,eH=G.Rb*1.45*1.28/sy;mi={u:fr.melt,eW,eH,ec:ground-eH/2};body=meltPath(F,R,sp,this.rm?0:t,mi);}
+    else if(sp.sag>.005||sp.wrinkle>.005||sp.wob>.005)body=warpPath(F,R,sp,this.rm?0:t);
+    else body=formPath(F,R);
+    if(topA>.01){ctx.save();ctx.globalAlpha*=topA;this.drawTopperLab(ctx,F,R,L,age,sp.flop);ctx.restore();}
+    this.drawBodyLab(ctx,F,R,L,p.glow,body,mi);
+    const mA=sp.moss*fr.mossK*calm;if(mA>.01)this.drawMoss(ctx,F,R,L,body,mA,this.d.moss||this.o.mossStyle||SEL.picks.q3,t,age);
+    if(sp.sweat>.02&&calm>.02)this.drawSweat(ctx,F,R,sp.sweat*calm,t);
+    if(fr.faceA>.01){ctx.save();ctx.globalAlpha*=fr.faceA;const FF=sp.sag>.005?{...F,faceY:F.faceY+.08*sp.sag}:F;
+      this.drawFace(ctx,FF,R,L,now,Math.max(p.mouth,fr.mouth));ctx.restore();}
+    if(!this.rm&&this.moves.some(m=>m.kind==='rumble'))this.drawRumble(ctx,F,R,now);
+    ctx.restore();this.look2=saved;
+    if(sp.cloud>.02){const topY=ay-(ground+F.top*R)*sy;this.drawRainCloud(ctx,cx-R*.15,topY-R*.55,R*.42,sp.cloud*calm,t);}}
+  drawTopperLab(ctx,F,R,L,age,flop){if(age<1||L.topper==='none')return;
+    const grow=.8+.06*age,lift=(F.sil==='droplet'?.18:0)-F.ry*.74,spread=F.rx*(F.sil==='triangle'?.3:.58);
+    const fill=L.bodyLight,inside=css(L.cheek,.55),sway=this.sway,fl=flop||0,lean=F.sproutLean<0?-1:1;
+    const pair=(k,fn)=>{for(const side of [-1,1]){ctx.save();ctx.translate(side*spread*R,(lift+.05*fl*k)*R);ctx.rotate(side*(.3+k*fl)+sway*.5);fn(side);ctx.restore();}};
+    switch(L.topper){
+      case 'cat':pair(.9,()=>{const h=R*.48*grow,b=R*.24;ctx.fillStyle=fill;ctx.fill(triPath(b,h));ctx.fillStyle=inside;ctx.fill(triPath(b*.55,h*.62));});break;
+      case 'bunny':pair(1.4,()=>{const h=R*.8*grow;ctx.fillStyle=fill;ell(ctx,0,-h+(h+R*.1)/2,R*.13,(h+R*.1)/2);ctx.fillStyle=inside;ell(ctx,0,-h*.85+h*.375,R*.065,h*.375);});break;
+      case 'bear':pair(.3,()=>{const r=R*.21*grow;ctx.fillStyle=fill;ell(ctx,0,-r*.5,r,r);ctx.fillStyle=inside;ell(ctx,0,-r*.5,r*.5,r*.5);});break;
+      case 'horns':pair(.2,()=>{ctx.fillStyle='#FFF1D6';ctx.fill(triPath(R*.11,R*.36*grow));});break;
+      case 'antenna':{ctx.save();ctx.translate(0,-F.top*R+R*.08);ctx.rotate(F.sproutLean+sway*.9+lean*fl*.9);const Ln=R*.42*grow,tx=lean*fl*R*.2,ty=-Ln*(1-.3*fl);
+        const a0=ctx.globalAlpha;ctx.strokeStyle=L.ink;ctx.globalAlpha=a0*.7;ctx.lineWidth=R*.04;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(R*.1+tx,-Ln*.5,tx,ty);ctx.stroke();ctx.globalAlpha=a0;
+        ctx.fillStyle=L.pattern==='none'?css(L.cheek):L.accent;ell(ctx,tx,ty,R*.09,R*.09);ctx.restore();break;}
+      case 'sprout':{ctx.save();ctx.translate(0,-F.top*R+R*.06);ctx.rotate(F.sproutLean+sway*.9+lean*fl*.8);const Ln=R*.3*grow*(1-.2*fl);
+        ctx.strokeStyle='#4FA845';ctx.lineWidth=R*.06;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(-R*.08,-Ln*.5,0,-Ln);ctx.stroke();
+        ctx.fillStyle='#7FD36B';for(const s of [-1,1]){const dr=fl*.35*s;ctx.save();ctx.translate(0,-Ln);ctx.rotate(dr);ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(s*R*.1,-R*.16,s*R*.24,-R*.1);ctx.quadraticCurveTo(s*R*.16,R*.02,0,0);ctx.fill();ctx.restore();}
+        ctx.restore();break;}
+    }}
+  drawBodyLab(ctx,F,R,L,glow,body,mi){const top=-F.top*R,bottom=F.bottom*R,fx=this.o.fx,arg={ctx,F,R,L,body,top,bottom,b:this},u=mi?mi.u:0,inA=1-u,a0=ctx.globalAlpha;
+    const gr=ctx.createLinearGradient(0,top,0,bottom);gr.addColorStop(0,L.bodyLight);gr.addColorStop(1,L.body);ctx.fillStyle=gr;ctx.fill(body);
+    ctx.save();ctx.clip(body);
+    if(inA>.01){ctx.globalAlpha=a0*inA;this.drawPattern(ctx,F,R,L,top,bottom);
+      ctx.fillStyle='rgba(0,0,0,.08)';ell(ctx,0,bottom-R*.35+R*.45,R*1.4,R*.45);
+      if(F.det.has('sheen')){ctx.save();ctx.rotate(-.5);ctx.fillStyle='rgba(255,255,255,.4)';ell(ctx,-R*.62+R*.18,top+R*.2+R*.11,R*.18,R*.11);ctx.restore();}
+      if(F.det.has('mark')){const side=L.markSeed<.5?-1:1;ctx.save();ctx.translate(side*F.rx*R*.48,(F.faceY-.42)*R);ctx.rotate(side*.3);const s=R*.16;
+        ctx.fillStyle='rgba(255,255,255,.6)';ctx.fill((L.markSeed%.5)<.25?heartPath(s):starPath(s*.55,.45,5));ctx.restore();}
+      if(fx&&fx.inside)fx.inside(arg);ctx.globalAlpha=a0;}
+    if(u>.01){const BL=this.look,eg=ctx.createLinearGradient(-mi.eW*.3,mi.ec-mi.eH*.5,mi.eW*.3,mi.ec+mi.eH*.5);eg.addColorStop(0,'#FFF9EC');eg.addColorStop(1,'#EBDDC3');
+      ctx.globalAlpha=a0*u;ctx.fillStyle=eg;ctx.fill(body);
+      eggSpots(BL.seed).forEach((s,i)=>{ctx.globalAlpha=a0*u*.85;ctx.fillStyle=i%3===0?BL.accent:BL.body;ell(ctx,s.x*mi.eW,mi.ec+s.y*mi.eH,s.r*mi.eW,s.r*mi.eH/1.28);});
+      ctx.globalAlpha=a0*u*.55;ctx.fillStyle='#FFFFFF';ell(ctx,-mi.eW*.22,mi.ec-mi.eH*.3,mi.eW*.1,mi.eH*.08);ctx.globalAlpha=a0;}
+    if(glow>.01){ctx.fillStyle=`rgba(255,255,255,${glow})`;ctx.fill(body);}
+    ctx.restore();}
+  drawMoss(ctx,F,R,L,body,amt,style,t,age){const MC=mossFor(this.look),top=-F.top*R,eyeTop=(F.faceY+L.eyeY-.3)*R,sw=this.rm?0:Math.sin(t*1.3)*.08+this.sway*.9;
+    if(style==='A'){const rnd=seeded(L.markSeed+.13),ps=[];for(let i=0;i<10;i++)ps.push({x:(rnd()*2-1)*.95,y:-.1+rnd()*.75,r:.15+rnd()*.13});ps.sort((a,b)=>a.y-b.y);
+      const P=new Path2D(),hi=[];
+      ps.forEach((p,i)=>{const k=eOut(clamp(amt*12-i,0,1));if(k<=0)return;const y=lerp(top,eyeTop,p.y),x=p.x*F.rx*R,r=p.r*R*k;P.moveTo(x+r,y);P.arc(x,y,r,0,TAU);hi.push([x-r*.3,y-r*.35,r*.26]);});
+      ctx.save();ctx.clip(body);ctx.fillStyle=MC.base;ctx.fill(P);ctx.fillStyle=MC.hi;for(const [x,y,r] of hi)ell(ctx,x,y,r,r);ctx.restore();
+      if(amt>.6)this.drawSprout(ctx,-.18*F.rx*R,top+R*.06,R*.24*eOut((amt-.6)/.4),sw);}
+    else if(style==='B'){const U=unitOutline(F),n=U.r.length,cy=U.cy*R;
+      const edge=a=>{const i=((Math.round(a/TAU*n)%n)+n)%n,r=U.r[i]*R;return [Math.cos(a)*r,cy+Math.sin(a)*r];};
+      const tf=[];for(let j=0;j<9;j++){const a=Math.PI*(1.06+.88*j/8);tf.push({a,j,d:Math.abs(a-1.5*Math.PI)});}tf.sort((p,q)=>p.d-q.d);
+      const ks=tf.map((f,i)=>eOut(clamp(amt*10.5-i,0,1)));
+      ctx.save();ctx.clip(body);ctx.fillStyle=MC.base;tf.forEach((f,i)=>{if(ks[i]<=0)return;const e=edge(f.a);ell(ctx,e[0],e[1],.24*R*ks[i],.24*R*ks[i]);});ctx.restore();
+      tf.forEach((f,i)=>{const k=ks[i];if(k<=0)return;const e=edge(f.a),nx=Math.cos(f.a),ny=Math.sin(f.a),tx=-ny,ty=nx,lean=sw*R*.06*(-ny);
+        for(let s=-1;s<=1;s++){const r=R*(.07+.05*h01(f.j,s))*k,off=.08*R*s,out=R*(.01+.035*h01(f.j+3,s))*k,x=e[0]+nx*out+tx*off+lean,y=e[1]+ny*out+ty*off;
+          ctx.fillStyle=MC.base;ell(ctx,x,y,r,r);ctx.fillStyle=MC.hi;ell(ctx,x-r*.3,y-r*.3,r*.32,r*.32);}});
+      if(amt>.6)this.drawSprout(ctx,.15*F.rx*R,top-R*.02,R*.22*eOut((amt-.6)/.4),sw);}
+    else{const s=eOut(clamp(amt*1.1,0,1)),yb=top+R*(.12+.36*s),x0=F.rx*R*1.25,nS=8;
+      ctx.save();ctx.clip(body);ctx.fillStyle=MC.base;ctx.beginPath();ctx.moveTo(-x0,top-R);ctx.lineTo(x0,top-R);ctx.lineTo(x0,yb);
+      for(let i=0;i<nS;i++){const xa=x0-2*x0*i/nS,xb=x0-2*x0*(i+1)/nS;ctx.quadraticCurveTo((xa+xb)/2,yb+R*.1*s,xb,yb);}ctx.closePath();ctx.fill();
+      ctx.fillStyle=MC.hi;for(let i=0;i<5;i++){const x=(-.6+.3*i)*F.rx*R,y=lerp(top,yb,.45+.25*h01(i,2));ell(ctx,x,y,R*.035*s,R*.035*s);}ctx.restore();
+      if(amt>.5){const mx=age<1||!['antenna','sprout'].includes(L.topper)?0:.3*F.rx*R;this.drawMushroom(ctx,mx,top+R*.05,R*.34*eOut((amt-.5)/.5),sw);}}}
+  drawSprout(ctx,x,y,s,sw){if(s<=.5)return;ctx.save();ctx.translate(x,y);ctx.rotate(-.2+sw);ctx.strokeStyle='#4FA845';ctx.lineWidth=Math.max(.8,s*.16);ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(0,s*.2);ctx.quadraticCurveTo(-s*.2,-s*.4,0,-s);ctx.stroke();ctx.fillStyle='#7FD36B';
+    for(const d of [-1,1]){ctx.beginPath();ctx.moveTo(0,-s);ctx.quadraticCurveTo(d*s*.35,-s*1.45,d*s*.75,-s*1.25);ctx.quadraticCurveTo(d*s*.45,-s*.95,0,-s);ctx.fill();}ctx.restore();}
+  drawMushroom(ctx,x,y,s,sw){if(s<=.5)return;ctx.save();ctx.translate(x,y+s*.15);ctx.rotate(sw*.6);ctx.fillStyle='#F3E6CF';rr(ctx,-s*.15,-s*.58,s*.3,s*.62,s*.12);ctx.fill();
+    ctx.fillStyle='#D9774A';ctx.beginPath();ctx.ellipse(0,-s*.55,s*.5,s*.38,0,Math.PI,TAU);ctx.closePath();ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.9)';for(const [dx,dy,r] of [[-.24,-.68,.07],[.1,-.8,.06],[.3,-.62,.05]])ell(ctx,dx*s,dy*s,r*s,r*s);ctx.restore();}
+  drawSweat(ctx,F,R,a,t){const ph=this.rm?.3:(t*.32)%1,x=F.rx*.7*R,y=(F.faceY-.42)*R+ph*.32*R,s=R*.075;
+    ctx.save();ctx.globalAlpha*=a*(this.rm?1:Math.min(1,(1-ph)*4,ph*8+.2));ctx.fillStyle='rgba(165,214,255,.95)';
+    ctx.beginPath();ctx.moveTo(x,y-1.6*s);ctx.quadraticCurveTo(x+s*.9,y-.3*s,x+s*.9,y+.2*s);ctx.arc(x,y+.2*s,s*.9,0,Math.PI);ctx.quadraticCurveTo(x-s*.9,y-.3*s,x,y-1.6*s);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.8)';ell(ctx,x-s*.3,y+s*.15,s*.18,s*.26);ctx.restore();}
+  drawRumble(ctx,F,R,now){const m=this.moves.find(m=>m.kind==='rumble');if(!m)return;const a=bump(clamp((now-m.start)/m.dur,0,1));
+    ctx.save();ctx.strokeStyle=`rgba(242,243,247,${(.7*a).toFixed(3)})`;ctx.lineWidth=R*.035;ctx.lineCap='round';const y=F.bottom*R*.4,x=F.rx*R*1.06;
+    for(const s of [-1,1])for(let k=0;k<2;k++){const cx=s*(x+k*R*.11)-s*R*.12,rr2=R*(.12+k*.06);ctx.beginPath();if(s>0)ctx.arc(cx,y,rr2,-.6,.6);else ctx.arc(cx,y,rr2,Math.PI-.6,Math.PI+.6);ctx.stroke();}
+    ctx.restore();}
+  drawRainCloud(ctx,x,y,s,a,t){ctx.save();ctx.globalAlpha=a;this.drawCloud(ctx,x,y,s);ctx.fillStyle='rgba(130,170,240,.9)';
+    for(let i=0;i<3;i++){const ph=this.rm?.25+i*.3:(t*1.6+i/3)%1;ctx.globalAlpha=a*(this.rm?.8:(1-ph));ell(ctx,x+(i-1)*s*.45,y+s*.45+ph*s*1.6,s*.07,s*.16);}ctx.restore();}
+  drawBubble(ctx,G,a){const at=this.at;if(!at)return;const fs=Math.max(11,G.Rb*.4),txt='ばあ！';ctx.save();ctx.globalAlpha=clamp(a,0,1);
+    ctx.font=`900 ${fs}px "Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif`;const tw=ctx.measureText(txt).width,pw=tw+fs*.9,ph=fs*1.5;
+    const x=clamp(at.x-at.R*.7-pw,4,G.W-pw-4),y=clamp(at.y-at.R*1.5-ph,4,G.H-ph-4);
+    ctx.fillStyle='#FFFFFF';rr(ctx,x,y,pw,ph,ph*.45);ctx.fill();ctx.beginPath();ctx.moveTo(x+pw*.6,y+ph-1);ctx.lineTo(x+pw*.92,y+ph+fs*.45);ctx.lineTo(x+pw*.82,y+ph-1);ctx.fill();
+    ctx.fillStyle='#141625';ctx.textBaseline='middle';ctx.textAlign='left';ctx.fillText(txt,x+fs*.45,y+ph*.54);ctx.restore();}
+  drawEggBody(ctx,egg,w,h,L){const g=ctx.createLinearGradient(-w*.3,-h*.5,w*.3,h*.5);g.addColorStop(0,'#FFF9EC');g.addColorStop(1,'#EBDDC3');ctx.fillStyle=g;ctx.fill(egg);
+    const a0=ctx.globalAlpha;ctx.save();ctx.clip(egg);
+    eggSpots(L.seed).forEach((s,i)=>{ctx.globalAlpha=a0*.85;ctx.fillStyle=i%3===0?L.accent:L.body;ell(ctx,s.x*w,s.y*h,s.r*w,s.r*w);});
+    ctx.globalAlpha=a0*.55;ctx.fillStyle='#FFFFFF';ell(ctx,-w*.22,-h*.3,w*.1,h*.08);ctx.restore();
+    ctx.strokeStyle='rgba(201,180,143,.6)';ctx.lineWidth=Math.max(.6,w*.012);ctx.stroke(egg);}
+  strokeCrack(ctx,egg,w,cY,k){const p=crackPts(w,cY),n=p.length-1,end=clamp(k,0,1)*n;ctx.save();ctx.clip(egg);ctx.strokeStyle='#7A5F3A';ctx.lineWidth=Math.max(.8,w*.02);ctx.lineCap='round';ctx.lineJoin='round';
+    ctx.beginPath();ctx.moveTo(p[0][0],p[0][1]);for(let i=1;i<=n;i++){const f=clamp(end-(i-1),0,1);if(f<=0)break;ctx.lineTo(lerp(p[i-1][0],p[i][0],f),lerp(p[i-1][1],p[i][1],f));}ctx.stroke();ctx.restore();}
+  drawEgg(ctx,now,G,e,pass){const w=G.Rb*1.45,h=w*1.28,cY=-h*.04,t=now-this.born,L=this.look,rm=this.rm,alpha=e.alpha??1;
+    if(alpha<=.004)return;let rot=e.rot||0,lift=e.lift||0;const hop=e.hop||0;
+    if(e.mode==='rest'){if(!rm){rot+=Math.sin(t*2.1)*.035;const beat=t%2.8;if(beat<.5)rot+=Math.sin(beat*38)*.09*(1-beat/.5);
+        const pk=now-this.eggPoke;if(pk>=0&&pk<.6)rot+=Math.sin(pk*40)*.1*(1-pk/.6);}
+      const pq=(now-this.peekAt)/1.7;if(pq>=0&&pq<=1)lift=Math.max(lift,h*(rm?.035:.065)*hold(pq));}
+    const br=1+Math.sin(this.bph)*.012;
+    if(pass==='front'&&e.split==null){ctx.save();ctx.globalAlpha*=alpha;ctx.fillStyle='rgba(0,0,0,.16)';ell(ctx,G.cx0,G.floorY+w*.03,w*.42*(1-Math.min(.4,hop/w)),w*.07);ctx.restore();}
+    ctx.save();ctx.globalAlpha*=alpha;
+    if(e.clipFloor){ctx.beginPath();ctx.rect(0,0,G.W,G.floorY);ctx.clip();}
+    ctx.translate(G.cx0,G.floorY-hop);ctx.scale(1,br);ctx.translate(0,-h/2);ctx.rotate(rot);
+    const egg=eggPath(w,h),halves=e.split!=null||e.top||e.bottom||lift>.01;
+    if(!halves){if(pass==='front'){this.drawEggBody(ctx,egg,w,h,L);if(e.crack>0)this.strokeCrack(ctx,egg,w,cY,e.crack);}ctx.restore();return;}
+    const topHere=e.backTop?pass==='back':pass==='front';
+    if(pass==='front'&&lift>.01){const TL=tintLook(L,this.sp),since=now-this.blinkAt,open=since<.09?1-since/.09:since<.2?(since-.09)/.11:1,er=w*.05*(1+.4*this.miniNow);
+      ctx.save();ctx.clip(egg);ctx.fillStyle=TL.body;ctx.fillRect(-w,cY-lift-w*.12,2*w,lift+w*.24);ctx.fillStyle=TL.ink;
+      for(const s of (L.cyclops?[0]:[-1,1]))ell(ctx,s*w*.15,cY-lift*.5,er*.8,Math.max(.4,Math.min(lift*.42,er)*Math.max(.1,open)));ctx.restore();}
+    if(pass==='front'){ctx.save();
+      if(e.split!=null){const k=e.split;ctx.globalAlpha*=Math.max(0,1-k*1.5);ctx.translate(0,h*.25*k);}
+      else if(e.bottom){if(e.bottom.alpha!=null)ctx.globalAlpha*=clamp(e.bottom.alpha,0,1);if(e.bottom.dy)ctx.translate(0,e.bottom.dy*h);}
+      ctx.clip(halfPath(w,h,cY,false));this.drawEggBody(ctx,egg,w,h,L);ctx.restore();}
+    if(topHere){ctx.save();
+      if(e.split!=null){const k=e.split;ctx.globalAlpha*=Math.max(0,1-k*1.3);ctx.translate(w*.25*k,-h*.9*k+h*.6*k*k);ctx.rotate(.9*k);}
+      else if(e.top){if(e.top.alpha!=null)ctx.globalAlpha*=clamp(e.top.alpha,0,1);if(e.top.hinge){ctx.translate(w*.5,cY);ctx.rotate(e.top.hinge);ctx.translate(-w*.5,-cY);}if(e.top.dy)ctx.translate(0,e.top.dy*h);}
+      if(lift>.01)ctx.translate(0,-lift);
+      ctx.clip(halfPath(w,h,cY,true));this.drawEggBody(ctx,egg,w,h,L);ctx.restore();}
+    ctx.restore();}
+}
+
+/* ---------- the page ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const lookNow=()=>lookFor(SEL.seed),ageNow=()=>SEL.ageIdx,rmNow=()=>RM_ON;
+const lab=o=>Object.assign({look:lookNow,age:ageNow,reduced:rmNow},o);
+const issueLink=n=>`<a href="${ISSUE(n)}" target="_blank" rel="noopener">#${n}</a>`;
+function mountLab(root){root.querySelectorAll('canvas[data-tomo]').forEach(cv=>{const sp=PENDING.get(cv.dataset.tomo);if(!sp||cv.__blob)return;PENDING.delete(cv.dataset.tomo);
+  const b=sp.plain?new Blob(cv,sp):new LabBlob(cv,sp);cv.__blob=b;if(sp.ref)sp.ref(b);b.render(T());LIVE.add(b);io.observe(cv);
+  if(sp.onClick){cv.style.cursor='pointer';cv.addEventListener('click',()=>sp.onClick(b));}
+  else if(sp.poke!==false){cv.style.cursor='pointer';cv.addEventListener('click',()=>b.react('poke'));}});}
+
+const QS=[
+  {key:'q1',sec:'q-sad',num:2,title:'How sad looks',state:'droopy',
+    intro:`Droopy has to read as sad on every seed, even beside the notch. Each option uses one channel only, so you can see which one carries it. ${issueLink(257)} asks for a little of all three; the slider sets how sad.`,
+    opts:[
+      {v:'A',name:'Eyelids',src:'builds on #256',what:'Its lids come half down and tilt into a worry, and it looks at the floor.',good:'The smallest change: its shape and colour stay its own, and #256’s lids already plan for it.',cost:'Weak on bead and dot eyes, and hard to see at notch size.'},
+      {v:'B',name:'Posture',src:'from #257',what:'It slumps lower and wider, its ears or topper flop, it looks down and sighs.',good:'Reads at notch size on every seed, whatever its eyes.',cost:'Needs an outline warp: a new path step for every silhouette.'},
+      {v:'C',name:'Colour',src:'new',what:'It turns grey-blue, with a soft blue light inside.',good:'The cheapest: a tint and the jelly’s inner light, nothing new to draw.',cost:'Weak on Pale seeds and for colour-blind learners, and grey-blue can read as sick.'}],
+    rm:'Reduce Motion: the same looks. The sigh becomes a small puff; it still breathes and blinks.'},
+  {key:'q2',sec:'q-sick',num:3,title:'How far sickly goes',state:'sickly',
+    intro:`Three strengths of sick. Tomo never dies, so the worst it gets is a look, not a countdown.`,
+    opts:[
+      {v:'mild',name:'Under the weather',src:'new',what:'A faint green tint, heavy lids, a shiver now and then.',good:'Gentle: nothing that worries a young learner.',cost:'Close to Weak; it may not read as sick at all.'},
+      {v:'ill',name:'Ill',src:'#257',what:'Green-grey and a size smaller, a sweat drop, quick shallow breaths and shivers.',good:'Clearly sick, all with fixed fills.',cost:'More pieces to build: the tint pass, the drop and the shiver.'},
+      {v:'fever',name:'Fever',src:'new',what:'Flushed cheeks, a wobbling outline, a sweat drop, panting and hard shivers.',good:'The most legible, even at notch size.',cost:'The most distressing, and the outline moves every frame.'}],
+    rm:'Reduce Motion: shivers become a small puff, the outline stops wobbling and the sweat drop stays put.'},
+  {key:'q3',sec:'q-moss',num:4,title:'How moss grows',state:'mossy',tools:'moss',
+    intro:`Mossy is asleep and curled while moss grows over it. Use <b>Grow again</b> and <b>Brush off</b> to see it come and go.`,
+    opts:[
+      {v:'A',name:'Patches',src:'#258',what:'Seeded patches spread over its top, inside its outline, then a sprout.',good:'Its silhouette stays exact, and each seed gets its own patches.',cost:'At notch size it’s just green on top.'},
+      {v:'B',name:'Tufts',src:'new',what:'Puffs of moss grow along its upper edge, past the outline.',good:'Reads at notch size: the edge turns fuzzy.',cost:'Blurs its age shape, and grows past the edge, so it needs room above.'},
+      {v:'C',name:'Cap and mushroom',src:'new',what:'A green cap creeps down from its crown, and a mushroom pops up.',good:'Reads at once, and it’s the cheapest.',cost:'Looks like an outfit, not a condition.'}],
+    rm:'Reduce Motion: moss grows the same way, the sprout and mushroom stop swaying, and the brush-off is a puff with fewer spores.'},
+  {key:'q4',sec:'q-egg',num:5,title:'Back into the egg, and out again',state:'q4clock',tools:'egg',
+    intro:`The lowest Tomo goes is back into its egg (${issueLink(258)}), then it hatches and comes out shrunk. The three loop together: shrunk, into the egg, a peek or two, then the hatch.`,
+    opts:[
+      {v:'shell',name:'Shell',src:'first run',what:'It curls up and the two halves of its first-run egg close round it. To hatch, it cracks and the top flies off.',good:'Reuses the first-run egg and hatch, so coming back mirrors the start.',cost:'A bit mechanical: the halves come from nowhere.'},
+      {v:'melt',name:'Melt',src:'new',what:'Its body flows into the egg, shape, colour and spots, and flows back out after a peek.',good:'One continuous jelly body; nothing appears from nowhere.',cost:'Needs the polar morph (shared with flubber, #259) and an egg finish on the body.'},
+      {v:'tuck',name:'Tuck in',src:'new',what:'It yawns and sinks down as the egg rises round it. To hatch, the lid swings open and it climbs out.',good:'The gentlest: it reads as going to sleep.',cost:'A new hinged-lid hatch, unlike the first run’s.'}],
+    rm:'Reduce Motion: all three become the same calm fade: Tomo fades into the egg with a glow, and out of it with star eyes. The egg stops rocking but still breathes and peeks.'},
+  {key:'q5',sec:'q-morph',num:6,title:'How long a birthday morph takes',state:'content',tools:'morph',
+    intro:`At each birthday Tomo grows from its old shape into its new one (${issueLink(259)}). Click a Tomo to play it again.`,
+    opts:[
+      {v:'pop',name:'Pop · 0.6 s',src:'today',what:'Squish, swap, spring back.',good:'Fast and the cheapest: close to today’s squeeze-and-pop.',cost:'Easy to miss, and the shape change is a cut.'},
+      {v:'flubber',name:'Flubber · 1.2 s',src:'#259',what:'One outline flows into the next with a jelly wobble.',good:'You watch one shape become the other.',cost:'Polar outline interpolation, and the topper fades in.'},
+      {v:'grand',name:'Grand · 2.6 s',src:'new',what:'A stretch, a glow and star eyes, the flow, then a hop and confetti.',good:'Feels like a birthday.',cost:'Long: it owns Tomo for 2.6 s.'}],
+    rm:'Reduce Motion: every option becomes a crossfade with a glow and star eyes, as #259 asks.'}];
+const optOf=(q,v)=>QS.find(x=>x.key===q).opts.find(o=>o.v===v);
+const optName=q=>optOf(q,SEL.picks[q]).name;
+const letter=(q,v)=>'ABC'[OPTS[q].indexOf(v)];
+
+let Q4T0=T()-3;
+const Q4STATE=()=>((T()-Q4T0)%14)<4.5?'shrunk':'egg';
+const GROUPS={q3:[],q4:[],q5:[]};
+
+/* the bar */
+function buildBar(){
+  $('#seeds').innerHTML=SEEDS.map(s=>`<button type="button" class="seed" data-seed="${s.seed}" aria-pressed="false" title="${esc(s.seed)}">${tomo({plain:true,look:()=>lookFor(s.seed),age:ageNow,reduced:rmNow,fps:15,poke:false,mini:true,size:.88,cy:.6,fx:fxJelly({})},'seed-cv')}<span>${esc(s.label)}</span></button>`).join('');
+  $('#ages').innerHTML=AGES.map(a=>`<button type="button" data-age="${a.i}" aria-pressed="false">${a.label}</button>`).join('');
+  $('#seeds').addEventListener('click',e=>{const b=e.target.closest('[data-seed]');if(!b)return;SEL.seed=b.dataset.seed;save();syncAll();});
+  $('#ages').addEventListener('click',e=>{const b=e.target.closest('[data-age]');if(!b)return;SEL.ageIdx=+b.dataset.age;
+    for(const x of GROUPS.q5){x.cue=null;x.morphed=false;}save();syncAll();});
+  $('#rm').addEventListener('click',()=>{RM_ON=!RM_ON;syncAll();});}
+
+/* every state */
+const MOODS=[
+  {id:'content',name:'Content',desc:'Its everyday self: breathes, blinks, looks round and fidgets.'},
+  {id:'restless',name:'Restless',desc:'Wants to play: an amber glow, bigger hops, eyes that follow your pointer.',issue:130},
+  {id:'pouty',name:'Pouty',desc:'Puffed up and lit pink inside, stomping now and then.',issue:130},
+  {id:'lonely',name:'Lonely',desc:'Looks away under its own little rain cloud, and sighs.',issue:130},
+  {id:'asleep',name:'Asleep',desc:'Eyes shut, deeper breaths, drifting z’s.'}];
+const CONDS=[
+  {id:'droopy',name:'Droopy',desc:'Down in the dumps.',issue:257,pick:'q1'},
+  {id:'weak',name:'Weak and hungry',short:'Weak',desc:'Paler, small hops, a tummy rumble or a yawn.',issue:257},
+  {id:'sickly',name:'Sickly',desc:'Unwell, by how far you pick.',issue:257,pick:'q2'},
+  {id:'mossy',name:'Mossy',desc:'Asleep and curled while moss grows over its top.',issue:258,pick:'q3'},
+  {id:'shrunk',name:'Shrunk',desc:'Small, wrinkled and nearly grey, dozing, with a shiver now and then.',issue:258},
+  {id:'egg',name:'Back in its egg',short:'Egg',desc:'Rocks, and its eyes peek out now and then. Click it to make it peek.',issue:258}];
+function tile(s){return `<figure class="tile">${tomo(lab({state:s.id}),'cv')}<figcaption><b>${s.name}</b><small>${s.desc}</small>
+  <span class="meta">${s.issue?`<a href="${ISSUE(s.issue)}" target="_blank" rel="noopener">#${s.issue}</a>`:''}${s.pick?`<span class="pk" data-pk="${s.pick}"></span>`:''}</span></figcaption></figure>`;}
+function buildStates(){$('#moods').innerHTML=MOODS.map(tile).join('');$('#conds').innerHTML=CONDS.map(tile).join('');
+  $('#strip').innerHTML=`<div class="strip-in">${[...MOODS,...CONDS].map(s=>`<div class="nt">${tomo(lab({state:s.id,mini:true,floor:.9,fps:30}),'notch-cv')}<small>${s.short||s.name}</small></div>`).join('')}</div>`;}
+
+/* the questions */
+function card(Q,o){const extra=Q.key==='q4'?{state:Q4STATE,eggStyle:o.v}:Q.key==='q5'?{morphCard:true,morphStyle:o.v}:{variant:o.v};
+  const st=Q.key==='q4'?Q4STATE:Q.state,grp=GROUPS[Q.key],ref=grp?(b=>grp.push(b)):null;
+  const big=lab({state:st,...extra,ref,...(Q.key==='q5'?{onClick:()=>playCard(o.v)}:{})});
+  const mini=lab({state:st,...extra,ref,mini:true,floor:.9,fps:30,...(Q.key==='q5'?{onClick:()=>playCard(o.v)}:{})});
+  return `<article class="opt" data-q="${Q.key}" data-v="${o.v}">
+  <div class="stage">${tomo(big,'big')}<div class="mini">${tomo(mini,'notch-cv')}<small>notch size</small></div></div>
+  <div class="opt-body"><p class="opt-k"><span class="k">${letter(Q.key,o.v)}</span>${esc(o.name)}<span class="src">${esc(o.src)}</span></p>
+    <p>${esc(o.what)}</p><p><b>Good:</b> ${esc(o.good)}</p><p><b>Costs:</b> ${esc(o.cost)}</p>
+    <button type="button" class="pick" data-q="${Q.key}" data-v="${o.v}" aria-pressed="false">Use this</button></div></article>`;}
+function tools(Q){
+  if(Q.key==='q1')return `<div class="tools"><label>How sad <input type="range" id="sadM" min="0" max="100" step="1" value="${Math.round(SEL.sadM*100)}" aria-describedby="sadV"></label><span class="mono" id="sadV">${Math.round(SEL.sadM*100)}%</span></div>`;
+  if(Q.key==='q3')return `<div class="tools"><button type="button" class="btn" id="moss-grow">Grow again</button><button type="button" class="btn" id="moss-brush">Brush off</button></div>`;
+  if(Q.key==='q4')return `<div class="tools"><button type="button" class="btn" id="egg-restart">Start the loop again</button><span class="note">Shrunk for 4.5 s, into the egg, a peek or two, then the hatch, every 14 s.</span></div>`;
+  if(Q.key==='q5')return `<div class="tools"><button type="button" class="btn primary" id="morph-all">Play all three</button><span class="note" id="morph-lbl"></span></div>`;
+  return '';}
+function buildQuestions(){$('#questions').innerHTML=QS.map(Q=>`<section id="${Q.sec}" aria-labelledby="${Q.sec}-h">
+  <div class="sec-head"><div><span class="num">${Q.num} · Open question</span><h2 id="${Q.sec}-h">${Q.title}</h2></div>
+    <div class="c-act"><button type="button" class="btn js-comment" data-for="${Q.sec}">Comment</button><span class="hint" aria-live="polite"></span></div></div>
+  <p class="intro">${Q.intro}</p>${tools(Q)}
+  <div class="opts">${Q.opts.map(o=>card(Q,o)).join('')}</div>
+  <p class="rm-note">${Q.rm}</p></section>`).join('');
+  document.querySelectorAll('.pick').forEach(b=>b.addEventListener('click',()=>{SEL.picks[b.dataset.q]=b.dataset.v;save();syncPicks();}));
+  const s=$('#sadM');s.addEventListener('input',()=>{SEL.sadM=s.value/100;$('#sadV').textContent=s.value+'%';save();});
+  $('#moss-grow').addEventListener('click',()=>GROUPS.q3.forEach(b=>b.regrow()));
+  $('#moss-brush').addEventListener('click',()=>GROUPS.q3.forEach(b=>b.brush()));
+  $('#egg-restart').addEventListener('click',()=>{Q4T0=T();for(const b of GROUPS.q4){b.cue=null;b.inEgg=false;b.faceO=null;}});
+  $('#morph-all').addEventListener('click',()=>GROUPS.q5.forEach(b=>b.playMorph()));
+  let played=false;const sec=$('#q-morph');
+  new IntersectionObserver((es,ob)=>{for(const e of es)if(e.isIntersecting&&!played){played=true;ob.disconnect();setTimeout(()=>GROUPS.q5.forEach(b=>b.playMorph()),500);}},{threshold:.45}).observe(sec);}
+function playCard(v){for(const b of GROUPS.q5)if(b.o.morphStyle===v)b.playMorph();}
+
+/* the playthrough */
+const STOPS=[
+  {s:'content',name:'Well',note:'<b>Well.</b> Its everyday self. Press Play to walk it down to the egg and back.'},
+  {s:'droopy',name:'Droopy',note:()=>`<b>Droopy.</b> The first step down, as ${esc(optName('q1'))}.`},
+  {s:'weak',name:'Weak',note:'<b>Weak and hungry.</b> Paler, smaller hops, a rumble or a yawn.'},
+  {s:'sickly',name:'Sickly',note:()=>`<b>Sickly,</b> as ${esc(optName('q2'))}.`},
+  {s:'mossy',name:'Mossy',note:()=>`<b>Mossy.</b> It falls asleep and curls up, and moss grows (${esc(optName('q3'))}).`},
+  {s:'shrunk',name:'Shrunk',note:'<b>Shrunk.</b> Small, wrinkled and grey, dozing: the lowest it gets outside the egg.'},
+  {s:'egg',name:'Egg',hold:5.5,note:()=>`<b>Back in its egg</b> (${esc(optName('q4'))}). The bottom: it never dies. It rocks and peeks out.`},
+  {s:'shrunk',name:'Hatch',hatch:true,note:'<b>Hatch.</b> ばあ！ It comes out shrunk, the same Tomo.'},
+  {s:'shrunk',name:'Shrunk',note:'<b>Shrunk,</b> then each step back up.'},
+  {s:'sickly',name:'Sickly',note:'<b>Sickly</b> again, on the way up.'},
+  {s:'weak',name:'Weak',note:'<b>Weak</b>, getting there.'},
+  {s:'droopy',name:'Droopy',note:'<b>Droopy</b>, nearly well.'},
+  {s:'content',name:'Well',note:'<b>Well again.</b> The same Tomo, at the same age and level.'}];
+const PT={i:0,at:T(),playing:false,blobs:[],cueEnd:0};
+function buildPlay(){const st=()=>STOPS[PT.i].s,ref=b=>PT.blobs.push(b);
+  $('#play-cv').innerHTML=tomo(lab({state:st,ref}),'big');
+  $('#play-mini').innerHTML=tomo(lab({state:st,ref,mini:true,floor:.9,fps:30}),'notch-cv');
+  $('#stops').innerHTML=STOPS.map((s,i)=>(i===0?'<li class="half-lbl" aria-hidden="true">Down</li>':i===7?'<li class="half-lbl" aria-hidden="true">Back up</li>':'')+`<li><button type="button" class="stop" data-i="${i}">${s.name}</button></li>`).join('');
+  $('#stops').addEventListener('click',e=>{const b=e.target.closest('[data-i]');if(b)goStop(+b.dataset.i);});
+  $('#pp').addEventListener('click',()=>{if(PT.playing)PT.playing=false;else{PT.playing=true;if(PT.i>=STOPS.length-1)goStop(0);else PT.at=T();}playUI();});
+  $('#back').addEventListener('click',()=>goStop(PT.i-1));$('#next').addEventListener('click',()=>goStop(PT.i+1));}
+function goStop(i){i=clamp(i,0,STOPS.length-1);const from=PT.i;PT.i=i;PT.at=T();PT.cueEnd=0;
+  if(STOPS[i].hatch&&STOPS[from].s!=='egg')for(const b of PT.blobs)b.forceEgg();playUI();}
+function playUI(){document.querySelectorAll('.stop').forEach(b=>{const i=+b.dataset.i;if(i===PT.i)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current');b.classList.toggle('done',i<PT.i);});
+  const n=STOPS[PT.i].note;$('#pnote').innerHTML=typeof n==='function'?n():n;
+  $('#pp').textContent=PT.playing?'Pause':PT.i>=STOPS.length-1?'Play again':'Play';}
+function tick(){const now=T();
+  if(PT.playing){const b=PT.blobs[0];
+    if(b&&b.cue)PT.cueEnd=now;
+    else if(now-PT.at>(STOPS[PT.i].hold||3.6)&&now-PT.cueEnd>1.5){if(PT.i>=STOPS.length-1){PT.playing=false;playUI();}else goStop(PT.i+1);}}
+  setTimeout(tick,200);}
+
+/* keeping everything in step with the bar and the picks */
+function syncAll(){const L=lookNow(),F=L.forms[SEL.ageIdx],eyes={bar:'Bar',dot:'Dot',big:'Big',lidded:'Lidded',bead:'Bead'}[L.eyeStyle];
+  document.querySelectorAll('.seed').forEach(b=>b.setAttribute('aria-pressed',b.dataset.seed===SEL.seed));
+  document.querySelectorAll('#ages [data-age]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.age===SEL.ageIdx));
+  $('#rm').setAttribute('aria-checked',RM_ON);
+  const top=L.topper==='none'?'no topper':SEL.ageIdx<1?`${L.topper} topper from 2さい`:`${L.topper} topper`;
+  $('#cap').textContent=`${sai(SEL.ageIdx)}: ${SHAPE_NAMES[F.sil]} · ${TONE_NAMES[L.toneIdx]} · ${eyes} ${L.cyclops?'eye (one)':'eyes'} · ${top}`;
+  $('#hud-age').textContent=`${sai(SEL.ageIdx)} · Lv 7`;
+  const to=Math.max(1,SEL.ageIdx);$('#morph-lbl').textContent=`Birthday: ${sai(to-1)} → ${sai(to)}${SEL.ageIdx===0?' (at 1さい, the first birthday shows)':''}.`;}
+function syncPicks(){document.querySelectorAll('.pick').forEach(b=>{const on=SEL.picks[b.dataset.q]===b.dataset.v;b.setAttribute('aria-pressed',on);b.textContent=on?'Your pick':'Use this';b.closest('.opt').classList.toggle('on',on);});
+  document.querySelectorAll('[data-pk]').forEach(s=>{s.textContent='Pick: '+optName(s.dataset.pk);});
+  $('#picks-line').textContent=`Your picks: sad ${optName('q1')} · sickly ${optName('q2')} · moss ${optName('q3')} · egg ${optName('q4')} · birthday ${optName('q5')}.`;
+  playUI();}
+
+/* comments: the page's buttons open the shell's composer on their section */
+let COMMENTS=null,commentsTried=false;
+async function initComments(){try{COMMENTS=window.claude?.use?await window.claude.use('comments'):null;}catch(e){COMMENTS=null;}commentsTried=true;}
+function hint(btn,t){const h=btn.parentElement.querySelector('.hint');if(!h)return;h.textContent=t;clearTimeout(h.__t);h.__t=setTimeout(()=>h.textContent='',5000);}
+async function openComment(section,btn){if(!section)return;
+  if(!COMMENTS){hint(btn,commentsTried?'Comments aren’t available here. Use comment mode in the toolbar, then click this section.':'Still connecting. Try again in a moment.');return;}
+  try{const r=await COMMENTS.openComposer({element:section});if(!r||!r.opened)hint(btn,'Click on the page first, then press Comment again.');}
+  catch(e){hint(btn,'Use comment mode in the toolbar instead.');}}
+function wireComments(){document.querySelectorAll('.js-comment').forEach(b=>b.addEventListener('click',()=>openComment(document.getElementById(b.dataset.for),b)));}
+
+load();buildBar();buildStates();buildQuestions();buildPlay();mountLab(document);syncAll();syncPicks();initComments();wireComments();
+requestAnimationFrame(loop);tick();
+</script>
+</body></html>
