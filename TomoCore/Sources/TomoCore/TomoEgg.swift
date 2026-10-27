@@ -11,6 +11,9 @@ public enum TomoEgg {
     /// From the first tap to the shell splitting open.
     public static let crackTime = 0.9
 
+    /// How far above its place the top half starts as it drops on round Tomo, in egg heights (the lab's Shell).
+    static let dropFrom: CGFloat = 1.1
+
     /// How the egg is drawn in one frame, around where it stands: its shell's opacity, how far it's tipped and lifted,
     /// how much of its crack shows, and its halves when they move apart (to close round Tomo, or to let it out).
     struct Frame {
@@ -80,16 +83,16 @@ public enum TomoEgg {
         return (0..<7).map { _ in (x: (next() - 0.5) * 0.8, y: (next() - 0.5) * 0.8, r: 0.05 + next() * 0.07) }
     }
 
-    /// The shell, centred on the origin: a cream gradient, the look's speckles, a soft shine top left, and an outline
-    /// `outline` wide.
+    /// The shell, centred on the origin: a cream gradient, the look's speckles (`spots`, or worked out from its seed),
+    /// a soft shine top left, and an outline `outline` wide.
     static func drawShell(_ ctx: GraphicsContext, _ egg: Path, width w: CGFloat, height h: CGFloat, look: TomoLook,
-                          outline: CGFloat) {
+                          outline: CGFloat, spots kept: [(x: CGFloat, y: CGFloat, r: CGFloat)]? = nil) {
         ctx.fill(egg, with: .linearGradient(Gradient(colors: [Color(hex: "#FFF9EC"), Color(hex: "#EBDDC3")]),
                                             startPoint: CGPoint(x: -w * 0.3, y: -h * 0.5),
                                             endPoint: CGPoint(x: w * 0.3, y: h * 0.5)))
         var inside = ctx
         inside.clip(to: egg)
-        for (i, s) in spots(seed: look.seed).enumerated() {
+        for (i, s) in (kept ?? spots(seed: look.seed)).enumerated() {
             let r = s.r * w
             let rect = CGRect(x: s.x * w - r, y: s.y * h - r, width: r * 2, height: r * 2)
             inside.fill(Path(ellipseIn: rect), with: .color((i % 3 == 0 ? look.accent : look.body).opacity(0.85)))
@@ -109,9 +112,11 @@ public enum TomoEgg {
                      style: StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round))
     }
 
-    /// The hatch's halves flying apart, `k` of the way (0…1): the top flies up and spins away, the bottom drops and
-    /// fades. `ctx` is at the egg's centre.
-    static func drawSplit(_ ctx: GraphicsContext, k: CGFloat, width w: CGFloat, height h: CGFloat,
+    /// The hatch's halves flying apart, `k` of the way (0…1): the top flies up and spins away, and the bottom drops and
+    /// fades. Or, when the halves are drawn behind Tomo (`sinks`), the
+    /// bottom stays solid and sinks into the floor (the egg's foot), as it rose from it going in, so it never shows as a
+    /// see-through smudge round Tomo on a dark card. `ctx` is at the egg's centre.
+    static func drawSplit(_ ctx: GraphicsContext, k: CGFloat, width w: CGFloat, height h: CGFloat, sinks: Bool = false,
                           shell: (GraphicsContext) -> Void) {
         let y = crackY(height: h)
         var top = ctx
@@ -121,8 +126,14 @@ public enum TomoEgg {
         top.clip(to: half(crackY: y, width: w, height: h, top: true))
         shell(top)
         var bottom = ctx
-        bottom.opacity *= Double(max(0, 1 - k * 1.5))
-        bottom.translateBy(x: 0, y: h * 0.25 * k)
+        if sinks {
+            bottom.clip(to: Path(CGRect(x: -w * 2, y: -h * 2, width: w * 4, height: h * 2.5)))     // above the floor
+            bottom.opacity *= Double(1 - min(1, max(0, (k - 0.7) / 0.3)))
+            bottom.translateBy(x: 0, y: h * 0.62 * k * k)
+        } else {
+            bottom.opacity *= Double(max(0, 1 - k * 1.5))
+            bottom.translateBy(x: 0, y: h * 0.25 * k)
+        }
         bottom.clip(to: half(crackY: y, width: w, height: h, top: false))
         shell(bottom)
     }

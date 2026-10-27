@@ -81,6 +81,9 @@ public final class TomoBlob: ObservableObject {
     /// What Tomo says as it hatches, in a bubble beside it: the target pack's hello (`lines.hello`), given by the host.
     /// Nil: no bubble.
     public var hatchWord: String?
+    /// Called as a hatch starts playing (`hatchCue`), from `step`, so a host plays the hatch's sounds with it: not while
+    /// a script it waits for still plays, and not at all when Tomo was back out before it went in.
+    public var onHatch: (@MainActor () -> Void)?
     /// The top of the room Tomo stands in, in the canvas's own coordinates (points, y down), or nil: no ceiling. The
     /// island without a notch sets it a little inside its top edge, which floats below the screen's. A form too tall to
     /// stand under it, with its topper, its idle stretch and a hop, is drawn smaller (`fit`), standing where it stands
@@ -144,6 +147,11 @@ public final class TomoBlob: ObservableObject {
     private var feelingWas: TomoFeeling?
     private var breathLag: CGFloat = 0     // how far a feeling has moved the breath's phase, slowing or quickening it
     private var slump: (seed: String, age: Int, R: CGFloat, sag: CGFloat, body: Path)?   // the sagged outline, kept
+    // Mossy's patches and greens, and the egg's outline and speckles, kept for the look (and the egg's size): they
+    // come from its seed alone, never from a script or a birthday's morph, so they're the same every frame.
+    private var mossKept: (seed: String, light: Double, patches: [(x: CGFloat, y: CGFloat, r: CGFloat)],
+                           greens: (base: Color, light: Color))?
+    private var eggKept: (seed: String, w: CGFloat, h: CGFloat, outline: Path, spots: [(x: CGFloat, y: CGFloat, r: CGFloat)])?
     private var sway: CGFloat = 0          // the sprout, lagging behind the body's moves
     private var swayVel: CGFloat = 0
     private var jiggle: CGFloat = 0        // the body's own wobble after a hop or a pop
@@ -422,7 +430,7 @@ public final class TomoBlob: ObservableObject {
         if inEgg != shell, cue == nil {                     // into its egg, or out: once any script playing is over
             play(inEgg ? Self.intoEggCue : Self.hatchCue)
             shell = inEgg
-            if shell { nextPeek = now + (cue?.length ?? 0) + .random(in: 1.2...2.5) }
+            if shell { nextPeek = now + (cue?.length ?? 0) + .random(in: 1.2...2.5) } else { onHatch?() }
         }
         if shell, cue == nil, now > nextPeek { peekAt = now; nextPeek = now + .random(in: 4...6.5) }
         stepFeeling(now, dt: dt)
@@ -573,7 +581,8 @@ public final class TomoBlob: ObservableObject {
         let cx = size.width / 2 + (p.dx + look2.x * 0.04) * R
         let middle = size.height / 2 + particleOverhang / 2 + R * 0.1     // where it stands, at rest
         let cy = middle + dy * R
-        let g = form.scale * fit(form: own, R: R, ground: middle + own.bottom * R)
+        let moss = mossShown(p)                             // as drawn, so the size eases as a brush-off sweeps it away
+        let g = form.scale * fit(form: own, R: R, ground: middle + own.bottom * R, moss: moss)
         let feel = feelingShown, breath = breath(at: t)
         rot += feel.curl * 0.1                              // mossy: curled up asleep, tipped a little
 
@@ -597,7 +606,6 @@ public final class TomoBlob: ObservableObject {
         }
         let light = TomoMaterial.Glow(call: callGlowAlpha(now), shine: p.shine)   // from inside (the material's)
         let glow = max(p.glow, shown?.beat.glow ?? 0)
-        let moss = mossShown(p)
         // One form at its own size on its own ground (Reduce Motion's crossfade draws the old one too), its topper faded.
         let tomo = { (layer: GraphicsContext, side: TomoForm, sideAge: Int, topper: CGFloat) in
             let base = side.bottom * R, k = side.scale / form.scale
@@ -628,10 +636,10 @@ public final class TomoBlob: ObservableObject {
         // In its egg (`inEgg`), or going in or coming out: Tomo shows as one piece, as much as the script says, and the
         // egg stands where it stands, over it; as it hatches, the halves fly off behind it, as the first run's do.
         let (shows, egg) = eggShown(p)
-        let behind = egg?.split != nil
+        let behind = egg?.split != nil, room = eggRoom(size: size)
         let scene = { (layer: GraphicsContext) in
             let theEgg = { (at: GraphicsContext) in
-                if let egg { self.drawEgg(at, egg, floor: CGPoint(x: size.width / 2, y: middle + own.bottom * R), R: R, now: now, t: t) }
+                if let egg { self.drawEgg(at, egg, floor: room.floor, top: room.top, R: R, now: now, t: t) }
             }
             if behind { theEgg(layer) }
             if shows >= 0.996 {
@@ -685,6 +693,15 @@ public final class TomoBlob: ObservableObject {
         return shell ? (0, TomoEgg.Frame(resting: true)) : (p.tomo, nil)
     }
 
+    /// Where Tomo's egg stands in a canvas of `size` (its floor, under Tomo at rest) and the highest it may reach (`top`):
+    /// the top of Tomo's frame, below the room the canvas keeps above it for particles (`particleOverhang`), or under a
+    /// ceiling, the ceiling. On the card that keeps it under the header, and on the iPhone on its canvas.
+    func eggRoom(size: CGSize) -> (floor: CGPoint, top: CGFloat) {
+        let R = size.width * 0.27
+        let floor = CGPoint(x: size.width / 2, y: size.height / 2 + particleOverhang / 2 + R * 0.1 + look.form(age).bottom * R)
+        return (floor, max(particleOverhang, ceiling ?? 0))
+    }
+
     /// How far into its breath Tomo is drawn (1: between breaths), `t` seconds after it was born: at its own pace, deeper
     /// asleep or dozing (or as a feeling falls asleep, mossy's), and at the feeling's pace and depth (`breathLag` keeps
     /// it smooth as that pace changes).
@@ -718,13 +735,17 @@ public final class TomoBlob: ObservableObject {
 
     /// Tomo's egg (`inEgg`, the first run's, `TomoEgg`) standing on `floor`, in a script's frame or resting: then it rocks
     /// every few seconds and breathes, wobbles when poked, and now and then lifts its top to peek out with Tomo's eyes.
-    /// It's 1.45 R wide, narrower under a ceiling so its peek stays under it. Under Reduce Motion it doesn't rock or
-    /// wobble, and peeks half as far.
-    private func drawEgg(_ context: GraphicsContext, _ e: TomoEgg.Frame, floor: CGPoint, R: CGFloat, now: Double, t: CGFloat) {
+    /// It's 1.45 R wide, narrower under a ceiling so its peek stays under it. Its top half drops on from the lab's 1.1
+    /// egg heights up, or from as high as the room under `top` allows (`eggRoom`). Under
+    /// Reduce Motion it doesn't rock or wobble, and peeks half as far.
+    func drawEgg(_ context: GraphicsContext, _ e: TomoEgg.Frame, floor: CGPoint, top roomTop: CGFloat, R: CGFloat,
+                 now: Double, t: CGFloat) {
         guard e.alpha > 0.004 else { return }
         var w = R * 1.45
         if let ceiling { w = min(w, max(1, floor.y - ceiling) / (1.28 * 1.1)) }
         let h = w * 1.28, cY = TomoEgg.crackY(height: h)
+        // The room above the egg's top, in egg heights, less its breath and outline.
+        let above = max(0, (floor.y - h * 1.02 - roomTop) / h - 0.02)
         var rot = e.rot, lift: CGFloat = 0
         if e.resting {
             if !reduceMotion {
@@ -738,15 +759,20 @@ public final class TomoBlob: ObservableObject {
             if peek >= 0, peek <= 1 { lift = h * (reduceMotion ? 0.035 : 0.065) * Self.hold(peek) }
         }
         let breath = 1 + sin(t * CGFloat(look.breathRate) + breathLag) * 0.012
-        let outline = TomoEgg.path(width: w, height: h)
+        if eggKept?.seed != look.seed || eggKept?.w != w || eggKept?.h != h {
+            eggKept = (look.seed, w, h, TomoEgg.path(width: w, height: h), TomoEgg.spots(seed: look.seed))
+        }
+        let outline = eggKept?.outline ?? TomoEgg.path(width: w, height: h), spots = eggKept?.spots
         let shell = { (c: GraphicsContext) in
-            TomoEgg.drawShell(c, outline, width: w, height: h, look: self.look, outline: max(0.6, w * 0.012))
+            TomoEgg.drawShell(c, outline, width: w, height: h, look: self.look, outline: max(0.6, w * 0.012), spots: spots)
         }
         let egg = { (layer: GraphicsContext) in
-            if e.split == nil {                                             // its shadow, smaller as it hops
+            // Its shadow, smaller as it hops, and fading as it splits (as the first run's, in 0.4 s of its 0.7 s).
+            let shade = 0.16 * max(0, 1 - (e.split ?? 0) / (0.4 / 0.7))
+            if shade > 0.004 {
                 let rx = w * 0.42 * (1 - min(0.4, e.hop)), ry = w * 0.07
                 layer.fill(Path(ellipseIn: CGRect(x: floor.x - rx, y: floor.y + w * 0.03 - ry, width: rx * 2, height: ry * 2)),
-                           with: .color(.black.opacity(0.16)))
+                           with: .color(.black.opacity(shade)))
             }
             var ctx = layer
             if e.clipFloor { ctx.clip(to: Path(CGRect(x: -1e4, y: -1e4, width: 2e4, height: 1e4 + floor.y))) }
@@ -773,8 +799,8 @@ public final class TomoBlob: ObservableObject {
                                 with: .color(self.paint.ink))
                 }
             }
-            if let k = e.split {
-                TomoEgg.drawSplit(ctx, k: k, width: w, height: h, shell: shell)
+            if let k = e.split {                                            // behind Tomo, so the bottom sinks
+                TomoEgg.drawSplit(ctx, k: k, width: w, height: h, sinks: true, shell: shell)
                 return
             }
             var bottom = ctx
@@ -782,7 +808,10 @@ public final class TomoBlob: ObservableObject {
             bottom.clip(to: TomoEgg.half(crackY: cY, width: w, height: h, top: false))
             shell(bottom)
             var top = ctx
-            if let a = e.top { top.opacity *= Double(min(1, max(0, a.alpha))); top.translateBy(x: 0, y: a.dy * h) }
+            if let a = e.top {                                              // dropping on, from as high as there's room
+                top.opacity *= Double(min(1, max(0, a.alpha)))
+                top.translateBy(x: 0, y: a.dy * h * min(1, above / TomoEgg.dropFrom))
+            }
             top.translateBy(x: 0, y: -lift)
             top.clip(to: TomoEgg.half(crackY: cY, width: w, height: h, top: true))
             shell(top)
@@ -890,7 +919,7 @@ public final class TomoBlob: ObservableObject {
     public func badgeFrame(size: CGSize) -> CGRect {
         let form = look.form(age), R = size.width * 0.27
         let center = CGPoint(x: size.width / 2, y: size.height / 2 + particleOverhang / 2 + R * 0.1)
-        let r = R * form.scale * fit(form: form, R: R, ground: center.y + form.bottom * R)
+        let r = R * form.scale * fit(form: form, R: R, ground: center.y + form.bottom * R, moss: mossShown(pose))
         let a = badgeAnchor(center: center, r: r), u = badgeUnit(r)
         return CGRect(x: a.x - u * 0.15, y: a.y - u * 0.8, width: u * 1.9, height: u * 1.45)
     }
@@ -1071,10 +1100,16 @@ public final class TomoBlob: ObservableObject {
     /// sprout that grows and sways on the sway spring (still under Reduce Motion). Fixed fills from the clock.
     private func drawMoss(_ ctx: GraphicsContext, inner: GraphicsContext, form: TomoForm, R: CGFloat, top: CGFloat,
                           amount: CGFloat, t: CGFloat) {
-        let greens = TomoFeeling.mossColours(headLightness: look.drawnTones.head.l)
+        let light = look.drawnTones.head.l
+        if mossKept?.seed != look.seed || mossKept?.light != light {
+            mossKept = (look.seed, light, TomoFeeling.mossPatches(seed: look.markSeed),
+                        TomoFeeling.mossColours(headLightness: light))
+        }
+        guard let kept = mossKept else { return }
+        let greens = kept.greens
         let eyes = (form.faceY + look.eyeY - 0.3) * R
         var patches = Path(), lights = Path()
-        for (i, m) in TomoFeeling.mossPatches(seed: look.markSeed).enumerated() {
+        for (i, m) in kept.patches.enumerated() {
             let k = TomoFeeling.patchGrowth(i, amount: amount)
             guard k > 0 else { continue }
             let x = m.x * form.rx * R, y = top + (eyes - top) * m.y, r = m.r * R * k, l = r * 0.26
@@ -1164,9 +1199,9 @@ public final class TomoBlob: ObservableObject {
     /// How much smaller than its age's size Tomo is drawn to stand under `ceiling` (1: its own size), for where its
     /// ground is at rest (canvas points): its body and topper (and mossy's sprout), stretched and hopping as it does when
     /// idle, reach no higher than the ceiling. Never under half its size.
-    func fit(form: TomoForm, R: CGFloat, ground: CGFloat) -> CGFloat {
+    func fit(form: TomoForm, R: CGFloat, ground: CGFloat, moss: CGFloat) -> CGFloat {
         guard let ceiling else { return 1 }
-        let top = max(standingTop(form), form.top + Self.sproutReach(moss: feelingShown.moss))
+        let top = max(standingTop(form), form.top + Self.sproutReach(moss: moss))
         let tall = (top + form.bottom) * R * form.scale * Self.idleStretch
         let room = ground - ceiling - Self.idleLift * R
         return tall > room ? max(0.5, room / tall) : 1
@@ -1865,7 +1900,7 @@ public final class TomoBlob: ObservableObject {
                     let rise = Self.eOut(Self.seg(e, 0.5, 1.2)), drop = Self.seg(e, 1, 1.6), land = Self.seg(e, 1.6, 2.4)
                     p.tomo *= 1 - Self.seg(e, 1.3, 1.6)
                     p.egg = TomoEgg.Frame(rot: sin(land * 14) * 0.07 * (1 - land),
-                                          top: .init(dy: -(1 - Self.eIn(drop)) * 1.1, alpha: Self.seg(e, 1, 1.15)),
+                                          top: .init(dy: -(1 - Self.eIn(drop)) * TomoEgg.dropFrom, alpha: Self.seg(e, 1, 1.15)),
                                           bottom: .init(dy: (1 - rise) * 0.62, alpha: Self.seg(e, 0.5, 0.65)), clipFloor: true)
                 }
             case .hatch(let calm):                 // the first run's hatch, in seconds (`e`)
@@ -3208,14 +3243,17 @@ extension TomoBlob {
     static func mossSelfTest(_ check: (Bool, String) -> Void) {
         var t = 100.0
         let look = TomoLook(seed: "moss")
-        func blob(_ f: TomoFeeling?, reduce: Bool = false, dozeAfter: Double = 1e9) -> TomoBlob {
+        func blob(_ f: TomoFeeling?, reduce: Bool = false, dozeAfter: Double = 1e9, of other: TomoLook? = nil, age: Int = 1,
+                  ceiling: CGFloat? = nil, overhang: CGFloat = 0) -> TomoBlob {
             t = 100
-            let b = TomoBlob(look: look, material: .own)
+            let b = TomoBlob(look: other ?? look, material: .own)
             b.reduceMotion = reduce
             b.dice = TomoDice(seed: 258)
             b.dozeAfter = dozeAfter
             b.clock = { t }
-            b.setGrowth(1)
+            b.particleOverhang = overhang
+            b.ceiling = ceiling
+            b.setGrowth(CGFloat(age))
             b.step()
             b.feeling = f                                   // after it appears, so it eases in
             return b
@@ -3301,6 +3339,50 @@ extension TomoBlob {
               && [lively, calm].allSatisfy { $0.longest <= Self.momentParticleLife && $0.leftAtEnd == 0 && abs($0.endedAt - 1.5) < 0.05 },
               "the brush-off's 12 spores and 4 sparkles (4 and 1, slower, under Reduce Motion) live 2 s at most and are gone "
               + "when it ends at 1.5 s")
+
+        // Under a ceiling (small Tomo on a Mac without a notch, ceilingSelfTest's room) mossy is drawn smaller so its
+        // sprout fits (`fit`). As the brush-off sweeps the moss away, Tomo grows back to its size a little each frame,
+        // never in a jump. Under Reduce Motion, so nothing else moves: the size Tomo is drawn at in every frame of the
+        // brush-off, and rendered, its drawn width the frame before it starts and in its first frames.
+        let side: CGFloat = 20 / 0.6, overhang: CGFloat = 72
+        let room = CGSize(width: side, height: side + overhang), ceiling = room.height / 2 + overhang / 2 - 15 + 1
+        var step: CGFloat = 0, stepAt = "", widest: CGFloat = 0, widestAt = ""
+        for each in [TomoLook.mascot] + (0..<8).map({ TomoLook(seed: "ceiling-\($0)") }) {
+            for age in 0..<TomoLook.ages {
+                let b = blob(.mossy, reduce: true, of: each, age: age, ceiling: ceiling, overhang: overhang)
+                frames(b, 12)                               // grown over
+                let form = each.form(age), R = side * 0.27
+                let ground = room.height / 2 + overhang / 2 + R * 0.1 + form.bottom * R
+                func fitted() -> CGFloat { b.fit(form: form, R: R, ground: ground, moss: b.mossShown(b.pose)) }
+                var last = fitted()
+                #if os(macOS)
+                var width = drawnBox(size: room, scale: 4) { c, sz in b.draw(c, size: sz) }?.width
+                #endif
+                b.feeling = nil
+                frames(b, 1.5) { s in
+                    let now = fitted()
+                    if abs(now - last) > step {
+                        step = abs(now - last)
+                        stepAt = String(format: "%@ age %d at %.2f s", each.seed, age + 1, s)
+                    }
+                    last = now
+                    #if os(macOS)
+                    if s < 0.06, let before = width,
+                       let after = drawnBox(size: room, scale: 4, { c, sz in b.draw(c, size: sz) })?.width {
+                        let d = abs(after - before) / before
+                        if d > widest {
+                            widest = d
+                            widestAt = String(format: "%@ age %d at %.2f s", each.seed, age + 1, s)
+                        }
+                        width = after
+                    }
+                    #endif
+                }
+            }
+        }
+        check(step <= 0.06 && widest <= 0.08,
+              String(format: "under a ceiling, brushing its moss off, Tomo grows back to its size smoothly: at most %.1f%% a "
+                     + "frame (%@), and drawn, %.1f%% wider in a frame (%@)", step * 100, stepAt, widest * 100, widestAt))
     }
 
     /// Back into its egg and out again (#258), on a clock only the check moves: the egg closes round Tomo, asleep, in
@@ -3416,6 +3498,32 @@ extension TomoBlob {
         check(waited && partying.shell && partying.cue == nil,
               "a level-up already playing finishes before Tomo goes into its egg")
 
+        // The hatch's sounds come with the hatch (`onHatch`), once, as it starts: at once from its egg; after the
+        // into-egg when Hatch comes while Tomo is still going in; and never when it's back out before it went in.
+        func heard(_ b: TomoBlob, _ run: (TomoBlob) -> Void) -> [Double] {
+            var at: [Double] = []
+            b.onHatch = { at.append(t) }
+            run(b)
+            frames(b, 6)
+            return at
+        }
+        var clicked = 0.0, wentIn = 0.0
+        let resting2 = heard(blob(inEgg: true)) { b in frames(b, 1); clicked = t; b.inEgg = false }
+        let restingAt = resting2.first.map { $0 - clicked } ?? -1
+        let goingIn = heard(blob()) { b in
+            b.inEgg = true
+            frames(b, 1.0 / 60)
+            wentIn = t
+            frames(b, 0.5)
+            b.inEgg = false
+        }
+        let late = goingIn.first.map { $0 - wentIn } ?? -1
+        let notIn = heard(blob()) { b in b.inEgg = true; b.inEgg = false }
+        check(resting2.count == 1 && restingAt >= 0 && restingAt < 0.02 && goingIn.count == 1
+              && abs(late - Self.intoEggCue.length) < 0.03 && notIn.isEmpty,
+              String(format: "the hatch's sounds play once as the hatch starts: at once from its egg, %.2f s after it began "
+                     + "going in when Hatch comes during the into-egg, and never when it's back out before it went in", late))
+
         // It comes out as it went in: every look, age and feeling, lively and calm.
         var changed: [String] = []
         let feelings: [TomoFeeling?] = [nil] + TomoFeeling.allCases
@@ -3486,6 +3594,49 @@ extension TomoBlob {
                      + "frame, asking or not), and under a ceiling it rests and peeks below it", R * 1.55, frame.width)
               + (wide.isEmpty ? "" : ": \(wide.prefix(3).joined(separator: "; "))")
               + (over.isEmpty ? "" : ": \(over.prefix(3).joined(separator: "; "))"))
+
+        // Going in and hatching, in every frame of both scripts, the egg's halves stay in Tomo's room on each host: on
+        // the iPhone's canvas (120 pt, no room above it), under the header on the card (its bottom is 48 pt down Tomo's
+        // canvas), and under the ceiling for small Tomo on a Mac without a notch. Drawn in a canvas with room above it,
+        // so what reaches past the top is seen.
+        struct Host { var name: String; var size: CGSize; var overhang: CGFloat; var ceiling: CGFloat?; var top: CGFloat }
+        let hosts = [Host(name: "iPhone", size: CGSize(width: 120, height: 120), overhang: 0, ceiling: nil, top: 0),
+                     Host(name: "card", size: CGSize(width: 120, height: 192), overhang: 72, ceiling: nil, top: 48),
+                     Host(name: "small Tomo", size: room, overhang: overhang, ceiling: roomTop + 1, top: roomTop)]
+        var out: [String] = [], highest: [String: CGFloat] = [:], drawn = 0
+        for host in hosts {
+            let pad: CGFloat = 60
+            for age in 0..<TomoLook.ages {
+                let b = blob(.mascot, age: age)
+                b.particleOverhang = host.overhang
+                b.ceiling = host.ceiling
+                for into in [true, false] {
+                    b.inEgg = into
+                    frames(b, into ? 2.5 : 2.9) { s in
+                        guard let egg = b.eggShown(b.pose).egg else { return }
+                        let size = host.size, born = b.born, now = t
+                        let box = drawnBox(size: CGSize(width: size.width, height: size.height + pad), scale: 1) { ctx, _ in
+                            var c = ctx
+                            c.translateBy(x: 0, y: pad)
+                            let at = b.eggRoom(size: size)
+                            b.drawEgg(c, egg, floor: at.floor, top: at.top, R: size.width * 0.27, now: now, t: CGFloat(now - born))
+                        }
+                        guard let y = box.map({ $0.minY - pad }) else { return }
+                        drawn += 1
+                        highest[host.name] = min(highest[host.name] ?? .infinity, y)
+                        if y < host.top - 0.5 {
+                            out.append(String(format: "%@ age %d %@ at %.2f s: %.1f pt over", host.name, age + 1,
+                                              into ? "going in" : "hatching", s, host.top - y))
+                        }
+                    }
+                }
+            }
+        }
+        check(out.isEmpty && drawn > 1000,
+              "going into its egg and hatching, the egg's halves stay in Tomo's room in every frame: on the iPhone's canvas "
+              + "(highest \(highest["iPhone"].map { String(format: "%.0f", $0) } ?? "-") pt), under the card's header "
+              + "(\(highest["card"].map { String(format: "%.0f", $0) } ?? "-") pt, below 48) and under small Tomo's ceiling"
+              + (out.isEmpty ? "" : ": \(out.count) over, \(out.prefix(3).joined(separator: "; "))"))
         #endif
     }
 }
@@ -3646,12 +3797,12 @@ extension TomoBlob {
                 b.ceiling = roomTop + 1
                 b.setGrowth(CGFloat(age))
                 let form = look.form(age), R = side * 0.27
-                fits.append(b.fit(form: form, R: R, ground: size.height / 2 + overhang / 2 + R * 0.1 + form.bottom * R))
+                fits.append(b.fit(form: form, R: R, ground: size.height / 2 + overhang / 2 + R * 0.1 + form.bottom * R, moss: 0))
             }
         }
         let same = fits.filter { $0 == 1 }.count, least = fits.min() ?? 0
         check(same > 0 && least >= 0.5 && TomoBlob(look: .mascot, material: .own).fit(form: TomoLook.mascot.form(0), R: 9,
-                                                                                       ground: 100) == 1,
+                                                                                       ground: 100, moss: 0) == 1,
               String(format: "only a form too tall for the room is drawn smaller (%d of %d at their size, the smallest at %.0f%%); no ceiling, no change",
                      same, fits.count, least * 100))
     }
@@ -3662,8 +3813,9 @@ extension TomoBlob {
 /// Tomo on its own: a Canvas redrawn every frame. Shells that know where the pointer is set `gaze`.
 /// `look`: nil for the learner's own Tomo; `material`: what it's made of (`TomoMaterial.own` for the learner's own).
 /// `hello`: it says hello when it first appears (the iPhone's play screen, as the app starts). `feeling`: how it feels
-/// (`TomoBlob.feeling`); `inEgg`: back in its egg, and `hatchWord` what it says as it hatches (`TomoBlob.inEgg`). It
-/// follows Reduce Motion (`TomoMotion`).
+/// (`TomoBlob.feeling`); `inEgg`: back in its egg, `hatchWord` what it says as it hatches (`TomoBlob.inEgg`), and
+/// `onHatch` what the host does as the hatch starts (its sounds, `TomoGame.hatchSounds`). It follows Reduce Motion
+/// (`TomoMotion`).
 public struct TomoBlobView: View {
     /// The room its canvas has beyond its frame on each side, as a share of the frame's width, so a droopy Tomo's flopped
     /// ears aren't cut off by the canvas's edge (as the Mac island's `canvasRoom`). Tomo is still drawn at the frame's
@@ -3679,11 +3831,12 @@ public struct TomoBlobView: View {
     public var feeling: TomoFeeling?
     public var inEgg: Bool
     public var hatchWord: String?
+    public var onHatch: (@MainActor () -> Void)?
     public var gaze: (() -> CGPoint)?
 
     public init(state: BotState = .idle, growth: CGFloat, look: TomoLook? = nil, material: TomoMaterial,
                 hello: Bool = false, feeling: TomoFeeling? = nil, inEgg: Bool = false, hatchWord: String? = nil,
-                gaze: (() -> CGPoint)? = nil) {
+                onHatch: (@MainActor () -> Void)? = nil, gaze: (() -> CGPoint)? = nil) {
         _blob = StateObject(wrappedValue: TomoBlob(look: look, material: material, motion: .shared))
         self.state = state
         self.growth = growth
@@ -3691,6 +3844,7 @@ public struct TomoBlobView: View {
         self.feeling = feeling
         self.inEgg = inEgg
         self.hatchWord = hatchWord
+        self.onHatch = onHatch
         self.gaze = gaze
     }
 
@@ -3722,9 +3876,16 @@ public struct TomoBlobView: View {
         .onAppear {
             blob.setState(state, force: true)
             blob.setGrowth(growth)
+            blob.onHatch = afterTheFrame(onHatch)
             if hello, !greeted { greeted = true; blob.hello() }
         }
         .tomoReactions(blob)
+    }
+
+    /// `run`, after the frame that calls it is drawn rather than in it (`TomoBlob.onHatch` is called from `step`).
+    private func afterTheFrame(_ run: (@MainActor () -> Void)?) -> (@MainActor () -> Void)? {
+        guard let run else { return nil }
+        return { DispatchQueue.main.async { MainActor.assumeIsolated { run() } } }
     }
 }
 

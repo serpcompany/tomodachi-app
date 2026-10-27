@@ -86,12 +86,13 @@ for any change of shape. The morph is Tomo's, not the script's: a newer script d
 - Back in its egg (`inEgg`, `TomoEgg.swift`, [#258](https://github.com/serpcompany/tomodachi-app/issues/258)): Tomo
   curls up and the first run's egg, speckled in its colours, closes round it (`intoEggCue`); there it rests, rocking
   now and then and peeking out every 4 to 6.5 s, and a poke wobbles it and makes it peek. Set back to false, it hatches
-  as the first run's egg does (`hatchCue`): the egg shakes as its crack runs across, the halves fly apart in a few
-  sparkles, and Tomo springs out saying `hatchWord` (the target pack's hello, which the host passes in; ばあ！ in
+  as the first run's egg does (`hatchCue`): the egg shakes as its crack runs across, the halves part behind Tomo in a
+  few sparkles (the bottom sinks into the floor), and Tomo springs out saying `hatchWord` (the target pack's hello, which the host passes in; ばあ！ in
   Japanese). It comes out as it went in: its seed, age, form and feeling stay. Under Reduce Motion Tomo fades into the
   egg and out of it with a glow and star eyes. In its egg it wears no badge or question mark and doesn't doze or say hello; a big moment
-  that comes then plays behind the shell, only its particles showing. Only the Testing menu sets it for now
-  (`TomoGame.inEgg`, which plays the first run's hatch sounds; `TOMO_EGG` and `TOMO_HATCH`). The look is the states
+  that comes then plays behind the shell, only its particles showing. The halves stay in Tomo's room (`eggRoom`): its
+  frame, under a ceiling. Only the Testing menu sets it for now (`TomoGame.inEgg`; `TOMO_EGG` and `TOMO_HATCH`), and
+  the first run's hatch sounds play as the hatch starts (`onHatch`). The look is the states
   lab's Shell on the first run's egg, which `TomoEggView` draws with `TomoEgg` too.
 - When it says hello: the island the first time Tomo shows after launch, greeting the launch visit's card instead of
   dripping into it, and when the Mac wakes (`TomoCharacterView.saysHello`); the iPhone's play screen when it first

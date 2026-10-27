@@ -304,16 +304,15 @@ public final class TomoGame: ObservableObject {
     @Published public var feeling: TomoFeeling? = ProcessInfo.processInfo.environment["TOMO_FEELING"].flatMap(TomoFeeling.init(rawValue:))
 
     /// Tomo back in its egg (#258, `TomoBlob.inEgg`), passed to every Tomo drawn; false again, it hatches as the first
-    /// run's egg does, with its sounds and hello, and comes out as it went in. Only the Testing menu sets it for now, or
-    /// TOMO_EGG=<s> and TOMO_HATCH=<s> that many seconds after launch (TOMO_EGG=0: in its egg from launch). Never saved
-    /// or synced, and nothing in the game reads it.
-    @Published public var inEgg = ProcessInfo.processInfo.environment["TOMO_EGG"] == "0" {
-        didSet { if oldValue, !inEgg { hatchSounds() } }
-    }
+    /// run's egg does, with its sounds and hello (`hatchSounds`, as the hatch starts), and comes out as it went in. Only
+    /// the Testing menu sets it for now, or TOMO_EGG=<s> and TOMO_HATCH=<s> that many seconds after launch (TOMO_EGG=0:
+    /// in its egg from launch). Never saved or synced, and nothing in the game reads it.
+    @Published public var inEgg = ProcessInfo.processInfo.environment["TOMO_EGG"] == "0"
 
     /// The first run's hatch, heard: a boing, the crack's sound as the shell splits, and Tomo's hello as it comes out
-    /// (`TomoOnboarding.hatch`, on `TomoBlob`'s hatch timing).
-    private func hatchSounds() {
+    /// (`TomoOnboarding.hatch`, on `TomoBlob`'s hatch timing). The Tomo that hatches plays it as its hatch starts
+    /// (`TomoBlob.onHatch`), so it's heard only when a hatch is seen, and with it.
+    public func hatchSounds() {
         TomoSounds.shared.play(.boing)
         DispatchQueue.main.asyncAfter(deadline: .now() + TomoEgg.crackTime) {
             MainActor.assumeIsolated {
